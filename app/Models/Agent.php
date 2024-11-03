@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Agent extends Model
 {
@@ -40,7 +41,7 @@ class Agent extends Model
 
     public function todayQueues()
     {
-        return $this->hasMany(QueueCount::class, 'agent', 'extension')->where('queuecount.date','>',Carbon::now()->startOfDay());
+        return $this->hasMany(QueueCount::class, 'agent', 'extension')->where('queuecount.date', '>', Carbon::now()->startOfDay());
     }
 
     public function getFullNameAttribute()
@@ -66,12 +67,12 @@ class Agent extends Model
 
     public function user()
     {
-        return $this->belongsTo(User::class,'id','agent_id');
+        return $this->belongsTo(User::class, 'id', 'agent_id');
     }
 
     public function extensionDetails()
     {
-        return $this->belongsTo(Extension::class,'extension','extension');
+        return $this->belongsTo(Extension::class, 'extension', 'extension');
     }
 
     public function scopeUsers($query)
@@ -86,6 +87,19 @@ class Agent extends Model
 
     public function scopeCallApplicable($query)
     {
-        $query->whereIn('user_type_id',[3,4,5,6]);
+        $query->whereIn('user_type_id', [3, 4, 5, 6]);
+    }
+
+
+    public function scopeMiscallStatus($query)
+    {
+        $query->addSubSelect('miscall_count', function ($query) {
+
+            $query->selectRaw('IFNULL(COUNT(*),0)')
+                ->from('cdr')
+                ->whereColumn(DB::raw("REGEXP_SUBSTR(cdr.dstchannel, '(?<=/)[0-9]+(?=-)')"), 'au_user.extension')
+                ->whereIn('disposition', ['NO ANSWER','Busy'])
+                ->whereBetween('calldate',[Carbon::now()->startOfDay(),Carbon::now()->endOfDay()]);
+        });
     }
 }

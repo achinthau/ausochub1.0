@@ -21,7 +21,10 @@ class Index extends Component
 
     public function mount()
     {
-        $this->user = User::where('id', Auth::id())->with(['agent',
+        $this->user = User::where('id', Auth::id())->with([
+            'agent' => function ($q) {
+                $q->miscallStatus();
+            },
             'agent.todayQueues' => function ($q) {
                 $q->answered()->today();
             }
@@ -30,7 +33,7 @@ class Index extends Component
 
 
         $this->skills = Auth::user()->skills ?  Auth::user()->skills->skill_ids : [];
-        $this->totalBreakTime = AgentBreakSummary::whereBetween('breaktime', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->where('agentid',Auth::user()->agent_id)->selectRaw('SEC_TO_TIME(SUM(TIMESTAMPDIFF(SECOND, breaktime, unbreaktime))) AS today_total_break')->first()->today_total_break;
+        $this->totalBreakTime = AgentBreakSummary::whereBetween('breaktime', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->where('agentid', Auth::user()->agent_id)->selectRaw('SEC_TO_TIME(SUM(TIMESTAMPDIFF(SECOND, breaktime, unbreaktime))) AS today_total_break')->first()->today_total_break;
         $currentSkills = Auth::user()->currentQueues()->active()->get();
 
         foreach ($currentSkills as $key => $value) {
@@ -59,7 +62,7 @@ class Index extends Component
 
     public function updatedSelectedSkills($value, $name)
     {
-        
+
 
         $data = [
             [
@@ -69,7 +72,7 @@ class Index extends Component
             [
                 'name' => 'type',
                 // 'contents' => 'SIP'
-                'contents' =>Auth::user()->agent->extensionDetails->exten_type
+                'contents' => Auth::user()->agent->extensionDetails->exten_type
             ],
             [
                 'name' => 'agentip',

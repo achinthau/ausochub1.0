@@ -71,8 +71,8 @@
                                     </svg>
                                 @else
                                     @php
-                                        // $inCall = Cache::get('agent-in-call-' . $user->id);
-                                        $inCall = true;
+                                        $inCall = Cache::get('agent-in-call-' . $user->id);
+                                        // $inCall = true;
                                     @endphp
                                     @if ($inCall)
                                         <div x-data="{ open: false }">
@@ -88,6 +88,7 @@
                                             </svg>
 
                                             <div x-show="open" x-cloak
+                                            
                                                 class="flex flex-col items-center space-y-3 mt-4">
                                                 @can('is-admin')
                                                     <div class="flex space-x-3">

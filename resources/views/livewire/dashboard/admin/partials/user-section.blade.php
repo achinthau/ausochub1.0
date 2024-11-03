@@ -71,82 +71,71 @@
                                     </svg>
                                 @else
                                     @php
-                                        $inCall = Cache::get('agent-in-call-' . $user->id);
+                                        // $inCall = Cache::get('agent-in-call-' . $user->id);
+                                        $inCall = true;
                                     @endphp
                                     @if ($inCall)
-                                    <div class="relative inline-block" x-data="{ showSubButtons: false }">
-                                        <!-- Main Icon -->
-                                        <svg 
-                                            width="20" 
-                                            height="20" 
-                                            class="text-green-700 @can('is-admin') cursor-pointer @endcan" 
-                                            @can('is-admin') 
-                                                @click="showSubButtons = !showSubButtons" 
-                                            @endcan
-                                            xmlns="http://www.w3.org/2000/svg" 
-                                            viewBox="0 0 24 24" 
-                                            fill="currentColor"
-                                        >
-                                            <path d="M0 0h24v24H0z" fill="none"></path>
-                                            <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"></path>
-                                        </svg>
-                                
-                                        <!-- Callout Box with Sub-buttons -->
-                                        <div 
-                                            x-show="showSubButtons" 
-                                            class="absolute top-8 left-0 p-2 bg-white border border-gray-300 shadow-lg rounded"
-                                            x-transition 
-                                            @click.away="showSubButtons = false"
-                                        >
-                                            <!-- Sub-buttons for L, W, and B -->
-                                            @can('is-admin')
-                                            <div 
-                                                x-show="showSubButtons" 
-                                                class="absolute top-8 left-0 p-2 bg-white border border-gray-300 shadow-lg rounded"
-                                                x-transition 
-                                                @click.away="showSubButtons = false"
-                                            >
-                                                <!-- Sub-buttons for L, W, and B -->
-                                            @can('is-admin')
-                                                <div 
-                                                    x-show="showSubButtons" 
-                                                    class="absolute top-8 left-0 p-2 bg-white border border-gray-300 shadow-lg rounded"
-                                                    x-transition 
-                                                    @click.away="showSubButtons = false"
-                                                >
-                                                    <!-- Sub-buttons for L, W, and B -->
-                                                    <div class="flex space-x-1">
-                                                        <!-- Listen Call (L) -->
-                                                        <button 
-                                                            class="px-1 py-0.5 bg-blue-500 text-white text-xs rounded" 
+                                        <div x-data="{ open: false }">
+
+                                            <svg width="20" height="20" @click="open = !open"
+                                                class="text-green-700 @can('is-admin') cursor-pointer @endcan"
+                                                {{-- @can('is-admin') wire:click="listenCall({{ $user->extension }})" @endcan --}} xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 24 24" fill="currentColor">
+                                                <path d="M0 0h24v24H0z" fill="none"></path>
+                                                <path
+                                                    d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z">
+                                                </path>
+                                            </svg>
+
+                                            <div x-show="open" x-cloak
+                                                class="flex flex-col items-center space-y-3 mt-4">
+                                                @can('is-admin')
+                                                    <div class="flex space-x-3">
+                                                        <svg class="w-6 h-6 text-red-600 @can('is-admin') cursor-pointer @endcan"
+                                                            viewBox="0 0 24 24"
                                                             wire:click="listenCall('{{ $user->extension }}', '{{ $user->extensionDetails->exten_type }}', 'L')"
-                                                        >
-                                                            L
-                                                        </button>
-                                                        
-                                                        <!-- Whisper Call (W) -->
-                                                        <button 
-                                                            class="px-1 py-0.5 bg-green-500 text-white text-xs rounded" 
-                                                            wire:click="listenCall('{{ $user->extension }}', '{{ $user->extensionDetails->exten_type }}', 'W')"
-                                                        >
-                                                            W
-                                                        </button>
-                                                        
-                                                        <!-- Barge Call (B) -->
-                                                        <button 
-                                                            class="px-1 py-0.5 bg-red-500 text-white text-xs rounded" 
-                                                            wire:click="listenCall('{{ $user->extension }}', '{{ $user->extensionDetails->exten_type }}', 'B')"
-                                                        >
-                                                            B
-                                                        </button>
+                                                            fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                            <path
+                                                                d="M4 12H7C8.10457 12 9 12.8954 9 14V19C9 20.1046 8.10457 21 7 21H4C2.89543 21 2 20.1046 2 19V12C2 6.47715 6.47715 2 12 2C17.5228 2 22 6.47715 22 12V19C22 20.1046 21.1046 21 20 21H17C15.8954 21 15 20.1046 15 19V14C15 12.8954 15.8954 12 17 12H20C20 7.58172 16.4183 4 12 4C7.58172 4 4 7.58172 4 12Z">
+                                                            </path>
+                                                        </svg>
                                                     </div>
-                                                </div>
-                                            @endcan
+                                                    <div class="flex space-x-3 ">
+                                                        <svg class="w-6 h-6 text-orange-400 @can('is-admin') cursor-pointer @endcan"
+                                                            viewBox="0 0 24 24"
+                                                            wire:click="listenCall('{{ $user->extension }}', '{{ $user->extensionDetails->exten_type }}', 'W')"
+                                                            fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                                                            <path
+                                                                d="M2.5 7C2.5 9.20914 4.29086 11 6.5 11C8.70914 11 10.5 9.20914 10.5 7C10.5 4.79086 8.70914 3 6.5 3C4.29086 3 2.5 4.79086 2.5 7ZM2 21V16.5C2 14.0147 4.01472 12 6.5 12C8.98528 12 11 14.0147 11 16.5V21H2ZM17.5 11C15.2909 11 13.5 9.20914 13.5 7C13.5 4.79086 15.2909 3 17.5 3C19.7091 3 21.5 4.79086 21.5 7C21.5 9.20914 19.7091 11 17.5 11ZM13 21V16.5C13 14.0147 15.0147 12 17.5 12C19.9853 12 22 14.0147 22 16.5V21H13Z">
+                                                            </path>
+                                                        </svg>
+                                                    </div>
+                                                    <div class="flex space-x-3">
+                                                        <svg class="w-6 h-6 text-green-500 @can('is-admin') cursor-pointer @endcan"
+                                                            xmlns="http://www.w3.org/2000/svg"
+                                                            xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1"
+                                                            wire:click="listenCall('{{ $user->extension }}', '{{ $user->extensionDetails->exten_type }}', 'B')"
+                                                            viewBox="0 0 16 16" fill="currentColor">
+                                                            <path fill="currentColor"
+                                                                d="M5 16v-5.3c-0.6-0.3-1-1-1-1.7v-4c0-0.7 0.4-1.3 1-1.7 0-0.1 0-0.2 0-0.3 0-1.1-0.9-2-2-2s-2 0.9-2 2c0 1.1 0.9 2 2 2h-2c-0.5 0-1 0.5-1 1v4c0 0.5 0.5 1 1 1v5h4z">
+                                                            </path>
+                                                            <path fill="currentColor"
+                                                                d="M15 5h-2c1.1 0 2-0.9 2-2s-0.9-2-2-2-2 0.9-2 2c0 0.1 0 0.2 0 0.3 0.6 0.4 1 1 1 1.7v4c0 0.7-0.4 1.4-1 1.7v5.3h4v-5c0.5 0 1-0.5 1-1v-4c0-0.5-0.5-1-1-1z">
+                                                            </path>
+                                                            <path fill="currentColor"
+                                                                d="M10 2c0 1.105-0.895 2-2 2s-2-0.895-2-2c0-1.105 0.895-2 2-2s2 0.895 2 2z">
+                                                            </path>
+                                                            <path fill="currentColor"
+                                                                d="M10 4h-4c-0.5 0-1 0.5-1 1v4c0 0.5 0.5 1 1 1v6h4v-6c0.5 0 1-0.5 1-1v-4c0-0.5-0.5-1-1-1z">
+                                                            </path>
+                                                        </svg>
+
+                                                    </div>
+                                                @endcan
+
                                             </div>
-                                        @endcan
                                         </div>
-                                    </div>
-                                @endif
+                                    @endif
 
                                 @endif
                             @else

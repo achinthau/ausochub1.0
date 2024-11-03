@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Http\Livewire\Tables;
+
+use App\Models\QueueCount;
+use App\Models\Agent;
+use Mediconesystems\LivewireDatatables\Column;
+use Mediconesystems\LivewireDatatables\DateColumn;
+use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
+use Illuminate\Support\Facades\DB;
+
+class CallQueueTable extends LivewireDatatable
+{
+    public $hideable = 'select';
+    public $exportable = true;
+
+    public function builder()
+    {
+        return QueueCount::query()
+            ->selectRaw("date, queuename, ani, 
+                CASE 
+                    WHEN COUNT(*) = 3 THEN 'answered'
+                    ELSE 'abandoned' 
+                END AS queue_status,
+                CASE 
+                    WHEN COUNT(*) = 3 THEN MAX(CASE WHEN status = 2 THEN agent END)
+                    ELSE NULL
+                END AS queue_agent")
+            ->groupBy('date', 'uniqueid');
+            // ->orderByRaw('Date');
+    }
+
+    public function columns()
+    {
+        return [
+            Column::name('queuecount.date')->label('Date')->filterable(),
+            Column::name('queuecount.queuename')->label('Queue Name')->filterable(),
+            Column::name('queuecount.ani')->label('Contact')->filterable(),
+            Column::name('queuecount.uniqueid')->label('Unique')->filterable(),
+            Column::callback(['status'], function ($status) {
+                return $status == 'answered' ? 'Answered' : 'Abandoned';
+            })->label('Status')->filterable(),
+            Column::callback(['agent'], function ($agent) {
+                return $agent ? $agent : 'N/A';
+            })->label('Agent')->filterable(),
+        ];
+    }
+}

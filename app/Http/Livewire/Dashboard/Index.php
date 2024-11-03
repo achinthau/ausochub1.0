@@ -57,6 +57,15 @@ class Index extends Component
         GROUP BY a.queuename;
         ");
 
+        $this->user = User::where('id', Auth::id())->with([
+            'agent' => function ($q) {
+                $q->miscallStatus();
+            },
+            'agent.todayQueues' => function ($q) {
+                $q->answered()->today();
+            }
+        ])->first();
+
         return view('livewire.dashboard.index');
     }
 

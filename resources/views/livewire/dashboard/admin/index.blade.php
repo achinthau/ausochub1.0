@@ -31,7 +31,7 @@
                             name='abandoned' iconColor="text-red-400" />
                         <x-dashboard.box title="Onging" :value="$_on_going" iconBackground="bg-green-100"
                             name='phone-answer' iconColor="text-green-400" />
-                        <x-dashboard.box title="Wating" :value="$queue_wating_count" iconBackground="bg-orange-100" name='waiting'
+                        <x-dashboard.box title="Waiting" :value="$queue_wating_count" iconBackground="bg-orange-100" name='waiting'
                             iconColor="text-orange-400" />
 
 

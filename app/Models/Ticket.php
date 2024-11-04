@@ -37,7 +37,7 @@ class Ticket extends Model
 
     public function getTicketTitleAttribute()
     {
-        return ($this->ticket_category_id == 3 ? "Order" : "Ticket") . " #" . $this->ticket_ref;
+        return ($this->ticket_category_id == 3 ? "Order" : "Ticket") . " #" . $this->id;
     }
 
     public function getBorderColorAttribute()

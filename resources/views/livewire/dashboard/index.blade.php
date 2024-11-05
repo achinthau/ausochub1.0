@@ -37,13 +37,15 @@
                 <div class="flex space-x-4">
                     <div class="w-3/4 space-y-4">
                         <div class="grid grid-cols-3 space-x-4">
-                            <x-dashboard.box title="Total Calls" :value="$user->agent->todayQueues->count()" iconBackground="bg-blue-100"
+                            <x-dashboard.box title="Answered" :value="$user->agent->todayQueues->count()" iconBackground="bg-blue-100"
                                 name='phone' iconColor="text-blue-400" />
-                            <x-dashboard.box title="Additional" :value="$user->agent->todayQueues->count()" iconBackground="bg-green-100"
-                                name='phone-answer' iconColor="text-green-400" />
+                           {{--  <x-dashboard.box title="Missed" :value="$user->agent->todayQueues->count()" iconBackground="bg-red-100"
+                                name='phone-missed' iconColor="text-red-400" /> --}}
+                            <x-dashboard.box title="Missed" :value="$user->agent->miscall_count" iconBackground="bg-red-100"
+                                name='phone-missed' iconColor="text-red-400" />
                             <x-dashboard.box title="Total Break" :value="$totalBreakTime" iconBackground="bg-yellow-100"
                                 name='break' iconColor="text-yellow-400" />
-                            
+
                         </div>
 
                         <div class="grid grid-cols-3 space-x-4">
@@ -57,13 +59,12 @@
                                         <label
                                             class="flex-1  text-sm font-medium text-secondary-700 dark:text-gray-400 mr-2">
                                             {{ $skill }}
-					</label>
-					 @if (config('auso.allow_skill_change'))
-
-                                        <x-toggle lg wire:model="selectedSkills.{{ $skill }}"
-                                            value="{{ $skill }}" />
-					@endif
-				    </div>
+                                        </label>
+                                        @if (config('auso.allow_skill_change'))
+                                            <x-toggle lg wire:model="selectedSkills.{{ $skill }}"
+                                                value="{{ $skill }}" />
+                                        @endif
+                                    </div>
                                 @endforeach
                             </div>
 
@@ -115,32 +116,32 @@
 @push('scripts')
     <script>
         /* function appFooterComponent(breakStartedAt) {
-                        console.log(breakStartedAt);
-                        return {
-                            time: new Date(breakStartedAt),
-                            init() {
-                                setInterval(() => {
-                                    // this.time = new Date();
+                            console.log(breakStartedAt);
+                            return {
+                                time: new Date(breakStartedAt),
+                                init() {
+                                    setInterval(() => {
+                                        // this.time = new Date();
+                                        var now = new Date();
+                                        var then = this.time;
+
+                                        var duration = moment.utc(moment(now, "DD/MM/YYYY HH:mm:ss").diff(moment(then,
+                                                "YYYY/MM/DD HH:mm:ss")))
+                                            .format("HH:mm:ss")
+
+                                    }, 1000);
+                                },
+                                getTime() {
                                     var now = new Date();
                                     var then = this.time;
 
                                     var duration = moment.utc(moment(now, "DD/MM/YYYY HH:mm:ss").diff(moment(then,
                                             "YYYY/MM/DD HH:mm:ss")))
-                                        .format("HH:mm:ss")
-
-                                }, 1000);
-                            },
-                            getTime() {
-                                var now = new Date();
-                                var then = this.time;
-
-                                var duration = moment.utc(moment(now, "DD/MM/YYYY HH:mm:ss").diff(moment(then,
-                                        "YYYY/MM/DD HH:mm:ss")))
-                                    .format("HH:mm:ss");
-                                console.log(duration);
-                                return duration;
-                            },
-                        }
-                    } */
+                                        .format("HH:mm:ss");
+                                    console.log(duration);
+                                    return duration;
+                                },
+                            }
+                        } */
     </script>
 @endpush

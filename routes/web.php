@@ -24,6 +24,7 @@ use App\Http\Livewire\Settings\Queues\Index as QueuesIndex;
 use App\Http\Livewire\Settings\Skills\Index as SkillsIndex;
 use App\Http\Livewire\Settings\Users\Index as UsersIndex;
 use App\Http\Livewire\Tickets\Index as TicketsIndex;
+use App\Http\Livewire\Tickets\IndexNew;
 use App\Models\CallCenter\AbandonedCall as CallCenterAbandonedCall;
 use App\Models\QueueCount;
 use Illuminate\Http\Request;
@@ -43,7 +44,7 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
-   
+
     Route::get('/', DashboardController::class)->name('dashboard.index');
     Route::prefix('leads')->group(function () {
         Route::get('/', LeadsIndex::class)->name('leads.index')->can('can-view-leads');
@@ -52,7 +53,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/{lead}', Show::class)->name('leads.show')->can('can-view-leads');
     });
 
-    Route::get('/tickets', TicketsIndex::class)->name('tickets.index');
+    // Route::get('/tickets', TicketsIndex::class)->name('tickets.index');
+    Route::get('/tickets-v1', TicketsIndex::class)->name('tickets.index');
+    Route::get('/tickets', IndexNew::class)->name('tickets.index');
+    // Route::get('/tickets-v2', IndexNew::class)->name('tickets.index-2');
     Route::get('/orders', OrdersIndex::class)->name('orders.index');
     Route::get('/contact-feeds', ContactFeedsIndex::class)->name('contact-feeds.index')->can('is-admin');
 
@@ -76,8 +80,4 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/moh/', MohIndex::class)->name('settings.moh.index')->can('is-admin');
         Route::get('/skills/', SkillsIndex::class)->name('settings.skills.index')->can('is-admin');
     });
-
-
-    
-   
 });

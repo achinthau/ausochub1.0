@@ -23,7 +23,7 @@ class LeadsTable extends LivewireDatatable
         return [
             Column::name('id')->linkTo('leads', 6),
             Column::name('contact_number')->searchable()->filterable(),
-            DateColumn::name('created_at')->label('called at')->filterable(),
+            DateColumn::name('created_at')->label('called at'),
             Column::name('first_name')->searchable()->filterable(),
             Column::name('last_name')->searchable()->filterable(),
             Column::name('status.title')->filterable(),

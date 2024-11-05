@@ -12,7 +12,7 @@ use Mediconesystems\LivewireDatatables\DateColumn;
 class LeadsTable extends LivewireDatatable
 {
     public $hideable = 'select';
-    public $exportable = Gate::allows('can-export-ticket');
+    public $exportable = true;
 
     public function builder()
     {

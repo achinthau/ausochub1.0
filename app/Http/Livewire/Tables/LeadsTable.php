@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Tables;
 
 use App\Models\Lead;
 use App\Models\LeadStatus;
+use Illuminate\Support\Facades\Gate;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\DateColumn;
@@ -11,7 +12,7 @@ use Mediconesystems\LivewireDatatables\DateColumn;
 class LeadsTable extends LivewireDatatable
 {
     public $hideable = 'select';
-    public $exportable = true;
+    public $exportable = Gate::allows('can-export-ticket');
 
     public function builder()
     {

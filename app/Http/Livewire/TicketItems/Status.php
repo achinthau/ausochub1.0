@@ -10,10 +10,11 @@ class Status extends Component
     public $status;
     public $ticketItemId;
 
-    public function mount($ticketStatusId, $ticketItemId)
+    public function mount($ticketStatusId, $ticketItemId, $status = null)
     {
-        $this->statusId=$ticketStatusId;
-        $this->ticketItemId=$ticketItemId;
+        $this->statusId = $status->ticket_status_id;
+        $this->ticketItemId = $status->id;
+        $this->status = $status;
     }
 
     public function render()

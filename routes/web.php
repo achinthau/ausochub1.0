@@ -53,8 +53,10 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/{lead}', Show::class)->name('leads.show')->can('can-view-leads');
     });
 
-    Route::get('/tickets', TicketsIndex::class)->name('tickets.index');
-    Route::get('/tickets-v2', IndexNew::class)->name('tickets.index-2');
+    // Route::get('/tickets', TicketsIndex::class)->name('tickets.index');
+    Route::get('/tickets-v1', TicketsIndex::class)->name('tickets.index');
+    Route::get('/tickets', IndexNew::class)->name('tickets.index');
+    // Route::get('/tickets-v2', IndexNew::class)->name('tickets.index-2');
     Route::get('/orders', OrdersIndex::class)->name('orders.index');
     Route::get('/contact-feeds', ContactFeedsIndex::class)->name('contact-feeds.index')->can('is-admin');
 

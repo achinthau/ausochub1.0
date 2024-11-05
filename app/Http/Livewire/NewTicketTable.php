@@ -40,7 +40,7 @@ class NewTicketTable extends DataTableComponent
 
     public function configure(): void
     {
-        $this->setPrimaryKey('id');
+        $this->setPrimaryKey('id')->setQueryStringDisabled();
     }
 
     public function columns(): array

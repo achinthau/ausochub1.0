@@ -30,13 +30,14 @@
             </div>
             
 
-            <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
+            <div class="bg-white  shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
 
                     {{-- @livewire('ticket-items.count-panel') --}}
                     
 
-                    @livewire('ticket-table')
+                    @livewire('new-ticket-table')
+                    {{-- @livewire('ticket-table') --}}
 
             
                 </div>

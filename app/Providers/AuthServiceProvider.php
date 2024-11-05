@@ -61,6 +61,9 @@ class AuthServiceProvider extends ServiceProvider
             return in_array($user->user_type_id, [1,8]);
         });
 
+        Gate::define('can-export-ticket', function (User $user) {
+            return in_array($user->user_type_id, [1,2,3]);
+        });
 
     }
 }

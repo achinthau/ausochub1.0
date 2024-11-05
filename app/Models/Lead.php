@@ -64,6 +64,7 @@ class Lead extends Model
 
     public function scopeRelavant($query)
     {
-        Auth::user()->user_type_id==4 ? $query->where('extension',Auth::user()->agent->extension) :$query;
+        // Auth::user()->user_type_id==4 ? $query->where('extension',Auth::user()->agent->extension) :$query;
+        $query;
     }
 }

@@ -11,6 +11,7 @@ use App\Models\TicketCategory;
 use App\Models\TicketStatus;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
 use Mediconesystems\LivewireDatatables\DateColumn;
 use Rappasoft\LaravelLivewireTables\Views\Filters\DateFilter;
@@ -40,7 +41,7 @@ class NewTicketTable extends DataTableComponent
 
     public function configure(): void
     {
-        $this->setPrimaryKey('id')->setQueryStringDisabled();
+        $this->setPrimaryKey('id')->setQueryStringDisabled()->setBulkActionsStatus(Gate::allows('can-export-ticket'));
     }
 
     public function columns(): array

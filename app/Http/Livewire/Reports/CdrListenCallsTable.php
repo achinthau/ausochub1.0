@@ -39,13 +39,15 @@ class CdrListenCallsTable extends LivewireDatatable
         $dateColum->sortable = true;
 
         return [
+            $dateColum,
             Column::callback(['src'], function ($src) {
                 return explode('_', $src)[0];
-            })->label('Functionality')->name('src'),
-    
-            Column::callback(['src'], function ($src) {
-                return explode('_', $src)[1];
-            })->label('Extension')->name('src'),
+            })->label('Action')->filterable(),
+            Column::raw("RIGHT(dst, 3) AS agent_id")->label('Agent')->filterable(),
+            Column::raw("IF(channel LIKE 'SIP%',REGEXP_SUBSTR(channel, '(?<=\/).*(?=-)'),channel)")->label('Supervisor')->filterable(),
+            Column::callback(['id', 'uniqueid'], function ($id, $uniqueid) {
+                return view('table-actions-v2', ['id' => $id, 'uniqueid' => $uniqueid]);
+            })->unsortable()->excludeFromExport()
         ];
     }
 

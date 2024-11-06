@@ -105,10 +105,10 @@
                     </svg>
                     </div>
                     <div>
-                        <div class="text-lg font-semibold text-gray-700">CDR Listen Calls Summary</div>
+                        <div class="text-lg font-semibold text-gray-700">Call Supervised Report</div>
                         <div
                             class="text-sm text-gray-600 font-thin text-ellipsis whitespace-nowrap overflow-hidden w-60 hover:w-full hover:whitespace-normal transition transform">
-                            CDR Listen Calls Summary
+                            Call Supervised Report
                         </div>
                     </div>
                 </a>

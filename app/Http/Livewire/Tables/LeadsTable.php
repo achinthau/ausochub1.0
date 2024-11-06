@@ -17,7 +17,7 @@ class LeadsTable extends LivewireDatatable
     public function builder()
     {
 
-        $this->exportable = Gate::allows('can-export-ticket');
+        // $this->exportable = Gate::allows('can-export-ticket');
         return Lead::with('status')->relavant();
     }
 

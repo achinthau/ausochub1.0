@@ -12,6 +12,7 @@ use App\Http\Livewire\Reports\BreakSummary;
 use App\Http\Livewire\Reports\AgentCallSummary;
 // use App\Http\Livewire\Reports\CallDetail;
 use App\Http\Livewire\Reports\CdrDetail;
+use App\Http\Livewire\Reports\CdrListen;
 use App\Http\Livewire\Reports\IvrDetail;
 use App\Http\Livewire\Reports\AgentMissedCallSummary;
 use App\Http\Livewire\Reports\AsteriskEvents;
@@ -64,6 +65,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/', ReportsIndex::class)->name('reports.index');
         // Route::get('/call-detail-report', CallDetail::class)->name('reports.call-detail')->can('is-admin');
         Route::get('/cdr-detail-report', CdrDetail::class)->name('reports.cdr-detail')->can('can-view-reports');
+        Route::get('/cdr-listen-calls-report', CdrListen::class)->name('reports.cdr-listen-calls')->can('is-admin');
         Route::get('/ivr-detail-report', IvrDetail::class)->name('reports.ivr-detail')->can('is-admin');
         Route::get('/agent-missed-call-summary', AgentMissedCallSummary::class)->name('reports.agent-missed-call-summary')->can('is-admin');
         Route::get('/live-caller-dashboard', AsteriskEvents::class)->name('reports.asterisk-event')->can('is-admin');

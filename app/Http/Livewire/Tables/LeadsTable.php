@@ -17,13 +17,14 @@ class LeadsTable extends LivewireDatatable
     public function builder()
     {
 
-        $this->exportable = Gate::allows('can-export-ticket');
+        // $this->exportable = Gate::allows('can-export-ticket');
         return Lead::with('status')->relavant();
     }
 
     public function columns()
     {
         return [
+            // Test Nipuna 
             Column::name('id')->linkTo('leads', 6),
             Column::name('contact_number')->searchable()->filterable(),
             DateColumn::name('created_at')->label('called at'),

@@ -24,6 +24,7 @@ class LeadsTable extends LivewireDatatable
     public function columns()
     {
         return [
+            // Test Nipuna
             Column::name('id')->linkTo('leads', 6),
             Column::name('contact_number')->searchable()->filterable(),
             DateColumn::name('created_at')->label('called at'),

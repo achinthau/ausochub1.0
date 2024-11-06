@@ -18,11 +18,11 @@ class CdrDetailTable extends LivewireDatatable
     public function builder()
     {
         return Cdr::query()
-        ->leftJoin('queuecount', function($join) {
-            $join->on('cdr.uniqueid', '=', 'queuecount.uniqueid')
-                 ->where('queuecount.status', '=', 2);
-        })
-        ->whereIn('lastapp', ['Dial', 'Queue']);
+            ->leftJoin('queuecount', function ($join) {
+                $join->on('cdr.uniqueid', '=', 'queuecount.uniqueid')
+                    ->where('queuecount.status', '=', 2);
+            })
+            ->whereIn('lastapp', ['Dial', 'Queue', 'Hangup']);
     }
 
     public function columns()
@@ -48,8 +48,8 @@ class CdrDetailTable extends LivewireDatatable
             Column::name('disposition')->label('Disposition')->filterable($this->dispositions),
             Column::name('queuecount.agent')->label('Extension')->filterable(),
             Column::callback(['lastapp'], function ($lastapp) {
-                return $lastapp == 'Dial' ? 'Out' : 'In';
-            })->label('Direction')->filterable(['Dial' => 'Out','Queue' => 'In']),
+                return $lastapp == 'Dial' ? 'Out' : ($lastapp == 'Queue' ? 'In' : 'Local');
+            })->label('Direction')->filterable(['Dial' => 'Out', 'Queue' => 'In']),
             Column::callback(['id', 'uniqueid'], function ($id, $uniqueid) {
                 return view('table-actions-v2', ['id' => $id, 'uniqueid' => $uniqueid]);
             })->unsortable()->excludeFromExport()

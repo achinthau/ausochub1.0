@@ -100,7 +100,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="bg-white p-4 space-y-2 text-xs">
+                    {{-- <div class="bg-white p-4 space-y-2 text-xs">
                         <h1 class=" font-bold">Orders</h1>
                         <hr>
 
@@ -144,7 +144,7 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div> --}}
                     <div class="bg-white p-4 space-y-2 text-xs">
                         <h1 class=" font-bold">Ticket Information</h1>
                         <hr>

@@ -120,7 +120,7 @@ class Show extends Component
         }
 
         // Sort the merged collection by created_at
-        $this->timelineLogs = $timelineLogs->sortByDesc('created_at')->paginate(10);
+        $this->timelineLogs = $timelineLogs->sortByDesc('created_at')->take(10);
     }
 
     public function save()

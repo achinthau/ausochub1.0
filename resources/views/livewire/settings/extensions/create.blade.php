@@ -3,7 +3,7 @@
         <x-input type="number" label="Extension" placeholder="3-4 Digit Number" wire:model="extension.extension" />
         <x-input label="Password" placeholder="Enter password " wire:model="extension.password" />
         <x-native-select label="Extension Type" placeholder="Select extension type" :options="['sip', 'iax']" wire:model="extension.exten_type" />
-        <x-native-select label="Context" placeholder="Select context" :options="['intental', 'external']" wire:model="extension.context" />
+        <x-native-select label="Context" placeholder="Select context" :options="['internal', 'external']" wire:model="extension.context" />
     </div>
 
     <x-slot name="footer">

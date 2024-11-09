@@ -26,6 +26,24 @@ class ApiManager
         }
     }
 
+    public static function autoLogoutSession($data)
+    {
+
+        $client = new Client();
+        $options = [
+            'multipart' => $data
+        ];
+        
+        try {
+            $res = $client->request('POST', config('auso.api_url').'/Client/userAPI/agentAutoLogout.php', $options);
+            Log::info(config('auso.api_url').'/Client/userAPI/agentAutoLogout.php');
+            Log::info($options);
+            return $res->getStatusCode();
+        } catch (\Throwable $th) {
+            throw $th;
+        }
+    }
+
     public static function startBreak($data)
     {
         $client = new Client();

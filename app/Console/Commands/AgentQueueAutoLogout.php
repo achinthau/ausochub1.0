@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Repositories\ApiManager;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -35,7 +36,20 @@ class AgentQueueAutoLogout extends Command
                 ->where('last_activity', '<', $minAgo)
                 ->get();
 
-            dd($sessions->pluck('id'));
+            $sessionStrings = implode(',', $sessions->pluck('id')->toArray());
+
+
+            if ($sessions->count() > 0) {
+                $data = [
+                    [
+                        'name' => 'logout_sessions',
+                        'contents' => $sessionStrings
+                    ]
+                ];
+                ApiManager::autoLogoutSession($data);
+            }
+
+
 
 
 

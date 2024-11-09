@@ -98,7 +98,11 @@ class Index extends Component
             [
                 'name' => 'agentid',
                 'contents' => Auth::user()->agent_id
-            ]
+            ],
+            [
+                'name' => 'crm_token',
+                'contents' => $value ? session()->getId() : null
+            ],
         ];
         ApiManager::updateSkill($data);
 

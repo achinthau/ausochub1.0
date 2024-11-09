@@ -15,10 +15,11 @@ class Create extends Component
     public Lead $lead;
     public  $tickets;
     public  $callLogs;
+    public  $buttonText = "Complete Lead";
 
     public $showTicketEditModal = false;
 
-
+    protected $listeners = ['openCreateLeadModal' => 'openCreateLeadModal'];
 
     protected $rules = [
         'lead.contact_number' => 'required',
@@ -40,7 +41,6 @@ class Create extends Component
     {
         $this->lead = $lead;
         $this->showTicketEditModal = $lead->status_id == 1;
-       
     }
 
     public function render()
@@ -48,6 +48,12 @@ class Create extends Component
         return view('livewire.leads.create');
     }
 
+
+    public function openCreateLeadModal()
+    {
+        $this->buttonText = "Update Lead";
+        $this->showTicketEditModal = true;
+    }
 
 
     public function save()

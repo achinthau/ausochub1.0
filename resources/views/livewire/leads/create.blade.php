@@ -17,7 +17,7 @@
             <x-input label="Street" wire:model.defer='lead.address_line_2' placeholder="Street" />
             <x-input label="City" wire:model.defer='lead.city' placeholder="City" />
             <div class="col-span-2">
-                <x-button icon="check-circle" positive label="Complete Lead" class="w-full" wire:click="save"
+                <x-button icon="check-circle" positive label="{{$buttonText}}" class="w-full" wire:click="save"
                     spinner="save" />
             </div>
         </div>

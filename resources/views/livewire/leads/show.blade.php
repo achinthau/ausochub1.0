@@ -6,6 +6,18 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-2">
 
             <div class="flex justify-end space-x-2">
+
+                <a href="#" onclick="Livewire.emitTo('leads.create', 'openCreateLeadModal')"
+                    class="border border-info-600 dark:hover:bg-slate-700 dark:ring-offset-slate-800 disabled:cursor-not-allowed disabled:opacity-80 duration-150 ease-in focus:ring-2 focus:ring-offset-2 gap-x-2 group hover:bg-info-50 hover:shadow-sm inline-flex items-center justify-center outline-none px-4 py-0.5 ring-info-600 rounded text-info-600 text-sm transition-all">
+                    <svg class="w-6 h-6 " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z">
+                        </path>
+                    </svg>
+                    Edit
+                </a>
+
                 @if ($lead->status_id == 2)
                     <a href="#" onclick="Livewire.emitTo('tickets.create', 'showCreatingTicket')"
                         class="border border-info-600 dark:hover:bg-slate-700 dark:ring-offset-slate-800 disabled:cursor-not-allowed disabled:opacity-80 duration-150 ease-in focus:ring-2 focus:ring-offset-2 gap-x-2 group hover:bg-info-50 hover:shadow-sm inline-flex items-center justify-center outline-none px-4 py-0.5 ring-info-600 rounded text-info-600 text-sm transition-all">
@@ -205,12 +217,13 @@
                                                 </svg>
                                             @endif
                                             @if ($timelineLog['icon'] == 'icon-phone-out')
-                                                <svg class="w-5 h-5 {{ $timelineLog['icon-color'] }}" viewBox="0 0 51 51" fill="none"
+                                                <svg class="w-5 h-5 {{ $timelineLog['icon-color'] }}"
+                                                    viewBox="0 0 51 51" fill="none"
                                                     xmlns="http://www.w3.org/2000/svg">
                                                     <rect width="48" height="48" transform="translate(3)"
                                                         fill="white" fill-opacity="0.01"></rect>
-                                                    <rect x="3" width="48" height="48"
-                                                        fill="white" fill-opacity="0.01"></rect>
+                                                    <rect x="3" width="48" height="48" fill="white"
+                                                        fill-opacity="0.01"></rect>
                                                     <path d="M31 20L44 7.5" stroke="currentColor" stroke-width="2"
                                                         stroke-linecap="round" stroke-linejoin="round"></path>
                                                     <path d="M31 7H44V20" stroke="currentColor" stroke-width="2"

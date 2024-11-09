@@ -46,7 +46,7 @@ class AgentQueueAutoLogout extends Command
                         'contents' => $sessionStrings
                     ]
                 ];
-                // ApiManager::autoLogoutSession($data);
+                ApiManager::autoLogoutSession($data);
             }
 
 

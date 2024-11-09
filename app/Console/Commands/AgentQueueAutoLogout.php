@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
+use Carbon\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
 
 class AgentQueueAutoLogout extends Command
 {
@@ -28,6 +30,15 @@ class AgentQueueAutoLogout extends Command
     public function handle()
     {
         if (config('auso.auto_logout_queue')) {
+            $minAgo = Carbon::now()->subMinutes(config('auso.auto_logout_mins'))->timestamp;
+            $sessions = DB::table('sessions')
+                ->where('last_activity', '<', $minAgo)
+                ->get();
+
+            dd($sessions->pluck('id'));
+
+
+
             return Command::SUCCESS;
         }
         print_r('auto_logout_queue false');

@@ -37,7 +37,7 @@ class AgentQueueAutoLogout extends Command
                 ->get();
 
             $sessionStrings = implode(',', $sessions->pluck('id')->toArray());
-
+            print_r($sessionStrings);
 
             if ($sessions->count() > 0) {
                 $data = [
@@ -46,7 +46,7 @@ class AgentQueueAutoLogout extends Command
                         'contents' => $sessionStrings
                     ]
                 ];
-                ApiManager::autoLogoutSession($data);
+                // ApiManager::autoLogoutSession($data);
             }
 
 

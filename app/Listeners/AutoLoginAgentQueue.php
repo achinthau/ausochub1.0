@@ -7,6 +7,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use App\Repositories\ApiManager;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Request;
 
 class AutoLoginAgentQueue
 {
@@ -64,7 +65,7 @@ class AutoLoginAgentQueue
                     ],
                     [
                         'name' => 'crm_token',
-                        'contents' =>  session()->getId()
+                        'contents' =>  Request::session()->getId()
                     ],
                 ];
                 ApiManager::updateSkill($data);

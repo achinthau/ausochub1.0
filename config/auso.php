@@ -7,5 +7,5 @@ return [
     'allow_skill_change' => env('ALLOW_SKILL_CHANGE_C', true),
     'auto_logout_queue' => env('AUTO_LOGOUT_QUEUE', false),
     'auto_logout_mins' => env('AUTO_LOGOUT_MINS', 1),
-
+    'ticket_sla_enabled' => env('TICKET_SLA_ENABLED', true),
 ];

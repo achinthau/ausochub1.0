@@ -127,9 +127,7 @@ class Create extends Component
         $this->resetForm();
     }
 
-    public function updatedTicketCrm($value)
-    {
-    }
+    public function updatedTicketCrm($value) {}
 
 
     public function addItem()
@@ -150,7 +148,7 @@ class Create extends Component
     public function save()
     {
         $this->validate();
-        if ($this->ticket->ticket_category_id==3 && $this->ticket->crm) {
+        if ($this->ticket->ticket_category_id == 3 && $this->ticket->crm) {
             $this->validate([
                 'ticketItems.*.item_id' => 'required',
                 'ticketItems.*.size_id' => 'required',
@@ -176,6 +174,13 @@ class Create extends Component
                     ]
                 );
             }
+        }
+
+        // $this->ticket->refresh();
+        // dd($this->ticket->subCategory);
+        if (config('auso.ticket_sla_enabled') && $this->ticket->subCategory->due_in_hours) {
+            $this->ticket->due_at = $this->ticket->created_at->addSeconds($this->ticket->subCategory->due_in_hours * 60 * 60);
+            $this->ticket->save();
         }
 
         $this->creatingTicket = false;

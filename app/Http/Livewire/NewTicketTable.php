@@ -154,6 +154,6 @@ class NewTicketTable extends DataTableComponent
 
     public function builder(): Builder
     {
-        return Ticket::with('status');
+        return Ticket::with('status')->latest();
     }
 }

@@ -23,11 +23,11 @@ class AgentCallSummaryTable extends LivewireDatatable
             'queuecount.date as timestamp',
             // \DB::raw('SEC_TO_TIME(TIMESTAMPDIFF(SECOND, queuecount.date, MIN(disconnected.date))) AS duration') // Adding 'AS duration'
         ])
-        ->join('queuecount as disconnected', 'queuecount.uniqueid', '=', 'disconnected.uniqueid')
-        ->join('au_user', 'queuecount.agent', '=', 'au_user.extension')
-        ->where('queuecount.status', 2)
-        ->where('disconnected.status', 0)
-        ->groupBy('queuecount.uniqueid', 'queuecount.queuename', 'queuecount.agent', 'queuecount.date');
+            ->join('queuecount as disconnected', 'queuecount.uniqueid', '=', 'disconnected.uniqueid')
+            ->join('au_user', 'queuecount.agent', '=', 'au_user.extension')
+            ->where('queuecount.status', 2)
+            ->where('disconnected.status', 0)
+            ->groupBy('queuecount.uniqueid', 'queuecount.queuename', 'queuecount.agent', 'queuecount.date');
         // ->orderBy('queuecount.date', 'desc');
 
     }
@@ -38,7 +38,7 @@ class AgentCallSummaryTable extends LivewireDatatable
             DateColumn::name('date')->label('Date')
                 // ->defaultSort('desc')
                 ->sortBy('DATE_FORMAT(queuecount.date, "%m%d%Y")')
-                ->sortable()
+                ->sortable()->defaultSort('desc')
                 ->filterable(),
 
             Column::name('au_user.fname')->label('Agent')
@@ -73,5 +73,4 @@ class AgentCallSummaryTable extends LivewireDatatable
         $this->page = 1;
         $this->setSessionStoredFilters();
     }
-    
 }

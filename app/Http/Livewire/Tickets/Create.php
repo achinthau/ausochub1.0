@@ -208,5 +208,7 @@ class Create extends Component
 
         $this->resetErrorBag();
         $this->resetValidation();
+        // $this->emit('refreshDatatable');
+        redirect(route('tickets.index'));
     }
 }

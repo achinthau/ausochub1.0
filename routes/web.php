@@ -82,4 +82,9 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/moh/', MohIndex::class)->name('settings.moh.index')->can('is-admin');
         Route::get('/skills/', SkillsIndex::class)->name('settings.skills.index')->can('is-admin');
     });
+
+
+        Route::get('/test', function(Request $request){
+            return session()->getId();
+        });
 });

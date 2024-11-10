@@ -33,36 +33,38 @@ class LougoutAgentQueue
         if (count($skills)) {
             $skillNames = $skills->pluck('skill')->toArray();
 
-        $data = [
-            [
-                'name' => 'extension',
-                'contents' => Auth::user()->agent->extension
-            ],
-            [
-                'name' => 'type',
-                // 'contents' => 'SIP'
-                 'contents' =>Auth::user()->agent->extensionDetails->exten_type
-            ],
-            [
-                'name' => 'agentip',
-                'contents' => '123.231.121.61'
-            ],
-            [
-                'name' => 'queue',
-                'contents' => implode(",",$skillNames)
-            ],
-            [
-                'name' => 'action',
-                'contents' => 'remove'
-            ],
-            [
-                'name' => 'agentid',
-                'contents' => Auth::user()->agent_id
-            ]
-        ];
-        ApiManager::updateSkill($data);
+            $data = [
+                [
+                    'name' => 'extension',
+                    'contents' => Auth::user()->agent->extension
+                ],
+                [
+                    'name' => 'type',
+                    // 'contents' => 'SIP'
+                    'contents' => Auth::user()->agent->extensionDetails->exten_type
+                ],
+                [
+                    'name' => 'agentip',
+                    'contents' => '123.231.121.61'
+                ],
+                [
+                    'name' => 'queue',
+                    'contents' => implode(",", $skillNames)
+                ],
+                [
+                    'name' => 'action',
+                    'contents' => 'remove'
+                ],
+                [
+                    'name' => 'agentid',
+                    'contents' => Auth::user()->agent_id
+                ],
+                [
+                    'name' => 'crm_token',
+                    'contents' =>  null
+                ],
+            ];
+            ApiManager::updateSkill($data);
         }
-        
-        
     }
 }

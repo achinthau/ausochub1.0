@@ -10,14 +10,14 @@
             <x-input label="Email" wire:model.defer='lead.email' placeholder="Email" />
             <x-input label="Alternative Contact" wire:model.defer='lead.contact_number_2'
                 placeholder="Alternative Contact" />
-            <x-input label="NIC" wire:model.defer='lead.nic' placeholder="NIC Name" />
+            <x-input label="NIC" wire:model.defer='lead.nic' placeholder="NIC" />
             <hr class="col-span-2">
             <x-input label="House or Apartment No" wire:model.defer='lead.address_line_1'
                 placeholder="House or Apartment No" />
             <x-input label="Street" wire:model.defer='lead.address_line_2' placeholder="Street" />
             <x-input label="City" wire:model.defer='lead.city' placeholder="City" />
             <div class="col-span-2">
-                <x-button icon="check-circle" positive label="Complete Lead" class="w-full" wire:click="save"
+                <x-button icon="check-circle" positive label="{{$buttonText}}" class="w-full" wire:click="save"
                     spinner="save" />
             </div>
         </div>

@@ -72,6 +72,9 @@ class Index extends Component
     public function updatedSelectedSkills($value, $name)
     {
 
+        foreach ($variable as $key => $value) {
+            # code...
+        }
 
         $data = [
             [
@@ -98,7 +101,11 @@ class Index extends Component
             [
                 'name' => 'agentid',
                 'contents' => Auth::user()->agent_id
-            ]
+            ],
+            [
+                'name' => 'crm_token',
+                'contents' => $value ? session()->getId() : null
+            ],
         ];
         ApiManager::updateSkill($data);
 

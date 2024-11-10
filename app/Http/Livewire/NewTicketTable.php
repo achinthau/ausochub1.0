@@ -41,7 +41,10 @@ class NewTicketTable extends DataTableComponent
 
     public function configure(): void
     {
-        $this->setPrimaryKey('id')->setQueryStringDisabled()->setBulkActionsStatus(Gate::allows('can-export-ticket'));
+        $this->setPrimaryKey('id')
+            ->setQueryStringDisabled()
+            ->setBulkActionsStatus(Gate::allows('can-export-ticket'))
+            ->setDefaultSort('updated_at', 'desc');
     }
 
     public function columns(): array

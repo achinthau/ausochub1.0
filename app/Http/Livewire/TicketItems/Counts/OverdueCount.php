@@ -4,6 +4,7 @@ namespace App\Http\Livewire\TicketItems\Counts;
 
 use App\Models\Ticket;
 use App\Models\TicketItem;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
 
@@ -19,18 +20,18 @@ class OverdueCount extends Component
 
     public function mount()
     {
+        Ticket::whereNotIn('ticket_status_id', [3, 4])->where('due_at', '<', Carbon::now())->update(['ticket_status_id' => '3']);
         $this->overdueCount = Cache::remember('tickets_table', 60, function () {
-            return Ticket::where('ticket_status_id', 3)->count();
+            return Ticket::where('ticket_status_id', 3)->count() + (config('auso.ticket_sla_enabled') ?  Ticket::whereNotIn('ticket_status_id', [3, 4])->where('due_at', '<', Carbon::now())->count() : 0);
         });
     }
 
     public function refreshComponent()
     {
-            Cache::forget('tickets_table');
+        Cache::forget('tickets_table');
 
-            $this->overdueCount = Cache::remember('tickets_table', 60, function () {
-                return Ticket::where('ticket_status_id', 3)->count();
-            });
-        
+        $this->overdueCount = Cache::remember('tickets_table', 60, function () {
+            return Ticket::where('ticket_status_id', 3)->count() + (config('auso.ticket_sla_enabled') ?  Ticket::whereNotIn('ticket_status_id', [3, 4])->where('due_at', '<', Carbon::now())->count() : 0);
+        });
     }
 }

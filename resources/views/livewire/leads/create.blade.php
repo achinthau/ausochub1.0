@@ -10,7 +10,7 @@
             <x-input label="Email" wire:model.defer='lead.email' placeholder="Email" />
             <x-input label="Alternative Contact" wire:model.defer='lead.contact_number_2'
                 placeholder="Alternative Contact" />
-            <x-input label="NIC" wire:model.defer='lead.nic' placeholder="NIC Name" />
+            <x-input label="NIC" wire:model.defer='lead.nic' placeholder="NIC" />
             <hr class="col-span-2">
             <x-input label="House or Apartment No" wire:model.defer='lead.address_line_1'
                 placeholder="House or Apartment No" />

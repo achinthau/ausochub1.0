@@ -16,7 +16,6 @@ use App\Http\Livewire\Reports\CdrListen;
 use App\Http\Livewire\Reports\IvrDetail;
 use App\Http\Livewire\Reports\AgentMissedCallSummary;
 use App\Http\Livewire\Reports\AsteriskEvents;
-use App\Http\Livewire\Reports\DailyCallSummary as ReportsDailyCallSummary;
 use App\Http\Livewire\Reports\DailyQueueSummary;
 // use App\Http\Livewire\Reports\CallQueue;
 use App\Http\Livewire\Reports\Index as ReportsIndex;
@@ -29,7 +28,6 @@ use App\Http\Livewire\Settings\Users\Index as UsersIndex;
 use App\Http\Livewire\Tickets\Index as TicketsIndex;
 use App\Http\Livewire\Tickets\IndexNew;
 use App\Models\CallCenter\AbandonedCall as CallCenterAbandonedCall;
-use App\Models\DailyCallSummary;
 use App\Models\QueueCount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -77,7 +75,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/agent-call-summary-report', AgentCallSummary::class)->name('reports.agent-call-summary-report')->can('is-admin');
 
         Route::get('/daily-queue-summary-report', DailyQueueSummary::class)->name('reports.daily-queue-summary-report')->can('is-admin');
-        Route::get('/daily-call-summary-report', ReportsDailyCallSummary::class)->name('reports.daily-calls-summary-report')->can('is-admin');
         // Route::get('/call-queue-report', CallQueue::class)->name('reports.call-queue-report')->can('is-admin');
     });
 

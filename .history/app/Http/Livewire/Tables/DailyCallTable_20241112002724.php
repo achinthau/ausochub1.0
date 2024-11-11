@@ -10,10 +10,6 @@ use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 
 class DailyCallTable extends LivewireDatatable
 {
-    public $hideable = 'select';
-    public $exportable = true;
-
-
     public $model = DailyCallSummary::class;
 
     public function builder()

@@ -19,7 +19,7 @@ class DailyCallTable extends LivewireDatatable
     public function builder()
     {
         // Return a query for fetching data from the daily_queue_summeries table
-        return DailyCallSummary::query();
+        return DailyCallSummary::orderBy('ac_daily_call_summaries.id','DESC');
     }
 
     public function columns()

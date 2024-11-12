@@ -162,6 +162,7 @@ class Create extends Component
 
         $this->ticket->logActivity('Ticket created');
 
+        //Test
         if ($this->ticket->ticket_category_id == 3 && $this->ticket->crm) {
             foreach ($this->ticketItems as $key => $_ticketItem) {
                 $ticketItem = TicketItem::updateOrCreate(

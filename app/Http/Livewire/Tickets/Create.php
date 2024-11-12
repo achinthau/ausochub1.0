@@ -176,7 +176,7 @@ class Create extends Component
                     ]
                 );
             }
-        }
+        }   
 
         // $this->ticket->refresh();
         // dd($this->ticket->subCategory);

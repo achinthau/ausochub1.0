@@ -12,7 +12,7 @@ use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 class DailyQueueSummary extends LivewireDatatable
 {
     public $model = DailyQueueSummery::class;
-    // public $exportable = true;
+    public $exportable = true;
 
     public function builder()
     {

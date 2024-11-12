@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class DailyCallSummary extends Model
 {
-    protected $table = 'daily_call_summaries';
+    protected $table = 'ac_daily_call_summaries';
     use HasFactory;
 
     protected $fillable = [

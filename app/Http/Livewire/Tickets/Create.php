@@ -156,7 +156,9 @@ class Create extends Component
         }
 
         $this->ticket->topic = $this->ticket->ticket_category_id == 3 ? "Order" : $this->ticket->topic;
+        
         $this->ticket->save();
+        
 
         $this->ticket->logActivity('Ticket created');
 

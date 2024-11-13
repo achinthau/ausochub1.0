@@ -4,10 +4,12 @@ namespace App\Http\Livewire\Tables;
 
 use App\Models\QueueCount;
 use App\Models\Agent;
+use Carbon\Carbon;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\DateColumn;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 use Illuminate\Support\Facades\DB;
+use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 
 class AgentCallSummaryTable extends LivewireDatatable
 {
@@ -72,5 +74,16 @@ class AgentCallSummaryTable extends LivewireDatatable
         $this->activeDateFilters[$index]['end'] = $end == "" ? $end : $end . " 23:59:59";;
         $this->page = 1;
         $this->setSessionStoredFilters();
+    }
+
+
+    public function export(string $filename = 'DatatableExport.xlsx')
+    {
+        $this->forgetComputed();
+
+        $export = new DatatableExport($this->getExportResultsSet());
+        $export->setFilename('agent_queue_summary_' . Carbon::now()->format('Ymdhis') . '.csv');
+
+        return $export->download();
     }
 }

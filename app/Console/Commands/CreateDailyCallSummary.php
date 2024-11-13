@@ -33,7 +33,7 @@ class CreateDailyCallSummary extends Command
      */
     public function handle()
     {
-        $date = CarbonCarbon::today()->format('Y-m-d');
+        $date = CarbonCarbon::yesterday()->format('Y-m-d');
         // $date = '2024-11-05';
 
         $inboundCount = DB::connection('mysql-old') // Specify the connection

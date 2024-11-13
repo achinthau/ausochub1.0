@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Tables;
 use App\Models\DailyQueueSummary as ModelsDailyQueueSummary;
 use App\Models\DailyQueueSummery;  // Correct model used
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Mediconesystems\LivewireDatatables\Action;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\DateColumn;
@@ -14,7 +15,6 @@ use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 
 class DailyQueueSummary extends LivewireDatatable
 {
-    public $model = ModelsDailyQueueSummary::class;
     public $exportable = true;
 
     public function builder()
@@ -101,5 +101,22 @@ class DailyQueueSummary extends LivewireDatatable
         $export->setFilename('daily_queue_summary_report_' . Carbon::now()->format('Ymdhis') . '.csv');
 
         return $export->download();
+    }
+
+
+    public function addSort()
+    {
+        if (isset($this->sort) && isset($this->freshColumns[$this->sort]) && $this->freshColumns[$this->sort]['name']) {
+            if (isset($this->pinnedRecords) && $this->pinnedRecords) {
+                $this->query->orderBy(DB::raw('FIELD(id,' . implode(',', $this->pinnedRecords) . ')'), 'DESC');
+            }
+            // $this->query->orderBy(DB::raw($this->getSortString($this->query->getConnection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME))), $this->direction ? 'asc' : 'desc');
+            $this->query->orderBy(
+                DB::raw($this->tablePrefix . $this->getSortString($this->query->getConnection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME))),
+                $this->direction ? 'asc' : 'desc'
+            );
+        }
+
+        return $this;
     }
 }

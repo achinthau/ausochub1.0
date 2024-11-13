@@ -2,22 +2,25 @@
 
 namespace App\Http\Livewire\Tables;
 
+use App\Models\DailyQueueSummary as ModelsDailyQueueSummary;
 use App\Models\DailyQueueSummery;  // Correct model used
+use Carbon\Carbon;
 use Mediconesystems\LivewireDatatables\Action;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\DateColumn;
+use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 use Mediconesystems\LivewireDatatables\NumberColumn;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 
 class DailyQueueSummary extends LivewireDatatable
 {
-    public $model = DailyQueueSummery::class;
+    public $model = ModelsDailyQueueSummary::class;
     public $exportable = true;
 
     public function builder()
     {
         // Return a query for fetching data from the daily_queue_summeries table
-        return DailyQueueSummery::query();
+        return ModelsDailyQueueSummary::query();
     }
 
     public function columns()
@@ -25,8 +28,8 @@ class DailyQueueSummary extends LivewireDatatable
         return [
             // ID column (optional, for debugging purposes)
             NumberColumn::name('id')
-                ->label('ID')
-                ->linkTo('job', 6), // Customize the link as needed
+                ->label('ID'),
+            // Customize the link as needed
 
             // Date column for daily summary
             DateColumn::name('date')
@@ -38,31 +41,31 @@ class DailyQueueSummary extends LivewireDatatable
             Column::name('queue')
                 ->label('Queue')
                 ->searchable(),
-                // ->filterable(),
+            // ->filterable(),
 
             // Calls column (number of calls)
             NumberColumn::name('calls')
                 ->label('Calls')
                 ->sortable(),
-                // ->filterable(),
+            // ->filterable(),
 
             // Answered column (number of answered calls)
             NumberColumn::name('answered')
                 ->label('Answered')
                 ->sortable(),
-                // ->filterable(),
+            // ->filterable(),
 
             // Abandoned column (number of abandoned calls)
             NumberColumn::name('abandoned')
                 ->label('Abandoned')
                 ->sortable(),
-                // ->filterable(),
+            // ->filterable(),
 
             // Agents column (number of agents in the queue)
             NumberColumn::name('agents')
                 ->label('Agents')
                 ->sortable(),
-                // ->filterable(),
+            // ->filterable(),
 
             // Separate summary column for "Total Calls" (no duplication, summary applied here)
             // NumberColumn::name('calls')
@@ -70,24 +73,33 @@ class DailyQueueSummary extends LivewireDatatable
             //     ->enableSummary(),  // This enables a summary for the "calls" column (sum)
 
             // Optional: Add a custom label or computed column (e.g., call efficiency)
-           
+
         ];
     }
 
     public function doDatetimeFilterStart($index, $start)
     {
 
-        $this->activeDateFilters[$index]['start'] = $start=="" ? $start : $start." 00:00:00";
+        $this->activeDateFilters[$index]['start'] = $start == "" ? $start : $start . " 00:00:00";
         $this->page = 1;
         $this->setSessionStoredFilters();
     }
 
     public function doDatetimeFilterEnd($index, $end)
     {
-        $this->activeDateFilters[$index]['end'] = $end=="" ? $end : $end." 23:59:59";;
+        $this->activeDateFilters[$index]['end'] = $end == "" ? $end : $end . " 23:59:59";;
         $this->page = 1;
         $this->setSessionStoredFilters();
     }
 
-   
+
+    public function export(string $filename = 'DatatableExport.xlsx')
+    {
+        $this->forgetComputed();
+
+        $export = new DatatableExport($this->getExportResultsSet());
+        $export->setFilename('daily_queue_summary_report_' . Carbon::now()->format('Ymdhis') . '.csv');
+
+        return $export->download();
+    }
 }

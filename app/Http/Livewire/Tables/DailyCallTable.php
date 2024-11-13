@@ -3,9 +3,11 @@
 namespace App\Http\Livewire\Tables;
 
 use App\Models\DailyCallSummary;
+use Carbon\Carbon;
 use Mediconesystems\LivewireDatatables\DateColumn;
 use Mediconesystems\LivewireDatatables\NumberColumn;
 use Mediconesystems\LivewireDatatables\Column;
+use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 
 class DailyCallTable extends LivewireDatatable
@@ -37,43 +39,49 @@ class DailyCallTable extends LivewireDatatable
 
             NumberColumn::name('inbound')
                 ->label('Inbound Calls')
-                ->sortable()
-                ,
+                ->sortable(),
 
             NumberColumn::name('outbound')
                 ->label('Outbound Calls')
-                ->sortable()
-                ,
+                ->sortable(),
 
             NumberColumn::name('queued')
                 ->label('Queued Calls')
-                ->sortable()
-                ,
+                ->sortable(),
 
             NumberColumn::name('abandent')
                 ->label('Abandoned Calls')
-                ->sortable()
-                ,
+                ->sortable(),
 
             NumberColumn::name('answered')
                 ->label('Answered Calls')
-                ->sortable()
-                ,
+                ->sortable(),
         ];
     }
 
     public function doDatetimeFilterStart($index, $start)
     {
 
-        $this->activeDateFilters[$index]['start'] = $start=="" ? $start : $start." 00:00:00";
+        $this->activeDateFilters[$index]['start'] = $start == "" ? $start : $start . " 00:00:00";
         $this->page = 1;
         $this->setSessionStoredFilters();
     }
 
     public function doDatetimeFilterEnd($index, $end)
     {
-        $this->activeDateFilters[$index]['end'] = $end=="" ? $end : $end." 23:59:59";;
+        $this->activeDateFilters[$index]['end'] = $end == "" ? $end : $end . " 23:59:59";;
         $this->page = 1;
         $this->setSessionStoredFilters();
+    }
+
+
+    public function export(string $filename = 'DatatableExport.xlsx')
+    {
+        $this->forgetComputed();
+
+        $export = new DatatableExport($this->getExportResultsSet());
+        $export->setFilename('daily_call_summary_report_' . Carbon::now()->format('Ymdhis') . '.csv');
+
+        return $export->download();
     }
 }

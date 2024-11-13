@@ -3,9 +3,11 @@
 namespace App\Http\Livewire\Reports;
 
 use App\Models\Cdr;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\DateColumn;
+use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 use Mediconesystems\LivewireDatatables\NumberColumn;
 use Mediconesystems\LivewireDatatables\TimeColumn;
@@ -18,11 +20,11 @@ class CdrListenCallsTable extends LivewireDatatable
     public function builder()
     {
         return Cdr::query()
-        ->where(function ($query) {
-            $query->where('src', 'like', 'Barge_%')
-                  ->orWhere('src', 'like', 'Whisper_%')
-                  ->orWhere('src', 'like', 'Listen_%');
-        });
+            ->where(function ($query) {
+                $query->where('src', 'like', 'Barge_%')
+                    ->orWhere('src', 'like', 'Whisper_%')
+                    ->orWhere('src', 'like', 'Listen_%');
+            });
     }
 
     public function columns()
@@ -80,5 +82,16 @@ class CdrListenCallsTable extends LivewireDatatable
         $this->activeDateFilters[$index]['end'] = $end == "" ? $end : $end . " 23:59:59";;
         $this->page = 1;
         $this->setSessionStoredFilters();
+    }
+
+
+    public function export(string $filename = 'DatatableExport.xlsx')
+    {
+        $this->forgetComputed();
+
+        $export = new DatatableExport($this->getExportResultsSet());
+        $export->setFilename('cdr_listen_calls_report_' . Carbon::now()->format('Ymdhis') . '.csv');
+
+        return $export->download();
     }
 }

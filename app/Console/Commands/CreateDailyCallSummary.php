@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\DailyCallSummary;
+use App\Models\DailyQueueSummary;
 use App\Models\DailyQueueSummery;
 use BladeUIKit\Components\DateTime\Carbon;
 use Carbon\Carbon as CarbonCarbon;
@@ -103,7 +104,7 @@ class CreateDailyCallSummary extends Command
 
         foreach ($results as $result) {
 
-            DailyQueueSummery::updateOrCreate(
+            DailyQueueSummary::updateOrCreate(
                 [
                     'date' => $date,
                     'queue' => $result->queuename,

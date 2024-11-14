@@ -85,7 +85,7 @@ class DailyCallTable extends LivewireDatatable
         return $export->download();
     }
 
-    public function addSort()
+   /*  public function addSort()
     {
         if (isset($this->sort) && isset($this->freshColumns[$this->sort]) && $this->freshColumns[$this->sort]['name']) {
             if (isset($this->pinnedRecords) && $this->pinnedRecords) {
@@ -99,5 +99,5 @@ class DailyCallTable extends LivewireDatatable
         }
 
         return $this;
-    }
+    } */
 }

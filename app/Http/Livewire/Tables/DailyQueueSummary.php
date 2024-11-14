@@ -104,7 +104,7 @@ class DailyQueueSummary extends LivewireDatatable
     }
 
 
-    public function addSort()
+    /* public function addSort()
     {
         if (isset($this->sort) && isset($this->freshColumns[$this->sort]) && $this->freshColumns[$this->sort]['name']) {
             if (isset($this->pinnedRecords) && $this->pinnedRecords) {
@@ -118,5 +118,5 @@ class DailyQueueSummary extends LivewireDatatable
         }
 
         return $this;
-    }
+    } */
 }

@@ -2,26 +2,39 @@
 
 namespace App\Exports;
 
-use App\Models\DailyCallSummary;
-use App\Models\Ticket;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithMapping;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
+use Maatwebsite\Excel\Concerns\FromArray;
+use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class DailyCallSummeryExport implements FromCollection
+class DailyCallSummeryExport implements FromArray, WithHeadings
 {
-    /**
-     * @return \Illuminate\Support\Collection
-     */
-    public function collection()
+    protected $data;
+
+    public function __construct(array $data)
     {
-        return DailyCallSummary::whereIn('id', $this->dailyCallSummery)->get();
+        $this->data = $data;
     }
 
-    public $dailyCallSummery;
-
-    public function __construct($dailyCallSummery)
+    /**
+     * Provide data as an array.
+     */
+    public function array(): array
     {
-        $this->dailyCallSummery = $dailyCallSummery;
+        return $this->data;
+    }
+
+    /**
+     * Return the column headers.
+     */
+    public function headings(): array
+    {
+        return [
+            'Id',
+            'Date',
+            'Inbound',
+            'Outbound',
+            'Queued',
+            'Abandoned',
+            'Answered',
+        ];
     }
 }

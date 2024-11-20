@@ -2,26 +2,56 @@
 
 namespace App\Exports;
 
-use App\Models\DailyQueueSummery;
-use App\Models\Ticket;
 use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
-use PhpOffice\PhpSpreadsheet\Shared\Date;
 
-class DailyQueueSummeryExport implements FromCollection
+class DailyQueueSummeryExport implements FromCollection, WithHeadings, WithMapping
 {
+    protected $data;
+
+    public function __construct($data)
+    {
+        $this->data = $data;
+    }
+
     /**
-     * @return \Illuminate\Support\Collection
+     * Provide the collection of data for export.
      */
     public function collection()
     {
-        return DailyQueueSummery::whereIn('id', $this->dailyQueueSummery)->get();
+        return $this->data;
     }
 
-    public $dailyQueueSummery;
-
-    public function __construct($dailyQueueSummery)
+    /**
+     * Define the column headings for the export file.
+     */
+    public function headings(): array
     {
-        $this->dailyQueueSummery = $dailyQueueSummery;
+        return [
+            'ID',
+            'Date',
+            'Queue',
+            'Calls',
+            'Answered',
+            'Abandoned',
+            'Agents',
+        ];
+    }
+
+    /**
+     * Map each row of data to the required format.
+     */
+    public function map($row): array
+    {
+        return [
+            $row->id,
+            $row->date,
+            $row->queue,
+            $row->calls,
+            $row->answered,
+            $row->abandoned,
+            $row->agents,
+        ];
     }
 }

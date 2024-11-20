@@ -29,12 +29,27 @@ class DailyCallSummaryTable extends DataTableComponent
  
 public function export()
 {
-    $dailyCallSummery = $this->getSelected();
- 
+    // Get selected record IDs
+    $selectedIds = $this->getSelected();
+
+    // Fetch full records from the database using the selected IDs
+    $dailyCallSummery = DailyCallSummary::whereIn('id', $selectedIds)->get()->map(function ($item) {
+        return [
+            'id' => $item->id,
+            'date' => $item->date,
+            'inbound' => $item->inbound,
+            'outbound' => $item->outbound,
+            'queued' => $item->queued,
+            'abandoned' => $item->abandoned,
+            'answered' => $item->answered,
+        ];
+    })->toArray();
+
     $this->clearSelected();
- 
+
     return Excel::download(new DailyCallSummeryExport($dailyCallSummery), 'dailyCallSummery.csv');
 }
+
 
     public function columns(): array
     {

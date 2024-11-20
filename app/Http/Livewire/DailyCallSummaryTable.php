@@ -16,7 +16,8 @@ class DailyCallSummaryTable extends DataTableComponent
 
     public function configure(): void
     {
-        $this->setPrimaryKey('id');
+        $this->setPrimaryKey('id')
+        ->setDefaultSort('date', 'desc');
     }
 
     public function bulkActions(): array
@@ -48,14 +49,14 @@ public function export()
                 ->sortable()->searchable(),
             Column::make("Queued", "queued")
                 ->sortable()->searchable(),
-            Column::make("Abandent", "abandent")
+            Column::make("Abandoned", "abandent")
                 ->sortable()->searchable(),
             Column::make("Answered", "answered")
                 ->sortable()->searchable(),
-            Column::make("Created at", "created_at")
-                ->sortable()->searchable(),
-            Column::make("Updated at", "updated_at")
-                ->sortable()->searchable(),
+            // Column::make("Created at", "created_at")
+            //     ->sortable()->searchable(),
+            // Column::make("Updated at", "updated_at")
+            //     ->sortable()->searchable(),
         ];
     }
 

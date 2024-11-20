@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('daily_queue_summaries', function (Blueprint $table) {
+        Schema::create('daily_queue_summeries', function (Blueprint $table) {
             $table->id();
             $table->date('date');
             $table->string('queue');
@@ -32,6 +32,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('daily_queue_summaries');
+        Schema::dropIfExists('daily_queue_summeries');
     }
 };

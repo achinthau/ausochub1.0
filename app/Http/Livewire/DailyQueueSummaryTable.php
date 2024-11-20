@@ -29,10 +29,15 @@ class DailyQueueSummaryTable extends DataTableComponent
  
 public function export()
 {
-    $dailyQueueSummery = $this->getSelected();
- 
+    // Get selected record IDs
+    $selectedIds = $this->getSelected();
+
+    // Fetch full records from the database using the selected IDs
+    $dailyQueueSummery = DailyQueueSummery::whereIn('id', $selectedIds)->get();
+
     $this->clearSelected();
- 
+
+    // Pass the fetched records to the export class
     return Excel::download(new DailyQueueSummeryExport($dailyQueueSummery), 'dailyQueueSummery.csv');
 }
 

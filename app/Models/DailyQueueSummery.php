@@ -10,7 +10,7 @@ class DailyQueueSummery extends Model
     use HasFactory;
 
     // protected $connection = "mysql-old";
-    // protected $table = "ac_daily_queue_summeries";
+    protected $table = "daily_queue_summeries";
 
     protected $fillable = [
         'date',

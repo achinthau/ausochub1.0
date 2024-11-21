@@ -46,6 +46,9 @@ class Show extends Component
     {
         $this->ticket->ticket_status_id = 2;
         $this->ticket->save();
+
+        $this->ticket->logActivity("Ticket Started");
+
         if ($this->customerCard) {
             $this->emitTo('leads.show', 'refreshCard');
         } else {

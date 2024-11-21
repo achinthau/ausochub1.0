@@ -13,7 +13,7 @@ class CanceledCount extends Component
         return view('livewire.ticket-items.counts.canceled-count');
     }
 
-    public $canceledCount;
+    public $canceledCount=0;
 
 
     public function mount()

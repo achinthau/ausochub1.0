@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Tickets;
 
 use App\Models\Ticket;
+use Carbon\Carbon;
 use Livewire\Component;
 use WireUi\Traits\Actions;
 
@@ -60,15 +61,25 @@ class Show extends Component
 
     public function closeTicket()
     {
+
+        $this->validate([
+            'comment' => 'required'
+        ]);
+
         $this->ticket->ticket_status_id = 4;
+        $this->ticket->updated_at = Carbon::now();
         $this->ticket->save();
 
+        $this->ticket->logActivity("Ticket Closed", $this->comment);
 
         if ($this->customerCard) {
             $this->emitTo('leads.show', 'refreshCard');
         } else {
-            $this->emitTo('tickets.index', 'refreshList');
+            $this->emitTo('tickets.index-new', 'refreshList');
         }
+        $this->comment = null;
+        $this->ticket->refresh();
+
         $this->notification()->success(
             $title = 'Success',
             $description = 'Ticket Closed'

@@ -13,7 +13,7 @@ class ClosedCount extends Component
         return view('livewire.ticket-items.counts.closed-count');
     }
 
-    public $closedCount;
+    public $closedCount=0;
 
 
     public function mount()

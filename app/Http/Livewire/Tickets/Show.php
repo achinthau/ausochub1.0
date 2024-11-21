@@ -60,15 +60,24 @@ class Show extends Component
 
     public function closeTicket()
     {
+
+        $this->validate([
+            'comment' => 'required'
+        ]);
+
         $this->ticket->ticket_status_id = 4;
         $this->ticket->save();
 
+        $this->ticket->logActivity("Ticket Closed", $this->comment);
 
         if ($this->customerCard) {
             $this->emitTo('leads.show', 'refreshCard');
         } else {
-            $this->emitTo('tickets.index', 'refreshList');
+            $this->emitTo('tickets.index-new', 'refreshList');
         }
+
+        $this->ticket->refresh();
+
         $this->notification()->success(
             $title = 'Success',
             $description = 'Ticket Closed'

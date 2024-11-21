@@ -4,9 +4,11 @@ namespace App\Http\Livewire\Tables;
 
 use App\Models\Agent;
 use App\Models\AgentBreakSummary;
+use Carbon\Carbon;
 use Mediconesystems\LivewireDatatables\BooleanColumn;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\DateColumn;
+use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 
 class BreakSummaryTable extends LivewireDatatable
@@ -48,5 +50,15 @@ class BreakSummaryTable extends LivewireDatatable
         $this->activeDateFilters[$index]['end'] = $end == "" ? $end : $end . " 23:59:59";;
         $this->page = 1;
         $this->setSessionStoredFilters();
+    }
+
+    public function export(string $filename = 'DatatableExport.xlsx')
+    {
+        $this->forgetComputed();
+
+        $export = new DatatableExport($this->getExportResultsSet());
+        $export->setFilename('agent_break_summary_' . Carbon::now()->format('Ymdhis') . '.csv');
+
+        return $export->download();
     }
 }

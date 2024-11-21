@@ -10,7 +10,7 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            @livewire('tables.daily-call-table')
+            @livewire('daily-call-summary-table')
         </div>
     </div>
 </div>

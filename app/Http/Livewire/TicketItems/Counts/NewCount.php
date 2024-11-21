@@ -13,7 +13,7 @@ class NewCount extends Component
         return view('livewire.ticket-items.counts.new-count');
     }
 
-    public $newCount;
+    public $newCount = 0;
 
 
     public function mount()
@@ -25,11 +25,10 @@ class NewCount extends Component
 
     public function refreshComponent()
     {
-            Cache::forget('tickets_table');
+        Cache::forget('tickets_table');
 
-            $this->newCount = Cache::remember('tickets_table', 60, function () {
-                return Ticket::where('ticket_status_id', 1)->count();
-            });
-        
+        $this->newCount = Cache::remember('tickets_table', 60, function () {
+            return Ticket::where('ticket_status_id', 1)->count();
+        });
     }
 }

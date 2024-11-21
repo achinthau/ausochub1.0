@@ -15,7 +15,7 @@ class OverdueCount extends Component
         return view('livewire.ticket-items.counts.overdue-count');
     }
 
-    public $overdueCount;
+    public $overdueCount=0;
 
 
     public function mount()

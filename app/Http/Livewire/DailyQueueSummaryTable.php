@@ -59,8 +59,8 @@ class DailyQueueSummaryTable extends DataTableComponent
                 ->sortable()->searchable(),
             Column::make("Abandoned", "abandoned")
                 ->sortable()->searchable(),
-            Column::make("Agents", "agents")
-                ->sortable()->searchable(),
+            // Column::make("Agents", "agents")
+                // ->sortable()->searchable(),
             // Column::make("Created at", "created_at")
             //     ->sortable()->searchable(),
             // Column::make("Updated at", "updated_at")

@@ -70,7 +70,10 @@ class CreateDailyCallSummary extends Command
         ];
 
 
-        DailyCallSummary::create($dailyCallSummaryData);
+        DailyCallSummary::updateOrCreate(
+            ['date' => $date],
+            $dailyCallSummaryData
+        );
 
 
 

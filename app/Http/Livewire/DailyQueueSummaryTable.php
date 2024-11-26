@@ -3,6 +3,7 @@
 namespace App\Http\Livewire;
 
 use App\Exports\DailyQueueSummeryExport;
+use App\Models\DailyQueueSummary;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use App\Models\DailyQueueSummery;
@@ -12,34 +13,34 @@ use Rappasoft\LaravelLivewireTables\Views\Filters\DateFilter;
 
 class DailyQueueSummaryTable extends DataTableComponent
 {
-    protected $model = DailyQueueSummery::class;
+    protected $model = DailyQueueSummary::class;
 
     public function configure(): void
     {
         $this->setPrimaryKey('id')
-        ->setDefaultSort('date', 'desc');
+            ->setDefaultSort('date', 'desc');
     }
 
     public function bulkActions(): array
-{
-    return [
-        'export' => 'Export',
-    ];
-}
- 
-public function export()
-{
-    // Get selected record IDs
-    $selectedIds = $this->getSelected();
+    {
+        return [
+            'export' => 'Export',
+        ];
+    }
 
-    // Fetch full records from the database using the selected IDs
-    $dailyQueueSummery = DailyQueueSummery::whereIn('id', $selectedIds)->get();
+    public function export()
+    {
+        // Get selected record IDs
+        $selectedIds = $this->getSelected();
 
-    $this->clearSelected();
+        // Fetch full records from the database using the selected IDs
+        $dailyQueueSummery = DailyQueueSummary::whereIn('id', $selectedIds)->get();
 
-    // Pass the fetched records to the export class
-    return Excel::download(new DailyQueueSummeryExport($dailyQueueSummery), 'dailyQueueSummery.csv');
-}
+        $this->clearSelected();
+
+        // Pass the fetched records to the export class
+        return Excel::download(new DailyQueueSummeryExport($dailyQueueSummery), 'dailyQueueSummery.csv');
+    }
 
 
 
@@ -71,7 +72,7 @@ public function export()
     public function filters(): array
     {
         return [
-            
+
             DateFilter::make('Due From')
                 ->config([
                     // 'min' => '2020-01-01',
@@ -89,9 +90,7 @@ public function export()
     }
 
     public function builder(): \Illuminate\Database\Eloquent\Builder
-{
-    return DailyQueueSummery::query();
-}
-
-
+    {
+        return DailyQueueSummary::query();
+    }
 }

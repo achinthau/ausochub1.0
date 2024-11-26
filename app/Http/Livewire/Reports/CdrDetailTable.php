@@ -24,7 +24,7 @@ class CdrDetailTable extends LivewireDatatable
                 $join->on('cdr.uniqueid', '=', 'queuecount.uniqueid')
                     ->where('queuecount.status', '=', 2);
             })
-            ->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('source');
+            ->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src');
     }
 
     public function columns()

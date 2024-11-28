@@ -185,6 +185,22 @@
                 </a>
 
 
+                <a href="{{ route('reports.daily-calls-summary-report') }}"
+                    class="flex p-2 space-x-2 transform transition duration-500 hover:scale-105 hover:bg-[#5E81F4]/[.1]  hover:text-[#5E81F4] rounded-md ">
+                    <div class="p-2 bg-gray-100 rounded-md max-h-12">
+                        
+                        <svg class="w-8 h-8 text-gray-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="none" stroke="currentColor" stroke-width="2" d="M9,15 L9,22 L22,22 L22,2 L9,2 L9,9 M18,12 L0,12 M13,7 L18,12 L13,17"></path></svg>
+                    </div>
+                    <div>
+                        <div class="text-lg font-semibold text-gray-700">Agent Login Logout Report</div>
+                        <div
+                            class="text-sm text-gray-600 font-thin text-ellipsis whitespace-nowrap overflow-hidden w-60 hover:w-full hover:whitespace-normal transition transform">
+                            Agent Login Logout Report
+                        </div>
+                    </div>
+                </a>
+
+
 
                 @endif
             </div>

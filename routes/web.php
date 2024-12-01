@@ -79,7 +79,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
         Route::get('/daily-queue-summary-report', DailyQueueSummary::class)->name('reports.daily-queue-summary-report')->can('is-admin');
         Route::get('/daily-call-summary-report', ReportsDailyCallSummary::class)->name('reports.daily-calls-summary-report')->can('is-admin');
-        Route::get('/agent-login-logout-report', AgentLoginLogoutReport::class)->name('reports.daily-calls-summary-report')->can('is-admin');
+        Route::get('/agent-login-logout-report', AgentLoginLogoutReport::class)->name('reports.agent-login-logout-report')->can('is-admin');
         // Route::get('/call-queue-report', CallQueue::class)->name('reports.call-queue-report')->can('is-admin');
     });
 

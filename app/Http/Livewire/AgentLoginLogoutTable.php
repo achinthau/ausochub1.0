@@ -7,6 +7,8 @@ use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use App\Models\AgentLoginLogoutDetail;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Contracts\Database\Eloquent\Builder;
+use Rappasoft\LaravelLivewireTables\Views\Filters\DateFilter;
 
 class AgentLoginLogoutTable extends DataTableComponent
 {
@@ -73,4 +75,25 @@ class AgentLoginLogoutTable extends DataTableComponent
             //     ->sortable(),
         ];
     }
+
+    public function filters(): array
+    {
+        return [
+            
+            DateFilter::make('From')
+                ->config([
+                    // 'min' => '2020-01-01',
+                    // 'max' => '2021-12-31',
+                ])
+                ->filter(function (Builder $builder, string $value) {
+                    $builder->where('login_time', '>=', $value);
+                }),
+            DateFilter::make('To')
+                ->filter(function (Builder $builder, string $value) {
+                    $builder->where('login_time', '<=', $value);
+                })
+
+        ];
+    }
+
 }

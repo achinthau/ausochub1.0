@@ -9,6 +9,7 @@ use App\Repositories\ApiManager;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
 class Index extends Component
@@ -18,7 +19,6 @@ class Index extends Component
     public $totalBreakTime;
     public $queueWiseData;
     public $selectedSkills = [];
-
     public function mount()
     {
         $this->user = User::where('id', Auth::id())->with([

@@ -1,9 +1,17 @@
 <div>
     <x-slot name="header">
         <div class="flex">
-            <h2 class="flex-1 font-semibold text-xl text-gray-800 leading-tight ">
-                {{ __('Dashboard') }}
-            </h2>
+            <div class="flex justify-between">
+                <div class="flex-1 ">
+                    <h2 class="font-semibold text-xl text-gray-800 leading-tight ">
+                        {{ __('Dashboard') }}
+                    </h2>
+                </div>
+
+                <div class="absolute right-44 flex justify-between">
+                    @livewire('dashboard.select-bound')
+                </div>
+            </div>
             <div>
                 {{-- @dump(Auth::user()->has_queue) --}}
                 @if (Auth::user()->has_queue)
@@ -39,7 +47,7 @@
                         <div class="grid grid-cols-3 space-x-4">
                             <x-dashboard.box title="Answered" :value="$user->agent->todayQueues->count()" iconBackground="bg-blue-100"
                                 name='phone' iconColor="text-blue-400" />
-                           {{--  <x-dashboard.box title="Missed" :value="$user->agent->todayQueues->count()" iconBackground="bg-red-100"
+                            {{--  <x-dashboard.box title="Missed" :value="$user->agent->todayQueues->count()" iconBackground="bg-red-100"
                                 name='phone-missed' iconColor="text-red-400" /> --}}
                             <x-dashboard.box title="Missed" :value="$user->agent->miscall_count" iconBackground="bg-red-100"
                                 name='phone-missed' iconColor="text-red-400" />
@@ -116,32 +124,32 @@
 @push('scripts')
     <script>
         /* function appFooterComponent(breakStartedAt) {
-                            console.log(breakStartedAt);
-                            return {
-                                time: new Date(breakStartedAt),
-                                init() {
-                                    setInterval(() => {
-                                        // this.time = new Date();
-                                        var now = new Date();
-                                        var then = this.time;
+                                        console.log(breakStartedAt);
+                                        return {
+                                            time: new Date(breakStartedAt),
+                                            init() {
+                                                setInterval(() => {
+                                                    // this.time = new Date();
+                                                    var now = new Date();
+                                                    var then = this.time;
 
-                                        var duration = moment.utc(moment(now, "DD/MM/YYYY HH:mm:ss").diff(moment(then,
-                                                "YYYY/MM/DD HH:mm:ss")))
-                                            .format("HH:mm:ss")
+                                                    var duration = moment.utc(moment(now, "DD/MM/YYYY HH:mm:ss").diff(moment(then,
+                                                            "YYYY/MM/DD HH:mm:ss")))
+                                                        .format("HH:mm:ss")
 
-                                    }, 1000);
-                                },
-                                getTime() {
-                                    var now = new Date();
-                                    var then = this.time;
+                                                }, 1000);
+                                            },
+                                            getTime() {
+                                                var now = new Date();
+                                                var then = this.time;
 
-                                    var duration = moment.utc(moment(now, "DD/MM/YYYY HH:mm:ss").diff(moment(then,
-                                            "YYYY/MM/DD HH:mm:ss")))
-                                        .format("HH:mm:ss");
-                                    console.log(duration);
-                                    return duration;
-                                },
-                            }
-                        } */
+                                                var duration = moment.utc(moment(now, "DD/MM/YYYY HH:mm:ss").diff(moment(then,
+                                                        "YYYY/MM/DD HH:mm:ss")))
+                                                    .format("HH:mm:ss");
+                                                console.log(duration);
+                                                return duration;
+                                            },
+                                        }
+                                    } */
     </script>
 @endpush

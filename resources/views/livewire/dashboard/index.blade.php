@@ -20,7 +20,7 @@
                 <div class="flex">
                 <div>
                 {{-- @dump(Auth::user()->has_queue) --}}
-                {{-- @if (Auth::user()->has_queue) --}}
+                @if (Auth::user()->has_queue)
 
 
 
@@ -40,7 +40,7 @@
                         <x-button icon="clipboard-list" secondary label="Start Break"
                             onclick="Livewire.emitTo('dashboard.partials.agent-break', 'showCreateUserBreakModal')" />
                     @endif
-                {{-- @endif --}}
+                @endif
                 
             </div>
             <div class=" pl-8">

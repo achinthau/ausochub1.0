@@ -1,20 +1,26 @@
 <div>
     <x-slot name="header">
         <div class="flex">
-            <div class="flex justify-between">
+            {{-- <div class="flex justify-between">
                 <div class="flex-1 ">
                     <h2 class="font-semibold text-xl text-gray-800 leading-tight ">
                         {{ __('Dashboard') }}
                     </h2>
                 </div>
 
-                <div class="absolute right-44 flex justify-between">
+                {{-- <div class="absolute right-44 flex justify-between">
                     @livewire('dashboard.select-bound')
-                </div>
-            </div>
-            <div>
+                </div> --}}
+            {{-- </div> --}}
+            {{-- <div> --}} 
+                <h2 class="flex-1 font-semibold text-xl text-gray-800 leading-tight ">
+                    {{ __('Dashboard') }}
+                </h2>
+
+                <div class="flex">
+                <div>
                 {{-- @dump(Auth::user()->has_queue) --}}
-                @if (Auth::user()->has_queue)
+                {{-- @if (Auth::user()->has_queue) --}}
 
 
 
@@ -28,13 +34,21 @@
                             </div>
                             <x-button icon="clipboard-list" secondary label="End Break"
                                 onclick="Livewire.emitTo('dashboard.partials.agent-break', 'endBreak')" />
+                                
                         </div>
                     @else
                         <x-button icon="clipboard-list" secondary label="Start Break"
                             onclick="Livewire.emitTo('dashboard.partials.agent-break', 'showCreateUserBreakModal')" />
                     @endif
-                @endif
+                {{-- @endif --}}
+                
             </div>
+            <div class=" pl-8">
+                @livewire('dashboard.select-bound')
+            </div>
+            
+
+        </div>
         </div>
     </x-slot>
 

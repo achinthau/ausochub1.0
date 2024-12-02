@@ -8,13 +8,11 @@ class SelectBound extends Component
 {
     public $boundType = "In Bound";
     public $isOutbound = false;
-    protected $listeners = ['changeBound' => 'changeTheBound'];
+    public $isAcw = false;
+    protected $listeners = ['changeBound' => 'changeTheBound', 'setAcw' => 'setAcw'];
 
 
-    public function changeTheBound()
-    {
-        $this->isOutbound = true;
-    }
+
 
     public function refreshComponent()
     {
@@ -25,6 +23,18 @@ class SelectBound extends Component
         else
         {
             $this->boundType = "In Bound";
+        }
+    }
+
+    public function setAcw()
+    {
+        if($this->isAcw == false)
+        {
+            $this->isAcw = true;
+        }
+        else
+        {
+            $this->isAcw = false;
         }
     }
 

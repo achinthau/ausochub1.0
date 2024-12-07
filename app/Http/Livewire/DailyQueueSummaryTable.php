@@ -3,7 +3,6 @@
 namespace App\Http\Livewire;
 
 use App\Exports\DailyQueueSummeryExport;
-use App\Models\DailyQueueSummary;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use App\Models\DailyQueueSummery;
@@ -13,34 +12,34 @@ use Rappasoft\LaravelLivewireTables\Views\Filters\DateFilter;
 
 class DailyQueueSummaryTable extends DataTableComponent
 {
-    protected $model = DailyQueueSummary::class;
+    protected $model = DailyQueueSummery::class;
 
     public function configure(): void
     {
         $this->setPrimaryKey('id')
-            ->setDefaultSort('date', 'desc');
+        ->setDefaultSort('date', 'desc');
     }
 
     public function bulkActions(): array
-    {
-        return [
-            'export' => 'Export',
-        ];
-    }
+{
+    return [
+        'export' => 'Export',
+    ];
+}
+ 
+public function export()
+{
+    // Get selected record IDs
+    $selectedIds = $this->getSelected();
 
-    public function export()
-    {
-        // Get selected record IDs
-        $selectedIds = $this->getSelected();
+    // Fetch full records from the database using the selected IDs
+    $dailyQueueSummery = DailyQueueSummery::whereIn('id', $selectedIds)->get();
 
-        // Fetch full records from the database using the selected IDs
-        $dailyQueueSummery = DailyQueueSummary::whereIn('id', $selectedIds)->get();
+    $this->clearSelected();
 
-        $this->clearSelected();
-
-        // Pass the fetched records to the export class
-        return Excel::download(new DailyQueueSummeryExport($dailyQueueSummery), 'dailyQueueSummery.csv');
-    }
+    // Pass the fetched records to the export class
+    return Excel::download(new DailyQueueSummeryExport($dailyQueueSummery), 'dailyQueueSummery.csv');
+}
 
 
 
@@ -59,8 +58,8 @@ class DailyQueueSummaryTable extends DataTableComponent
                 ->sortable()->searchable(),
             Column::make("Abandoned", "abandoned")
                 ->sortable()->searchable(),
-            // Column::make("Agents", "agents")
-                // ->sortable()->searchable(),
+            Column::make("Agents", "agents")
+                ->sortable()->searchable(),
             // Column::make("Created at", "created_at")
             //     ->sortable()->searchable(),
             // Column::make("Updated at", "updated_at")
@@ -72,17 +71,8 @@ class DailyQueueSummaryTable extends DataTableComponent
     public function filters(): array
     {
         return [
-<<<<<<< HEAD
-
-            DateFilter::make('Due From')
-=======
             
-<<<<<<< HEAD
-            DateFilter::make('From')
->>>>>>> remotes/origin/viraj
-=======
             DateFilter::make('Due From')
->>>>>>> remotes/origin/viraj
                 ->config([
                     // 'min' => '2020-01-01',
                     // 'max' => '2021-12-31',
@@ -99,7 +89,9 @@ class DailyQueueSummaryTable extends DataTableComponent
     }
 
     public function builder(): \Illuminate\Database\Eloquent\Builder
-    {
-        return DailyQueueSummary::query();
-    }
+{
+    return DailyQueueSummery::query();
+}
+
+
 }

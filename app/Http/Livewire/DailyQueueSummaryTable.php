@@ -72,7 +72,7 @@ public function export()
     {
         return [
             
-            DateFilter::make('From')
+            DateFilter::make('Due From')
                 ->config([
                     // 'min' => '2020-01-01',
                     // 'max' => '2021-12-31',
@@ -80,7 +80,7 @@ public function export()
                 ->filter(function (Builder $builder, string $value) {
                     $builder->where('date', '>=', $value);
                 }),
-            DateFilter::make('To')
+            DateFilter::make('Deu To')
                 ->filter(function (Builder $builder, string $value) {
                     $builder->where('date', '<=', $value);
                 })

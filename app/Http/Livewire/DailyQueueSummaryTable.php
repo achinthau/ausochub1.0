@@ -90,7 +90,7 @@ public function export()
 
     public function builder(): \Illuminate\Database\Eloquent\Builder
 {
-    return DailyQueueSummery::query();
+    return DailyQueueSummary::query();
 }
 
 

@@ -10,6 +10,7 @@ use App\Http\Livewire\Orders\Index as OrdersIndex;
 use App\Http\Livewire\Reports\AbandonedCall;
 use App\Http\Livewire\Reports\BreakSummary;
 use App\Http\Livewire\Reports\AgentCallSummary;
+use App\Http\Livewire\Reports\AgentLoginLogoutReport;
 // use App\Http\Livewire\Reports\CallDetail;
 use App\Http\Livewire\Reports\CdrDetail;
 use App\Http\Livewire\Reports\CdrListen;
@@ -78,6 +79,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
         Route::get('/daily-queue-summary-report', DailyQueueSummary::class)->name('reports.daily-queue-summary-report')->can('is-admin');
         Route::get('/daily-call-summary-report', ReportsDailyCallSummary::class)->name('reports.daily-calls-summary-report')->can('is-admin');
+        Route::get('/agent-login-logout-report', AgentLoginLogoutReport::class)->name('reports.agent-login-logout-report')->can('is-admin');
         // Route::get('/call-queue-report', CallQueue::class)->name('reports.call-queue-report')->can('is-admin');
     });
 

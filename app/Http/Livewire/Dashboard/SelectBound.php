@@ -1,24 +1,29 @@
 <?php
 
-namespace App\Http\Livewire\Dashboard\Partials;
+namespace App\Http\Livewire\Dashboard;
 
 use App\Models\AgentBreakSummary;
 use App\Models\BreakType;
 use App\Repositories\ApiManager;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
 
-class AgentBreak extends Component
+class SelectBound extends Component
 {
+    public $boundType = "In Bound";
+    public $isOutbound = false;
+    public $isAcw = false;
+    public $time = 0;
+    public $pauseTime = false;
+    public $timeout;
 
-    public $createUserBreakModal = false;
     public $breakTypes;
+    public $breakType = 3;
     public $description;
 
-    public $breakType = 0;
-
-    protected $listeners = ['showCreateUserBreakModal' => 'showCreateUserBreakModal', 'endBreak' => 'endBreak'];
+    protected $listeners = ['changeBound' => 'changeTheBound', 'setAcw' => 'setAcw', 'updateTime' => 'updateTime'];
 
     protected $rules = [
         'breakType' => 'required|exists:break_types,id',
@@ -27,23 +32,60 @@ class AgentBreak extends Component
 
     public function mount()
     {
+        $this->timeout = env('ACW_TIMEOUT', 20);
+
         $this->breakTypes = BreakType::all();
     }
 
-
-    public function render()
+    public function refreshComponent()
     {
-        return view('livewire.dashboard.partials.agent-break');
+        if ($this->isOutbound == true) {
+            $this->boundType = "Out Bound";
+        } else {
+            $this->boundType = "In Bound";
+        }
+
+        // $cacheKey = 'bound_type';
+        // Cache::put($cacheKey, $this->boundType, now()->addMinutes(10));
     }
 
-    public function showCreateUserBreakModal()
+    public function setAcw()
     {
-        $this->createUserBreakModal = true;
+        if ($this->timeout > 0) {
+
+            if ($this->isAcw == false && $this->time == 0 && $this->pauseTime == false) {
+                $this->isAcw = true;
+                $this->startAcw();
+
+            } elseif ($this->isAcw == true && $this->time > 0 && $this->time < ($this->timeout + 1) && $this->pauseTime == false) {
+                $this->pauseTime = true;
+
+            } elseif ($this->isAcw == true && $this->pauseTime == true) {
+                $this->pauseTime = false;
+                $this->time = 0;
+                $this->isAcw = false;
+                $this->endAcw();
+            }
+
+        } elseif ($this->timeout == 0) {
+
+            if ($this->isAcw == false && $this->time == 0 && $this->pauseTime == false) {
+                $this->isAcw = true;
+                $this->pauseTime = true;
+                $this->startAcw();
+
+            } elseif ($this->isAcw == true && $this->time > 0 && $this->pauseTime == true) {
+                $this->pauseTime = false;
+                $this->time = 0;
+                $this->isAcw = false;
+                $this->endAcw();
+            }
+        }
     }
 
-    public function save()
+    public function startAcw()
     {
-        $this->validate();
+        // $this->validate();
         $user = Auth::user();
 
         $agentBreakSummary = new AgentBreakSummary;
@@ -54,12 +96,11 @@ class AgentBreak extends Component
         $breakType = $this->breakTypes->where('id', $this->breakType)->first();
         $agentBreakSummary->desc = $this->breakType == 4 ? "Other : " . $this->description : $breakType->title;
         $agentBreakSummary->save();
-        
+
         $user->break_started_at = Carbon::now();
         $user->agent_break_id = $agentBreakSummary->id;
         $user->save();
-        
-        
+
         $data = [
             [
                 'name' => 'extension',
@@ -76,7 +117,7 @@ class AgentBreak extends Component
             ],
             [
                 'name' => 'action',
-                'contents' => 'break' 
+                'contents' => 'break'
             ],
             [
                 'name' => 'agentid',
@@ -93,18 +134,16 @@ class AgentBreak extends Component
         ];
 
         ApiManager::startBreak($data);
-        $this->createUserBreakModal = false;
-        return redirect(route('dashboard.index'));
     }
 
-    public function endBreak()
+    public function endAcw()
     {
         $user = Auth::user();
         $agentBreakSummary = AgentBreakSummary::find($user->agent_break_id);
-        $agentBreakSummary->unbreaktime=Carbon::now();
+        $agentBreakSummary->unbreaktime = Carbon::now();
         $agentBreakSummary->status = 0;
         $agentBreakSummary->save();
-        
+
         $user->break_started_at = null;
         $user->agent_break_id = null;
         $user->save();
@@ -126,7 +165,7 @@ class AgentBreak extends Component
             ],
             [
                 'name' => 'action',
-                'contents' => 'unbreak' 
+                'contents' => 'unbreak'
             ],
             [
                 'name' => 'agentid',
@@ -138,13 +177,36 @@ class AgentBreak extends Component
             ],
             [
                 'name' => 'breakType',
-                'contents' => 'type'
+                'contents' => 'ACW'
             ]
         ];
 
         ApiManager::startBreak($data);
-        $this->createUserBreakModal = false;
+    }
 
-        return redirect(route('dashboard.index'));
+    public function updateTime()
+    {
+        if ($this->timeout > 0) {
+
+            if ($this->isAcw) {
+                $this->time++;
+            }
+            if ($this->time == $this->timeout && $this->isAcw == true && $this->pauseTime == false) {
+                $this->pauseTime = false;
+                $this->time = 0;
+                $this->isAcw = false;
+                $this->endAcw();
+            }
+        } elseif ($this->timeout == 0) {
+            if ($this->isAcw) {
+                $this->time++;
+            }
+        }
+    }
+
+
+    public function render()
+    {
+        return view('livewire.dashboard.select-bound');
     }
 }

@@ -24,6 +24,9 @@ class BreakTypeSeeder extends Seeder
             'title'=>'Tea'
         ]);
         BreakType::create([
+            'title'=>'ACW'
+        ]);
+        BreakType::create([
             'title'=>'Other'
         ]);
     }

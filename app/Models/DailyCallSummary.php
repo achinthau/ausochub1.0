@@ -9,6 +9,8 @@ class DailyCallSummary extends Model
 {
     use HasFactory;
 
+    protected $table = "daily_call_summaries";
+
     protected $fillable = [
         'date',
         'inbound',

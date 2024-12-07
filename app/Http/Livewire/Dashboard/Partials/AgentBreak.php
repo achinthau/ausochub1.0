@@ -22,7 +22,7 @@ class AgentBreak extends Component
 
     protected $rules = [
         'breakType' => 'required|exists:break_types,id',
-        'description' => 'required_if:breakType,==,3',
+        'description' => 'required_if:breakType,==,4',
     ];
 
     public function mount()
@@ -52,7 +52,7 @@ class AgentBreak extends Component
         $agentBreakSummary->breaktime = Carbon::now();
         $agentBreakSummary->date = Carbon::now()->format('Y-m-d');
         $breakType = $this->breakTypes->where('id', $this->breakType)->first();
-        $agentBreakSummary->desc = $this->breakType == 3 ? "Other : " . $this->description : $breakType->title;
+        $agentBreakSummary->desc = $this->breakType == 4 ? "Other : " . $this->description : $breakType->title;
         $agentBreakSummary->save();
         
         $user->break_started_at = Carbon::now();

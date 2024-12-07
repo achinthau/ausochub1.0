@@ -169,4 +169,20 @@ class ApiManager
         }
         
     }
+
+    // public static function startAcw($data)
+    // {
+    //     $client = new Client();
+    //     $options = [
+    //         'multipart' => $data
+    //     ];
+        
+    //     try {
+    //         $res = $client->request('POST', config('auso.api_url').'/Client/userAPI/breakAPI.php', $options);
+    //         return $res->getStatusCode();
+    //     } catch (\Throwable $th) {
+    //         throw $th;
+    //     }
+    // }
+
 }

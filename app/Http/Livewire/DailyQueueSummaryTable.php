@@ -77,7 +77,11 @@ class DailyQueueSummaryTable extends DataTableComponent
             DateFilter::make('Due From')
 =======
             
+<<<<<<< HEAD
             DateFilter::make('From')
+>>>>>>> remotes/origin/viraj
+=======
+            DateFilter::make('Due From')
 >>>>>>> remotes/origin/viraj
                 ->config([
                     // 'min' => '2020-01-01',
@@ -86,7 +90,7 @@ class DailyQueueSummaryTable extends DataTableComponent
                 ->filter(function (Builder $builder, string $value) {
                     $builder->where('date', '>=', $value);
                 }),
-            DateFilter::make('To')
+            DateFilter::make('Deu To')
                 ->filter(function (Builder $builder, string $value) {
                     $builder->where('date', '<=', $value);
                 })

@@ -5,7 +5,7 @@ namespace App\Http\Livewire;
 use App\Exports\DailyQueueSummeryExport;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
-use App\Models\DailyQueueSummery;
+use App\Models\DailyQueueSummary;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Facades\Excel;
 use Rappasoft\LaravelLivewireTables\Views\Filters\DateFilter;

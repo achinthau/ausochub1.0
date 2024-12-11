@@ -13,7 +13,7 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('agent_login_logout_details', function (Blueprint $table) {
+        Schema::create('agent_logins', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
             $table->timestamp('login_time')->nullable();
@@ -29,6 +29,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('agent_login_logout_details');
+        Schema::dropIfExists('agent_logins');
     }
 };

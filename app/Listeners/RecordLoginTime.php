@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Models\AgentLogin;
 use App\Models\AgentLoginLogoutDetail;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -27,7 +28,7 @@ class RecordLoginTime
      */
     public function handle(Login $event)
     {
-        AgentLoginLogoutDetail::create([
+        AgentLogin::create([
             'user_id' => $event->user->id,
             'login_time' => now(),
         ]);

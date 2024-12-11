@@ -4,11 +4,13 @@ namespace App\Http\Livewire\Tables;
 
 use App\Models\Lead;
 use App\Models\LeadStatus;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\DateColumn;
+use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 
 class LeadsTable extends LivewireDatatable
 {
@@ -50,7 +52,7 @@ class LeadsTable extends LivewireDatatable
                 $this->query->orderBy(DB::raw('FIELD(id,' . implode(',', $this->pinnedRecords) . ')'), 'DESC');
             }
             // dd((string)DB::raw($this->getSortString($this->query->getConnection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME))));
-            if ((string)str_contains(DB::raw($this->getSortString($this->query->getConnection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME))), ".")) {
+            if (str_contains((string)DB::raw($this->getSortString($this->query->getConnection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME))), ".")) {
                 // $this->query->orderBy($this->tablePrefix.DB::raw($this->getSortString($this->query->getConnection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME))), $this->direction ? 'asc' : 'desc');
             } else {
 
@@ -60,5 +62,15 @@ class LeadsTable extends LivewireDatatable
         }
 
         return $this;
+    }
+
+    public function export(string $filename = 'DatatableExport.xlsx')
+    {
+        $this->forgetComputed();
+
+        $export = new DatatableExport($this->getExportResultsSet());
+        $export->setFilename('leads_' . Carbon::now()->format('Ymdhis') . '.csv');
+
+        return $export->download();
     }
 }

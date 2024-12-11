@@ -57,6 +57,7 @@ class AgentBreak extends Component
         
         $user->break_started_at = Carbon::now();
         $user->agent_break_id = $agentBreakSummary->id;
+        $user->agent_break_type = $breakType->title;
         $user->save();
         
         
@@ -107,6 +108,7 @@ class AgentBreak extends Component
         
         $user->break_started_at = null;
         $user->agent_break_id = null;
+        $user->agent_break_type = null;
         $user->save();
 
         $breakType = $this->breakTypes->where('id', $this->breakType)->first();

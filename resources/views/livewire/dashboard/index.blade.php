@@ -9,7 +9,8 @@
                 </div>
 
                 {{-- <div class="absolute right-44 flex justify-between">
-                    @livewire('dashboard.select-bound')
+                    @livewire('dashboard.select-bound') not used
+                    
                 </div> --}}
             {{-- </div> --}}
             {{-- <div> --}} 
@@ -24,7 +25,7 @@
 
 
 
-                    @if (Auth::user()->on_break)
+                    @if ((Auth::user()->on_break) && ($user->agent_break_type != 'ACW'))
                         <div class="flex space-x-4">
                             <div class="my-auto" {{-- x-data="appFooterComponent('{{ Auth::user()->break_started_at->format('Y/m/d H:i:s') }}')" --}}{{--  x-init="init()" --}}>
                                 <div>
@@ -44,7 +45,7 @@
                 
             </div>
             <div class=" pl-8">
-                @livewire('dashboard.select-bound')
+                {{-- @livewire('dashboard.select-bound') --}}
             </div>
             
 
@@ -55,7 +56,7 @@
     <div class="py-12" wire:poll.3000ms>
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div
-                class=" overflow-hidden  {{-- shadow-xl sm:rounded-lg --}} space-y-4  @if (Auth::user()->on_break) blur-lg @endif   ">
+                class=" overflow-hidden  {{-- shadow-xl sm:rounded-lg --}} space-y-4  @if ((Auth::user()->on_break) && ($user->agent_break_type != 'ACW')) blur-lg @endif   ">
                 <div class="flex space-x-4">
                     <div class="w-3/4 space-y-4">
                         <div class="grid grid-cols-3 space-x-4">

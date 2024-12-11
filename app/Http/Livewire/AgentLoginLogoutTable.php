@@ -5,14 +5,14 @@ namespace App\Http\Livewire;
 use App\Exports\AgentLoginLogoutExport;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
-use App\Models\AgentLoginLogoutDetail;
+use App\Models\AgentLogin;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Rappasoft\LaravelLivewireTables\Views\Filters\DateFilter;
 
 class AgentLoginLogoutTable extends DataTableComponent
 {
-    protected $model = AgentLoginLogoutDetail::class;
+    protected $model = AgentLogin::class;
 
     public array $bulkActions = [
         'exportSelected' => 'Export',
@@ -29,7 +29,7 @@ class AgentLoginLogoutTable extends DataTableComponent
 
     public function query()
     {
-        return AgentLoginLogoutDetail::with('user');
+        return AgentLogin::with('user');
     }
 
     public function bulkActions(): array
@@ -43,7 +43,7 @@ class AgentLoginLogoutTable extends DataTableComponent
 {
     $selectedIds = $this->getSelected();
 
-    $agentLoginLogout = AgentLoginLogoutDetail::whereIn('id', $selectedIds)->get()->map(function ($item) {
+    $agentLoginLogout = AgentLogin::whereIn('id', $selectedIds)->get()->map(function ($item) {
         return [
             'id' => $item->id,
             'Agent ID' => $item->user_id,

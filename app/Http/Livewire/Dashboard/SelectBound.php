@@ -35,6 +35,15 @@ class SelectBound extends Component
         $this->timeout = env('ACW_TIMEOUT', 20);
 
         $this->breakTypes = BreakType::all();
+
+        $userId = auth()->id();
+        $cachedState = Cache::get("acw_state_{$userId}");
+
+        if ($cachedState) {
+            $this->pauseTime = $cachedState['pauseTime'];
+            $this->time = $cachedState['time'];
+            $this->isAcw = $cachedState['isAcw'];
+        }
     }
 
     public function refreshComponent()
@@ -56,29 +65,27 @@ class SelectBound extends Component
             if ($this->isAcw == false && $this->time == 0 && $this->pauseTime == false) {
                 $this->isAcw = true;
                 $this->startAcw();
-
             } elseif ($this->isAcw == true && $this->time > 0 && $this->time < ($this->timeout + 1) && $this->pauseTime == false) {
                 $this->pauseTime = true;
-
             } elseif ($this->isAcw == true && $this->pauseTime == true) {
                 $this->pauseTime = false;
                 $this->time = 0;
                 $this->isAcw = false;
                 $this->endAcw();
+                // return redirect()->to(url()->previous());
             }
-
         } elseif ($this->timeout == 0) {
 
             if ($this->isAcw == false && $this->time == 0 && $this->pauseTime == false) {
                 $this->isAcw = true;
                 $this->pauseTime = true;
                 $this->startAcw();
-
             } elseif ($this->isAcw == true && $this->time > 0 && $this->pauseTime == true) {
                 $this->pauseTime = false;
                 $this->time = 0;
                 $this->isAcw = false;
                 $this->endAcw();
+                // return redirect()->to(url()->previous());
             }
         }
     }
@@ -99,6 +106,7 @@ class SelectBound extends Component
 
         $user->break_started_at = Carbon::now();
         $user->agent_break_id = $agentBreakSummary->id;
+        $user->agent_break_type = $breakType->title;
         $user->save();
 
         $data = [
@@ -108,8 +116,8 @@ class SelectBound extends Component
             ],
             [
                 'name' => 'type',
-                // 'contents' => 'SIP'
-                'contents' => Auth::user()->agent->extensionDetails->exten_type
+                'contents' => 'SIP'
+                // 'contents' => Auth::user()->agent->extensionDetails->exten_type
             ],
             [
                 'name' => 'agentip',
@@ -133,7 +141,14 @@ class SelectBound extends Component
             ]
         ];
 
-        ApiManager::startBreak($data);
+        $userId = auth()->id();
+        Cache::put("acw_state_{$userId}", [
+            'pauseTime' => $this->pauseTime,
+            'time' => $this->time,
+            'isAcw' => $this->isAcw,
+        ]);
+
+        // ApiManager::startBreak($data);
     }
 
     public function endAcw()
@@ -146,6 +161,7 @@ class SelectBound extends Component
 
         $user->break_started_at = null;
         $user->agent_break_id = null;
+        $user->agent_break_type = null;
         $user->save();
 
         $breakType = $this->breakTypes->where('id', $this->breakType)->first();
@@ -156,8 +172,8 @@ class SelectBound extends Component
             ],
             [
                 'name' => 'type',
-                // 'contents' => 'SIP'
-                'contents' => Auth::user()->agent->extensionDetails->exten_type
+                'contents' => 'SIP'
+                // 'contents' => Auth::user()->agent->extensionDetails->exten_type
             ],
             [
                 'name' => 'agentip',
@@ -181,7 +197,10 @@ class SelectBound extends Component
             ]
         ];
 
-        ApiManager::startBreak($data);
+        $userId = auth()->id();
+        Cache::forget("acw_state_{$userId}");
+
+        // ApiManager::startBreak($data);
     }
 
     public function updateTime()
@@ -196,12 +215,19 @@ class SelectBound extends Component
                 $this->time = 0;
                 $this->isAcw = false;
                 $this->endAcw();
+                // return redirect()->to(url()->previous());
             }
         } elseif ($this->timeout == 0) {
             if ($this->isAcw) {
                 $this->time++;
             }
         }
+        $userId = auth()->id();
+        Cache::put("acw_state_{$userId}", [
+            'pauseTime' => $this->pauseTime,
+            'time' => $this->time,
+            'isAcw' => $this->isAcw,
+        ]);
     }
 
 

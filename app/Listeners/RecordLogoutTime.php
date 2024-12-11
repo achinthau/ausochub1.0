@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Models\AgentLogin;
 use App\Models\AgentLoginLogoutDetail;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -27,7 +28,7 @@ class RecordLogoutTime
      */
     public function handle(Logout $event)
     {
-        AgentLoginLogoutDetail::where('user_id', $event->user->id)
+        AgentLogin::where('user_id', $event->user->id)
             ->latest('login_time')
             ->first()
             ->update(['logout_time' => now()]);

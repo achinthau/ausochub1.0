@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Tables;
 
 use App\Models\Lead;
 use App\Models\LeadStatus;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 use Mediconesystems\LivewireDatatables\Column;
@@ -17,7 +18,7 @@ class LeadsTable extends LivewireDatatable
     public function builder()
     {
 
-        // $this->exportable = Gate::allows('can-export-ticket');
+        $this->exportable = Gate::allows('can-export-ticket');
         return Lead::with('status')->relavant();
     }
 
@@ -30,7 +31,7 @@ class LeadsTable extends LivewireDatatable
             DateColumn::name('created_at')->label('called at'),
             Column::name('first_name')->searchable()->filterable(),
             Column::name('last_name')->searchable()->filterable(),
-            Column::name('status.title')->filterable(),
+            // Column::name('status.title')->filterable(),
             Column::name('nic')->filterable(),
             Column::name('email')->filterable(),
             Column::name('address_line_1')->label('House or Apartment #')->filterable()->hide(),
@@ -40,5 +41,24 @@ class LeadsTable extends LivewireDatatable
 
 
         ];
+    }
+
+    public function addSort()
+    {
+        if (isset($this->sort) && isset($this->freshColumns[$this->sort]) && $this->freshColumns[$this->sort]['name']) {
+            if (isset($this->pinnedRecords) && $this->pinnedRecords) {
+                $this->query->orderBy(DB::raw('FIELD(id,' . implode(',', $this->pinnedRecords) . ')'), 'DESC');
+            }
+            // dd((string)DB::raw($this->getSortString($this->query->getConnection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME))));
+            if ((string)str_contains(DB::raw($this->getSortString($this->query->getConnection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME))), ".")) {
+                // $this->query->orderBy($this->tablePrefix.DB::raw($this->getSortString($this->query->getConnection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME))), $this->direction ? 'asc' : 'desc');
+            } else {
+
+
+                $this->query->orderBy(DB::raw($this->getSortString($this->query->getConnection()->getPDO()->getAttribute(\PDO::ATTR_DRIVER_NAME))), $this->direction ? 'asc' : 'desc');
+            }
+        }
+
+        return $this;
     }
 }

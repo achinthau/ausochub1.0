@@ -27,6 +27,7 @@ class AbandonedCallTable extends LivewireDatatable
     {
         return [
             Column::name('ani')->label('From')->filterable(),
+            Column::name('dnis')->label('To')->filterable(),
             Column::name('queuename')->label('Queue')->filterable($this->statues),
             DateColumn::name('called_at')->label('Called At')->filterable()->sortable(),
             BooleanColumn::name('recalled_status')->label('Recalled')->filterable(),

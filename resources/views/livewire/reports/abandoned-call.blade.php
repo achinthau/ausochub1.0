@@ -1,4 +1,4 @@
-<div>
+<div wire:init="loadPosts">
     <x-slot name="header">
         <div class="flex">
             <h2 class="flex-1 font-semibold text-xl text-gray-800 leading-tight ">
@@ -10,7 +10,11 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            @livewire('tables.abandoned-call-table')
+            @if ($loadPosts)
+                @livewire('tables.abandoned-call-table')
+            @else
+                Loading....
+            @endif
         </div>
     </div>
 </div>

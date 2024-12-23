@@ -14,7 +14,7 @@ class OpenCount extends Component
         return view('livewire.ticket-items.counts.open-count');
     }
 
-    public $openCount;
+    public $openCount = 0;
 
 
     public function mount()
@@ -26,11 +26,10 @@ class OpenCount extends Component
 
     public function refreshComponent()
     {
-            Cache::forget('tickets_table');
+        Cache::forget('tickets_table');
 
-            $this->openCount = Cache::remember('tickets_table', 60, function () {
-                return Ticket::where('ticket_status_id', 2)->count();
-            });
-        
+        $this->openCount = Cache::remember('tickets_table', 60, function () {
+            return Ticket::where('ticket_status_id', 2)->count();
+        });
     }
 }

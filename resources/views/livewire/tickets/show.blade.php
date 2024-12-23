@@ -105,54 +105,57 @@
 
             @endif
 
-                <hr>
+            <hr>
             <div class="mt-4 space-y-2 w-1/2">
                 <x-textarea wire:model.defer="comment" placeholder="Enter your comment here" rows="2" />
                 <x-button secondary label="Comment" wire:click="comment" />
 
                 @if ($ticket && $ticket->activities)
-                <div class="bg-white p-6  ">
-                    <ol class="relative border-l border-gray-200 dark:border-gray-700">
-                        @foreach ($ticket->activities as $activity)
-                            <li class=" ml-6">
-                                <span
-                                    class="flex absolute -left-3 justify-center items-center w-6 h-6 bg-blue-200 rounded-full ring-8 ring-white dark:ring-gray-900 dark:bg-blue-900">
-                                   
+                    <div class="bg-white p-6  ">
+                        <ol class="relative border-l border-gray-200 dark:border-gray-700">
+                            @foreach ($ticket->activities as $activity)
+                                <li class=" ml-6">
+                                    <span
+                                        class="flex absolute -left-3 justify-center items-center w-6 h-6 bg-blue-200 rounded-full ring-8 ring-white dark:ring-gray-900 dark:bg-blue-900">
 
-                                    @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
-                                        <button
-                                            class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
-                                            <img class="h-4 w-4 rounded-full object-cover"
-                                                src="{{ $activity->user->profile_photo_url }}"
-                                                alt="{{ $activity->user->name }}" />
-                                        </button>
-                                    @else
-                                        <span class="inline-flex rounded-md">
-                                            <button type="button"
-                                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition">
-                                                {{ $activity->user->name }}
 
-                                                <svg class="ml-2 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fill-rule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
+                                        @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
+                                            <button
+                                                class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
+                                                <img class="h-4 w-4 rounded-full object-cover"
+                                                    src="{{ $activity->user->profile_photo_url }}"
+                                                    alt="{{ $activity->user->name }}" />
                                             </button>
-                                        </span>
-                                    @endif
-                                </span>
-                               
-                                <time
-                                    class="block my-2 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">{{$activity->type}}  by {{$activity->user->name}} on {{ $activity->created_at->diffForHumans() }}</time>
-                                <p class="mb-4 text-base font-normal text-gray-500 dark:text-gray-400">{{$activity->comment}}</p>
-                                
-                            </li>
-                        @endforeach
+                                        @else
+                                            <span class="inline-flex rounded-md">
+                                                <button type="button"
+                                                    class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition">
+                                                    {{ $activity->user->name }}
 
-                    </ol>
+                                                    <svg class="ml-2 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+                                                        viewBox="0 0 20 20" fill="currentColor">
+                                                        <path fill-rule="evenodd"
+                                                            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            </span>
+                                        @endif
+                                    </span>
 
-                </div>
+                                    <time
+                                        class="block my-2 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">{{ $activity->type }}
+                                        by {{ $activity->user->name }} on
+                                        {{ $activity->created_at->diffForHumans() }}</time>
+                                    <p class="mb-4 text-base font-normal text-gray-500 dark:text-gray-400">
+                                        {{ $activity->comment }}</p>
+
+                                </li>
+                            @endforeach
+
+                        </ol>
+
+                    </div>
                 @endif
             </div>
 
@@ -162,8 +165,9 @@
         <x-slot name="footer">
             <div class="flex justify-between gap-x-4">
                 @if ($ticket)
-                    <x-button flat negative label="Complete" wire:click="closeTicket" />
-
+                    @if ($ticket->ticket_status_id != 4)
+                        <x-button flat negative label="Complete" wire:click="closeTicket" />
+                    @endif
                     <div class="flex">
                         <x-button flat label="Exit" x-on:click="close" />
                         @if ($ticket->ticket_status_id == 1)

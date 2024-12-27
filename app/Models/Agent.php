@@ -34,15 +34,27 @@ class Agent extends Model
         'extension',
     ];
 
+    // public function queue()
+    // {
+    //     return $this->hasMany(QueueCount::class, 'agent', 'extension');
+    // }
+
+    // public function todayQueues()
+    // {
+    //     return $this->hasMany(QueueCount::class, 'agent', 'extension')->where('queuecount.date', '>', Carbon::now()->startOfDay());
+    // }
+
     public function queue()
     {
-        return $this->hasMany(QueueCount::class, 'agent', 'extension');
+        return $this->hasMany(QueueCountReport::class, 'agent', 'extension');
     }
 
     public function todayQueues()
     {
-        return $this->hasMany(QueueCount::class, 'agent', 'extension')->where('queuecount.date', '>', Carbon::now()->startOfDay());
+        return $this->hasMany(QueueCountReport::class, 'agent', 'extension')->where('au_queuecount_report.date', '>', Carbon::now()->startOfDay());
     }
+
+    
 
     public function getFullNameAttribute()
     {

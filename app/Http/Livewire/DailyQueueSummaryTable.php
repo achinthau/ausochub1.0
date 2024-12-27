@@ -12,7 +12,7 @@ use Rappasoft\LaravelLivewireTables\Views\Filters\DateFilter;
 
 class DailyQueueSummaryTable extends DataTableComponent
 {
-    protected $model = DailyQueueSummery::class;
+    protected $model = DailyQueueSummary::class;
 
     public function configure(): void
     {
@@ -33,7 +33,7 @@ public function export()
     $selectedIds = $this->getSelected();
 
     // Fetch full records from the database using the selected IDs
-    $dailyQueueSummery = DailyQueueSummery::whereIn('id', $selectedIds)->get();
+    $dailyQueueSummery = DailyQueueSummary::whereIn('id', $selectedIds)->get();
 
     $this->clearSelected();
 

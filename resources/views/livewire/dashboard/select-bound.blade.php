@@ -1,4 +1,4 @@
-<div wire:poll="refreshComponent" class="flex items-center">
+<div wire:poll="refreshComponent" class="flex items-center {{ !$isVisible ? 'pointer-events-none opacity-50' : '' }}">
 
     <div class="flex pr-8">
     <label for="toggle" class="relative inline-flex items-center cursor-pointer">

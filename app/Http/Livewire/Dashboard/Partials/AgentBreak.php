@@ -70,8 +70,8 @@ class AgentBreak extends Component
             ],
             [
                 'name' => 'type',
-                'contents' => 'SIP'
-                // 'contents' => Auth::user()->agent->extensionDetails->exten_type
+                // 'contents' => 'SIP'
+                'contents' => Auth::user()->agent->extensionDetails->exten_type
             ],
             [
                 'name' => 'agentip',
@@ -95,7 +95,7 @@ class AgentBreak extends Component
             ]
         ];
 
-        // ApiManager::startBreak($data);
+        ApiManager::startBreak($data);
         Cache::put('setBreak', 'true');
         $this->createUserBreakModal = false;
         return redirect(route('dashboard.index'));
@@ -122,8 +122,8 @@ class AgentBreak extends Component
             ],
             [
                 'name' => 'type',
-                'contents' => 'SIP'
-                // 'contents' => Auth::user()->agent->extensionDetails->exten_type
+                // 'contents' => 'SIP'
+                'contents' => Auth::user()->agent->extensionDetails->exten_type
             ],
             [
                 'name' => 'agentip',
@@ -147,7 +147,7 @@ class AgentBreak extends Component
             ]
         ];
 
-        // ApiManager::startBreak($data);
+        ApiManager::startBreak($data);
         Cache::forget('setBreak');
         $this->createUserBreakModal = false;
 

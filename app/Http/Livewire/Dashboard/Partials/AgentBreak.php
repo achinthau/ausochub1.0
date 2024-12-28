@@ -7,6 +7,7 @@ use App\Models\BreakType;
 use App\Repositories\ApiManager;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
 
 class AgentBreak extends Component
@@ -27,7 +28,7 @@ class AgentBreak extends Component
 
     public function mount()
     {
-        $this->breakTypes = BreakType::all();
+        $this->breakTypes = BreakType::where('id', '!=', 3)->get();
     }
 
 
@@ -43,6 +44,7 @@ class AgentBreak extends Component
 
     public function save()
     {
+
         $this->validate();
         $user = Auth::user();
 
@@ -68,8 +70,8 @@ class AgentBreak extends Component
             ],
             [
                 'name' => 'type',
-                // 'contents' => 'SIP'
-                'contents' => Auth::user()->agent->extensionDetails->exten_type
+                'contents' => 'SIP'
+                // 'contents' => Auth::user()->agent->extensionDetails->exten_type
             ],
             [
                 'name' => 'agentip',
@@ -93,7 +95,8 @@ class AgentBreak extends Component
             ]
         ];
 
-        ApiManager::startBreak($data);
+        // ApiManager::startBreak($data);
+        Cache::put('setBreak', 'true');
         $this->createUserBreakModal = false;
         return redirect(route('dashboard.index'));
     }
@@ -119,8 +122,8 @@ class AgentBreak extends Component
             ],
             [
                 'name' => 'type',
-                // 'contents' => 'SIP'
-                'contents' => Auth::user()->agent->extensionDetails->exten_type
+                'contents' => 'SIP'
+                // 'contents' => Auth::user()->agent->extensionDetails->exten_type
             ],
             [
                 'name' => 'agentip',
@@ -144,7 +147,8 @@ class AgentBreak extends Component
             ]
         ];
 
-        ApiManager::startBreak($data);
+        // ApiManager::startBreak($data);
+        Cache::forget('setBreak');
         $this->createUserBreakModal = false;
 
         return redirect(route('dashboard.index'));

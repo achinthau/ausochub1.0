@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Repositories\ApiManager;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
@@ -19,6 +20,11 @@ class Index extends Component
     public $totalBreakTime;
     public $queueWiseData;
     public $selectedSkills = [];
+
+    public $isVisible =true;
+
+    protected $listeners = ['setVisibility' => 'setVisibility'];
+
     public function mount()
     {
         $this->user = User::where('id', Auth::id())->with([
@@ -40,6 +46,13 @@ class Index extends Component
             $this->selectedSkills[$value["skill"]] = $value["skill"];
         }
     }
+
+    
+    public function setVisibility()
+    {
+        $this->isVisible = !$this->isVisible;
+    }
+
 
     public function render()
     {
@@ -68,7 +81,7 @@ class Index extends Component
 
         $this->totalBreakTime = AgentBreakSummary::whereBetween('breaktime', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->where('agentid', Auth::user()->agent_id)->selectRaw('SEC_TO_TIME(SUM(TIMESTAMPDIFF(SECOND, breaktime, unbreaktime))) AS today_total_break')->first()->today_total_break;
 
-        return view('livewire.dashboard.index');
+        return view('livewire.dashboard.index', ['variable' => $this->isVisible]);
     }
 
     public function updatedSelectedSkills($value, $name)
@@ -113,4 +126,6 @@ class Index extends Component
 
         return redirect(route('dashboard.index'));
     }
+
+    
 }

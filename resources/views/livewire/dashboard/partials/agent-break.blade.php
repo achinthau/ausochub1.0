@@ -40,7 +40,7 @@
                             <p class="mt-2 text-sm text-negative-600">{{ $message }}</p>
                         @enderror
                     </div>
-                    @if ($breakType == 3)
+                    @if ($breakType == 4)
                         <div>
                             <x-textarea label="Decription" placeholder="write your decription" wire:model.defer="description"/>
                         </div>

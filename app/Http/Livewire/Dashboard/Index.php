@@ -74,10 +74,7 @@ class Index extends Component
     public function updatedSelectedSkills($value, $name)
     {
 
-        foreach ($variable as $key => $value) {
-            # code...
-        }
-
+      
         $data = [
             [
                 'name' => 'extension',

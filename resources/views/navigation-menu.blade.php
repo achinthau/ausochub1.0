@@ -52,12 +52,15 @@
                     </div>
                 @endcan
                 @can('can-view-reports')
-                    <!-- Navigation Links -->
-                    <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                        <x-jet-nav-link href="{{ route('live-dashboard.index') }}" :active="request()->routeIs('live-dashboard.index')">
-                            {{ __('Live') }}
-                        </x-jet-nav-link>
-                    </div>
+                    @if (config('auso.external_extension_url'))
+                        <!-- Navigation Links -->
+                        <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                            <x-jet-nav-link href="{{ route('live-dashboard.index') }}" :active="request()->routeIs('live-dashboard.index')">
+                                {{ __('Live') }}
+                            </x-jet-nav-link>
+                        </div>
+                    @endif
+
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                         <x-jet-nav-link href="{{ route('reports.index') }}" :active="request()->routeIs('reports.index')">
                             {{ __('Reports') }}
@@ -136,28 +139,28 @@
                     <div class="ml-3 relative">
                         <div class="flex">
                             @can('is-agent')
-                            <div class="pr-8 pt-4">
-                                @livewire('dashboard.select-bound')
-                            </div>
+                                <div class="pr-8 pt-4">
+                                    @livewire('dashboard.select-bound')
+                                </div>
                             @endcan
 
                             <x-jet-dropdown align="right" width="48">
                                 <x-slot name="trigger">
                                     @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
-                                    <div class="flex justify-between">
+                                        <div class="flex justify-between">
 
-                                        
 
-                                        <div>
-                                            <button
-                                            class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition mt-4">
-                                            <img class="h-8 w-8 rounded-full object-cover"
-                                                src="{{ Auth::user()->profile_photo_url }}"
-                                                alt="{{ Auth::user()->name }}" />
-                                        </button>
+
+                                            <div>
+                                                <button
+                                                    class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition mt-4">
+                                                    <img class="h-8 w-8 rounded-full object-cover"
+                                                        src="{{ Auth::user()->profile_photo_url }}"
+                                                        alt="{{ Auth::user()->name }}" />
+                                                </button>
+                                            </div>
+
                                         </div>
-                                        
-                                    </div>
                                     @else
                                         <span class="inline-flex rounded-md">
                                             <button type="button"

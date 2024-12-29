@@ -38,12 +38,9 @@ class SelectBound extends Component
 
         $this->breakTypes = BreakType::all();
 
-        if (Cache::get('setBreak') === 'true')
-        {
+        if (Cache::get('setBreak') === 'true') {
             $this->isVisible = false;
-        }
-        else
-        {
+        } else {
             $this->isVisible = true;
         }
 
@@ -167,10 +164,15 @@ class SelectBound extends Component
     public function endAcw()
     {
         $user = Auth::user();
-        $agentBreakSummary = AgentBreakSummary::find($user->agent_break_id);
-        $agentBreakSummary->unbreaktime = Carbon::now();
-        $agentBreakSummary->status = 0;
-        $agentBreakSummary->save();
+
+        if ($user->agent_break_id) {
+            $agentBreakSummary = AgentBreakSummary::find($user->agent_break_id);
+            $agentBreakSummary->unbreaktime = Carbon::now();
+            $agentBreakSummary->status = 0;
+            $agentBreakSummary->save();
+        }
+
+
 
         $user->break_started_at = null;
         $user->agent_break_id = null;
@@ -202,7 +204,7 @@ class SelectBound extends Component
             ],
             [
                 'name' => 'comment',
-                'contents' => $agentBreakSummary->desc
+                'contents' => $agentBreakSummary ? $agentBreakSummary->desc  : 'Invalid Rec'
             ],
             [
                 'name' => 'breakType',

@@ -23,6 +23,8 @@ class SelectBound extends Component
     public $breakType = 3;
     public $description;
 
+    public $isVisible;
+
     protected $listeners = ['changeBound' => 'changeTheBound', 'setAcw' => 'setAcw', 'updateTime' => 'updateTime'];
 
     protected $rules = [
@@ -36,6 +38,15 @@ class SelectBound extends Component
 
         $this->breakTypes = BreakType::all();
 
+        if (Cache::get('setBreak') === 'true')
+        {
+            $this->isVisible = false;
+        }
+        else
+        {
+            $this->isVisible = true;
+        }
+
         $userId = auth()->id();
         $cachedState = Cache::get("acw_state_{$userId}");
 
@@ -45,6 +56,7 @@ class SelectBound extends Component
             $this->isAcw = $cachedState['isAcw'];
         }
     }
+
 
     public function refreshComponent()
     {
@@ -148,6 +160,7 @@ class SelectBound extends Component
             'isAcw' => $this->isAcw,
         ]);
 
+        $this->emit('setVisibility');
         ApiManager::startBreak($data);
     }
 
@@ -200,6 +213,7 @@ class SelectBound extends Component
         $userId = auth()->id();
         Cache::forget("acw_state_{$userId}");
 
+        $this->emit('setVisibility');
         ApiManager::startBreak($data);
     }
 
@@ -228,6 +242,16 @@ class SelectBound extends Component
             'time' => $this->time,
             'isAcw' => $this->isAcw,
         ]);
+    }
+
+    public function setVisibility()
+    {
+        $this->isVisible = true;
+    }
+
+    public function setInvisibility()
+    {
+        $this->isVisible = false;
     }
 
 

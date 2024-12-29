@@ -18,7 +18,7 @@
                     {{ __('Dashboard') }}
                 </h2>
 
-                <div class="flex">
+                <div wire:poll="refreshComponent" class="flex {{ !$isVisible ? 'pointer-events-none opacity-50' : '' }}">
                 <div>
                 {{-- @dump(Auth::user()->has_queue) --}}
                 {{-- @if (Auth::user()->has_queue) --}}

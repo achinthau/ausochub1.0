@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Tables;
 
 use App\Models\Agent;
 use App\Models\AgentBreakSummary;
+use App\Models\AgentBreakSummaryReport;
 use Carbon\Carbon;
 use Mediconesystems\LivewireDatatables\BooleanColumn;
 use Mediconesystems\LivewireDatatables\Column;
@@ -18,7 +19,7 @@ class BreakSummaryTable extends LivewireDatatable
 
     public function builder()
     {
-        return AgentBreakSummary::join('au_user', 'au_user.id', 'au_agentbreak_summery.agentid')->orderBy('breaktime', 'DESC');
+        return AgentBreakSummaryReport::join('au_user', 'au_user.id', 'au_agentbreak_summery_report.agentid')->orderBy('breaktime', 'DESC');
     }
 
     public function columns()

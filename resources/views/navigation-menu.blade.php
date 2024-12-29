@@ -54,6 +54,11 @@
                 @can('can-view-reports')
                     <!-- Navigation Links -->
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                        <x-jet-nav-link href="{{ route('live-dashboard.index') }}" :active="request()->routeIs('live-dashboard.index')">
+                            {{ __('Live') }}
+                        </x-jet-nav-link>
+                    </div>
+                    <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                         <x-jet-nav-link href="{{ route('reports.index') }}" :active="request()->routeIs('reports.index')">
                             {{ __('Reports') }}
                         </x-jet-nav-link>

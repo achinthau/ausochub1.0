@@ -34,6 +34,7 @@ use App\Models\DailyCallSummary;
 use App\Models\QueueCount;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -51,6 +52,15 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
 
     Route::get('/', DashboardController::class)->name('dashboard.index');
+    Route::get('/live-dashboard', function () {
+        if (Gate::allows('live-dashboard-user')) {
+            return view('livewire.dashboard.admin.live.uaindex');
+        } elseif (Gate::allows('is-admin')) {
+            return view('livewire.dashboard.admin.live.index');
+        } else {
+            return abort(403, 'Unauthorized action.');
+        }
+    })->name('live-dashboard.index');
     Route::prefix('leads')->group(function () {
         Route::get('/', LeadsIndex::class)->name('leads.index')->can('can-view-leads');
         // Route::get('/{lead}', Create::class)->name('leads.create')->can('can-view-leads');
@@ -92,7 +102,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     });
 
 
-        Route::get('/test', function(Request $request){
-            return session()->getId();
-        });
+    Route::get('/test', function (Request $request) {
+        return session()->getId();
+    });
 });

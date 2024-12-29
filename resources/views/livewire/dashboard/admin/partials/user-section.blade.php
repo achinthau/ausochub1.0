@@ -80,6 +80,7 @@
                                 @else
                                     @php
                                         $inCall = Cache::get('agent-in-call-' . $user->id);
+                                        $currentCallStatus = Cache::get($user->extensionDetails->exten_type.'/' . $user->extension);
                                         // $inCall = true;
                                     @endphp
                                     @if ($inCall)

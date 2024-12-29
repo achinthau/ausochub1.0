@@ -4,7 +4,7 @@
             <a href="{{ route('dashboard.index') }}"> Back</a>
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
                 @if (config('auso.external_extension_url'))
-                    <iframe src="http://123.231.74.22:3100/" width="100%" height="600px" style="border:none;">
+                    <iframe src="{{config('auso.external_extension_url')}}" width="100%" height="600px" style="border:none;">
                     </iframe>
                 @endif
             </div>

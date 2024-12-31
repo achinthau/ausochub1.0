@@ -1,12 +1,26 @@
 <div class="bg-white p-4 space-y-2 text-xs ">
     <div class="flex">
         <h1 class=" font-bold flex-1">Acitivty Log</h1>
+        
+    </div>
+    <div class="flex  ">
+      
+        <div class="flex-1 flex space-x-2">
+            <div>
+                <input type="checkbox" name="" value="2"  wire:model="fliterStatus"> Today Calls
+            </div>
+            <div>
+                <input type="checkbox" name="" value="3"  wire:model="fliterStatus"> Past Calls
+            </div>
+            <div>
+                <input type="checkbox" name="" value="1"  wire:model="fliterStatus"> Tickets
+            </div>
+        </div>
         <div>
             <div>
-                <a href="#" wire:loading.remove wire:click.prevent="loadMore" class="text-blue-600  hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2" data-tooltip-target="tooltip-default">Load More</a>
+                <a href="#" wire:loading.remove wire:click.prevent="loadMore" class="border border-info-600 dark:hover:bg-slate-700 dark:ring-offset-slate-800 disabled:cursor-not-allowed disabled:opacity-80 duration-150 ease-in focus:ring-2 focus:ring-offset-2 gap-x-2 group hover:bg-info-50 hover:shadow-sm inline-flex items-center justify-center outline-none px-2 py-0.5 ring-info-600 rounded text-info-600 text-xs transition-all" data-tooltip-target="tooltip-default">Apply</a>
                 <div wire:loading wire:target="loadMore">Loading</div>
             </div>
-            
         </div>
     </div>
     <hr>

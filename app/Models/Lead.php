@@ -41,6 +41,10 @@ class Lead extends Model
     {
         return $this->hasMany(Ticket::class);
     }
+    public function latestTickets()
+    {
+        return $this->hasMany(Ticket::class)->latest();
+    }
 
     public function ticketsNew()
     {

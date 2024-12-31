@@ -21,6 +21,7 @@ class ActivityLog extends Component
     public  $outCallLogsArchived;
     public  $isLoad = false;
     public  $loadMoreStatus = false;
+    public  $fliterStatus = [2];
 
 
     protected $listeners = ['refreshTimeline' => 'refreshTimeline'];
@@ -36,48 +37,53 @@ class ActivityLog extends Component
 
     public function refreshTimeline()
     {
-        $lead = $this->lead->load('tickets', 'tickets.category', 'tickets.status', 'tickets.outlet', 'orders', 'orders.items');
-        $this->callLogs = QueueCount::with('agentInfo')->where(function ($query) use ($lead) {
-            $query->orWhere('ani', $lead->contact_number)
-                ->orWhere('dnis', $lead->contact_number);
-        })->where('status', 2)->orderBy('date')->get();
-
-        $this->outCallLogs = CallCount::with('agentInfo')->where(function ($query) use ($lead) {
-            $query->orWhere('dnis', $lead->contact_number);
-        })->where('direction', 'out')->orderBy('date')->get();
-
         $timelineLogs = collect([]);
 
-        // Map call logs
-        $timelineLogs = $timelineLogs->merge($this->callLogs->map(function ($item) {
-            return [
-                'title' => 'Incoming Call',
-                'created_at' => $item->date,
-                'created_date' => $item->date->format('F jS, Y'),
-                'created_time' => $item->date->format('h:i A'),
-                'created_by' => $item->agentInfo ? $item->agentInfo->full_name : 'System Agent',
-                'icon' => 'icon-phone',
-                'bg-color' => 'bg-blue-200',
-                'icon-color' => 'text-blue-600 dark:text-blue-400',
-            ];
-        }));
+        $lead = $this->lead->load('latestTickets', 'tickets.category', 'tickets.status', 'tickets.outlet', 'orders', 'orders.items');
 
-        // Map out call logs
-        $timelineLogs = $timelineLogs->merge($this->outCallLogs->map(function ($item) {
-            return [
-                'title' => 'Outgoing Call',
-                'created_at' => $item->date,
-                'created_date' => $item->date->format('F jS, Y'),
-                'created_time' => $item->date->format('h:i A'),
-                'created_by' => $item->agentInfo ? $item->agentInfo->full_name : 'System Agent',
-                'icon' => 'icon-phone-out',
-                'bg-color' => 'bg-blue-200',
-                'icon-color' => 'text-blue-600 dark:text-blue-400',
-            ];
-        }));
+        if (in_array(2, $this->fliterStatus)) {
+            $this->callLogs = QueueCount::with('agentInfo')->where(function ($query) use ($lead) {
+                $query->orWhere('ani', $lead->contact_number)
+                    ->orWhere('dnis', $lead->contact_number);
+            })->where('status', 2)->orderBy('date')->get();
+
+            $this->outCallLogs = CallCount::with('agentInfo')->where(function ($query) use ($lead) {
+                $query->orWhere('dnis', $lead->contact_number);
+            })->where('direction', 'out')->orderBy('date')->get();
 
 
-        if ($this->loadMoreStatus) {
+
+            // Map call logs
+            $timelineLogs = $timelineLogs->merge($this->callLogs->map(function ($item) {
+                return [
+                    'title' => 'Incoming Call',
+                    'created_at' => $item->date,
+                    'created_date' => $item->date->format('F jS, Y'),
+                    'created_time' => $item->date->format('h:i A'),
+                    'created_by' => $item->agentInfo ? $item->agentInfo->full_name : 'System Agent',
+                    'icon' => 'icon-phone',
+                    'bg-color' => 'bg-blue-200',
+                    'icon-color' => 'text-blue-600 dark:text-blue-400',
+                ];
+            }));
+
+            // Map out call logs
+            $timelineLogs = $timelineLogs->merge($this->outCallLogs->map(function ($item) {
+                return [
+                    'title' => 'Outgoing Call',
+                    'created_at' => $item->date,
+                    'created_date' => $item->date->format('F jS, Y'),
+                    'created_time' => $item->date->format('h:i A'),
+                    'created_by' => $item->agentInfo ? $item->agentInfo->full_name : 'System Agent',
+                    'icon' => 'icon-phone-out',
+                    'bg-color' => 'bg-blue-200',
+                    'icon-color' => 'text-blue-600 dark:text-blue-400',
+                ];
+            }));
+        }
+
+
+        if (in_array(3, $this->fliterStatus)) {
             $this->callLogsArchived = QueueCountReport::with('agentInfo')->where(function ($query) use ($lead) {
                 $query->orWhere('ani', $lead->contact_number)
                     ->orWhere('dnis', $lead->contact_number);
@@ -119,8 +125,8 @@ class ActivityLog extends Component
 
 
         // Map lead tickets (with null check)
-        if ($this->lead->tickets) {
-            $timelineLogs = $timelineLogs->merge($this->lead->tickets->map(function ($item) {
+        if (in_array(1, $this->fliterStatus) && $this->lead->latestTickets) {
+            $timelineLogs = $timelineLogs->merge($this->lead->latestTickets->map(function ($item) {
                 return [
                     'id' => $item->id,
                     'component' => $item->ticket_category_id == 3 ? 'orders.show' : 'tickets.show',

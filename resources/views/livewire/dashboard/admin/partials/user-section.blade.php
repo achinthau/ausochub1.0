@@ -4,7 +4,7 @@
 
         @foreach ($users as $user)
             @php
-                if($user->extensionDetails)
+                if(env('CACHE_DRIVER')=='redis'&& $user->extensionDetails)
                 {
                     $currentCallStatus = Cache::store('custom_redis')->connection('live_events')->get(strtoupper($user->extensionDetails->exten_type) . '/' . $user->extension);
                     $jsonData = json_decode($currentCallStatus, true);
@@ -96,10 +96,15 @@
                                 @else
                                     @php
                                         // $inCall = Cache::get('agent-in-call-' . $user->id);
-                                        $inCall = isset($jsonData['status'])&& $jsonData['status']==1;
-                                        $currentCallStatus = Cache::get(
-                                            $user->extensionDetails->exten_type . '/' . $user->extension,
-                                        );
+                                        if(env('CACHE_DRIVER')=='file'){
+
+                                            $inCall = isset($jsonData['status'])&& $jsonData['status']==1;
+                                            $currentCallStatus = Cache::get(
+                                                $user->extensionDetails->exten_type . '/' . $user->extension,
+                                            );
+                                        }else{
+                                            $inCall = Cache::get('agent-in-call-' . $user->id);
+                                        }
                                         // $inCall = true;
                                     @endphp
 

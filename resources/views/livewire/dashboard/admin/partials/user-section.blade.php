@@ -108,7 +108,7 @@
                                             } else {
                                                 $inCall = Cache::get('agent-in-call-' . $user->id);
                                             }
-                                        } else if(env('DASHBOARD_DATA_TYPE') == 'cache'){
+                                        } else{
                                             $inCall = Cache::get('agent-in-call-' . $user->id);
                                         }
                                         // $inCall = true;

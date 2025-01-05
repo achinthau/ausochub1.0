@@ -71,26 +71,21 @@ public function export()
 
     public function filters(): array
     {
-
         return [
-            DateTimeFilter::make('From')
+            
+            DateFilter::make('Due From')
                 ->config([
-                    // Optional: Specify format or range limits
-                    'enableTime' => true, // Enables time selection
-                    'time_24hr' => true, // Optional: Use 24-hour format
+                    // 'min' => '2020-01-01',
+                    // 'max' => '2021-12-31',
                 ])
                 ->filter(function (Builder $builder, string $value) {
                     $builder->where('date', '>=', $value);
                 }),
-    
-            DateTimeFilter::make('To')
-                ->config([
-                    'enableTime' => true, // Enables time selection
-                    'time_24hr' => true, // Optional: Use 24-hour format
-                ])
+            DateFilter::make('Deu To')
                 ->filter(function (Builder $builder, string $value) {
                     $builder->where('date', '<=', $value);
-                }),
+                })
+
         ];
     }
 

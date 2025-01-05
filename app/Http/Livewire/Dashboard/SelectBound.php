@@ -125,8 +125,8 @@ class SelectBound extends Component
             ],
             [
                 'name' => 'type',
-                'contents' => 'SIP'
-                // 'contents' => Auth::user()->agent->extensionDetails->exten_type
+                // 'contents' => 'SIP'
+                'contents' => Auth::user()->agent->extensionDetails->exten_type
             ],
             [
                 'name' => 'agentip',
@@ -158,7 +158,7 @@ class SelectBound extends Component
         ]);
 
         $this->emit('setVisibility');
-        // ApiManager::startBreak($data);
+        ApiManager::startBreak($data);
     }
 
     public function endAcw()
@@ -187,8 +187,8 @@ class SelectBound extends Component
             ],
             [
                 'name' => 'type',
-                'contents' => 'SIP'
-                // 'contents' => Auth::user()->agent->extensionDetails->exten_type
+                // 'contents' => 'SIP'
+                'contents' => Auth::user()->agent->extensionDetails->exten_type
             ],
             [
                 'name' => 'agentip',
@@ -216,7 +216,7 @@ class SelectBound extends Component
         Cache::forget("acw_state_{$userId}");
 
         $this->emit('setVisibility');
-        // ApiManager::startBreak($data);
+        ApiManager::startBreak($data);
     }
 
     public function updateTime()

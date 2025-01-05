@@ -54,7 +54,7 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
     $lead = Lead::where('contact_number', $request['ani'])->first();
     $agent = Agent::where('extension', $request['agent'])->first();
     $skill = Skill::where('skillname', $request['queuename'])->first();
-    // Cache::forever('agent-in-call-' . $agent->id, 1);
+    Cache::forever('agent-in-call-' . $agent->id, 1);
     Cache::forever('call-' . $request['unique_id'], $agent->id);
 
     Cache::add('current-call-count', 0, 99999999);
@@ -136,7 +136,7 @@ Route::post('/call-disconnected', function (Request $request) {
 	Log::info('call-disconntected-line');    
 	Log::info($request);
     if (Cache::has('call-' . $request['unique_id'])) {
-        // Cache::forget('agent-in-call-' . Cache::get('call-' . $request['unique_id']));
+        Cache::forget('agent-in-call-' . Cache::get('call-' . $request['unique_id']));   
         Cache::forget('call-' . $request['unique_id']);
 
         Cache::decrement('current-call-count');

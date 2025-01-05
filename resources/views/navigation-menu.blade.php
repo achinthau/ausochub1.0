@@ -139,9 +139,11 @@
                     <div class="ml-3 relative">
                         <div class="flex">
                             @can('is-agent')
-                                <div class="pr-8 pt-4">
-                                    @livewire('dashboard.select-bound')
-                                </div>
+                                @if (Route::is('dashboard.index'))
+                                    <div class="pr-8 pt-4">
+                                        @livewire('dashboard.select-bound')
+                                    </div>
+                                @endif
                             @endcan
 
                             <x-jet-dropdown align="right" width="48">

@@ -4,12 +4,15 @@
 
         @foreach ($users as $user)
             @php
-                if(env('CACHE_DRIVER')=='redis'&& $user->extensionDetails)
-                {
-                    $currentCallStatus = Cache::store('custom_redis')->connection('live_events')->get(strtoupper($user->extensionDetails->exten_type) . '/' . $user->extension);
-                    $jsonData = json_decode($currentCallStatus, true);
-                }else{
-                    $currentCallStatus="No Exten";
+                if (env('DASHBOARD_DATA_TYPE') == 'api') {
+                    if (env('CACHE_DRIVER') == 'redis' && $user->extensionDetails) {
+                        $currentCallStatus = Cache::store('custom_redis')
+                            ->connection('live_events')
+                            ->get(strtoupper($user->extensionDetails->exten_type) . '/' . $user->extension);
+                        $jsonData = json_decode($currentCallStatus, true);
+                    } else {
+                        $currentCallStatus = 'No Exten';
+                    }
                 }
                 // $inCall = true;
             @endphp
@@ -60,8 +63,8 @@
 
 
                         </div>
-                      
-                        
+
+
                     </div>
                     <div class="flex flex-row justify-center">
                         <div class="text-gray-600 dark:text-gray-200 text-xs">{{ $user->todayQueues->count() }}</div>
@@ -95,14 +98,17 @@
                                     @endif
                                 @else
                                     @php
-                                        // $inCall = Cache::get('agent-in-call-' . $user->id);
-                                        if(env('CACHE_DRIVER')=='file'){
 
-                                            $inCall = isset($jsonData['status'])&& $jsonData['status']==1;
-                                            $currentCallStatus = Cache::get(
-                                                $user->extensionDetails->exten_type . '/' . $user->extension,
-                                            );
-                                        }else{
+                                        if (env('DASHBOARD_DATA_TYPE') == 'api') {
+                                            if (env('CACHE_DRIVER') == 'file') {
+                                                $inCall = isset($jsonData['status']) && $jsonData['status'] == 1;
+                                                $currentCallStatus = Cache::get(
+                                                    $user->extensionDetails->exten_type . '/' . $user->extension,
+                                                );
+                                            } else {
+                                                $inCall = Cache::get('agent-in-call-' . $user->id);
+                                            }
+                                        } else if(env('DASHBOARD_DATA_TYPE') == 'cache'){
                                             $inCall = Cache::get('agent-in-call-' . $user->id);
                                         }
                                         // $inCall = true;

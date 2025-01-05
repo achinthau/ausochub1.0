@@ -9,6 +9,7 @@ use App\Models\DailyCallSummary;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Facades\Excel;
 use Rappasoft\LaravelLivewireTables\Views\Filters\DateFilter;
+use Rappasoft\LaravelLivewireTables\Views\Filters\DateTimeFilter;
 
 class DailyCallSummaryTable extends DataTableComponent
 {
@@ -77,21 +78,26 @@ public function export()
 
     public function filters(): array
     {
+
         return [
-            
-            DateFilter::make('From')
+            DateTimeFilter::make('From')
                 ->config([
-                    // 'min' => '2020-01-01',
-                    // 'max' => '2021-12-31',
+                    // Optional: Specify format or range limits
+                    'enableTime' => true, // Enables time selection
+                    'time_24hr' => true, // Optional: Use 24-hour format
                 ])
                 ->filter(function (Builder $builder, string $value) {
                     $builder->where('date', '>=', $value);
                 }),
-            DateFilter::make('To')
+    
+            DateTimeFilter::make('To')
+                ->config([
+                    'enableTime' => true, // Enables time selection
+                    'time_24hr' => true, // Optional: Use 24-hour format
+                ])
                 ->filter(function (Builder $builder, string $value) {
                     $builder->where('date', '<=', $value);
-                })
-
+                }),
         ];
     }
 

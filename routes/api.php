@@ -136,10 +136,22 @@ Route::post('/call-disconnected', function (Request $request) {
 	Log::info('call-disconntected-line');    
 	Log::info($request);
     if (Cache::has('call-' . $request['unique_id'])) {
-        Cache::forget('agent-in-call-' . Cache::get('call-' . $request['unique_id']));   
+        // Cache::forget('agent-in-call-' . Cache::get('call-' . $request['unique_id']));   
         Cache::forget('call-' . $request['unique_id']);
 
         Cache::decrement('current-call-count');
+        // Cache::decrement($request['queuename'] . "-current-call-count");
+    }
+});
+
+Route::post('/agent-disconnected', function (Request $request) {
+	Log::info('agent-disconntected-line');    
+	Log::info($request);
+    if (Cache::has('call-' . $request['unique_id'])) {
+        Cache::forget('agent-in-call-' . Cache::get('call-' . $request['unique_id']));   
+        Cache::forget('call-' . $request['unique_id']);
+
+        // Cache::decrement('current-call-count');
         Cache::decrement($request['queuename'] . "-current-call-count");
     }
 });

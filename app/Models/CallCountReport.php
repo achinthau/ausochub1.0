@@ -10,7 +10,7 @@ class CallCountReport extends Model
     use HasFactory;
 
     protected $connection = "mysql-old";
-    protected $table = "callcount_report";
+    protected $table = "au_callcount_report";
 
     protected $casts=[
         'date'=>'datetime'

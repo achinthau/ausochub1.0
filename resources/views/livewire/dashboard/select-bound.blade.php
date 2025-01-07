@@ -1,6 +1,6 @@
 <div wire:poll="refreshComponent" class="flex items-center {{ !$isVisible ? 'pointer-events-none opacity-50' : '' }}">
 
-    <div class="flex pr-8">
+    {{-- <div class="flex pr-8">
     <label for="toggle" class="relative inline-flex items-center cursor-pointer">
         <input type="checkbox" id="toggle" wire:model="isOutbound" class="sr-only peer" />
         <div
@@ -13,7 +13,7 @@
         <span class="ml-3 text-gray-700 font-medium">
             {{$boundType}}
         </span>
-    </div>
+    </div> --}}
 
     <div class="flex cursor-pointer">
         @if($isAcw)

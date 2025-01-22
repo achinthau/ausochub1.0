@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Dashboard;
 
 use App\Models\AgentBreakSummary;
+use App\Models\AgentBreakSummaryReport;
 use App\Models\BreakType;
 use App\Repositories\ApiManager;
 use Carbon\Carbon;
@@ -125,8 +126,8 @@ class SelectBound extends Component
             ],
             [
                 'name' => 'type',
-                // 'contents' => 'SIP'
-                'contents' => Auth::user()->agent->extensionDetails->exten_type
+                'contents' => 'SIP'
+                // 'contents' => Auth::user()->agent->extensionDetails->exten_type
             ],
             [
                 'name' => 'agentip',
@@ -158,26 +159,37 @@ class SelectBound extends Component
         ]);
 
         $this->emit('setVisibility');
-        ApiManager::startBreak($data);
+        // ApiManager::startBreak($data);
     }
 
     public function endAcw()
     {
         $user = Auth::user();
 
-        if ($user->agent_break_id) {
-            $agentBreakSummary = AgentBreakSummary::find($user->agent_break_id);
+        // if ($user->agent_break_id) {
+        $agentBreakSummary = AgentBreakSummary::find($user->agent_break_id);
+        if ($agentBreakSummary) {
             $agentBreakSummary->unbreaktime = Carbon::now();
             $agentBreakSummary->status = 0;
             $agentBreakSummary->save();
+            // }
         }
-
+        else
+        {
+            $agentBreakSummary = AgentBreakSummaryReport::find($user->agent_break_id);
+            if ($agentBreakSummary) {
+                $agentBreakSummary->unbreaktime = Carbon::now();
+                $agentBreakSummary->status = 0;
+                $agentBreakSummary->save();
+            }
+        }
 
 
         $user->break_started_at = null;
         $user->agent_break_id = null;
         $user->agent_break_type = null;
         $user->save();
+
 
         $breakType = $this->breakTypes->where('id', $this->breakType)->first();
         $data = [
@@ -187,8 +199,8 @@ class SelectBound extends Component
             ],
             [
                 'name' => 'type',
-                // 'contents' => 'SIP'
-                'contents' => Auth::user()->agent->extensionDetails->exten_type
+                'contents' => 'SIP'
+                // 'contents' => Auth::user()->agent->extensionDetails->exten_type
             ],
             [
                 'name' => 'agentip',
@@ -216,7 +228,7 @@ class SelectBound extends Component
         Cache::forget("acw_state_{$userId}");
 
         $this->emit('setVisibility');
-        ApiManager::startBreak($data);
+        // ApiManager::startBreak($data);
     }
 
     public function updateTime()

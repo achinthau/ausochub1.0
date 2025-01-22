@@ -135,6 +135,9 @@
 </div>
 @push('modals')
     @livewire('dashboard.partials.agent-break')
+
+
+    @livewire('dashboard.partials.agent-info')
 @endpush
 @push('scripts')
     <script>

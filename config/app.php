@@ -214,4 +214,8 @@ return [
         // 'ExampleClass' => App\Example\ExampleClass::class,
     ])->toArray(),
 
+    // idle time
+        'idle_time' => env('IDLE_TIME_MINUTES', 2),
+    
+
 ];

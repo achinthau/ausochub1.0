@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\UserActivityController;
 use App\Http\Livewire\ContactFeeds\Index as ContactFeedsIndex;
 use App\Http\Livewire\Dashboard\Index;
 use App\Http\Livewire\Leads\Create;
@@ -105,4 +106,5 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     Route::get('/test', function (Request $request) {
         return session()->getId();
     });
+    
 });

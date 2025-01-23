@@ -23,7 +23,7 @@ class Index extends Component
 
     public $isVisible =true;
 
-    protected $listeners = ['setVisibility' => 'setVisibility'];
+    protected $listeners = ['hideBreak' => 'hideBreak', 'showBreak' => 'showBreak'];
 
     public function mount()
     {
@@ -48,9 +48,20 @@ class Index extends Component
     }
 
     
-    public function setVisibility()
+    public function hideBreak()
     {
-        $this->isVisible = !$this->isVisible;
+        $this->isVisible = false;
+        $this->dispatchBrowserEvent('updateButton', ['isVisible' => $this->isVisible]);
+
+        // dd($this->isVisible);
+    }
+
+    public function showBreak()
+    {
+        $this->isVisible = true;
+        $this->dispatchBrowserEvent('updateButton', ['isVisible' => $this->isVisible]);
+
+        // dd($this->isVisible);
     }
 
 
@@ -81,7 +92,9 @@ class Index extends Component
 
         $this->totalBreakTime = AgentBreakSummary::whereBetween('breaktime', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->where('agentid', Auth::user()->agent_id)->selectRaw('SEC_TO_TIME(SUM(TIMESTAMPDIFF(SECOND, breaktime, unbreaktime))) AS today_total_break')->first()->today_total_break;
 
-        return view('livewire.dashboard.index', ['variable' => $this->isVisible]);
+        Log::info('$isVisible:', [$this->isVisible]);
+
+        return view('livewire.dashboard.index');
     }
 
     public function updatedSelectedSkills($value, $name)

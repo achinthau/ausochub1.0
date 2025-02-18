@@ -9,6 +9,9 @@
     <meta name="user-extension" content="{{ Auth::user()->agent ? Auth::user()->agent->extension : 0 }}">
     <link rel="icon" href="{{ URL::asset('favicon.ico') }}" type="image/x-icon" />
 
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+
+
 
     @if (isset($title))
         <title>{{ $title }}</title>

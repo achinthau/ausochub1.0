@@ -145,6 +145,41 @@
             </div>
         </div>
     </div>
+
+
+    {{-- catch the socket.io event --}}
+
+    <script>
+        var SOCKET_URL = "{{ config('app.socket_server_url', 'http://localhost') }}";
+        var SOCKET_PORT = "{{ config('app.socket_server_port', '3000') }}";
+        var FULL_SOCKET_URL = SOCKET_URL + ":" + SOCKET_PORT;
+        
+        const socket = io(FULL_SOCKET_URL);
+    
+        var openedTab = null; // Store the reference to the opened tab
+    
+        socket.on('call.answered', (data) => {
+    
+            var url = "/leads/"; // Set the target URL
+    
+            console.log('Lead Answered:', data);
+            
+    
+    
+        if (openedTab && !openedTab.closed) {
+                // If the tab is already open, update its location
+                openedTab.location.href = url + data;
+                openedTab.focus
+    } else {
+                // If no tab is open, create a new one
+                openedTab = window.open(url + data, "_blank");
+            }
+        });
+    
+    </script>
+
+
+
 </div>
 @push('modals')
     @livewire('dashboard.partials.agent-break')

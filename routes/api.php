@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AsteriskEventController;
+use GuzzleHttp\Client;
 
 /*
 |--------------------------------------------------------------------------
@@ -54,6 +55,11 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
     $lead = Lead::where('contact_number', $request['ani'])->first();
     $agent = Agent::where('extension', $request['agent'])->first();
     $skill = Skill::where('skillname', $request['queuename'])->first();
+
+    $socketUrl = env('SOCKET_SERVER_URL', 'http://localhost'); 
+    $socketPort = env('SOCKET_SERVER_PORT', '3000');
+    $fullSocketUrl = "{$socketUrl}:{$socketPort}/emit";
+
     Cache::forever('agent-in-call-' . $agent->id, 1);
     Cache::forever('call-' . $request['unique_id'], $agent->id);
 
@@ -64,6 +70,8 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
 
     Cache::increment('current-call-count');
     Cache::increment($request['queuename'] . "-current-call-count");
+
+    
 
 
     if (!$lead) {
@@ -76,7 +84,32 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
             $lead->skill_id = $skill ? $skill->skillid : 0;
             $lead->status_id = 1;
             $lead->save();
-            event(new CallAnswered($lead->id));
+
+            if(env('IS_PUSHER')== true)
+            {
+                event(new CallAnswered($lead->id));
+            }
+            else
+            // using socket.io
+            {
+                try {
+                    $client = new Client();
+                    $response = $client->post($fullSocketUrl, [
+                        'json' => [
+                            'event' => 'call.answered',
+                            'data' => [
+                                'lead_id' => $lead->id
+                            ]
+                        ]
+                    ]);
+    
+                    $responseData = json_decode($response->getBody(), true);
+                    Log::info('Socket event sent:', $responseData);
+                } catch (\Exception $e) {
+                    Log::error('Failed to send socket event: ' . $e->getMessage());
+                }
+            }
+                
             return $lead;
         }
     } else {
@@ -85,7 +118,32 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
         $lead->extension = $request['agent'];
         $lead->skill_id = $skill ? $skill->skillid : 0;
         $lead->save();
-        event(new CallAnswered($lead->id));
+
+        if(env('IS_PUSHER')== true)
+            {
+                event(new CallAnswered($lead->id));
+            }
+            // using socket.io
+            else
+            {
+                try {
+                    $client = new Client();
+                    $response = $client->post($fullSocketUrl, [
+                        'json' => [
+                            'event' => 'call.answered',
+                            'data' => [
+                                'lead_id' => $lead->id
+                            ]
+                        ]
+                    ]);
+    
+                    $responseData = json_decode($response->getBody(), true);
+                    Log::info('Socket event sent:', $responseData);
+                } catch (\Exception $e) {
+                    Log::error('Failed to send socket event: ' . $e->getMessage());
+                }
+            }
+
         return $lead;
     }
 });

@@ -154,15 +154,26 @@
         var SOCKET_PORT = "{{ config('app.socket_server_port', '3000') }}";
         var FULL_SOCKET_URL = SOCKET_URL + ":" + SOCKET_PORT;
         
-        const socket = io(FULL_SOCKET_URL);
-    
+        // const socket = io(FULL_SOCKET_URL);
+
+
+        const socket = io(FULL_SOCKET_URL, {
+        transports: ['websocket'],
+        secure: true
+    });
+
+    socket.on('connect', () => {
+        console.log('Connected to Socket.IO server');
+    });
+
+      
         var openedTab = null; // Store the reference to the opened tab
     
         socket.on('call.answered', (data) => {
     
             var url = "/leads/"; // Set the target URL
     
-            console.log('Lead Answered:', data);
+            console.log('Lead Answered-----------:', data);
             
     
     

@@ -4,7 +4,8 @@ const app = express();
 const server = require('http').createServer(app);
 const io = require('socket.io')(server, {
     cors: {
-        origin: "*"
+        origin: "*",  // Replace with your actual client's URL
+        methods: ["GET", "POST"]
     }
 });
 app.use(express.json());
@@ -17,6 +18,9 @@ io.on('connection', (socket) => {
 });
 
 app.post('/emit', (req, res) => {
+
+    console.log(`post request received`);
+
     const { event, data } = req.body;
     io.emit(event, data.lead_id);
 

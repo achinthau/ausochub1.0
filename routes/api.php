@@ -105,8 +105,9 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
     
                     $responseData = json_decode($response->getBody(), true);
                     Log::info('Socket event sent:', $responseData);
+
                 } catch (\Exception $e) {
-                    Log::error('Failed to send socket event: ' . $e->getMessage());
+                    Log::error('Failed to send the socket event: ' . $e->getMessage());
                 }
             }
                 
@@ -139,8 +140,9 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
     
                     $responseData = json_decode($response->getBody(), true);
                     Log::info('Socket event sent:', $responseData);
+
                 } catch (\Exception $e) {
-                    Log::error('Failed to send socket event: ' . $e->getMessage());
+                    Log::error('Failed to send the socket event: ' . $e->getMessage());
                 }
             }
 

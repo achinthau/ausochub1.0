@@ -30,5 +30,5 @@ app.post('/emit', (req, res) => {
 });
 
 server.listen(SOCKET_PORT, () => {
-    console.log(`Socket.IO server running on port ${SOCKET_PORT}`);
+    console.log(`Socket.IO server running on url  port ${SOCKET_PORT}`);
 });

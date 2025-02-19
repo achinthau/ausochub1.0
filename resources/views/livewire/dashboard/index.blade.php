@@ -150,13 +150,16 @@
     {{-- catch the socket.io event --}}
 
     <script>
-        var SOCKET_URL = "{{ config('app.socket_server_url', 'http://localhost') }}";
-        var SOCKET_PORT = "{{ config('app.socket_server_port', '3000') }}";
-        var FULL_SOCKET_URL = SOCKET_URL + ":" + SOCKET_PORT;
+        // var SOCKET_URL = "{{ config('app.socket_server_url', 'http://localhost') }}";
+        // var SOCKET_PORT = "{{ config('app.socket_server_port', '3000') }}";
+        // var FULL_SOCKET_URL = SOCKET_URL + ":" + SOCKET_PORT;
+
+
+        var SOCKET_URL  = "<?php echo env('SOCKET_SERVER_URL', 'http://localhost'); ?>";
+        var SOCKET_PORT = "<?php echo env('SOCKET_SERVER_PORT', '3000');?>";
+
+        var FULL_SOCKET_URL = SOCKET_URL + ":" + SOCKET_PORT;
         
-        // const socket = io(FULL_SOCKET_URL);
-
-
         const socket = io(FULL_SOCKET_URL, {
         transports: ['websocket'],
         secure: true

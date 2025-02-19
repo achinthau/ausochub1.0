@@ -56,9 +56,13 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
     $agent = Agent::where('extension', $request['agent'])->first();
     $skill = Skill::where('skillname', $request['queuename'])->first();
 
-    $socketUrl = env('SOCKET_SERVER_URL', 'http://localhost'); 
+    // $socketUrl = env('http://localhost'); 
+    
     $socketPort = env('SOCKET_SERVER_PORT', '3000');
-    $fullSocketUrl = "{$socketUrl}:{$socketPort}/emit";
+    $fullSocketUrl = "http://127.0.0.1:{$socketPort}/emit";
+    // $fullSocketUrl = "http://127.0.0.1:3000/emit";
+
+
 
     Cache::forever('agent-in-call-' . $agent->id, 1);
     Cache::forever('call-' . $request['unique_id'], $agent->id);

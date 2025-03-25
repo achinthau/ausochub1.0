@@ -168,12 +168,12 @@
                     const messageElement = document.createElement("span");
                     if (type == "received") {
                         messageWrapper.classList.add("text-left")
-                    messageElement.classList.add("bg-red-200", "text-black", "px-3", "py-1", "rounded-lg");
+                    messageElement.classList.add("bg-gray-200", "text-black", "px-3", "py-1", "rounded-lg");
                     }
 
                     if (type == "sent") {
                         messageWrapper.classList.add("text-right")
-                    messageElement.classList.add("bg-yellow-100", "text-black", "px-3", "py-1", "rounded-lg");
+                    messageElement.classList.add("bg-blue-100", "text-black", "px-3", "py-1", "rounded-lg");
                     }
 
                     messageElement.style.display = "inline-block";

@@ -69,7 +69,7 @@ class User extends Authenticatable
     {
         parent::boot();
         self::created(function ($model) {
-            
+
             if ($model->user_type_id > 2) {
                 $agent = new Agent;
                 $agent->username = $model->user_name;
@@ -98,7 +98,6 @@ class User extends Authenticatable
                 $model->save();
             }
         });
-       
     }
 
     public function agent()
@@ -106,7 +105,7 @@ class User extends Authenticatable
         return $this->belongsTo(Agent::class, 'agent_id');
     }
 
-   
+
 
     public function userType()
     {
@@ -147,5 +146,16 @@ class User extends Authenticatable
     public function getTenantContextAttribute($value)
     {
         return $value;
+    }
+
+    public function agentLogins()
+    {
+        return $this->hasMany(AgentLogin::class, 'user_id');
+    }
+
+
+    public function isLoggedIn()
+    {
+        return optional($this->agentLogins()->latest('login_time')->first())->logout_time === null;
     }
 }

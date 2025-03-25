@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\UserActivityController;
+use App\Http\Livewire\Chat\Index as ChatIndex;
 use App\Http\Livewire\ContactFeeds\Index as ContactFeedsIndex;
 use App\Http\Livewire\Dashboard\Index;
 use App\Http\Livewire\Leads\Create;
@@ -34,6 +35,7 @@ use App\Models\CallCenter\AbandonedCall as CallCenterAbandonedCall;
 use App\Models\DailyCallSummary;
 use App\Models\QueueCount;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
@@ -106,5 +108,12 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     Route::get('/test', function (Request $request) {
         return session()->getId();
     });
+
+    Route::post('/logout', function () {
+        Auth::logout();
+        return response()->json(['message' => 'Logged out']);
+    })->name('logout');
+
+    Route::get('/chat', ChatIndex::class)->name('chat.index');
     
 });

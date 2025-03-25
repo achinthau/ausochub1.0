@@ -12,6 +12,19 @@
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
 
 
+    <script>
+        window.addEventListener('beforeunload', function (e) {
+        fetch('/logout', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+            },
+            credentials: 'include'
+        });
+    });
+    </script>
+
 
     @if (isset($title))
         <title>{{ $title }}</title>

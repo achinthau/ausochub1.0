@@ -85,8 +85,9 @@
                         </div>
 
                         <div class="grid grid-cols-3 space-x-4">
-                            <x-dashboard.box title="Messages" value=0 iconBackground="bg-red-100" name='message'
-                                iconColor="text-red-400" />
+                            <a href="{{ route('chat.index') }}">
+                            <x-dashboard.box title="Messages" :value="$messagesCount" iconBackground="bg-red-100" name='message'
+                                iconColor="text-red-400" /> </a>
                             <div class="bg-white p-6 rounded-md shadow-md space-y-2">
                                 <h1 class="text-xs text-gray-400 font-semibold">Skills</h1>
                                 <hr>

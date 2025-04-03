@@ -31,6 +31,8 @@ use App\Http\Livewire\Settings\Skills\Index as SkillsIndex;
 use App\Http\Livewire\Settings\Users\Index as UsersIndex;
 use App\Http\Livewire\Tickets\Index as TicketsIndex;
 use App\Http\Livewire\Tickets\IndexNew;
+use App\Http\Livewire\CxTickets\Index as CxTicketsIndex;
+use App\Http\Livewire\CxTickets\Survey\Index as SurveyIndex;
 use App\Models\CallCenter\AbandonedCall as CallCenterAbandonedCall;
 use App\Models\DailyCallSummary;
 use App\Models\QueueCount;
@@ -115,5 +117,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     })->name('logout');
 
     Route::get('/chat', ChatIndex::class)->name('chat.index');
+
+    Route::get('/cx-tickets', CxTicketsIndex::class)->name('cx-tickets.index');
+    Route::get('/cx-tickets/survey', SurveyIndex::class)->name('cx-tickets-survey.index');
     
 });

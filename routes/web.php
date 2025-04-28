@@ -120,7 +120,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         if (Auth::guard('web')->check()) {
                     Auth::guard('web')->logout(); 
         }
-        return redirect('/login');
+        // return redirect('/login');
     })->name('logout');
 
 

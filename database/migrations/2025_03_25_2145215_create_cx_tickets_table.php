@@ -40,6 +40,9 @@ return new class extends Migration
             $table->string('satisfaction_reasons')->nullable();
             $table->string('dis_satisfaction_reasons')->nullable();
             $table->string('cancelling_reasons')->nullable();
+
+            $table->string('closed_by')->nullable();
+            $table->string('surveyed_by')->nullable();
             $table->timestamps();
         });
     }

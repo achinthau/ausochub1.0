@@ -5,6 +5,7 @@ namespace App\Http\Livewire\CxTickets\Survey;
 use App\Models\CxDisSatisReason;
 use App\Models\CxSatisReason;
 use App\Models\CxTicket;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
@@ -83,6 +84,7 @@ class RatingPanel extends Component
             $ticket->update([
                 'status' => "Canceled",
                 'cancelling_reasons' => implode(',', $cancelReasons),
+                'surveyed_by' => Auth::user()->name,
             ]);
         }
         $this->emit('cxTicketSurveyUpdated');
@@ -184,6 +186,7 @@ class RatingPanel extends Component
                 'satisfaction_reasons' => implode(',', $satisfaction),
                 'dis_satisfaction_reasons' => implode(',', $dissatisfaction),
                 'status' => "Rated",
+                'surveyed_by' => Auth::user()->name,
             ]);
 
             $this->cxTicketRatingModal = false;

@@ -109,7 +109,13 @@ public function builder(): Builder
             Column::make("Supervisor contact", "supervisor_contact")->sortable()->searchable(),
             Column::make("Ticket Creator", "creator")->sortable()->searchable(),
             Column::make("Status", "status")->sortable()->searchable(),
+            Column::make("Satisfaction Rate", "satisfaction_rate")->sortable()->searchable(),
+            // Column::make("Satisfaction Reasons", "satisfaction_reasons")->sortable()->searchable(),
+            // Column::make("Dis_satisfaction Reasons", "dis_satisfaction_reasons")->sortable()->searchable(),
+            // Column::make("Cancelling Reasons", "cancelling_reasons")->sortable()->searchable(),
             // Column::make("Created at", "created_at")->sortable(),
+            Column::make("Closed_BY", "closed_by")->sortable(),
+            Column::make("Surveyed By", "surveyed_by")->sortable(),
             Column::make("Updated at", "updated_at")->sortable(),
             Column::make("Actions")
                 ->label(fn ($row) => view('livewire.cx-tickets.actions', ['ticket' => $row->id]))

@@ -2,6 +2,7 @@
 namespace App\Http\Livewire\CxTickets;
 
 use App\Models\CxTicket;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
 class Edit extends Component
@@ -104,7 +105,8 @@ public function closeTicket()
     if($this->ticket)
     {
         $this->ticket->update([
-            'status' => 'Closed'
+            'status' => 'Closed',
+            'closed_by' => Auth::user()->name,
         ]);
     }
     $this->emitTo('cx-tickets-table', 'cxTicketUpdated');

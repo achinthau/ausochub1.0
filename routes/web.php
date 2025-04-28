@@ -118,7 +118,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
             $request->session()->regenerateToken();
         }
     
-        return response()->json(['message' => 'Logged out']);
+        // return response()->json(['message' => 'Logged out']);
     })->name('logout');
 
     Route::get('/chat', ChatIndex::class)->name('chat.index');

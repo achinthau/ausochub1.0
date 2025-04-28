@@ -111,28 +111,30 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         return session()->getId();
     });
 
-    // Route::post('/logout', function () {
-    //     Auth::logout();
-    //     return response()->json(['message' => 'Logged out']);
-    // })->name('logout');
-
     Route::post('/logout', function () {
-        if (Auth::guard('web')->check()) {
-                    Auth::guard('web')->logout(); 
-        }
-        // return redirect('/login');
+        Auth::logout();
+        return response()->json(['message' => 'Logged out']);
     })->name('logout');
-
 
     // Route::post('/logout', function (Request $request) {
     //     if (Auth::guard('web')->check()) {
-    //         Auth::guard('web')->logout();  
+    //         Auth::guard('web')->logout();
+    
     //         $request->session()->invalidate();
     //         $request->session()->regenerateToken();
     //     }
     
-    //     return redirect('/login'); // Redirect to login page
+    //     return redirect('/login');
     // })->name('logout');
+    
+
+
+    // Route::post('/logout', function (Request $request) {
+    //     $request->session()->invalidate();
+    //     $request->session()->regenerateToken();
+    //     return redirect('/login');
+    // })->name('logout');
+    
 
     Route::get('/chat', ChatIndex::class)->name('chat.index');
 

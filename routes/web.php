@@ -111,8 +111,13 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         return session()->getId();
     });
 
-    Route::post('/logout', function () {
-        Auth::logout();
+    Route::post('/logout', function (Request $request) {
+        if (Auth::guard('web')->check()) {
+            Auth::guard('web')->logout();  
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
+    
         return response()->json(['message' => 'Logged out']);
     })->name('logout');
 

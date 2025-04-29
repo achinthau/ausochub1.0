@@ -12,7 +12,7 @@
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
 
 
-    <script>
+    {{-- <script>
         window.addEventListener('beforeunload', function (e) {
         fetch('/logout', {
             method: 'POST',
@@ -23,7 +23,7 @@
             credentials: 'include'
         });
     });
-    </script>
+    </script> --}}
 
 
     @if (isset($title))

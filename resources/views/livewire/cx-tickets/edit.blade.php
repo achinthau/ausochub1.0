@@ -28,7 +28,7 @@
                 </div>
                 <div>
                     <div class="py-2">
-                        <x-native-select
+                        {{-- <x-native-select
                             label="Service Center"
                             placeholder="Select Service Center"
                             :options="[['id'=>'Kurunegala','title'=>'Kurunegala'],['id'=>'Alawwa','title'=>'Alawwa'],['id'=>'Narammala','title'=>'Narammala'],['id'=>'Kegalle','title'=>'Kegalle'],['id'=>'Polgahawela','title'=>'Polgahawela']]"
@@ -36,7 +36,12 @@
                             option-value="id"
                             wire:model="service_center"
                             class="pointer-events-none"
-                        />
+                        /> --}}
+                        <x-native-select label="Service Center" placeholder="Select Service Center" :options="$serviceCenters->map(
+                            fn($center) => ['id' => $center->name, 'title' => $center->name],
+                        )"
+                            option-label="title" option-value="id" wire:model="service_center"
+                             class="pointer-events-none" />
                     </div>
                     <div class="py-2">
                         <x-native-select

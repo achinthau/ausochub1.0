@@ -2,6 +2,7 @@
 namespace App\Http\Livewire\CxTickets;
 
 use App\Models\CxTicket;
+use App\Models\CxTicketServCenter;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -15,12 +16,16 @@ class Edit extends Component
     public $technician_name, $technician_contact, $supervisor_name, $supervisor_contact;
     public $status, $satisfaction_rate;
 
+    public $serviceCenters = [];
+
     protected $listeners = ['showUpdateTicketModal' => 'showUpdateTicket'];
 
     public function mount()
     {
-        $this->ticket = new CxTicket(); // Ensure the model exists to prevent binding issues
+        $this->ticket = new CxTicket(); 
+        $this->serviceCenters = CxTicketServCenter::all(['id', 'name']);
     }
+
 
     public function showUpdateTicket($id)
     {
@@ -32,6 +37,7 @@ class Edit extends Component
     $this->model = $this->ticket->model;
     $this->work_order_no = $this->ticket->work_order_no;
     $this->service_center = $this->ticket->service_center;
+    // dd($this->service_center);
     $this->warranty_status = $this->ticket->warranty_status;
     $this->sold_date = $this->ticket->sold_date;
 

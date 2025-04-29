@@ -70,7 +70,7 @@
                             <!-- Dropdown Button -->
                             <button @click="open = !open"
                                 class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none transition">
-                                CX-Tickets
+                                Service-Tickets
                                 <svg class="ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
                                     fill="currentColor">
                                     <path fill-rule="evenodd"

@@ -39,7 +39,7 @@ class Show extends Component
 
     public function mount($lead)
     {
-        $this->lead = $lead->load('tickets','tickets.category','tickets.status','tickets.outlet','orders','orders.items');
+        $this->lead = $lead->load('tickets', 'tickets.category', 'tickets.status', 'tickets.outlet', 'orders', 'orders.items');
     }
 
     public function render()
@@ -55,7 +55,7 @@ class Show extends Component
 
     public function refreshTimeline()
     {
-        $this->emitTo('leads.partials.activity-log','refreshTimeline');
+        $this->emitTo('leads.partials.activity-log', 'refreshTimeline');
     }
 
     public function save()
@@ -68,5 +68,26 @@ class Show extends Component
             $title = 'Success',
             $description = 'Customer successfull saved'
         );
+    }
+
+    public function openWhatsApp()
+    {
+
+        $number = preg_replace('/\s+/', '', $this->lead->whatsapp); 
+
+        if (str_starts_with($number, '94')) {
+            $internationalNumber = $number; 
+        } elseif (str_starts_with($number, '0')) {
+            $internationalNumber = '94' . substr($number, 1); 
+        } else {
+            $internationalNumber = '94' . $number; 
+        }
+        // dd($internationalNumber);
+
+        $message = urlencode('Hello! I would like to chat with you.');
+        $url = "https://wa.me/{$internationalNumber}?text={$message}";
+
+        
+        $this->emit('whatsappOpened', $url);
     }
 }

@@ -20,7 +20,7 @@
                     </div>
                 @endcan
 
-                @php
+                {{-- @php
                     use Illuminate\Support\Facades\Redis;
 
                     $loggedUserId = Auth::id();
@@ -44,7 +44,9 @@
                             </span>
                         @endif
                     </x-jet-nav-link>
-                </div>
+                </div> --}}
+                @livewire('chat.chat-nav-button')
+
 
 
                 @can('can-view-leads')
@@ -201,6 +203,7 @@
                         <div class="flex">
                             @can('is-agent')
                                 @if (Route::is('dashboard.index'))
+                                {{-- @if (request()->is('/')) --}}
                                     <div class="pr-8 pt-4">
                                         @livewire('dashboard.select-bound')
                                     </div>

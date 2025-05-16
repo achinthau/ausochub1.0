@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\TicketItems\Counts;
 
 use App\Models\Ticket;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
 
@@ -18,18 +19,37 @@ class ClosedCount extends Component
 
     public function mount()
     {
+        if(Auth::user()->department_id)
+        {
+            $this->closedCount = Cache::remember('tickets_table', 60, function () {
+                return Ticket::where('ticket_status_id', 4)->where('department_id',Auth::user()->department_id )->count();
+            });
+        }
+else
+        {
+
         $this->closedCount = Cache::remember('tickets_table', 60, function () {
             return Ticket::where('ticket_status_id', 4)->count();
         });
+    }
     }
 
     public function refreshComponent()
     {
             Cache::forget('tickets_table');
 
+            if(Auth::user()->department_id)
+        {
+            $this->closedCount = Cache::remember('tickets_table', 60, function () {
+                return Ticket::where('ticket_status_id', 4)->where('department_id',Auth::user()->department_id )->count();
+            });
+        }
+else
+        {
             $this->closedCount = Cache::remember('tickets_table', 60, function () {
                 return Ticket::where('ticket_status_id', 4)->count();
             });
+        }
         
     }
 }

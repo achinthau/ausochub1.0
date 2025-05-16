@@ -11,6 +11,7 @@ use App\Models\TicketCategory;
 use App\Models\TicketStatus;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
 use Mediconesystems\LivewireDatatables\DateColumn;
@@ -155,8 +156,18 @@ class NewTicketTable extends DataTableComponent
         $this->emitTo('tickets.show', 'openTicket', $id);
     }
 
+    // public function builder(): Builder
+    // {
+    //     return Ticket::with('status');
+    // }
+
     public function builder(): Builder
-    {
-        return Ticket::with('status');
-    }
+{
+    $user = Auth::user();
+
+    return Ticket::with('status')
+        ->when($user && $user->department_id, function ($query) use ($user) {
+            $query->where('department_id', $user->department_id);
+        });
+}
 }

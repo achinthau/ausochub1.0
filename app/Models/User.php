@@ -158,4 +158,9 @@ class User extends Authenticatable
     {
         return optional($this->agentLogins()->latest('login_time')->first())->logout_time === null;
     }
+
+    public function crmDepartment()
+    {
+        return $this->belongsTo(CrmDepartment::class, 'department_id');
+    }
 }

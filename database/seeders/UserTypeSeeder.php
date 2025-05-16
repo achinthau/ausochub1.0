@@ -42,5 +42,8 @@ class UserTypeSeeder extends Seeder
         UserType::create([
             'title'=>'Client Report User'
         ]);
+        UserType::create([
+            'title'=>'CRM User'
+        ]);
     }
 }

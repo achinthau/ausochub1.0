@@ -19,8 +19,22 @@
                 </div>
             </div> --}}
 
+            <div class="grid grid-cols-2 justify-between pb-2">
+                @if ($ticket)
+                Assigned User : {{$ticket->assignedUser?->name ?? 'Not assigned'}}
+                @endif
+            @if($ticket && !$ticket->assigned_user_id)
+            <div class="flex justify-end pr-4">
+                {{-- <button class=" bg-slate-400 rounded-md p-2">Assign to me</button> --}}
+                <x-button secondary label="Assign to me" wire:click="assign" />
+            </div>
+            @endif
+        </div>
+            
+            <hr>
+
             @if ($ticket)
-                <div class="grid grid-cols-3 gap-4 w-full text-sm">
+                <div class="grid grid-cols-3 gap-4 w-full text-sm pt-2">
                     @if ($ticket->lead)
                         <div>Client Name : {{ $ticket->lead->full_name }}</div>
                         <div>Contact Number : {{ $ticket->lead->contact_number }}</div>

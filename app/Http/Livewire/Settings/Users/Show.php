@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Settings\Users;
 
 use App\Models\Agent;
+use App\Models\CrmDepartment;
 use App\Models\Extension;
 use App\Models\User;
 use App\Models\UserType;
@@ -21,6 +22,8 @@ class Show extends Component
     public $agent;
     public $extensions;
 
+    public $departments;
+
     protected $rules  = [
 
         'user.name' => 'required',
@@ -32,6 +35,7 @@ class Show extends Component
         'user.gender' => 'nullable',
         'user.address' => 'nullable',
         'user.extension' => 'nullable',
+        'user.department_id' => 'nullable|exists:crm_departments,id',
 
     ];
 
@@ -45,6 +49,8 @@ class Show extends Component
     {
         $this->userTypes = UserType::select('id', 'title')->get()->toArray();
         $this->extensions = [];
+
+        $this->departments = CrmDepartment::select('id','name')->get()->toArray();
     }
     public function render()
     {
@@ -54,6 +60,7 @@ class Show extends Component
 
     public function showUpdateUserModal($id)
     {
+        $this->departments = CrmDepartment::select('id','name')->get()->toArray();
         $this->user = User::find($id);
         $this->extensions = Extension::notAssigned($this->user->agent_id)->get();
         $this->updateUserModal = true;

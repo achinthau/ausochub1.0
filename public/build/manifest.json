@@ -1,11 +1,11 @@
 {
-  "resources/images/logo-lod.png": {
-    "file": "assets/logo-lod.23e414c6.png",
-    "src": "resources/images/logo-lod.png"
-  },
   "resources/images/logo.png": {
     "file": "assets/logo.6cc6c3da.png",
     "src": "resources/images/logo.png"
+  },
+  "resources/images/logo-lod.png": {
+    "file": "assets/logo-lod.23e414c6.png",
+    "src": "resources/images/logo-lod.png"
   },
   "resources/js/app.js": {
     "file": "assets/app.effd8d88.js",
@@ -13,7 +13,7 @@
     "isEntry": true
   },
   "resources/css/app.css": {
-    "file": "assets/app.8653305b.css",
+    "file": "assets/app.76a3901e.css",
     "src": "resources/css/app.css",
     "isEntry": true
   }

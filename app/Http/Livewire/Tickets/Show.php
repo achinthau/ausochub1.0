@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Tickets;
 
 use App\Models\Ticket;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use WireUi\Traits\Actions;
 
@@ -106,5 +107,12 @@ class Show extends Component
             $title = 'Success',
             $description = 'Comment Added'
         );
+    }
+
+    public function assign()
+    {
+        $this->ticket->assigned_user_id = Auth::user()->id;
+        $this->ticket->save();
+        $this->ticket = $this->ticket->fresh('assignedUser');
     }
 }

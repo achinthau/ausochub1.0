@@ -2,11 +2,13 @@
 
 namespace App\Http\Livewire\Tickets;
 
+use App\Models\CrmDepartment;
 use App\Models\Item;
 use App\Models\Outlet;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
 use App\Models\TicketItem;
+use App\Models\User;
 use Livewire\Component;
 use WireUi\Traits\Actions;
 
@@ -26,6 +28,10 @@ class Create extends Component
     public $outlets;
     public $tags;
     public $creatingTicket = false;
+    
+    public $departments;
+    public $users;
+    public $departmentUsers;
 
     protected $listeners = ['showCreatingTicket' => 'showCreatingTicket'];
 
@@ -44,6 +50,9 @@ class Create extends Component
         //'ticketItems.*.item_id' => 'required_if:ticket.ticket_category_id,3',
         //'ticketItems.*.size_id' => 'required_if:ticket.crm,true',
         //'ticketItems.*.size_id' => 'required_if:ticket.ticket_category_id,3',
+
+        'ticket.department_id' => 'nullable',
+        'ticket.assigned_user_id' => 'nullable',
     ];
 
     protected $validationAttributes = [
@@ -82,6 +91,9 @@ class Create extends Component
         ];
 
         $this->addItem();
+
+        $this->departments = CrmDepartment::select('id','name')->get()->toArray();
+        $this->users = User::select('id', 'name', 'department_id')->get()->toArray();
     }
 
     public function render()
@@ -214,4 +226,13 @@ class Create extends Component
         // $this->emit('refreshDatatable');
         redirect(route('tickets.index'));
     }
+
+
+    public function updatedTicketDepartmentId($value)
+{
+    $this->departmentUsers = User::where('department_id', $value)
+                                 ->select('id', 'name')
+                                 ->get()
+                                 ->toArray();
+}
 }

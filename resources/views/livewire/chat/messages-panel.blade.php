@@ -121,7 +121,11 @@
 
 
     <script>
-        const socket = io('http://localhost:3000');
+        // const socket = io('http://localhost:3000');
+        const socket = io({
+        path: "/socket.io",
+        transports: ['websocket'],
+    });
         const loggedInUserId = "{{ auth()->id() }}";
 
         // Listen for incoming messages

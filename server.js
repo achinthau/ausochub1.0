@@ -2,11 +2,19 @@ const express = require('express');
 require('dotenv').config();
 const app = express();
 const server = require('http').createServer(app);
-const io = require('socket.io')(server, {
-    cors: {
-        origin: "*",  // Replace with your actual client's URL
-        methods: ["GET", "POST"]
-    }
+const { Server } = require('socket.io');
+// const io = require('socket.io')(server, {
+//     cors: {
+//         origin: "*",  // Replace with your actual client's URL
+//         methods: ["GET", "POST"]
+//     }
+// });
+const io = new Server(server, {
+  path: "/socket.io",
+  cors: {
+      origin: "*",
+      methods: ["GET", "POST"]
+  }
 });
 app.use(express.json());
 

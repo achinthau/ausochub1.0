@@ -26,7 +26,7 @@ class ChatNavButton extends Component
         $messagesCountIds = $redis->get($redisKey);
         $messagesCountIds = $messagesCountIds ? json_decode($messagesCountIds, true) : [];
 
-        $this->messagesCount = max(count($messagesCountIds) - 1, 0);
+        $this->messagesCount = max(count($messagesCountIds) , 0);
     }
 
     public function render()

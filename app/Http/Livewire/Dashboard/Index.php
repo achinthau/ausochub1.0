@@ -112,7 +112,7 @@ class Index extends Component
     
     $messagesCountIds = Redis::get($redisKey);
     $messagesCountIds = $messagesCountIds ? json_decode($messagesCountIds, true) : [];
-    $this->messagesCount = count($messagesCountIds) - 1 ;
+    $this->messagesCount = count($messagesCountIds) ;
 
 
 

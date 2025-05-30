@@ -9,6 +9,15 @@ use Livewire\Component;
 
 class ClosedCount extends Component
 {
+    protected $listeners = ['departmentUpdated' => 'setDepartment'];
+    public $selectedDepartment = 0;
+
+    public function setDepartment($deptId)
+    {
+        $this->selectedDepartment = $deptId;
+        // dd($this->selectedDepartment);
+    }
+
     public function render()
     {
         return view('livewire.ticket-items.counts.closed-count');
@@ -28,9 +37,18 @@ class ClosedCount extends Component
 else
         {
 
-        $this->closedCount = Cache::remember('tickets_table', 60, function () {
-            return Ticket::where('ticket_status_id', 4)->count();
-        });
+            if($this->selectedDepartment == 0)
+            {
+                $this->closedCount = Cache::remember('tickets_table', 60, function () {
+                    return Ticket::where('ticket_status_id', 4)->count();
+                });
+            }
+            else
+            {
+                $this->closedCount = Cache::remember('tickets_table', 60, function () {
+                    return Ticket::where('ticket_status_id', 4)->where('department_id', $this->selectedDepartment)->count();
+                });
+            }
     }
     }
 
@@ -46,9 +64,18 @@ else
         }
 else
         {
-            $this->closedCount = Cache::remember('tickets_table', 60, function () {
-                return Ticket::where('ticket_status_id', 4)->count();
-            });
+            if($this->selectedDepartment == 0)
+            {
+                $this->closedCount = Cache::remember('tickets_table', 60, function () {
+                    return Ticket::where('ticket_status_id', 4)->count();
+                });
+            }
+            else
+            {
+                $this->closedCount = Cache::remember('tickets_table', 60, function () {
+                    return Ticket::where('ticket_status_id', 4)->where('department_id', $this->selectedDepartment)->count();
+                });
+            }
         }
         
     }

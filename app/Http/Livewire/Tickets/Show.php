@@ -2,7 +2,10 @@
 
 namespace App\Http\Livewire\Tickets;
 
+use App\Models\CrmDepartment;
 use App\Models\Ticket;
+use App\Models\TicketActivity;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -16,6 +19,15 @@ class Show extends Component
     public $showTicketModal = false;
     public $customerCard = false;
     public $comment = null;
+    public $loggedUser ;
+    public $users;
+    public $selectedDepartment;
+    public $assignOption = null;
+    public $changeDepartment = null;
+    public $departments;
+public $selectedUser = null;
+
+public ?TicketActivity $activity;
 
 
 
@@ -29,6 +41,7 @@ class Show extends Component
         return view('livewire.tickets.show');
     }
 
+
     public function updatedShowTicketModal($value)
     {
         if ($value) {
@@ -41,6 +54,9 @@ class Show extends Component
         $this->ticket = Ticket::find($ticketId);
         $this->showTicketModal = true;
         $this->customerCard = $customerCard;
+        $this->loggedUser= Auth::user() ;
+        $this->users= User::select('id','name')->where('department_id',$this->ticket->department_id)->get()->toArray();
+        $this->departments=CrmDepartment::select('id','name')->get()->toArray();
     }
 
     public function save()
@@ -114,5 +130,36 @@ class Show extends Component
         $this->ticket->assigned_user_id = Auth::user()->id;
         $this->ticket->save();
         $this->ticket = $this->ticket->fresh('assignedUser');
+        // $this->activity->type = "Assigned to himself";
+        $this->ticket->logActivity("Assigned to himself", $this->comment);
+        $this->comment='';
+        $this->ticket->refresh();
+    }
+
+    public function assignToUser()
+    {
+        $this->ticket->assigned_user_id = $this->selectedUser;
+        $this->ticket->save();
+        $this->ticket = $this->ticket->fresh('assignedUser');
+        $userName = User::where('id', $this->selectedUser)->value('name');
+        $this->ticket->logActivity("Assigned to ". $userName , $this->comment);
+        $this->comment='';
+        $this->ticket->refresh();
+    }
+
+    public function unAssign()
+    {
+        $this->ticket->assigned_user_id = Null;
+        $this->ticket->save();
+        $this->ticket = $this->ticket->fresh('assignedUser');
+        $this->ticket->logActivity("Unassigned", $this->comment);
+        $this->ticket->refresh();
+    }
+
+    public function assignDepartment()
+    {
+        $this->ticket->department_id = $this->selectedDepartment;
+        $this->ticket->save();
+        $this->ticket->refresh();
     }
 }

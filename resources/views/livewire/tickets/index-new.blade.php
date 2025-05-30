@@ -7,8 +7,16 @@
 
     </div>
     </x-slot>
-
-    <div class="py-12">
+    <div class="absolute right-0 py-4 sm:px-6 lg:px-48 mb-4">
+        @if($userid == 1)
+        @livewire('ticket-items.department-panel')
+        @endif
+        @if($userid == 9)
+        @livewire('ticket-items.user-menu-panel')
+        @endif
+    </div>
+    <div class="py-20">
+        
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
 
             <div class="flex justify-between pb-2 gap-4">

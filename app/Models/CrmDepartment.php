@@ -8,4 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class CrmDepartment extends Model
 {
     use HasFactory;
+
+    public function tickets()
+{
+    return $this->hasMany(Ticket::class, 'department_id');
+}
 }

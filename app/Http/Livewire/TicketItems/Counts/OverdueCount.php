@@ -11,6 +11,15 @@ use Livewire\Component;
 
 class OverdueCount extends Component
 {
+    protected $listeners = ['departmentUpdated' => 'setDepartment'];
+    public $selectedDepartment = 0;
+
+    public function setDepartment($deptId)
+    {
+        $this->selectedDepartment = $deptId;
+        // dd($this->selectedDepartment);
+    }
+
     public function render()
     {
         return view('livewire.ticket-items.counts.overdue-count');
@@ -33,9 +42,18 @@ class OverdueCount extends Component
 else
         {
 
-        $this->overdueCount = Cache::remember('tickets_table', 60, function () {
-            return Ticket::where('ticket_status_id', 3)->where('department_id',Auth::user()->department_id )->count() + (config('auso.ticket_sla_enabled') ?  Ticket::whereNotIn('ticket_status_id', [3, 4])->where('due_at', '<', Carbon::now())->count() : 0);
-        });
+            if($this->selectedDepartment == 0)
+            {
+                $this->overdueCount = Cache::remember('tickets_table', 60, function () {
+                    return Ticket::where('ticket_status_id', 3)->count();
+                });
+            }
+            else
+            {
+                $this->overdueCount = Cache::remember('tickets_table', 60, function () {
+                    return Ticket::where('ticket_status_id', 3)->where('department_id', $this->selectedDepartment)->count();
+                });
+            }
     }
     }
 
@@ -57,9 +75,18 @@ else
 else
         {
 
-        $this->overdueCount = Cache::remember('tickets_table', 60, function () {
-            return Ticket::where('ticket_status_id', 3)->where('department_id',Auth::user()->department_id )->count() + (config('auso.ticket_sla_enabled') ?  Ticket::whereNotIn('ticket_status_id', [3, 4])->where('due_at', '<', Carbon::now())->count() : 0);
-        });
+            if($this->selectedDepartment == 0)
+            {
+                $this->overdueCount = Cache::remember('tickets_table', 60, function () {
+                    return Ticket::where('ticket_status_id', 3)->count();
+                });
+            }
+            else
+            {
+                $this->overdueCount = Cache::remember('tickets_table', 60, function () {
+                    return Ticket::where('ticket_status_id', 3)->where('department_id', $this->selectedDepartment)->count();
+                });
+            }
     }
     }
 }

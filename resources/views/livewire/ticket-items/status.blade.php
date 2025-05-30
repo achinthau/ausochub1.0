@@ -13,5 +13,6 @@
         <label class="text-black text-bold">
             {{ $title }}
         </label>
+        <a href="#"></a>  {{-- to navigate right corner --}}
     </div>
 </div>

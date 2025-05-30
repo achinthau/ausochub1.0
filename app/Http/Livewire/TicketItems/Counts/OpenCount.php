@@ -10,6 +10,15 @@ use Livewire\Component;
 
 class OpenCount extends Component
 {
+    protected $listeners = ['departmentUpdated' => 'setDepartment'];
+    public $selectedDepartment = 0;
+
+    public function setDepartment($deptId)
+    {
+        $this->selectedDepartment = $deptId;
+        // dd($this->selectedDepartment);
+    }
+
     public function render()
     {
         return view('livewire.ticket-items.counts.open-count');
@@ -28,9 +37,18 @@ class OpenCount extends Component
         }
 else
         {
-            $this->openCount = Cache::remember('tickets_table', 60, function () {
-                return Ticket::where('ticket_status_id', 2)->count();
-            });
+            if($this->selectedDepartment == 0)
+            {
+                $this->openCount = Cache::remember('tickets_table', 60, function () {
+                    return Ticket::where('ticket_status_id', 2)->count();
+                });
+            }
+            else
+            {
+                $this->openCount = Cache::remember('tickets_table', 60, function () {
+                    return Ticket::where('ticket_status_id', 2)->where('department_id', $this->selectedDepartment)->count();
+                });
+            }
         }
     }
 
@@ -46,9 +64,18 @@ else
         }
 else
         {
-        $this->openCount = Cache::remember('tickets_table', 60, function () {
-            return Ticket::where('ticket_status_id', 2)->count();
-        });
+            if($this->selectedDepartment == 0)
+            {
+                $this->openCount = Cache::remember('tickets_table', 60, function () {
+                    return Ticket::where('ticket_status_id', 2)->count();
+                });
+            }
+            else
+            {
+                $this->openCount = Cache::remember('tickets_table', 60, function () {
+                    return Ticket::where('ticket_status_id', 2)->where('department_id', $this->selectedDepartment)->count();
+                });
+            }
     }
     }
 }

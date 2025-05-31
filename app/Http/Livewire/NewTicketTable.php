@@ -92,9 +92,9 @@ $this->emitSelf('refreshTable');
             Column::make("Outlet", "outlet.title")
                 ->sortable()->deselected(),
             Column::make("Department", "department.name")
-                ->sortable()->deselected(),
+                ->sortable()->deselected()->searchable(),
             Column::make("Assigned To", "assignedUser.name")
-                ->sortable()->deselected(),
+                ->sortable()->deselected()->searchable(),
             Column::make("Due At", "due_at")
                 ->sortable(),
             Column::make("Created at", "created_at")

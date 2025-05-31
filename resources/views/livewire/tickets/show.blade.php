@@ -194,7 +194,7 @@
                                 <span
                                     class="flex absolute -left-3 justify-center items-center w-6 h-6 bg-blue-200 rounded-full ring-8 ring-white dark:ring-gray-900 dark:bg-blue-900">
 
-
+                                        @if ($activity->user)
                                     @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
                                         <button
                                             class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
@@ -216,6 +216,7 @@
                                                 </svg>
                                             </button>
                                         </span>
+                                    @endif
                                     @endif
                                 </span>
 

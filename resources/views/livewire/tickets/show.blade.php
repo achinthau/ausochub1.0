@@ -217,7 +217,7 @@
                                             </button>
                                         </span>
                                     @endif
-                                    @endif
+                                    
                                 </span>
 
                                 <time
@@ -228,6 +228,7 @@
                                     {{ $activity->comment }}</p>
 
                             </li>
+                            @endif
                         @endforeach
 
                     </ol>

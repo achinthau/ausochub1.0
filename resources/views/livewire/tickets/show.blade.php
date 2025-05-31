@@ -52,11 +52,12 @@
                 @elseif($loggedUser && $loggedUser->user_type_id == 1 && $ticket->ticket_status_id != 4)
                 <x-button secondary label="Unassign" wire:click="unAssign" />
                 @endif
-
-                <hr class="w-full border-t border-gray-300 my-4" />
+                
+                
 
 
                 @if ($loggedUser && $loggedUser->user_type_id == 1 && $ticket && $ticket->ticket_status_id != 4)
+                <hr class="w-full border-t border-gray-300 my-4" />
                 <div class="flex justify-between">
                             <div class="flex flex-col space-y-2">
                                 {{-- <label class="font-semibold">Change Department:</label> --}}

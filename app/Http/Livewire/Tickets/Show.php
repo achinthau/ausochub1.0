@@ -128,11 +128,16 @@ public ?TicketActivity $activity;
     public function assign()
     {
         $this->ticket->assigned_user_id = Auth::user()->id;
-        $this->ticket->save();
-        $this->ticket = $this->ticket->fresh('assignedUser');
+        
+        if(!$this->ticket->department_id)
+        {
+            $this->ticket->department_id = Auth::user()->department_id;
+        }
+        // $this->ticket = $this->ticket->fresh('assignedUser');
         // $this->activity->type = "Assigned to himself";
         $this->ticket->logActivity("Assigned to himself", $this->comment);
         $this->comment='';
+        $this->ticket->save();
         $this->ticket->refresh();
     }
 

@@ -1,7 +1,7 @@
 <div class="w-full h-[80vh] px-4 pt-1 break-words">
     @if ($receiver)
         <div class="py-2 pl-0 bg-gray-200 rounded-md">
-            <h1 class=" text-2xl pl-4 font-bold">
+            <h1 class=" text-xl pl-4 font-bold">
                 {{ $receiver ? $receiver->name : '' }}
             </h1>
         </div>
@@ -63,10 +63,10 @@
     </div>
 
     {{-- @if ($receiver) --}}
-    <div class="absolute bottom-8 mb-4 pr-4 right-2 flex">
+    <div class="absolute bottom-8 mb-4 pr-4 pl-4 flex">
         {{-- <input type="text" placeholder="Type your message" id="messageInput" class="w-[12cm]"> --}}
         <div class="pr-4">
-            <textarea name="" id="messageInput" cols="100" rows="2" class="pr-4 rounded-md"></textarea>
+            <textarea name="" id="messageInput" cols="92" rows="2" class="pr-4 rounded-md"></textarea>
             <input type="hidden" id="receiver" value="{{ $receiver ? $receiver->id : '' }}">
         </div>
         <div class="pt-5 pr-8">

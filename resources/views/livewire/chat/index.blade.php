@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex">
             <h2 class="flex-1 font-semibold text-xl text-gray-800 leading-tight ">
-                {{ __('Chatter ')  }}
+                {{-- {{ __('Chatter ')  }} --}}
             </h2>
             <div class="flex space-x-2">
                 
@@ -11,13 +11,13 @@
         </div>
     </x-slot>
     
-    <div class="flex justify-between pt-4 w-full">
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 flex justify-between pt-4 w-full ">
         
         <div class="w-1/4 ">
             @livewire('chat.users-panel')
         </div>
 
-        <div class="w-4/5">
+        <div class="flex-1">
             @livewire('chat.messages-panel')
         </div>
     </div>

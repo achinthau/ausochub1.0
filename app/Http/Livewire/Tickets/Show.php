@@ -137,6 +137,7 @@ public ?TicketActivity $activity;
         // $this->activity->type = "Assigned to himself";
         $this->ticket->logActivity("Assigned to himself", $this->comment);
         $this->comment='';
+        $this->assignOption = null;
         $this->ticket->save();
         $this->ticket->refresh();
     }
@@ -149,6 +150,7 @@ public ?TicketActivity $activity;
         $userName = User::where('id', $this->selectedUser)->value('name');
         $this->ticket->logActivity("Assigned to ". $userName , $this->comment);
         $this->comment='';
+        $this->assignOption = null;
         $this->ticket->refresh();
     }
 
@@ -164,6 +166,9 @@ public ?TicketActivity $activity;
     public function assignDepartment()
     {
         $this->ticket->department_id = $this->selectedDepartment;
+        $this->ticket->assigned_user_id = Null;
+        $this->changeDepartment = null;
+        $this->users= User::select('id','name')->where('department_id',$this->ticket->department_id)->get()->toArray();
         $this->ticket->save();
         $this->ticket->refresh();
     }

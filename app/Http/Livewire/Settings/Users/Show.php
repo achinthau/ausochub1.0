@@ -74,7 +74,7 @@ class Show extends Component
         $this->user->save();
         
         if ($this->user->user_type_id > 2) {
-            $this->rules['user.extension'] =  'required';
+            // $this->rules['user.extension'] =  'required';
             $this->validate();
             $agent = Agent::updateOrCreate(
                 [
@@ -104,15 +104,20 @@ class Show extends Component
             $this->user->save();
             $name = explode(' ',$this->user->name);
 
+
+            if($agent->extension)    //added this to remove extension required rule
+            {
             
             $data = [
                 ['name' => 'user', 'contents' => $name[0]],
-                ['name' => 'extension', 'contents' => $agent->extension],
-                ['name' => 'exten_type', 'contents' => $agent->extensionDetails->exten_type],
-                ['name' => 'context', 'contents' => $agent->extensionDetails->context],
+                // ['name' => 'extension', 'contents' => $agent->extension],
+                ['name' => 'extension', 'contents' => $agent->extension ?? null],
+                ['name' => 'exten_type', 'contents' => $agent->extensionDetails->exten_type ?? null],
+                ['name' => 'context', 'contents' => $agent->extensionDetails->context ?? null],
             ];
             
             $response = ApiManager::assignExtension($data);
+        }
         }
 
 

@@ -17,6 +17,8 @@
             @livewire('chat.users-panel')
         </div>
 
+        <div class="border-l-4 border-gray-300 mx-4 rounded"></div>
+
         <div class="flex-1">
             @livewire('chat.messages-panel')
         </div>

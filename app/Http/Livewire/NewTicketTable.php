@@ -27,7 +27,7 @@ class NewTicketTable extends DataTableComponent
     public $selectedDepartment = null;
     public $selectedItem = null;
 
-protected $listeners = ['departmentUpdated' => 'setDepartment', 'refreshTable' => '$refresh', 'ItemUpdated' => 'setItem'];
+protected $listeners = ['departmentUpdated' => 'setDepartment', 'refreshTable' => '$refresh', 'ItemUpdated' => 'setItem', 'updatedTicketTable' => '$refresh'];
 
 public function setDepartment($deptId)
 {

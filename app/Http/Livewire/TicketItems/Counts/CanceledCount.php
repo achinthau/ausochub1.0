@@ -11,6 +11,13 @@ class CanceledCount extends Component
 {
     protected $listeners = ['departmentUpdated' => 'setDepartment'];
     public $selectedDepartment = 0;
+    public $readyToLoad = false;
+
+    public function loaded()
+    {
+        $this->readyToLoad = true;
+        $this->refreshComponent();
+    }
 
     public function setDepartment($deptId)
     {
@@ -28,37 +35,37 @@ class CanceledCount extends Component
 
     public function mount()
     {
-        if(Auth::user()->department_id)
-        {
-            $this->canceledCount = Cache::remember('tickets_table', 60, function () {
-                return Ticket::where('ticket_status_id', 5)->where('department_id',Auth::user()->department_id)->count();
-            });
-        }
-        else
-        {
-            if($this->selectedDepartment == 0)
-            {
-                $this->canceledCount = Cache::remember('tickets_table', 60, function () {
-                    return Ticket::where('ticket_status_id', 5)->count();
-                });
-            }
-            else
-            {
-                $this->canceledCount = Cache::remember('tickets_table', 60, function () {
-                    return Ticket::where('ticket_status_id', 5)->where('department_id', $this->selectedDepartment)->count();
-                });
-            }
-        }
+        // if(Auth::user()->department_id)
+        // {
+        //     $this->canceledCount = Cache::remember('tickets_table', 60, function () {
+        //         return Ticket::where('ticket_status_id', 5)->where('department_id',Auth::user()->department_id)->count();
+        //     });
+        // }
+        // else
+        // {
+        //     if($this->selectedDepartment == 0)
+        //     {
+        //         $this->canceledCount = Cache::remember('tickets_table', 60, function () {
+        //             return Ticket::where('ticket_status_id', 5)->count();
+        //         });
+        //     }
+        //     else
+        //     {
+        //         $this->canceledCount = Cache::remember('tickets_table', 60, function () {
+        //             return Ticket::where('ticket_status_id', 5)->where('department_id', $this->selectedDepartment)->count();
+        //         });
+        //     }
+        // }
         
     }
 
     public function refreshComponent()
     {
-            Cache::forget('tickets_table');
+            // Cache::forget('tickets_table');
 
             if(Auth::user()->department_id)
         {
-            $this->canceledCount = Cache::remember('tickets_table', 60, function () {
+            $this->canceledCount = Cache::remember('tickets_table_canceled'.Auth::user()->department_id, 6, function () {
                 return Ticket::where('ticket_status_id', 5)->where('department_id',Auth::user()->department_id)->count();
             });
         }
@@ -66,13 +73,13 @@ class CanceledCount extends Component
         {
             if($this->selectedDepartment == 0)
             {
-                $this->canceledCount = Cache::remember('tickets_table', 60, function () {
+                $this->canceledCount = Cache::remember('tickets_table_canceled', 6, function () {
                     return Ticket::where('ticket_status_id', 5)->count();
                 });
             }
             else
             {
-                $this->canceledCount = Cache::remember('tickets_table', 60, function () {
+                $this->canceledCount = Cache::remember('tickets_table_canceled', 6, function () {
                     return Ticket::where('ticket_status_id', 5)->where('department_id', $this->selectedDepartment)->count();
                 });
             }

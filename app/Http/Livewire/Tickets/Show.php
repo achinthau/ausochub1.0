@@ -57,6 +57,7 @@ public ?TicketActivity $activity;
         $this->loggedUser= Auth::user() ;
         $this->users= User::select('id','name')->where('department_id',$this->ticket->department_id)->get()->toArray();
         $this->departments=CrmDepartment::select('id','name')->get()->toArray();
+        $this->emit('updatedTicketTable');
     }
 
     public function save()
@@ -76,6 +77,7 @@ public ?TicketActivity $activity;
             $description = 'Ticket Opened'
         );
         $this->showTicketModal = false;
+        $this->emit('updatedTicketTable');
     }
 
 
@@ -105,6 +107,8 @@ public ?TicketActivity $activity;
             $description = 'Ticket Closed'
         );
         $this->showTicketModal = false;
+
+        $this->emit('updatedTicketTable');
     }
 
     public function comment()
@@ -140,6 +144,7 @@ public ?TicketActivity $activity;
         $this->assignOption = null;
         $this->ticket->save();
         $this->ticket->refresh();
+        $this->emit('updatedTicketTable');
     }
 
     public function assignToUser()
@@ -152,6 +157,7 @@ public ?TicketActivity $activity;
         $this->comment='';
         $this->assignOption = null;
         $this->ticket->refresh();
+        $this->emit('updatedTicketTable');
     }
 
     public function unAssign()
@@ -161,6 +167,7 @@ public ?TicketActivity $activity;
         $this->ticket = $this->ticket->fresh('assignedUser');
         $this->ticket->logActivity("Unassigned", $this->comment);
         $this->ticket->refresh();
+        $this->emit('updatedTicketTable');
     }
 
     public function assignDepartment()
@@ -171,5 +178,6 @@ public ?TicketActivity $activity;
         $this->users= User::select('id','name')->where('department_id',$this->ticket->department_id)->get()->toArray();
         $this->ticket->save();
         $this->ticket->refresh();
+        $this->emit('updatedTicketTable');
     }
 }

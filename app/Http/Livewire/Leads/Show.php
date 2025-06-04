@@ -44,10 +44,10 @@ class Show extends Component
         $this->moodStatus = !$this->moodStatus;
 
         if ($this->moodStatus) {
-            $uniqueId = $this->lead->unique_id;
-            if ($uniqueId) {
+            $ani = $this->lead->contact_number;
+            if ($ani) {
                 
-                $latestRecord = QueueCount::where('uniqueid', $uniqueId)->where('status', 2)
+                $latestRecord = QueueCount::where('ani', $ani)->where('status', 2)
                     ->orderBy('id', 'desc')
                     ->first();
 
@@ -61,9 +61,9 @@ class Show extends Component
                 
             }
         } else {
-            $uniqueId = $this->lead->unique_id;
-            if ($uniqueId) {
-                QueueCount::where('uniqueid', $uniqueId)->update(['customer_reaction' => null]);
+            $ani = $this->lead->unique_id;
+            if ($ani) {
+                QueueCount::where('ani', $ani)->update(['customer_reaction' => null]);
             }
         }
     }

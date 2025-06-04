@@ -37,6 +37,37 @@ class Show extends Component
 
     ];
 
+    public bool $moodStatus = false;
+
+    public function toggle()
+    {
+        $this->moodStatus = !$this->moodStatus;
+
+        if ($this->moodStatus) {
+            $uniqueId = $this->lead->unique_id;
+            if ($uniqueId) {
+                
+                $latestRecord = QueueCount::where('uniqueid', $uniqueId)->where('status', 2)
+                    ->orderBy('id', 'desc')
+                    ->first();
+
+                    // dd($latestRecord);
+
+                if ($latestRecord) {
+                    $latestRecord->customer_reaction = 1;
+                    
+                    $latestRecord->save();
+                }
+                
+            }
+        } else {
+            $uniqueId = $this->lead->unique_id;
+            if ($uniqueId) {
+                QueueCount::where('uniqueid', $uniqueId)->update(['customer_reaction' => null]);
+            }
+        }
+    }
+
     public function mount($lead)
     {
         $this->lead = $lead->load('tickets', 'tickets.category', 'tickets.status', 'tickets.outlet', 'orders', 'orders.items');
@@ -73,21 +104,21 @@ class Show extends Component
     public function openWhatsApp()
     {
 
-        $number = preg_replace('/\s+/', '', $this->lead->whatsapp); 
+        $number = preg_replace('/\s+/', '', $this->lead->whatsapp);
 
         if (str_starts_with($number, '94')) {
-            $internationalNumber = $number; 
+            $internationalNumber = $number;
         } elseif (str_starts_with($number, '0')) {
-            $internationalNumber = '94' . substr($number, 1); 
+            $internationalNumber = '94' . substr($number, 1);
         } else {
-            $internationalNumber = '94' . $number; 
+            $internationalNumber = '94' . $number;
         }
         // dd($internationalNumber);
 
         $message = urlencode('Hello! I would like to chat with you.');
         $url = "https://wa.me/{$internationalNumber}?text={$message}";
 
-        
+
         $this->emit('whatsappOpened', $url);
     }
 }

@@ -153,6 +153,23 @@
                                 @endif
                             </div>
                         </div>
+                        <hr>
+                        This Call Reaction:
+                        <div>
+    <button
+        wire:click="toggle"
+        class="relative inline-flex items-center h-6 rounded-full w-11 focus:outline-none transition-colors duration-200 {{ $moodStatus ? 'bg-red-500' : 'bg-gray-300' }}"
+    >
+        <span
+            class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 {{ $moodStatus ? 'translate-x-6' : 'translate-x-1' }}"
+        ></span>
+    </button>
+    <span class="ml-2 text-sm">
+        {{-- {{ $moodStatus ? 'Angry' : 'Not Angry' }} --}}
+        Angry
+    </span>
+</div>
+
                     </div>
                     {{-- <div class="bg-white p-4 space-y-2 text-xs">
                         <h1 class=" font-bold">Orders</h1>

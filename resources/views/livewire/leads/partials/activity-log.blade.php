@@ -36,9 +36,9 @@
                 @foreach ($timelineLogs->sortByDesc('created_at') as $timelineLog)
                     <li class="@if (!$loop->last) mb-10 @endif ml-6">
                         <span
-                            class="flex absolute -left-4  justify-center items-center w-8 h-8 {{ $timelineLog['bg-color'] }} rounded-full ring-8 ring-white dark:ring-gray-900 dark:bg-blue-900">
+                            class="flex absolute -left-4  justify-center items-center w-8 h-8 {{$timelineLog['last-reaction'] ? 'bg-red-500' : $timelineLog['bg-color'] }} rounded-full ring-8 ring-white dark:ring-gray-900 dark:bg-blue-900">
                             @if ($timelineLog['icon'] == 'icon-phone')
-                                <svg class="w-5 h-5 {{ $timelineLog['icon-color'] }}"
+                                <svg class="w-5 h-5 {{ $timelineLog['last-reaction'] ? 'text-black' : $timelineLog['icon-color'] }}"
                                     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
                                     fill="none">
                                     <path
@@ -47,7 +47,7 @@
                                 </svg>
                             @endif
                             @if ($timelineLog['icon'] == 'icon-phone-out')
-                                <svg class="w-5 h-5 {{ $timelineLog['icon-color'] }}"
+                                <svg class="w-5 h-5 {{$timelineLog['last-reaction'] ? 'text-gray-900' : $timelineLog['icon-color'] }}"
                                     viewBox="0 0 51 51" fill="none"
                                     xmlns="http://www.w3.org/2000/svg">
                                     <rect width="48" height="48" transform="translate(3)"
@@ -65,7 +65,7 @@
                                 </svg>
                             @endif
                             @if ($timelineLog['icon'] == 'icon-order')
-                                <svg class="w-5 h-5 {{ $timelineLog['icon-color'] }}" width="48"
+                                <svg class="w-5 h-5 {{$timelineLog['last-reaction'] ? 'text-gray-900' : $timelineLog['icon-color'] }}" width="48"
                                     height="48" viewBox="0 0 48 48" fill="currentColor"
                                     xmlns="http://www.w3.org/2000/svg">
                                     <path
@@ -83,7 +83,7 @@
                                 </svg>
                             @endif
                             @if ($timelineLog['icon'] == 'icon-ticket')
-                                <svg class="w-5 h-5 {{ $timelineLog['icon-color'] }} "
+                                <svg class="w-5 h-5 {{$timelineLog['last-reaction'] ? 'text-gray-900' : $timelineLog['icon-color'] }} "
                                     xmlns="http://www.w3.org/2000/svg" fill="none"
                                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                                     aria-hidden="true">
@@ -108,7 +108,7 @@
                             at {{ $timelineLog['created_time'] }}
                         </time>
                         <div
-                            class="mb-4 text-xs font-normal text-gray-500 dark:text-gray-400 grid grid-cols-2 gap-1">
+                            class="mb-1 text-xs font-normal text-gray-500 dark:text-gray-400 grid grid-cols-2 gap-1">
                             <div> Agent :{{ $timelineLog['created_by'] }} </div>
                             @if (in_array($timelineLog['title'], ['Order', 'Ticket']))
                                 <div>
@@ -142,6 +142,9 @@
                                 </svg>
                                 View {{ $timelineLog['title'] }}</a>
                         @endif
+                        {{-- @if( $timelineLog['last-reaction'])
+                        <label class="text-red-500">Last time angry customer </label>
+                        @endif --}}
 
                     </li>
                 @endforeach

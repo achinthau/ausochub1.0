@@ -96,6 +96,23 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
             else
             // using socket.io
             {
+                // try {
+                //     $client = new Client();
+                //     $response = $client->post($fullSocketUrl, [
+                //         'json' => [
+                //             'event' => 'call.answered',
+                //             'data' => [
+                //                 'lead_id' => $lead->id
+                //             ]
+                //         ]
+                //     ]);
+    
+                //     $responseData = json_decode($response->getBody(), true);
+                //     Log::info('Socket event sent:', $responseData);
+
+                // } catch (\Exception $e) {
+                //     Log::error('Failed to send the socket event: ' . $e->getMessage());
+                // }
                 try {
                     $client = new Client();
                     $response = $client->post($fullSocketUrl, [
@@ -106,7 +123,7 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
                             ]
                         ]
                     ]);
-    
+
                     $responseData = json_decode($response->getBody(), true);
                     Log::info('Socket event sent:', $responseData);
 
@@ -131,23 +148,41 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
             // using socket.io
             else
             {
-                try {
-                    $client = new Client();
-                    $response = $client->post($fullSocketUrl, [
-                        'json' => [
-                            'event' => 'call.answered',
-                            'data' => [
-                                'lead_id' => $lead->id
-                            ]
-                        ]
-                    ]);
+                // try {
+                //     $client = new Client();
+                //     $response = $client->post($fullSocketUrl, [
+                //         'json' => [
+                //             'event' => 'call.answered',
+                //             'data' => [
+                //                 'lead_id' => $lead->id
+                //             ]
+                //         ]
+                //     ]);
     
-                    $responseData = json_decode($response->getBody(), true);
-                    Log::info('Socket event sent:', $responseData);
+                //     $responseData = json_decode($response->getBody(), true);
+                //     Log::info('Socket event sent:', $responseData);
 
-                } catch (\Exception $e) {
-                    Log::error('Failed to send the socket event: ' . $e->getMessage());
-                }
+                // } catch (\Exception $e) {
+                //     Log::error('Failed to send the socket event: ' . $e->getMessage());
+                // }
+
+                try {
+                $client = new Client();
+                $response = $client->post($fullSocketUrl, [
+                    'json' => [
+                        'event' => 'call.answered',
+                        'data' => [
+                            'lead_id' => $lead->id
+                        ]
+                    ]
+                ]);
+
+                $responseData = json_decode($response->getBody(), true);
+                Log::info('Socket event sent:', $responseData);
+
+            } catch (\Exception $e) {
+                Log::error('Failed to send the socket event: ' . $e->getMessage());
+            }
             }
 
         return $lead;

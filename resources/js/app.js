@@ -56,4 +56,19 @@ channel.listen('.notify-order', function (data) {
 });
 
 
+// Socket.io listener
+const socket = io('http://127.0.0.1:3000'); // Use your socket server URL and port
+
+socket.on('connect', () => {
+    console.log('Socket connected:', socket.id);
+});
+
+// Listen for the same event emitted from server
+socket.on('call.answered', function(leadId) {
+    var userId = document.querySelector('meta[name="user-extension"]').content;
+
+    // For demonstration, just open the lead detail:
+    var win = window.open('/leads/' + leadId, '_blank');
+    if (win) win.focus();
+});
 

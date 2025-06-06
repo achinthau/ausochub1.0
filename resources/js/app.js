@@ -57,7 +57,11 @@ channel.listen('.notify-order', function (data) {
 
 
 // Socket.io listener
-const socket = io('http://127.0.0.1:3000'); // Use your socket server URL and port
+// const socket = io('http://127.0.0.1:3000'); // Use your socket server URL and port
+const socket = io({
+        path: "/socket.io",
+        transports: ['websocket'],
+    });
 
 socket.on('connect', () => {
     console.log('Socket connected:', socket.id);

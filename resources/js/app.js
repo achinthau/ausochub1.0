@@ -68,11 +68,32 @@ socket.on('connect', () => {
 });
 
 // Listen for the same event emitted from server
-socket.on('call.answered', function(leadId) {
-    var userId = document.querySelector('meta[name="user-extension"]').content;
+// socket.on('call.answered', function(leadId) {
+//     var userId = document.querySelector('meta[name="user-extension"]').content;
 
-    // For demonstration, just open the lead detail:
-    var win = window.open('/leads/' + leadId, '_blank');
-    if (win) win.focus();
+//     // For demonstration, just open the lead detail:
+//     var win = window.open('/leads/' + leadId, '_blank');
+//     if (win) win.focus();
+// });
+
+
+
+// Store reference to the opened tab
+let leadWindow = null;
+
+// Listen for the event from the server
+socket.on('call.answered', function (leadId) {
+    const userId = document.querySelector('meta[name="user-extension"]').content;
+
+    // If the window is already open and not closed
+    if (leadWindow && !leadWindow.closed) {
+        // Just update the URL in the existing tab
+        leadWindow.location.href = '/leads/' + leadId;
+        leadWindow.focus();
+    } else {
+        // Open a new tab and store the reference
+        leadWindow = window.open('/leads/' + leadId, '_blank');
+    }
 });
+
 

@@ -83,7 +83,9 @@ let leadWindow = null;
 
 // Listen for the event from the server
 socket.on('call.answered', function (leadId) {
-    const userId = document.querySelector('meta[name="user-extension"]').content;
+    // const userId = document.querySelector('meta[name="user-extension"]').content;
+    var userId = document.querySelector('meta[name="user-extension"]').content;
+    if (userId == data.lead.extension) {
 
     // If the window is already open and not closed
     if (leadWindow && !leadWindow.closed) {
@@ -94,6 +96,7 @@ socket.on('call.answered', function (leadId) {
         // Open a new tab and store the reference
         leadWindow = window.open('/leads/' + leadId, '_blank');
     }
+}
 });
 
 

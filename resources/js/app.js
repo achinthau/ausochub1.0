@@ -71,9 +71,30 @@ socket.on('connect', () => {
 // socket.on('call.answered', function(leadId) {
 //     var userId = document.querySelector('meta[name="user-extension"]').content;
 
-//     // For demonstration, just open the lead detail:
 //     var win = window.open('/leads/' + leadId, '_blank');
 //     if (win) win.focus();
+// });
+
+
+
+// let leadWindow = null;
+
+
+// socket.on('call.answered', function (data) {
+//     // const userId = document.querySelector('meta[name="user-extension"]').content;
+//     var userId = document.querySelector('meta[name="user-extension"]').content;
+//     if (userId == data.extension) {
+
+//     if (leadWindow && !leadWindow.closed) {
+//         // Just update the URL in the existing tab
+//         leadWindow.location.href = '/leads/' + data.id;
+//         leadWindow.focus();
+//     } else {
+//         // Open a new tab and store the reference
+//         // leadWindow = window.open('/leads/' + data.id, '_blank');
+//         leadWindow = window.open('/leads/' + data.id, 'leadWindow');
+//     }
+// }
 // });
 
 
@@ -82,21 +103,34 @@ socket.on('connect', () => {
 let leadWindow = null;
 
 // Listen for the event from the server
-socket.on('call.answered', function (leadId) {
+socket.on('call.answered', function (data) {
+//      let leadWindow = null;
+
     // const userId = document.querySelector('meta[name="user-extension"]').content;
     var userId = document.querySelector('meta[name="user-extension"]').content;
-    if (userId == data.lead.extension) {
-
+    if (userId == data.extension) {
     // If the window is already open and not closed
-    if (leadWindow && !leadWindow.closed) {
+   if (leadWindow && !leadWindow.closed) {
+           //  alert("if");
         // Just update the URL in the existing tab
-        leadWindow.location.href = '/leads/' + leadId;
-        leadWindow.focus();
+      /*  leadWindow.location.href = '/leads/' + data.id;
+        leadWindow.focus();*/
+leadWindow.close();
+           leadWindow = window.open('/leads/' + data.id, data.id);
+           //leadWindow = window.open('/leads/' + data.id, 'leadTab');
+           leadWindow.focus();
+//         leadWindow=leadWindow1;
+
     } else {
+             //alert("else");
         // Open a new tab and store the reference
-        leadWindow = window.open('/leads/' + leadId, '_blank');
+        leadWindow = window.open('/leads/' + data.id, data.id);
+        // leadWindow = window.open('/leads/' + data.id, 'leadTab');
     }
+
+
 }
 });
+
 
 

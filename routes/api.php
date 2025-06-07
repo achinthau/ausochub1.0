@@ -119,7 +119,7 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
                         'json' => [
                             'event' => 'call.answered',
                             'data' => [
-                                'lead_id' => $lead->id
+                                'lead_id' => $lead
                             ]
                         ]
                     ]);
@@ -172,7 +172,7 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
                     'json' => [
                         'event' => 'call.answered',
                         'data' => [
-                            'lead_id' => $lead->id
+                            'lead_id' => $lead
                         ]
                     ]
                 ]);

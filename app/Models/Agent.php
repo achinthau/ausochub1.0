@@ -51,7 +51,7 @@ class Agent extends Model
 
     public function todayQueues()
     {
-        return $this->hasMany(QueueCountReport::class, 'agent', 'extension')->where('au_queuecount_report.date', '>', Carbon::now()->startOfDay());
+        return $this->hasMany(QueueCount::class, 'agent', 'extension')->where('queuecount.date', '>', Carbon::now()->startOfDay());
     }
 
     

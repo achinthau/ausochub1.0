@@ -133,7 +133,7 @@
                                         } else {
                                             $inCall = Cache::get('agent-in-call-' . $user->id);
                                         }
-                                         $inCall = true;
+                                        //  $inCall = true;
                                          
                                         //  for raise hand
                                         $userId = optional($user->user)->id;

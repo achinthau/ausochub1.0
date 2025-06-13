@@ -216,6 +216,10 @@ return [
 
     // idle time
         'idle_time' => env('IDLE_TIME_MINUTES', 2),
+
+        // raise hand time
+        'raise_hand_time' => env('RAISE_HAND_TIME', 10),
+
     
 
 ];

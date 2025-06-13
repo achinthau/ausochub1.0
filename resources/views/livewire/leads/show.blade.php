@@ -166,7 +166,7 @@
     </button>
     <span class="ml-2 text-sm">
         {{-- {{ $moodStatus ? 'Angry' : 'Not Angry' }} --}}
-        Angry
+        Unsatisfied
     </span>
 </div>
 

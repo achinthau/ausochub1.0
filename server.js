@@ -52,6 +52,13 @@ io.on("connection", (socket) => {
         });
     });
 
+    socket.on('hand_raised', (data) => {
+        console.log('Hand raised by:', data);
+
+        // Emit to all connected clients (admins)
+        io.emit('show_svg', { from: data.from });
+    });
+
     // Handle user disconnection
     socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);

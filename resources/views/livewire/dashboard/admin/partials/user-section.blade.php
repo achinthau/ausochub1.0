@@ -10,6 +10,7 @@
                             ->connection('live_events')
                             ->get(strtoupper($user->extensionDetails->exten_type) . '/' . $user->extension);
                         $jsonData = json_decode($currentCallStatus, true);
+
                     } else {
                         $currentCallStatus = 'No Exten';
                     }
@@ -132,15 +133,67 @@
                                         } else {
                                             $inCall = Cache::get('agent-in-call-' . $user->id);
                                         }
-                                        // $inCall = true;
+                                         $inCall = true;
+                                         
+                                        //  for raise hand
+                                        $userId = optional($user->user)->id;
+                                        $isRaised = $userId && !empty($raisedHands[$userId]);
                                     @endphp
 
 
                                     @if ($inCall)
+
+                                     {{-- <script>
+    const socket = io({
+        path: "/socket.io",
+        transports: ['websocket'],
+    }); 
+
+    
+      socket.on('show_svg', (data) => {
+     console.log('SVG show_svg event triggered');
+
+     const svg = document.getElementById('call-svg');
+     if (!svg) {
+         console.error("SVG element not found");
+         return;
+     }
+
+     console.log('SVG element found, updating color');
+
+      Show SVG
+     svg.classList.remove('hidden');
+     svg.classList.remove('text-green-700');
+     svg.classList.add('text-red-700');
+
+      Hide or reset after 10 seconds
+     setTimeout(() => {
+         svg.classList.remove('text-red-700');
+         svg.classList.add('text-green-700');
+     }, 10000);
+ }); 
+
+
+</script> --}}
+
+
+{{-- @php
+        $userId = optional($user->user)->id;
+        $isRaised = $userId && !empty($raisedHands[$userId]);
+    @endphp --}}
+
+
+
                                         <div x-data="{ open: false }">
 
-                                            <svg width="20" height="20" @click="open = !open"
-                                                class="text-green-700 @can('is-admin') cursor-pointer @endcan"
+                                            <svg width="20" height="20" @click="open = !open" id="call-svg"
+                                                class="
+                                                 @can('is-admin')
+        {{ $isRaised ? 'text-red-700' : 'text-green-700' }} cursor-pointer
+    @else
+       text-green-700
+    @endcan
+                                                "
                                                 {{-- @can('is-admin') wire:click="listenCall({{ $user->extension }})" @endcan --}} xmlns="http://www.w3.org/2000/svg"
                                                 viewBox="0 0 24 24" fill="currentColor">
                                                 <path d="M0 0h24v24H0z" fill="none"></path>

@@ -53,7 +53,8 @@
                     <!-- Navigation Links -->
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                         <x-jet-nav-link href="{{ route('leads.index') }}" :active="request()->routeIs('leads.index')">
-                            {{ __('Leads') }}
+                            {{-- {{ __('Leads') }} --}}
+                            {{ __('Customers') }}
                         </x-jet-nav-link>
                     </div>
                 @endcan
@@ -119,7 +120,8 @@
                         <!-- Navigation Links -->
                         <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                             <x-jet-nav-link href="{{ route('live-dashboard.index') }}" :active="request()->routeIs('live-dashboard.index')">
-                                {{ __('Live') }}
+                                {{-- {{ __('Live') }} --}}
+                                {{ __('Live Agents') }}
                             </x-jet-nav-link>
                         </div>
                     @endif
@@ -204,8 +206,13 @@
                             @can('is-agent')
                                 @if (Route::is('dashboard.index'))
                                 {{-- @if (request()->is('/')) --}}
-                                    <div class="pr-8 pt-4">
+                                    <div class="flex justify-between">
+                                        <div class="pr-8 pt-4">
+                                            @livewire('dashboard.hand-raise')
+                                        </div>
+                                        <div class="pr-8 pt-4">
                                         @livewire('dashboard.select-bound')
+                                    </div>
                                     </div>
                                 @endif
                             @endcan

@@ -189,14 +189,58 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
     }
 });
 
+// Route::post('/call-dialed', function (StoreAnsweredCall $request) {
+//     Log::info($request);
+//     $lead = Lead::where('contact_number', $request['ani'])->first();
+//     $agent = Agent::where('extension', $request['agent'])->first();
+//     $skill = Skill::where('skillname', $request['queuename'])->first();
+//     // Cache::forever('agent-in-call-' . $agent->id, 1);
+//     Cache::forever('call-' . $request['unique_id'], $agent->id);
+
+//     Cache::add('current-call-count', 0, 99999999);
+//     if ($skill) {
+//         Cache::add($request['queuename'] . "-current-call-count", 0, 99999999);
+//     }
+
+//     Cache::increment('current-call-count');
+//     Cache::increment($request['queuename'] . "-current-call-count");
+
+
+//     if (!$lead) {
+//         if ($agent) {
+//             $lead = new Lead;
+//             $lead->contact_number = $request['ani'];
+//             $lead->unique_id = $request['unique_id'];
+//             $lead->agent_id = $agent->id;
+//             $lead->extension = $request['agent'];
+//             $lead->skill_id = $skill ? $skill->skillid : 0;
+//             $lead->status_id = 1;
+//             $lead->save();
+//             event(new CallAnswered($lead->id));
+//             return $lead;
+//         }
+//     } else {
+//         $agent = Agent::where('extension', $request['agent'])->first();
+//         $lead->agent_id = $agent->id;
+//         $lead->extension = $request['agent'];
+//         $lead->skill_id = $skill ? $skill->skillid : 0;
+//         $lead->save();
+//         event(new CallAnswered($lead->id));
+//         return $lead;
+//     }
+// });
+
+
 Route::post('/call-dialed', function (StoreAnsweredCall $request) {
     Log::info($request);
     $lead = Lead::where('contact_number', $request['ani'])->first();
     $agent = Agent::where('extension', $request['agent'])->first();
     $skill = Skill::where('skillname', $request['queuename'])->first();
-    // Cache::forever('agent-in-call-' . $agent->id, 1);
-    Cache::forever('call-' . $request['unique_id'], $agent->id);
 
+    $socketPort = env('SOCKET_SERVER_PORT', '3000');
+    $fullSocketUrl = "http://127.0.0.1:{$socketPort}/emit";
+
+    Cache::forever('call-' . $request['unique_id'], $agent->id);
     Cache::add('current-call-count', 0, 99999999);
     if ($skill) {
         Cache::add($request['queuename'] . "-current-call-count", 0, 99999999);
@@ -204,7 +248,6 @@ Route::post('/call-dialed', function (StoreAnsweredCall $request) {
 
     Cache::increment('current-call-count');
     Cache::increment($request['queuename'] . "-current-call-count");
-
 
     if (!$lead) {
         if ($agent) {
@@ -216,19 +259,57 @@ Route::post('/call-dialed', function (StoreAnsweredCall $request) {
             $lead->skill_id = $skill ? $skill->skillid : 0;
             $lead->status_id = 1;
             $lead->save();
-            event(new CallAnswered($lead->id));
+
+            if(env('IS_PUSHER')== true) {
+                event(new CallAnswered($lead->id));
+            } else {
+                try {
+                    $client = new Client();
+                    $response = $client->post($fullSocketUrl, [
+                        'json' => [
+                            'event' => 'call.dialed',
+                            'data' => [
+                                'lead_id' => $lead
+                            ]
+                        ]
+                    ]);
+                    Log::info('Socket event sent:', json_decode($response->getBody(), true));
+                } catch (\Exception $e) {
+                    Log::error('Failed to send the socket event: ' . $e->getMessage());
+                }
+            }
+
             return $lead;
         }
     } else {
-        $agent = Agent::where('extension', $request['agent'])->first();
         $lead->agent_id = $agent->id;
         $lead->extension = $request['agent'];
         $lead->skill_id = $skill ? $skill->skillid : 0;
         $lead->save();
-        event(new CallAnswered($lead->id));
+
+        if(env('IS_PUSHER')== true) {
+            event(new CallAnswered($lead->id));
+        } else {
+            try {
+                $client = new Client();
+                $response = $client->post($fullSocketUrl, [
+                    'json' => [
+                        'event' => 'call.dialed',
+                        'data' => [
+                            'lead_id' => $lead
+                        ]
+                    ]
+                ]);
+                Log::info('Socket event sent:', json_decode($response->getBody(), true));
+            } catch (\Exception $e) {
+                Log::error('Failed to send the socket event: ' . $e->getMessage());
+            }
+        }
+
         return $lead;
     }
 });
+
 
 
 Route::post('/call-disconnected', function (Request $request) {

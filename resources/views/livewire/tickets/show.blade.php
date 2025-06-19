@@ -1,9 +1,9 @@
-<div>
+<div class="pb-4">
     @php
         $title = $ticket ? $ticket->ticket_title : '';
     @endphp
     <x-modal.card :title="$title" blur fullscreen=true wire:model="showTicketModal" max-width="4xl" align="center">
-        <div class="space-y-2">
+        <div class="space-y-2 p-6">
 
             Department : {{ $ticket->department?->name ?? 'Not assigned' }}
             <div class="grid grid-cols-2 justify-between pb-2">

@@ -37,36 +37,61 @@ class Show extends Component
 
     ];
 
-    public bool $moodStatus = false;
+    public $moodStatus = false;
+public $comment = '';
 
-    public function toggle()
-    {
-        $this->moodStatus = !$this->moodStatus;
+public function toggle()
+{
+    $this->moodStatus = !$this->moodStatus;
+    $ani = $this->lead->contact_number;
 
-        if ($this->moodStatus) {
-            $ani = $this->lead->contact_number;
-            if ($ani) {
-                
-                $latestRecord = QueueCount::where('ani', $ani)->where('status', 2)
-                    ->orderBy('id', 'desc')
-                    ->first();
+    if ($ani) {
+        $latestRecord = QueueCount::where('ani', $ani)
+            ->where('status', 2)
+            ->orderBy('id', 'desc')
+            ->first();
 
-                    // dd($latestRecord);
+        if ($latestRecord) {
+            if ($this->moodStatus) {
+                // Toggle is ON (unsatisfied) – store reaction only
+                $latestRecord->customer_reaction = 1;
+                $latestRecord->save();
+            } else {
+                // Toggle is OFF – clear reaction and comment
+                $latestRecord->customer_reaction = null;
+                $latestRecord->comment = null;
+                $latestRecord->save();
 
-                if ($latestRecord) {
-                    $latestRecord->customer_reaction = 1;
-                    
-                    $latestRecord->save();
-                }
-                
-            }
-        } else {
-            $ani = $this->lead->unique_id;
-            if ($ani) {
-                QueueCount::where('ani', $ani)->update(['customer_reaction' => null]);
+                // Also clear local state if needed
+                $this->comment = '';
+                session()->forget('message');
             }
         }
     }
+}
+
+
+public function submitReaction()
+{
+    $ani = $this->lead->contact_number;
+
+    if ($ani) {
+        $latestRecord = QueueCount::where('ani', $ani)->where('status', 2)
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($latestRecord) {
+            $latestRecord->customer_reaction = 1;
+            $latestRecord->comment = $this->comment;
+            $latestRecord->save();
+        }
+    }
+
+    session()->flash('message', 'Feedback submitted successfully!');
+    // $this->moodStatus = false;
+    $this->comment = '';
+}
+
 
     public function mount($lead)
     {

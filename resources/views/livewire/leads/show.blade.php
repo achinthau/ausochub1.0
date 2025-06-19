@@ -156,6 +156,7 @@
                         <hr>
                         This Call Reaction:
                         <div>
+    <!-- Toggle Button -->
     <button
         wire:click="toggle"
         class="relative inline-flex items-center h-6 rounded-full w-11 focus:outline-none transition-colors duration-200 {{ $moodStatus ? 'bg-red-500' : 'bg-gray-300' }}"
@@ -164,11 +165,73 @@
             class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 {{ $moodStatus ? 'translate-x-6' : 'translate-x-1' }}"
         ></span>
     </button>
-    <span class="ml-2 text-sm">
-        {{-- {{ $moodStatus ? 'Angry' : 'Not Angry' }} --}}
-        Unsatisfied
-    </span>
+    <span class="ml-2 text-sm">Unsatisfied</span>
+
+    <!-- Comment Box: Show only if toggle is on AND no flash message -->
+    @if ($moodStatus && !session()->has('message'))
+        <div class="mt-3">
+            {{-- <textarea
+             id="message"
+             oninput="updateCharCount()"
+                wire:model="comment"
+                maxlength="200"
+                class="w-full p-2 border rounded"
+                rows="3"
+                placeholder="Please tell us what went wrong..."
+                
+            ></textarea>
+            <p class="text-sm text-gray-500 mt-1 justify-end">
+    <span id="charCount">0</span>/200 characters
+</p>
+
+<script>
+    function updateCharCount() {
+        const textarea = document.getElementById("message");
+        const charCount = document.getElementById("charCount");
+        window.alert('u7y');
+        // charCount.textContent = textarea.value.length;
+        charCount.textContent = 10;
+    }
+</script> --}}
+
+<div x-data="{ count: 0 }">
+    <textarea
+        id="message"
+        wire:model="comment"
+        maxlength="200"
+        x-on:input="count = $event.target.value.length"
+        class="w-full p-2 border rounded"
+        rows="3"
+        placeholder="Please tell us what went wrong..."
+    ></textarea>
+    
+    <p class="text-sm text-gray-500 mt-1 text-right">
+        <span x-text="count">0</span>/200 characters
+    </p>
 </div>
+
+
+
+            <div class=" flex justify-end">
+                <button
+                wire:click="submitReaction"
+                class="mt-2 px-4 py-2 bg-gray-500 text-white rounded hover:bg-red-600 transition"
+            >
+                Submit
+            </button>
+            </div>
+        </div>
+    @endif
+
+    <!-- Flash Message -->
+    @if (session()->has('message'))
+        <div class="mt-2 text-green-600 text-sm">
+            {{ session('message') }}
+        </div>
+    @endif
+</div>
+
+
 
                     </div>
                     {{-- <div class="bg-white p-4 space-y-2 text-xs">

@@ -98,7 +98,7 @@
                         <h3
                             class="flex items-center mb-1 text-sm font-semibold text-gray-900 dark:text-white">
                             {{ $timelineLog['title'] }}
-                            @if ($loop->first)
+                            
                             
                             <div class="relative group inline-block px-3">
 
@@ -118,7 +118,7 @@
     @endif
 </div>
 
-                            
+                            @if ($loop->first)
                                 <span
                                     class="animate-ping  bg-blue-100 text-blue-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800 ml-3">Latest</span>
                             @endif

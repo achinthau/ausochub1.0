@@ -100,37 +100,106 @@ socket.on('connect', () => {
 
 
 // Store reference to the opened tab
+// let leadWindow = null;
+
+// socket.on('call.answered', function (data) {
+//     var userId = document.querySelector('meta[name="user-extension"]').content;
+//     if (userId == data.extension) {
+
+//         if (leadWindow && !leadWindow.closed) {
+
+// leadWindow.close();
+//            leadWindow = window.open('/leads/' + data.id, data.id);
+//            leadWindow.focus();
+
+//     } else {
+//         leadWindow = window.open('/leads/' + data.id, data.id);
+//     }
+
+
+// }
+// });
+
 let leadWindow = null;
 
-// Listen for the event from the server
-socket.on('call.answered', function (data) {
-//      let leadWindow = null;
+// socket.on('call.answered', function (dataAry) {
+//     var userId = document.querySelector('meta[name="user-extension"]').content;
+//    console.log(userId);
+// var data = (dataAry.lead.lead_id || {});
+//         if (userId == data.extension) {
+//    if (leadWindow && !leadWindow.closed) {
+// leadWindow.close();
+//            leadWindow = window.open('/leads/' + data.id, data.id);
+//            leadWindow.focus();
 
-    // const userId = document.querySelector('meta[name="user-extension"]').content;
-    var userId = document.querySelector('meta[name="user-extension"]').content;
+//     } else {
+//         leadWindow = window.open('/leads/' + data.id, data.id);
+//     }
+
+
+// }
+// });
+
+
+
+// socket.on('call.dialed', function (dataAry) {
+//         console.log("DialOut");
+//         console.log(dataAry);
+//     var userId = document.querySelector('meta[name="user-extension"]').content;
+//    console.log(userId);
+// var data = (dataAry.lead.lead_id);
+//         if (userId == data.extension) {
+//    if (leadWindow && !leadWindow.closed) {
+// leadWindow.close();
+//            leadWindow = window.open('/leads/' + data.id, data.id);
+//            leadWindow.focus();
+
+//     } else {
+//         leadWindow = window.open('/leads/' + data.id, data.id);
+//     }
+
+
+// }
+// });
+
+
+socket.on('call.answered', function (dataAry) {
+    const userId = document.querySelector('meta[name="user-extension"]').content;
+    const data = dataAry.lead.lead_id || {}; 
+
     if (userId == data.extension) {
-    // If the window is already open and not closed
-   if (leadWindow && !leadWindow.closed) {
-           //  alert("if");
-        // Just update the URL in the existing tab
-      /*  leadWindow.location.href = '/leads/' + data.id;
-        leadWindow.focus();*/
-leadWindow.close();
-           leadWindow = window.open('/leads/' + data.id, data.id);
-           //leadWindow = window.open('/leads/' + data.id, 'leadTab');
-           leadWindow.focus();
-//         leadWindow=leadWindow1;
+        const isIncomming = true; 
+        const url = new URL('/leads/' + data.id, window.location.origin);
+        url.searchParams.set('isIncomming', isIncomming);
 
-    } else {
-             //alert("else");
-        // Open a new tab and store the reference
-        leadWindow = window.open('/leads/' + data.id, data.id);
-        // leadWindow = window.open('/leads/' + data.id, 'leadTab');
+        if (leadWindow && !leadWindow.closed) {
+            leadWindow.close();
+        }
+
+        leadWindow = window.open(url.toString(), data.id);
+        leadWindow.focus();
     }
-
-
-}
 });
+
+socket.on('call.dialed', function (dataAry) {
+    const userId = document.querySelector('meta[name="user-extension"]').content;
+    const data = dataAry.lead.lead_id || {}; 
+
+    if (userId == data.extension) {
+        const isIncomming = false; 
+        const url = new URL('/leads/' + data.id, window.location.origin);
+        url.searchParams.set('isIncomming', isIncomming);
+
+        if (leadWindow && !leadWindow.closed) {
+            leadWindow.close();
+        }
+
+        leadWindow = window.open(url.toString(), data.id);
+        leadWindow.focus();
+    }
+});
+
+
 
 
 

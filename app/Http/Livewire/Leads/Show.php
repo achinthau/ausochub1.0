@@ -19,6 +19,8 @@ class Show extends Component
     public  $outCallLogs;
     public  $timelineLogs;
 
+    public $isIncomming = false;
+
     protected $listeners = ['refreshCard' => 'refreshCard'];
 
     protected $rules = [
@@ -39,41 +41,88 @@ class Show extends Component
 
     public $moodStatus = false;
 public $comment = '';
+public $isNuisance = false;
 
 public function toggle()
 {
     $this->moodStatus = !$this->moodStatus;
-    $ani = $this->lead->contact_number;
+    // if($this->isIncomming)
+    // {
+    //     $ani = $this->lead->contact_number;
 
-    if ($ani) {
-        $latestRecord = QueueCount::where('ani', $ani)
-            ->where('status', 2)
-            ->orderBy('id', 'desc')
-            ->first();
+    // if ($ani) {
+    //     $latestRecord = QueueCount::where('ani', $ani)
+    //         ->where('status', 2)
+    //         ->orderBy('id', 'desc')
+    //         ->first();
 
-        if ($latestRecord) {
-            if ($this->moodStatus) {
-                // Toggle is ON (unsatisfied) – store reaction only
-                $latestRecord->customer_reaction = 1;
-                $latestRecord->save();
-            } else {
-                // Toggle is OFF – clear reaction and comment
-                $latestRecord->customer_reaction = null;
-                $latestRecord->comment = null;
-                $latestRecord->save();
+    //     if ($latestRecord) {
+    //         if ($this->moodStatus) {
+    //             // Toggle is ON (unsatisfied) – store reaction only
+    //             $latestRecord->customer_reaction = 1;
+    //             $latestRecord->save();
+    //         } else {
+    //             // Toggle is OFF – clear reaction and comment
+    //             $latestRecord->customer_reaction = null;
+    //             $latestRecord->comment = null;
+    //             $latestRecord->save();
 
-                // Also clear local state if needed
-                $this->comment = '';
-                session()->forget('message');
-            }
-        }
-    }
+    //             // Also clear local state if needed
+    //             $this->comment = '';
+    //             session()->forget('message');
+    //         }
+    //     }
+    // }
+    // }
+    // else{
+    //     $dnis = $this->lead->contact_number;
+
+    // if ($dnis) {
+    //     $latestRecord = CallCount::where('dnis', $dnis)
+    //         ->where('status', 1)
+    //         ->orderBy('id', 'desc')
+    //         ->first();
+
+    //     if ($latestRecord) {
+    //         if ($this->moodStatus) {
+    //             // Toggle is ON (unsatisfied) – store reaction only
+    //             $latestRecord->customer_reaction = 1;
+    //             $latestRecord->save();
+    //         } else {
+    //             // Toggle is OFF – clear reaction and comment
+    //             $latestRecord->customer_reaction = null;
+    //             $latestRecord->comment = null;
+    //             $latestRecord->save();
+
+    //             // Also clear local state if needed
+    //             $this->comment = '';
+    //             session()->forget('message');
+    //         }
+    //     }
+    // }
+    // }
+}
+
+public function nuisance()
+{
+ $this->isNuisance = !$this->isNuisance;
 }
 
 
 public function submitReaction()
 {
-    $ani = $this->lead->contact_number;
+    if($this->isNuisance)
+    {
+        $reaction = 2;
+    }
+    elseif($this->moodStatus)
+    {
+        $reaction = 1;
+    }
+
+    if($this->isIncomming)
+    {
+        $ani = $this->lead->contact_number;
 
     if ($ani) {
         $latestRecord = QueueCount::where('ani', $ani)->where('status', 2)
@@ -81,10 +130,27 @@ public function submitReaction()
             ->first();
 
         if ($latestRecord) {
-            $latestRecord->customer_reaction = 1;
+            $latestRecord->customer_reaction = $reaction;
             $latestRecord->comment = $this->comment;
             $latestRecord->save();
         }
+    }
+    }
+    else
+    {
+        $dnis = $this->lead->contact_number;
+
+    if ($dnis) {
+        $latestRecord = CallCount::where('dnis', $dnis)->where('status', 1)
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($latestRecord) {
+            $latestRecord->customer_reaction = $reaction;
+            $latestRecord->comment = $this->comment;
+            $latestRecord->save();
+        }
+    }
     }
 
     session()->flash('message', 'Feedback submitted successfully!');
@@ -96,6 +162,7 @@ public function submitReaction()
     public function mount($lead)
     {
         $this->lead = $lead->load('tickets', 'tickets.category', 'tickets.status', 'tickets.outlet', 'orders', 'orders.items');
+        $this->isIncomming = filter_var(request()->query('isIncomming'), FILTER_VALIDATE_BOOLEAN);
     }
 
     public function render()

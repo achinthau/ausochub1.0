@@ -157,7 +157,10 @@
                         This Call Reaction:
                         <div>
     <!-- Toggle Button -->
-    <button
+    <div class="flex justify-between">
+        <div>
+            @if(!$isNuisance)
+            <button
         wire:click="toggle"
         class="relative inline-flex items-center h-6 rounded-full w-11 focus:outline-none transition-colors duration-200 {{ $moodStatus ? 'bg-red-500' : 'bg-gray-300' }}"
     >
@@ -166,33 +169,28 @@
         ></span>
     </button>
     <span class="ml-2 text-sm">Unsatisfied</span>
+    @endif
+        </div>
+
+        <div>
+            @if(!$moodStatus)
+<button
+        wire:click="nuisance"
+        class="relative inline-flex items-center h-6 rounded-full w-11 focus:outline-none transition-colors duration-200 {{ $isNuisance ? 'bg-amber-500' : 'bg-gray-300' }}"
+    >
+        <span
+            class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 {{ $isNuisance ? 'translate-x-6' : 'translate-x-1' }}"
+        ></span>
+    </button>
+    <span class="ml-2 text-sm">Nuisance</span>
+    @endif
+        </div>
+    </div>
 
     <!-- Comment Box: Show only if toggle is on AND no flash message -->
-    @if ($moodStatus && !session()->has('message'))
+    @if (($moodStatus || $isNuisance) && !session()->has('message'))
         <div class="mt-3">
-            {{-- <textarea
-             id="message"
-             oninput="updateCharCount()"
-                wire:model="comment"
-                maxlength="200"
-                class="w-full p-2 border rounded"
-                rows="3"
-                placeholder="Please tell us what went wrong..."
-                
-            ></textarea>
-            <p class="text-sm text-gray-500 mt-1 justify-end">
-    <span id="charCount">0</span>/200 characters
-</p>
-
-<script>
-    function updateCharCount() {
-        const textarea = document.getElementById("message");
-        const charCount = document.getElementById("charCount");
-        window.alert('u7y');
-        // charCount.textContent = textarea.value.length;
-        charCount.textContent = 10;
-    }
-</script> --}}
+            
 
 <div x-data="{ count: 0 }">
     <textarea

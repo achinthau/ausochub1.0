@@ -36,7 +36,8 @@
                 @foreach ($timelineLogs->sortByDesc('created_at') as $timelineLog)
                     <li class="@if (!$loop->last) mb-10 @endif ml-6">
                         <span
-                            class="flex absolute -left-4  justify-center items-center w-8 h-8 {{$timelineLog['last-reaction'] ? 'bg-red-500' : $timelineLog['bg-color'] }} rounded-full ring-8 ring-white dark:ring-gray-900 dark:bg-blue-900">
+    class="flex absolute -left-4 justify-center items-center w-8 h-8 {{ $timelineLog['last-reaction'] == 1 ? 'bg-red-500' : ($timelineLog['last-reaction'] == 2 ? 'bg-amber-500' : $timelineLog['bg-color']) }} rounded-full ring-8 ring-white dark:ring-gray-900 dark:bg-blue-900">
+
                             @if ($timelineLog['icon'] == 'icon-phone')
                                 <svg class="w-5 h-5 {{ $timelineLog['last-reaction'] ? 'text-black' : $timelineLog['icon-color'] }}"
                                     xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"

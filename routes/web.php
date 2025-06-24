@@ -13,6 +13,8 @@ use App\Http\Livewire\Reports\AbandonedCall;
 use App\Http\Livewire\Reports\BreakSummary;
 use App\Http\Livewire\Reports\AgentCallSummary;
 use App\Http\Livewire\Reports\AgentLoginLogoutReport;
+use App\Http\Livewire\Reports\NuisanceCustomers;
+use App\Http\Livewire\Reports\UnsatisfiedCustomers;
 // use App\Http\Livewire\Reports\CallDetail;
 use App\Http\Livewire\Reports\CdrDetail;
 use App\Http\Livewire\Reports\CdrListen;
@@ -28,6 +30,8 @@ use App\Http\Livewire\Settings\Index as SettingsIndex;
 use App\Http\Livewire\Settings\Moh\Index as MohIndex;
 use App\Http\Livewire\Settings\Queues\Index as QueuesIndex;
 use App\Http\Livewire\Settings\Skills\Index as SkillsIndex;
+use App\Http\Livewire\Settings\Tickets\Departments\Index as TicketDepartmentsIndex;
+use App\Http\Livewire\Settings\Tickets\ServiceCenter\Index as ServCenterIndex;
 use App\Http\Livewire\Settings\Users\Index as UsersIndex;
 use App\Http\Livewire\Tickets\Index as TicketsIndex;
 use App\Http\Livewire\Tickets\IndexNew;
@@ -95,6 +99,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/daily-queue-summary-report', DailyQueueSummary::class)->name('reports.daily-queue-summary-report')->can('is-admin');
         Route::get('/daily-call-summary-report', ReportsDailyCallSummary::class)->name('reports.daily-calls-summary-report')->can('is-admin');
         Route::get('/agent-login-logout-report', AgentLoginLogoutReport::class)->name('reports.agent-login-logout-report')->can('is-admin');
+        Route::get('/nuisance-customers-report', NuisanceCustomers::class)->name('reports.nuisance-customers-report')->can('is-admin');
+        Route::get('/unsatisfied-customers-report', UnsatisfiedCustomers::class)->name('reports.unsatisfied-customers-report')->can('is-admin');
         // Route::get('/call-queue-report', CallQueue::class)->name('reports.call-queue-report')->can('is-admin');
     });
 
@@ -104,6 +110,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/extensions/', ExtensionsIndex::class)->name('settings.extensions.index')->can('is-admin');
         Route::get('/moh/', MohIndex::class)->name('settings.moh.index')->can('is-admin');
         Route::get('/skills/', SkillsIndex::class)->name('settings.skills.index')->can('is-admin');
+        Route::get('/ticketdep/', TicketDepartmentsIndex::class)->name('settings.tickets.departments.index')->can('is-admin');
+        Route::get('/service-center/', ServCenterIndex::class)->name('settings.tickets.serv-center.index')->can('is-admin');
     });
 
 

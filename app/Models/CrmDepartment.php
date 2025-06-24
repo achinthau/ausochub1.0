@@ -9,6 +9,9 @@ class CrmDepartment extends Model
 {
     use HasFactory;
 
+    protected $table = 'crm_departments';
+
+
     public function tickets()
 {
     return $this->hasMany(Ticket::class, 'department_id');

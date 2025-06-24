@@ -26,12 +26,12 @@ class NuisanceCustomersTable extends DataTableComponent
         ->where(function ($query) {
             $query->whereIn('uniqueid', function ($q) {
                 $q->select('uniqueid')
-                  ->from('callcount')
+                  ->from('au_callcount_report')
                   ->where('customer_reaction', 2);
             })
             ->orWhereIn('uniqueid', function ($q) {
                 $q->select('uniqueid')
-                  ->from('queuecount')
+                  ->from('au_queuecount_report')
                   ->where('customer_reaction', 2);
             });
         });

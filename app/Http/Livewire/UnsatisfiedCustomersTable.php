@@ -22,12 +22,12 @@ class UnsatisfiedCustomersTable extends DataTableComponent
         ->where(function ($query) {
             $query->whereIn('uniqueid', function ($q) {
                 $q->select('uniqueid')
-                  ->from('callcount')
+                  ->from('au_callcount_report')
                   ->where('customer_reaction', 1);
             })
             ->orWhereIn('uniqueid', function ($q) {
                 $q->select('uniqueid')
-                  ->from('queuecount')
+                  ->from('au_queuecount_report')
                   ->where('customer_reaction', 1);
             });
         });
@@ -83,12 +83,23 @@ public function export()
                 ->sortable(),
             Column::make("disposition", "disposition")
                 ->sortable(),
-            Column::make("Actions")
-    ->label(fn ($row) => view('table-actions-v2', [
+    //         Column::make("Actions")
+    // ->label(fn ($row) => view('table-actions-v2', [
+    //     'id' => $row->id,
+    //     'uniqueid' => $row->uniqueid
+    // ]))
+    // ->html()
+    // Column::make('Audio')
+    // ->label(fn ($row) => view('table-actions-audio-player-download', ['uniqueid' => $row->uniqueid])->render())
+    // ->html(),
+    Column::make('Recording')
+    ->label(fn ($row) => view('table-actions-audio-player-download', [
         'id' => $row->id,
         'uniqueid' => $row->uniqueid
     ]))
     ->html()
+
+
 
 
 

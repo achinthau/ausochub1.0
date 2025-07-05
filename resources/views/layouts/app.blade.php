@@ -11,23 +11,25 @@
 
     <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
 
-
-    {{-- <script>
-        window.addEventListener('beforeunload', function (e) {
-        fetch('/logout', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-            },
-            credentials: 'include'
-        });
-    });
-    </script> --}}
-
+{{-- 
    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
 <script>
     const presenceSocket = io("http://localhost:3000", {
+        path: "/socket.io",
+        transports: ['websocket']
+    });
+
+
+    presenceSocket.on("connect", () => {
+        presenceSocket.emit("user_connected", {{ auth()->id() ?? 'null' }});
+        console.log("Presence connected for user:", {{ auth()->id() ?? 'null' }});
+    });
+</script> --}}
+
+
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+    const presenceSocket = io({
         path: "/socket.io",
         transports: ['websocket']
     });
@@ -37,6 +39,8 @@
         console.log("Presence connected for user:", {{ auth()->id() ?? 'null' }});
     });
 </script>
+
+
 
 
 

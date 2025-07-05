@@ -149,4 +149,5 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     Route::get('/cx-tickets', CxTicketsIndex::class)->name('cx-tickets.index');
     Route::get('/cx-tickets/survey', SurveyIndex::class)->name('cx-tickets-survey.index');
     
+    
 });

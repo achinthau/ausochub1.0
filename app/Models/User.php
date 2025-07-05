@@ -154,10 +154,18 @@ class User extends Authenticatable
     }
 
 
+    // public function isLoggedIn()
+    // {
+    //     return optional($this->agentLogins()->latest('login_time')->first())->logout_time === null;
+    // }
+
     public function isLoggedIn()
-    {
-        return optional($this->agentLogins()->latest('login_time')->first())->logout_time === null;
-    }
+{
+    $latestLogin = $this->agentLogins()->latest('login_time')->first();
+
+    return $latestLogin && $latestLogin->logout_time === null;
+}
+
 
     public function crmDepartment()
     {

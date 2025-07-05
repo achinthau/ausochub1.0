@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AsteriskEventController;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\DB;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -240,6 +242,8 @@ Route::post('/call-dialed', function (StoreAnsweredCall $request) {
     $socketPort = env('SOCKET_SERVER_PORT', '3000');
     $fullSocketUrl = "http://127.0.0.1:{$socketPort}/emit";
 
+    Cache::forever('agent-in-call-' . $agent->id, 1);
+
     Cache::forever('call-' . $request['unique_id'], $agent->id);
     Cache::add('current-call-count', 0, 99999999);
     if ($skill) {
@@ -337,3 +341,25 @@ Route::post('/agent-disconnected', function (Request $request) {
 });
 
 // Route::post('/asterisk-events', [AsteriskEventController::class, 'handleEvent']);
+
+
+Route::post('/logout-socket', function (\Illuminate\Http\Request $request) {
+    $userId = $request->input('user_id');
+
+    if ($userId) {
+        // Optionally: Find and delete user's session
+        DB::table('sessions')
+            ->where('user_id', $userId)
+            ->delete();
+    }
+
+    // Record logout time in your DB
+    \App\Models\AgentLogin::where('user_id', $userId)
+        ->latest('login_time')
+        ->first()
+        ?->update(['logout_time' => now()]);
+
+    Log::info("Socket logout for user {$userId}");
+
+    return response()->noContent();
+});

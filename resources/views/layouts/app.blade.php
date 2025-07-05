@@ -25,6 +25,21 @@
     });
     </script> --}}
 
+   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+    const presenceSocket = io("http://localhost:3000", {
+        path: "/socket.io",
+        transports: ['websocket']
+    });
+
+    presenceSocket.on("connect", () => {
+        presenceSocket.emit("user_connected", {{ auth()->id() ?? 'null' }});
+        console.log("Presence connected for user:", {{ auth()->id() ?? 'null' }});
+    });
+</script>
+
+
+
 
     @if (isset($title))
         <title>{{ $title }}</title>

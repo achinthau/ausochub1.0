@@ -21,9 +21,9 @@ app.use(express.json());
 const SOCKET_PORT = process.env.SOCKET_SERVER_PORT || 3000;
 const SOCKET_URL = process.env.SOCKET_SERVER_URL;
 
-io.on("connection", (socket) => {
-    console.log("A user connected:", socket.id);
-});
+// io.on("connection", (socket) => {
+//     console.log("A user connected:", socket.id);
+// });
 
 app.post("/emit", (req, res) => {
     console.log(`post request received`);
@@ -36,8 +36,19 @@ app.post("/emit", (req, res) => {
     res.json({ status: "Event sent", event, data });
 });
 
+
+
+const connectedUsers = {};
+
 io.on("connection", (socket) => {
     console.log("A user connected:", socket.id);
+
+
+socket.on("user_connected", (userId) => {
+        console.log(`User ${userId} connected via socket ${socket.id}`);
+        connectedUsers[socket.id] = userId;
+    });
+
 
     // Listen for messages from clients
     socket.on("send_message", (data) => {
@@ -60,9 +71,44 @@ io.on("connection", (socket) => {
     });
 
     // Handle user disconnection
-    socket.on("disconnect", () => {
-        console.log("User disconnected:", socket.id);
-    });
+    // socket.on("disconnect", () => {
+    //     console.log("User disconnected:", socket.id);
+    // });
+
+    socket.on("disconnect", async () => {
+    const userId = connectedUsers[socket.id];
+
+    if (userId) {
+        console.log(`User ${userId} disconnected.`);
+
+        delete connectedUsers[socket.id];
+
+        // Delay logout  (due to page reload)
+        setTimeout(async () => {
+            const isStillDisconnected = !Object.values(connectedUsers).includes(userId);
+
+            if (isStillDisconnected) {
+                const axios = require("axios");
+                try {
+                    await axios.post("http://127.0.0.1/api/logout-socket", {
+                        user_id: userId,
+                    });
+                    console.log(`User ${userId} logout recorded in Laravel`);
+                } catch (error) {
+                    console.error("Failed to notify Laravel:", error.message);
+                }
+            } else {
+                console.log(`User ${userId} reconnected before timeout, no logout triggered.`);
+            }
+
+            
+        }, 5000); // 5s delay
+    } else {
+        console.log("Disconnected socket without user info:", socket.id);
+    }
+});
+
+
 });
 
 server.listen(SOCKET_PORT, () => {

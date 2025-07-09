@@ -18,6 +18,17 @@
                 wire:model="user.extension" option-label="extension" option-value="extension" />
         @endif
 
+        @if ($user && in_array($user->user_type_id,[9]))
+        <x-native-select
+            label="Department"
+            placeholder="Select department"
+            :options="$departments"
+            wire:model.defer="user.department_id"
+            option-label="name"
+            option-value="id"
+        />
+        @endif
+
 
     </div>
 

@@ -7,13 +7,48 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="user-id" content="{{ Auth::id() }}">
     <meta name="user-extension" content="{{ Auth::user()->agent ? Auth::user()->agent->extension : 0 }}">
-    <link rel="icon" href="{{ URL::asset('favicon.ico') }}" type="image/x-icon"/>
+    <link rel="icon" href="{{ URL::asset('favicon.ico') }}" type="image/x-icon" />
+
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+
+{{-- 
+   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+    const presenceSocket = io("http://localhost:3000", {
+        path: "/socket.io",
+        transports: ['websocket']
+    });
+
+
+    presenceSocket.on("connect", () => {
+        presenceSocket.emit("user_connected", {{ auth()->id() ?? 'null' }});
+        console.log("Presence connected for user:", {{ auth()->id() ?? 'null' }});
+    });
+</script> --}}
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script>
+    const presenceSocket = io({
+        path: "/socket.io",
+        transports: ['websocket']
+    });
+
+    presenceSocket.on("connect", () => {
+        presenceSocket.emit("user_connected", {{ auth()->id() ?? 'null' }});
+        console.log("Presence connected for user:", {{ auth()->id() ?? 'null' }});
+    });
+</script>
+
+
+
+
 
 
     @if (isset($title))
-    <title>{{ $title }}</title>
+        <title>{{ $title }}</title>
     @else
-    <title>{{ config('app.name', 'Laravel') }}</title>
+        <title>{{ config('app.name', 'Laravel') }}</title>
     @endif
 
 
@@ -28,6 +63,9 @@
     <wireui:scripts />
     <!-- Scripts -->
     @vite('resources/js/app.js')
+
+
+
 </head>
 
 <body class="font-sans antialiased">
@@ -52,7 +90,7 @@
     </div>
 
     @stack('modals')
-    
+
     @livewireScripts
     @stack('scripts')
     @livewire('tickets.show')

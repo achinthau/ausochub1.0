@@ -21,7 +21,7 @@
         "maatwebsite/excel": "^3.1",
         "mediconesystems/livewire-datatables": "^0.9.4",
         "opcodesio/log-viewer": "^1.9",
-        "predis/predis": "^2.1",
+        "predis/predis": "^3.0",
         "psr/simple-cache": "1.0",
         "pusher/pusher-php-server": "^7.0",
         "rappasoft/laravel-livewire-tables": "^2.15",

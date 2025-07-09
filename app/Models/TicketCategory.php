@@ -16,7 +16,8 @@ class TicketCategory extends Model
 
     public function scopePrimary($query)
     {
-        $query->whereIn('id',[1,2]);
+        // $query->whereIn('id',[1,2]);
+        $query;
     }
     public function scopeOrder($query)
     {

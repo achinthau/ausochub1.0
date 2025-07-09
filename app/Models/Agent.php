@@ -6,10 +6,13 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Agent extends Model
 {
     use HasFactory;
+
+     use SoftDeletes;
 
     protected $connection = "mysql-old";
     protected $table = "au_user";
@@ -34,15 +37,27 @@ class Agent extends Model
         'extension',
     ];
 
+    // public function queue()
+    // {
+    //     return $this->hasMany(QueueCount::class, 'agent', 'extension');
+    // }
+
+    // public function todayQueues()
+    // {
+    //     return $this->hasMany(QueueCount::class, 'agent', 'extension')->where('queuecount.date', '>', Carbon::now()->startOfDay());
+    // }
+
     public function queue()
     {
-        return $this->hasMany(QueueCount::class, 'agent', 'extension');
+        return $this->hasMany(QueueCountReport::class, 'agent', 'extension');
     }
 
     public function todayQueues()
     {
-        return $this->hasMany(QueueCount::class, 'agent', 'extension')->where('queuecount.date', '>', Carbon::now()->startOfDay());
+        return $this->hasMany(QueueCountReport::class, 'agent', 'extension')->where('au_queuecount_report.date', '>', Carbon::now()->startOfDay());
     }
+
+    
 
     public function getFullNameAttribute()
     {

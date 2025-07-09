@@ -9,7 +9,7 @@
             </div>
 
             <div class="relative rounded-md  shadow-sm ">
-                <x-input  wire:model.defer='lead.contact_number' placeholder="Contact Number 771234567" />
+                <x-input wire:model.defer='lead.contact_number' placeholder="Contact Number 771234567" />
 
 
             </div>
@@ -26,9 +26,9 @@
 
             <div class="relative rounded-md  shadow-sm ">
 
-               
-                <x-select  placeholder="Select Skill" :options="$skills" option-label="skillname"
-                    option-value="skillid" wire:model.defer="lead.skill_id" />
+
+                <x-select placeholder="Select Skill" :options="$skills" option-label="skillname" option-value="skillid"
+                    wire:model.defer="lead.skill_id" />
 
             </div>
 
@@ -36,7 +36,7 @@
         </div>
         <x-input label="First Name" wire:model.defer='lead.first_name' placeholder="First Name" />
         <x-input label="Last Name" wire:model.defer='lead.last_name' placeholder="Last Name" />
-        <x-input label="NIC" wire:model.defer='lead.nic' placeholder="NIC Name" />
+        <x-input label="NIC" wire:model.defer='lead.nic' placeholder="NIC" />
         <x-input label="Email" wire:model.defer='lead.email' placeholder="Email" />
         <x-input label="Alternative Contact" wire:model.defer='lead.contact_number_2'
             placeholder="Alternative Contact" />

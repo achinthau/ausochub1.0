@@ -37,6 +37,17 @@
         />
         @endif
 
+        @if ($user && in_array($user->user_type_id,[9]))
+        <x-native-select
+            label="Department"
+            placeholder="Select department"
+            :options="$departments"
+            wire:model="user.department_id"
+            option-label="name"
+            option-value="id"
+        />
+        @endif
+
        
     </div>
  

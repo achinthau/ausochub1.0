@@ -3,6 +3,7 @@
 namespace App\Http\Livewire;
 
 use App\Exports\TicketExport;
+use App\Models\CrmDepartment;
 use App\Models\Outlet;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
@@ -11,6 +12,8 @@ use App\Models\TicketCategory;
 use App\Models\TicketStatus;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Maatwebsite\Excel\Facades\Excel;
 use Mediconesystems\LivewireDatatables\DateColumn;
 use Rappasoft\LaravelLivewireTables\Views\Filters\DateFilter;
@@ -20,6 +23,26 @@ use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
 class NewTicketTable extends DataTableComponent
 {
     protected $model = Ticket::class;
+
+    public $selectedDepartment = null;
+    public $selectedItem = null;
+
+protected $listeners = ['departmentUpdated' => 'setDepartment', 'refreshTable' => '$refresh', 'ItemUpdated' => 'setItem', 'updatedTicketTable' => '$refresh'];
+
+public function setDepartment($deptId)
+{
+    $this->selectedDepartment = $deptId;
+    // dd('ds');
+    $this->emitSelf('refreshTable');
+}
+
+public function setItem($item)
+{
+$this->selectedItem = $item;
+$this->emitSelf('refreshTable');
+// dd($item);
+}
+
 
     public function bulkActions(): array
     {
@@ -40,7 +63,10 @@ class NewTicketTable extends DataTableComponent
 
     public function configure(): void
     {
-        $this->setPrimaryKey('id')->setQueryStringDisabled();
+        $this->setPrimaryKey('id')
+            ->setQueryStringDisabled()
+            ->setBulkActionsStatus(Gate::allows('can-export-ticket'))
+            ->setDefaultSort('updated_at', 'desc');
     }
 
     public function columns(): array
@@ -65,6 +91,10 @@ class NewTicketTable extends DataTableComponent
             })->sortable()->deselected(),
             Column::make("Outlet", "outlet.title")
                 ->sortable()->deselected(),
+            Column::make("Department", "department.name")
+                ->sortable()->deselected()->searchable(),
+            Column::make("Assigned To", "assignedUser.name")
+                ->sortable()->deselected()->searchable(),
             Column::make("Due At", "due_at")
                 ->sortable(),
             Column::make("Created at", "created_at")
@@ -130,6 +160,17 @@ class NewTicketTable extends DataTableComponent
                 )->filter(function (Builder $builder,  $value) {
                     $builder->whereHas('outlet', fn($query) => $query->where('outlets.id', $value));
                 }),
+            SelectFilter::make('Department')
+                ->options(
+                    CrmDepartment::query()
+                        ->orderBy('name')
+                        ->get()
+                        ->keyBy('id')
+                        ->map(fn($tag) => $tag->name)
+                        ->toArray()
+                )->filter(function (Builder $builder,  $value) {
+                    $builder->whereHas('department', fn($query) => $query->where('crm_departments.id', $value));
+                }),
             DateFilter::make('Due From')
                 ->config([
                     // 'min' => '2020-01-01',
@@ -151,8 +192,63 @@ class NewTicketTable extends DataTableComponent
         $this->emitTo('tickets.show', 'openTicket', $id);
     }
 
+    // public function builder(): Builder
+    // {
+    //     return Ticket::with('status');
+    // }
+
     public function builder(): Builder
+{
+    $user = Auth::user();
+
+    if ($user->user_type_id == 9) {
+    if($this->selectedItem == null || $this->selectedItem == 0)
     {
-        return Ticket::with('status');
+        return Ticket::with(['status', 'category', 'subCategory', 'outlet', 'department'])
+        ->where(function ($query) use ($user) {
+            $query->where('tickets.assigned_user_id', $user->id)
+                ->orWhere(function ($q) use ($user) {
+                    $q->where('ticket_status_id', 1)
+                      ->whereNull('assigned_user_id')
+                      ->where(function ($subQuery) use ($user) {
+                      $subQuery->whereNull('tickets.department_id')
+                               ->orWhere('tickets.department_id', $user->department_id);
+                  });
+                });
+        });
     }
+    elseif($this->selectedItem == 1)
+    {
+        return Ticket::with(['status', 'category', 'subCategory', 'outlet', 'department'])
+        ->where(function ($query) use ($user) {
+            $query->where('tickets.assigned_user_id', $user->id);
+                
+        });
+    }
+    elseif($this->selectedItem == 2)
+    {
+        return Ticket::with(['status', 'category', 'subCategory', 'outlet', 'department'])
+        ->where(function ($q) use ($user) {
+                    $q->where('ticket_status_id', 1)
+                      ->whereNull('assigned_user_id')
+                      ->where(function ($subQuery) use ($user) {
+                      $subQuery->whereNull('tickets.department_id')
+                               ->orWhere('tickets.department_id', $user->department_id);
+                  });
+                  });
+    }
+}
+
+
+    if ($this->selectedDepartment) {
+        return Ticket::with(['status', 'category', 'subCategory', 'outlet', 'department'])
+            ->where('tickets.department_id', $this->selectedDepartment);
+    }
+
+    return Ticket::with(['status', 'category', 'subCategory', 'outlet', 'department'])
+        ->when($user && $user->department_id, function ($query) use ($user) {
+            $query->where('tickets.department_id', $user->department_id);
+        });
+}
+
 }

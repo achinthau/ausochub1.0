@@ -90,7 +90,8 @@ socket.on("user_connected", (userId) => {
             if (isStillDisconnected) {
                 const axios = require("axios");
                 try {
-                    await axios.post("http://127.0.0.1/api/logout-socket", {
+                    await axios.post(`${process.env.APP_URL}/api/logout-socket`, {
+                        //port should mention
                         user_id: userId,
                     });
                     console.log(`User ${userId} logout recorded in Laravel`);

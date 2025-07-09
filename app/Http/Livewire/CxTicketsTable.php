@@ -8,6 +8,7 @@ use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
 use App\Models\CxTicket;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Facades\Excel;
+use Rappasoft\LaravelLivewireTables\Views\Filters\DateFilter;
 
 class CxTicketsTable extends DataTableComponent
 {
@@ -70,7 +71,20 @@ class CxTicketsTable extends DataTableComponent
                 if ($value !== '') {
                     $query->where('status', $value);
                 }
-            })
+            }),
+
+            DateFilter::make('Due From')
+                ->config([
+                    // 'min' => '2020-01-01',
+                    // 'max' => '2021-12-31',
+                ])
+                ->filter(function (Builder $builder, string $value) {
+                    $builder->where('updated_at', '>=', $value);
+                }),
+            DateFilter::make('Due To')
+                ->filter(function (Builder $builder, string $value) {
+                    $builder->where('updated_at', '<=', $value);
+                })
     ];
 }
 
@@ -82,10 +96,30 @@ public function builder(): Builder
 
     if (!empty($filters['Category'])) {
         $query->where('category', $filters['Category']);
+
+
     }
 
     return $query;
 }
+
+// public function filters(): array
+//     {
+//         return [
+//             DateFilter::make('Due From')
+//                 ->config([
+//                     // 'min' => '2020-01-01',
+//                     // 'max' => '2021-12-31',
+//                 ])
+//                 ->filter(function (Builder $builder, string $value) {
+//                     $builder->where('due_at', '>=', $value);
+//                 }),
+//             DateFilter::make('Due To')
+//                 ->filter(function (Builder $builder, string $value) {
+//                     $builder->where('due_at', '<=', $value);
+//                 })
+//             ];
+//             }
 
 
     public function columns(): array

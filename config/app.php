@@ -220,6 +220,10 @@ return [
         // raise hand time
         'raise_hand_time' => env('RAISE_HAND_TIME', 10),
 
+        // user delete
+        'datecounts' => env('DATECOUNTS', 7),
+
+
     
 
 ];

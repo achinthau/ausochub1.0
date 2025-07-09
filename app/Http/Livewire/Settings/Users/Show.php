@@ -43,7 +43,7 @@ class Show extends Component
         'user.user_type_id' => 'user type',
     ];
 
-    protected $listeners = ['show' => 'showUpdateUserModal'];
+    protected $listeners = ['show' => 'showUpdateUserModal', 'delete' => 'deleteUser'];
 
     public function mount()
     {
@@ -118,16 +118,98 @@ class Show extends Component
             
             $response = ApiManager::assignExtension($data);
         }
-        }
-
-
-        
+        }       
 
 
         $this->updateUserModal = false;
         $this->emitTo('tables.settings.user-table','refreshLivewireDatatable');
 
     }
+
+    // public function deleteUser($id)
+    //     {
+    //         $user = User::find($id);
+            
+
+    //         if ($user) {
+    //             $user->delete();
+    //             $agent = $user->agent;
+    //             if ($agent) {
+    //             $agent->delete();
+    //         }
+    //         }
+
+    //         $this->emitTo('tables.settings.user-table','refreshLivewireDatatable');
+    //     }
+
+//     public function deleteUser($id)
+// {
+//     $user = User::with('agentLogins')->find($id); 
+//     if (!$user) {
+//         return session()->flash('error', 'User not found.');
+//     }
+
+//     $dateLimit = Carbon::now()->subDays(config('app.datecounts'));
+
+//     $lastLogin = optional($user->agentLogins()->latest('login_time')->first())->login_time;
+
+//     if ($lastLogin && $lastLogin > $dateLimit) {
+//         return session()->flash('error', 'Cannot delete user who logged in within the last ' . config('app.datecounts') . ' days.');
+//     }
+
+//     $user->delete();
+
+//     if ($user->agent) {
+//         $user->agent->delete();
+//     }
+
+//     $this->emitTo('tables.settings.user-table','refreshLivewireDatatable');
+//     return session()->flash('success', 'User deleted successfully.');
+    
+// }
+
+public function deleteUser($id)
+{
+    $user = User::with('agentLogins')->find($id); 
+    if (!$user) {
+        $this->dispatchBrowserEvent('notification', [
+            'type' => 'error',
+            'message' => 'User not found.'
+        ]);
+        return;
+    }
+
+    $dateLimit = Carbon::now()->subDays(config('app.datecounts'));
+
+    $lastLogin = optional($user->agentLogins()->latest('login_time')->first())->login_time;
+
+    if ($lastLogin && $lastLogin > $dateLimit) {
+        $this->dispatchBrowserEvent('notification', [
+            'type' => 'error',
+            'message' => 'Cannot delete user who logged in within the last ' . config('app.datecounts') . ' days.'
+        ]);
+        return;
+    }
+
+    $user->extension = null;
+    $user->save();
+    $user->delete();
+
+    if ($user->agent) {
+        $user->agent->extension = null;
+    $user->agent->save();
+        $user->agent->delete();
+    }
+
+    $this->emitTo('tables.settings.user-table','refreshLivewireDatatable');
+    $this->emitTo('settings.users.partials.assign-extension','refreshData');
+
+    $this->dispatchBrowserEvent('notification', [
+        'type' => 'success',
+        'message' => 'User deleted successfully.'
+    ]);
+}
+
 
     public function resetForm()
     {

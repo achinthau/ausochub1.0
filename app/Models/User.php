@@ -72,7 +72,7 @@ class User extends Authenticatable
         parent::boot();
         self::created(function ($model) {
 
-            if ($model->user_type_id > 2) {
+            if ($model->user_type_id > 1) {
                 $agent = new Agent;
                 $agent->username = $model->user_name;
                 $agent->password = $model->email;

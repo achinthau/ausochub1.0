@@ -13,6 +13,7 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
+<!--             User Table -->
             @livewire('tables.settings.user-table')
         </div>
     </div>

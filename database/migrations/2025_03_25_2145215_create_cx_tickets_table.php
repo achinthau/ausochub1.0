@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->enum('category', ['service', 'repair', 'installation']);
             $table->string('product');
+            $table->string('company');
             $table->string('model');
             $table->string('work_order_no')->unique();
             $table->string('service_center');

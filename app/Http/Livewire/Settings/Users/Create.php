@@ -29,6 +29,7 @@ class Create extends Component
         'user.nic' => 'required',
         'user.gender' => 'required',
         'user.address' => 'nullable',
+        'user.tenant_context' => 'nullable',
         'user.outlet_id' => 'required_if:user.user_type_id,5,6',
         'user.department_id' => 'required_if:user.user_type_id,9',
     

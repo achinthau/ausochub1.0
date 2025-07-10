@@ -149,6 +149,7 @@ public function builder(): Builder
             // Column::make("Cancelling Reasons", "cancelling_reasons")->sortable()->searchable(),
             // Column::make("Created at", "created_at")->sortable(),
             Column::make("Closed_BY", "closed_by")->sortable(),
+            Column::make("Company", "company")->sortable(),
             Column::make("Surveyed By", "surveyed_by")->sortable(),
             Column::make("Updated at", "updated_at")->sortable(),
             Column::make("Actions")

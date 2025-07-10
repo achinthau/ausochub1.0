@@ -92,6 +92,8 @@ class CreateCxTicket extends Component
                 'supervisor_name' => $this->supervisor_name,
                 'supervisor_contact' => $this->supervisor_contact,
                 'creator' => auth()->user()->name,
+                'company' => auth()->user()->tenant_context,
+                'company' => auth()->user()?->tenant_context ?? NULL,
                 'status' => 'Open',
             ]);
 

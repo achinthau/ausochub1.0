@@ -34,6 +34,7 @@ class Show extends Component
         'user.nic' => 'nullable',
         'user.gender' => 'nullable',
         'user.address' => 'nullable',
+        'user.tenant_context' => 'nullable',
         'user.extension' => 'nullable',
         'user.department_id' => 'nullable|exists:crm_departments,id',
 

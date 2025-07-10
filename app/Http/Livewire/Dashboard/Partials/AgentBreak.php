@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Dashboard\Partials;
 
 use App\Models\AgentBreakSummary;
+use App\Models\AgentBreakSummaryReport;
 use App\Models\BreakType;
 use App\Repositories\ApiManager;
 use Carbon\Carbon;
@@ -56,13 +57,13 @@ class AgentBreak extends Component
         $breakType = $this->breakTypes->where('id', $this->breakType)->first();
         $agentBreakSummary->desc = $this->breakType == 4 ? "Other : " . $this->description : $breakType->title;
         $agentBreakSummary->save();
-        
+
         $user->break_started_at = Carbon::now();
         $user->agent_break_id = $agentBreakSummary->id;
         $user->agent_break_type = $breakType->title;
         $user->save();
-        
-        
+
+
         $data = [
             [
                 'name' => 'extension',
@@ -79,7 +80,7 @@ class AgentBreak extends Component
             ],
             [
                 'name' => 'action',
-                'contents' => 'break' 
+                'contents' => 'break'
             ],
             [
                 'name' => 'agentid',
@@ -105,10 +106,21 @@ class AgentBreak extends Component
     {
         $user = Auth::user();
         $agentBreakSummary = AgentBreakSummary::find($user->agent_break_id);
-        $agentBreakSummary->unbreaktime=Carbon::now();
-        $agentBreakSummary->status = 0;
-        $agentBreakSummary->save();
-        
+        if ($agentBreakSummary) {
+            $agentBreakSummary->unbreaktime = Carbon::now();
+            $agentBreakSummary->status = 0;
+            $agentBreakSummary->save();
+        }
+        else
+        {
+            $agentBreakSummary = AgentBreakSummaryReport::find($user->agent_break_id);
+            if ($agentBreakSummary) {
+                $agentBreakSummary->unbreaktime = Carbon::now();
+                $agentBreakSummary->status = 0;
+                $agentBreakSummary->save();
+            }
+        }
+
         $user->break_started_at = null;
         $user->agent_break_id = null;
         $user->agent_break_type = null;
@@ -131,7 +143,7 @@ class AgentBreak extends Component
             ],
             [
                 'name' => 'action',
-                'contents' => 'unbreak' 
+                'contents' => 'unbreak'
             ],
             [
                 'name' => 'agentid',
@@ -149,6 +161,7 @@ class AgentBreak extends Component
 
         ApiManager::startBreak($data);
         Cache::forget('setBreak');
+
         $this->createUserBreakModal = false;
 
         return redirect(route('dashboard.index'));

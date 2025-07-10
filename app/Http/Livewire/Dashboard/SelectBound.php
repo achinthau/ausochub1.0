@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Dashboard;
 
 use App\Models\AgentBreakSummary;
+use App\Models\AgentBreakSummaryReport;
 use App\Models\BreakType;
 use App\Repositories\ApiManager;
 use Carbon\Carbon;
@@ -101,6 +102,7 @@ class SelectBound extends Component
 
     public function startAcw()
     {
+        $this->emitTo('dashboard.index','hideBreak');
         // $this->validate();
         $user = Auth::user();
 
@@ -157,7 +159,7 @@ class SelectBound extends Component
             'isAcw' => $this->isAcw,
         ]);
 
-        $this->emit('setVisibility');
+        
         ApiManager::startBreak($data);
     }
 
@@ -165,19 +167,30 @@ class SelectBound extends Component
     {
         $user = Auth::user();
 
-        if ($user->agent_break_id) {
-            $agentBreakSummary = AgentBreakSummary::find($user->agent_break_id);
+        // if ($user->agent_break_id) {
+        $agentBreakSummary = AgentBreakSummary::find($user->agent_break_id);
+        if ($agentBreakSummary) {
             $agentBreakSummary->unbreaktime = Carbon::now();
             $agentBreakSummary->status = 0;
             $agentBreakSummary->save();
+            // }
         }
-
+        else
+        {
+            $agentBreakSummary = AgentBreakSummaryReport::find($user->agent_break_id);
+            if ($agentBreakSummary) {
+                $agentBreakSummary->unbreaktime = Carbon::now();
+                $agentBreakSummary->status = 0;
+                $agentBreakSummary->save();
+            }
+        }
 
 
         $user->break_started_at = null;
         $user->agent_break_id = null;
         $user->agent_break_type = null;
         $user->save();
+
 
         $breakType = $this->breakTypes->where('id', $this->breakType)->first();
         $data = [
@@ -215,7 +228,7 @@ class SelectBound extends Component
         $userId = auth()->id();
         Cache::forget("acw_state_{$userId}");
 
-        $this->emit('setVisibility');
+        $this->emit('showBreak');
         ApiManager::startBreak($data);
     }
 

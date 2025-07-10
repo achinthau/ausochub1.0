@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class CallCount extends Model
 {
     use HasFactory;
+        public $timestamps = false;
+
 
     protected $connection = "mysql-old";
     protected $table = "callcount";

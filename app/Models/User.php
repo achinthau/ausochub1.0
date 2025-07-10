@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class User extends Authenticatable
 {
@@ -20,6 +21,7 @@ class User extends Authenticatable
     use Notifiable;
     use TwoFactorAuthenticatable;
     protected $connection = "mysql";
+    use SoftDeletes;
 
     /**
      * The attributes that are mass assignable.
@@ -69,8 +71,8 @@ class User extends Authenticatable
     {
         parent::boot();
         self::created(function ($model) {
-            
-            if ($model->user_type_id > 2) {
+
+            if ($model->user_type_id > 1) {
                 $agent = new Agent;
                 $agent->username = $model->user_name;
                 $agent->password = $model->email;
@@ -98,7 +100,6 @@ class User extends Authenticatable
                 $model->save();
             }
         });
-       
     }
 
     public function agent()
@@ -106,7 +107,7 @@ class User extends Authenticatable
         return $this->belongsTo(Agent::class, 'agent_id');
     }
 
-   
+
 
     public function userType()
     {
@@ -147,5 +148,29 @@ class User extends Authenticatable
     public function getTenantContextAttribute($value)
     {
         return $value;
+    }
+
+    public function agentLogins()
+    {
+        return $this->hasMany(AgentLogin::class, 'user_id');
+    }
+
+
+    // public function isLoggedIn()
+    // {
+    //     return optional($this->agentLogins()->latest('login_time')->first())->logout_time === null;
+    // }
+
+    public function isLoggedIn()
+{
+    $latestLogin = $this->agentLogins()->latest('login_time')->first();
+
+    return $latestLogin && $latestLogin->logout_time === null;
+}
+
+
+    public function crmDepartment()
+    {
+        return $this->belongsTo(CrmDepartment::class, 'department_id');
     }
 }

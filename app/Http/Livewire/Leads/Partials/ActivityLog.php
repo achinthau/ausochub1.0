@@ -64,6 +64,8 @@ class ActivityLog extends Component
                     'icon' => 'icon-phone',
                     'bg-color' => 'bg-blue-200',
                     'icon-color' => 'text-blue-600 dark:text-blue-400',
+                    'last-reaction' => $item->customer_reaction,
+                    'last-comment' => $item->comment,
                 ];
             }));
 
@@ -78,6 +80,8 @@ class ActivityLog extends Component
                     'icon' => 'icon-phone-out',
                     'bg-color' => 'bg-blue-200',
                     'icon-color' => 'text-blue-600 dark:text-blue-400',
+                    'last-reaction' => $item->customer_reaction,
+                    'last-comment' => $item->comment,
                 ];
             }));
         }
@@ -105,6 +109,8 @@ class ActivityLog extends Component
                     'icon' => 'icon-phone',
                     'bg-color' => 'bg-blue-200',
                     'icon-color' => 'text-blue-600 dark:text-blue-400',
+                    'last-reaction' => $item->customer_reaction,
+                    'last-comment' => $item->comment,
                 ];
             }));
 
@@ -119,6 +125,8 @@ class ActivityLog extends Component
                     'icon' => 'icon-phone-out',
                     'bg-color' => 'bg-blue-200',
                     'icon-color' => 'text-blue-600 dark:text-blue-400',
+                    'last-reaction' => $item->customer_reaction,
+                    'last-comment' => $item->comment,
                 ];
             }));
         }
@@ -143,6 +151,8 @@ class ActivityLog extends Component
                     'icon' => $item->ticket_category_id == 3 ? 'icon-order' : 'icon-ticket',
                     'bg-color' =>  $item->ticket_category_id == 3 ? 'bg-green-200' : 'bg-red-200',
                     'icon-color' =>  $item->ticket_category_id == 3 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400',
+                    'last-reaction' => $item->customer_reaction,
+                    'last-comment' => $item->comment,
                 ];
             }));
         }

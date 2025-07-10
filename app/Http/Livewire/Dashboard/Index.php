@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 use Livewire\Component;
 
 class Index extends Component
@@ -22,8 +23,9 @@ class Index extends Component
     public $selectedSkills = [];
 
     public $isVisible =true;
+    public $messagesCount ;
 
-    protected $listeners = ['setVisibility' => 'setVisibility'];
+    protected $listeners = ['hideBreak' => 'hideBreak', 'showBreak' => 'showBreak'];
 
     public function mount()
     {
@@ -45,12 +47,25 @@ class Index extends Component
         foreach ($currentSkills as $key => $value) {
             $this->selectedSkills[$value["skill"]] = $value["skill"];
         }
+
+
     }
 
     
-    public function setVisibility()
+    public function hideBreak()
     {
-        $this->isVisible = !$this->isVisible;
+        $this->isVisible = false;
+        $this->dispatchBrowserEvent('updateButton', ['isVisible' => $this->isVisible]);
+
+        // dd($this->isVisible);
+    }
+
+    public function showBreak()
+    {
+        $this->isVisible = true;
+        $this->dispatchBrowserEvent('updateButton', ['isVisible' => $this->isVisible]);
+
+        // dd($this->isVisible);
     }
 
 
@@ -81,7 +96,28 @@ class Index extends Component
 
         $this->totalBreakTime = AgentBreakSummary::whereBetween('breaktime', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->where('agentid', Auth::user()->agent_id)->selectRaw('SEC_TO_TIME(SUM(TIMESTAMPDIFF(SECOND, breaktime, unbreaktime))) AS today_total_break')->first()->today_total_break;
 
-        return view('livewire.dashboard.index', ['variable' => $this->isVisible]);
+        Log::info('$isVisible:', [$this->isVisible]);
+
+
+
+
+
+
+        
+        $loggedUserId = Auth::id(); 
+    $redisKey = "highlighted_users:$loggedUserId";
+
+    Redis::select(5);
+
+    
+    $messagesCountIds = Redis::get($redisKey);
+    $messagesCountIds = $messagesCountIds ? json_decode($messagesCountIds, true) : [];
+    // $this->messagesCount = count($messagesCountIds) - 1 ;
+    $this->messagesCount = count($messagesCountIds) ;
+
+
+
+        return view('livewire.dashboard.index');
     }
 
     public function updatedSelectedSkills($value, $name)

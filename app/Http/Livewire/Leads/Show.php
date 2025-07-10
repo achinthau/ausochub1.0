@@ -19,6 +19,8 @@ class Show extends Component
     public  $outCallLogs;
     public  $timelineLogs;
 
+    public $isIncomming = false;
+
     protected $listeners = ['refreshCard' => 'refreshCard'];
 
     protected $rules = [
@@ -37,9 +39,130 @@ class Show extends Component
 
     ];
 
+    public $moodStatus = false;
+public $comment = '';
+public $isNuisance = false;
+
+public function toggle()
+{
+    $this->moodStatus = !$this->moodStatus;
+    // if($this->isIncomming)
+    // {
+    //     $ani = $this->lead->contact_number;
+
+    // if ($ani) {
+    //     $latestRecord = QueueCount::where('ani', $ani)
+    //         ->where('status', 2)
+    //         ->orderBy('id', 'desc')
+    //         ->first();
+
+    //     if ($latestRecord) {
+    //         if ($this->moodStatus) {
+    //             // Toggle is ON (unsatisfied) – store reaction only
+    //             $latestRecord->customer_reaction = 1;
+    //             $latestRecord->save();
+    //         } else {
+    //             // Toggle is OFF – clear reaction and comment
+    //             $latestRecord->customer_reaction = null;
+    //             $latestRecord->comment = null;
+    //             $latestRecord->save();
+
+    //             // Also clear local state if needed
+    //             $this->comment = '';
+    //             session()->forget('message');
+    //         }
+    //     }
+    // }
+    // }
+    // else{
+    //     $dnis = $this->lead->contact_number;
+
+    // if ($dnis) {
+    //     $latestRecord = CallCount::where('dnis', $dnis)
+    //         ->where('status', 1)
+    //         ->orderBy('id', 'desc')
+    //         ->first();
+
+    //     if ($latestRecord) {
+    //         if ($this->moodStatus) {
+    //             // Toggle is ON (unsatisfied) – store reaction only
+    //             $latestRecord->customer_reaction = 1;
+    //             $latestRecord->save();
+    //         } else {
+    //             // Toggle is OFF – clear reaction and comment
+    //             $latestRecord->customer_reaction = null;
+    //             $latestRecord->comment = null;
+    //             $latestRecord->save();
+
+    //             // Also clear local state if needed
+    //             $this->comment = '';
+    //             session()->forget('message');
+    //         }
+    //     }
+    // }
+    // }
+}
+
+public function nuisance()
+{
+ $this->isNuisance = !$this->isNuisance;
+}
+
+
+public function submitReaction()
+{
+    if($this->isNuisance)
+    {
+        $reaction = 2;
+    }
+    elseif($this->moodStatus)
+    {
+        $reaction = 1;
+    }
+
+    if($this->isIncomming)
+    {
+        $ani = $this->lead->contact_number;
+
+    if ($ani) {
+        $latestRecord = QueueCount::where('ani', $ani)->where('status', 2)
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($latestRecord) {
+            $latestRecord->customer_reaction = $reaction;
+            $latestRecord->comment = $this->comment;
+            $latestRecord->save();
+        }
+    }
+    }
+    else
+    {
+        $dnis = $this->lead->contact_number;
+
+    if ($dnis) {
+        $latestRecord = CallCount::where('dnis', $dnis)->where('status', 1)
+            ->orderBy('id', 'desc')
+            ->first();
+
+        if ($latestRecord) {
+            $latestRecord->customer_reaction = $reaction;
+            $latestRecord->comment = $this->comment;
+            $latestRecord->save();
+        }
+    }
+    }
+
+    session()->flash('message', 'Feedback submitted successfully!');
+    // $this->moodStatus = false;
+    $this->comment = '';
+}
+
+
     public function mount($lead)
     {
-        $this->lead = $lead->load('tickets','tickets.category','tickets.status','tickets.outlet','orders','orders.items');
+        $this->lead = $lead->load('tickets', 'tickets.category', 'tickets.status', 'tickets.outlet', 'orders', 'orders.items');
+        $this->isIncomming = filter_var(request()->query('isIncomming'), FILTER_VALIDATE_BOOLEAN);
     }
 
     public function render()
@@ -55,7 +178,7 @@ class Show extends Component
 
     public function refreshTimeline()
     {
-        $this->emitTo('leads.partials.activity-log','refreshTimeline');
+        $this->emitTo('leads.partials.activity-log', 'refreshTimeline');
     }
 
     public function save()
@@ -68,5 +191,26 @@ class Show extends Component
             $title = 'Success',
             $description = 'Customer successfull saved'
         );
+    }
+
+    public function openWhatsApp()
+    {
+
+        $number = preg_replace('/\s+/', '', $this->lead->whatsapp);
+
+        if (str_starts_with($number, '94')) {
+            $internationalNumber = $number;
+        } elseif (str_starts_with($number, '0')) {
+            $internationalNumber = '94' . substr($number, 1);
+        } else {
+            $internationalNumber = '94' . $number;
+        }
+        // dd($internationalNumber);
+
+        $message = urlencode('Hello! I would like to chat with you.');
+        $url = "https://wa.me/{$internationalNumber}?text={$message}";
+
+
+        $this->emit('whatsappOpened', $url);
     }
 }

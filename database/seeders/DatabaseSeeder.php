@@ -22,10 +22,11 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         $this->call([
-            UserSeeder::class,
-            AgentSkillSeeder::class,
-            BreakTypeSeeder::class,
-            LeadStatusSeeder::class,
+            // UserSeeder::class,
+            // AgentSkillSeeder::class,
+            // BreakTypeSeeder::class,
+            // LeadStatusSeeder::class,
+            // CxSatisReasonSeeder::class,
         ]);
     }
 }

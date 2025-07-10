@@ -8,7 +8,10 @@ use App\Models\User;
 use App\Repositories\ApiManager;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 use Livewire\Component;
 
 class Index extends Component
@@ -18,6 +21,11 @@ class Index extends Component
     public $totalBreakTime;
     public $queueWiseData;
     public $selectedSkills = [];
+
+    public $isVisible =true;
+    public $messagesCount ;
+
+    protected $listeners = ['hideBreak' => 'hideBreak', 'showBreak' => 'showBreak'];
 
     public function mount()
     {
@@ -33,13 +41,33 @@ class Index extends Component
 
 
         $this->skills = Auth::user()->skills ?  Auth::user()->skills->skill_ids : [];
-        $this->totalBreakTime = AgentBreakSummary::whereBetween('breaktime', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->where('agentid', Auth::user()->agent_id)->selectRaw('SEC_TO_TIME(SUM(TIMESTAMPDIFF(SECOND, breaktime, unbreaktime))) AS today_total_break')->first()->today_total_break;
+        // $this->totalBreakTime = AgentBreakSummary::whereBetween('breaktime', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->where('agentid', Auth::user()->agent_id)->selectRaw('SEC_TO_TIME(SUM(TIMESTAMPDIFF(SECOND, breaktime, unbreaktime))) AS today_total_break')->first()->today_total_break;
         $currentSkills = Auth::user()->currentQueues()->active()->get();
 
         foreach ($currentSkills as $key => $value) {
             $this->selectedSkills[$value["skill"]] = $value["skill"];
         }
+
+
     }
+
+    
+    public function hideBreak()
+    {
+        $this->isVisible = false;
+        $this->dispatchBrowserEvent('updateButton', ['isVisible' => $this->isVisible]);
+
+        // dd($this->isVisible);
+    }
+
+    public function showBreak()
+    {
+        $this->isVisible = true;
+        $this->dispatchBrowserEvent('updateButton', ['isVisible' => $this->isVisible]);
+
+        // dd($this->isVisible);
+    }
+
 
     public function render()
     {
@@ -66,13 +94,36 @@ class Index extends Component
             }
         ])->first();
 
+        $this->totalBreakTime = AgentBreakSummary::whereBetween('breaktime', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->where('agentid', Auth::user()->agent_id)->selectRaw('SEC_TO_TIME(SUM(TIMESTAMPDIFF(SECOND, breaktime, unbreaktime))) AS today_total_break')->first()->today_total_break;
+
+        Log::info('$isVisible:', [$this->isVisible]);
+
+
+
+
+
+
+        
+        $loggedUserId = Auth::id(); 
+    $redisKey = "highlighted_users:$loggedUserId";
+
+    Redis::select(5);
+
+    
+    $messagesCountIds = Redis::get($redisKey);
+    $messagesCountIds = $messagesCountIds ? json_decode($messagesCountIds, true) : [];
+    // $this->messagesCount = count($messagesCountIds) - 1 ;
+    $this->messagesCount = count($messagesCountIds) ;
+
+
+
         return view('livewire.dashboard.index');
     }
 
     public function updatedSelectedSkills($value, $name)
     {
 
-
+      
         $data = [
             [
                 'name' => 'extension',
@@ -98,10 +149,16 @@ class Index extends Component
             [
                 'name' => 'agentid',
                 'contents' => Auth::user()->agent_id
-            ]
+            ],
+            [
+                'name' => 'crm_token',
+                'contents' => $value ? session()->getId() : null
+            ],
         ];
         ApiManager::updateSkill($data);
 
         return redirect(route('dashboard.index'));
     }
+
+    
 }

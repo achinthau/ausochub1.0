@@ -24,6 +24,7 @@ return new class extends Migration
             $table->string('profile_photo_path', 2048)->nullable();
             $table->foreignId('agent_id')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

@@ -2,7 +2,12 @@
 
 namespace App\Http\Livewire\Tickets;
 
+use App\Models\CrmDepartment;
 use App\Models\Ticket;
+use App\Models\TicketActivity;
+use App\Models\User;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 use WireUi\Traits\Actions;
 
@@ -14,6 +19,15 @@ class Show extends Component
     public $showTicketModal = false;
     public $customerCard = false;
     public $comment = null;
+    public $loggedUser ;
+    public $users;
+    public $selectedDepartment;
+    public $assignOption = null;
+    public $changeDepartment = null;
+    public $departments;
+public $selectedUser = null;
+
+public ?TicketActivity $activity;
 
 
 
@@ -27,6 +41,7 @@ class Show extends Component
         return view('livewire.tickets.show');
     }
 
+
     public function updatedShowTicketModal($value)
     {
         if ($value) {
@@ -39,12 +54,19 @@ class Show extends Component
         $this->ticket = Ticket::find($ticketId);
         $this->showTicketModal = true;
         $this->customerCard = $customerCard;
+        $this->loggedUser= Auth::user() ;
+        $this->users= User::select('id','name')->where('department_id',$this->ticket->department_id)->get()->toArray();
+        $this->departments=CrmDepartment::select('id','name')->get()->toArray();
+        $this->emit('updatedTicketTable');
     }
 
     public function save()
     {
         $this->ticket->ticket_status_id = 2;
         $this->ticket->save();
+
+        $this->ticket->logActivity("Ticket Started");
+
         if ($this->customerCard) {
             $this->emitTo('leads.show', 'refreshCard');
         } else {
@@ -55,25 +77,38 @@ class Show extends Component
             $description = 'Ticket Opened'
         );
         $this->showTicketModal = false;
+        $this->emit('updatedTicketTable');
     }
 
 
     public function closeTicket()
     {
+
+        $this->validate([
+            'comment' => 'required'
+        ]);
+
         $this->ticket->ticket_status_id = 4;
+        $this->ticket->updated_at = Carbon::now();
         $this->ticket->save();
 
+        $this->ticket->logActivity("Ticket Closed", $this->comment);
 
         if ($this->customerCard) {
             $this->emitTo('leads.show', 'refreshCard');
         } else {
-            $this->emitTo('tickets.index', 'refreshList');
+            $this->emitTo('tickets.index-new', 'refreshList');
         }
+        $this->comment = null;
+        $this->ticket->refresh();
+
         $this->notification()->success(
             $title = 'Success',
             $description = 'Ticket Closed'
         );
         $this->showTicketModal = false;
+
+        $this->emit('updatedTicketTable');
     }
 
     public function comment()
@@ -92,5 +127,57 @@ class Show extends Component
             $title = 'Success',
             $description = 'Comment Added'
         );
+    }
+
+    public function assign()
+    {
+        $this->ticket->assigned_user_id = Auth::user()->id;
+        
+        if(!$this->ticket->department_id)
+        {
+            $this->ticket->department_id = Auth::user()->department_id;
+        }
+        // $this->ticket = $this->ticket->fresh('assignedUser');
+        // $this->activity->type = "Assigned to himself";
+        $this->ticket->logActivity("Assigned to himself", $this->comment);
+        $this->comment='';
+        $this->assignOption = null;
+        $this->ticket->save();
+        $this->ticket->refresh();
+        $this->emit('updatedTicketTable');
+    }
+
+    public function assignToUser()
+    {
+        $this->ticket->assigned_user_id = $this->selectedUser;
+        $this->ticket->save();
+        $this->ticket = $this->ticket->fresh('assignedUser');
+        $userName = User::where('id', $this->selectedUser)->value('name');
+        $this->ticket->logActivity("Assigned to ". $userName , $this->comment);
+        $this->comment='';
+        $this->assignOption = null;
+        $this->ticket->refresh();
+        $this->emit('updatedTicketTable');
+    }
+
+    public function unAssign()
+    {
+        $this->ticket->assigned_user_id = Null;
+        $this->ticket->save();
+        $this->ticket = $this->ticket->fresh('assignedUser');
+        $this->ticket->logActivity("Unassigned", $this->comment);
+        $this->ticket->refresh();
+        $this->emit('updatedTicketTable');
+    }
+
+    public function assignDepartment()
+    {
+        $this->ticket->department_id = $this->selectedDepartment;
+        $this->ticket->assigned_user_id = Null;
+        $this->changeDepartment = null;
+        $this->users= User::select('id','name')->where('department_id',$this->ticket->department_id)->get()->toArray();
+        $this->ticket->save();
+        $this->ticket->refresh();
+        $this->emit('updatedTicketTable');
     }
 }

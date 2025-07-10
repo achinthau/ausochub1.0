@@ -12,10 +12,22 @@
             option-label="title" option-value="id" />
 
         <x-textarea label="Address" placeholder="Enter address" rows=1 wire:model.defer="user.address" />
+        <x-textarea label="Tenant Contex" placeholder="Enter Company" rows=1 wire:model.defer="user.tenant_context"/>
 
         @if (($user && $user->agent) || ($user && $user->user_type_id > 2))
             <x-native-select label="Extension" placeholder="Select extension" :options="$extensions"
                 wire:model="user.extension" option-label="extension" option-value="extension" />
+        @endif
+
+        @if ($user && in_array($user->user_type_id,[9]))
+        <x-native-select
+            label="Department"
+            placeholder="Select department"
+            :options="$departments"
+            wire:model.defer="user.department_id"
+            option-label="name"
+            option-value="id"
+        />
         @endif
 
 

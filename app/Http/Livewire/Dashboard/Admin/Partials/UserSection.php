@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Http\Livewire\Dashboard\Admin\Partials;
+use Illuminate\Support\Facades\Redis;
+
 
 use App\Models\Agent;
 use App\Repositories\ApiManager;
@@ -12,11 +14,24 @@ class UserSection extends Component
 {
     public function render()
     {
-        $users = Agent::with(['currentActiveQueues', 'extensionDetails'])->get();
+        $users = Agent::with(['currentActiveQueues', 'extensionDetails', 'user'])->get();
+        $raisedHands = [];
+
+        Redis::select(1); // Select Redis DB 1
+
+    foreach ($users as $agent) {
+        $userId = optional($agent->user)->id;
+        if ($userId) {
+            $key = "hand_raised:{$userId}";
+            if (Redis::get($key)) {
+                $raisedHands[$userId] = true;
+            }
+        }
+    }
 
         return view(
             'livewire.dashboard.admin.partials.user-section',
-            ['users' => $users]
+            ['users' => $users, 'raisedHands' => $raisedHands,]
         );
     }
 

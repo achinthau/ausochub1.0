@@ -28,6 +28,7 @@ class UserTable extends LivewireDatatable
             Column::name('user_name')->filterable()->searchable(),
             Column::name('userType.title')->filterable(/* UserType::all()->pluck('title') */)->searchable(),
             Column::name('extension')->filterable()->label('Extension'),
+            Column::name('tenant_context')->filterable()->label('Tenant Contex'),
             DateColumn::name('created_at')->filterable()->searchable(),
 
             Column::callback('id', function ($id) {

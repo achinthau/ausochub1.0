@@ -3,9 +3,11 @@
 namespace App\Http\Livewire\Reports;
 
 use App\Models\Cdr;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\DateColumn;
+use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 use Mediconesystems\LivewireDatatables\NumberColumn;
 use Mediconesystems\LivewireDatatables\TimeColumn;
@@ -18,11 +20,11 @@ class CdrDetailTable extends LivewireDatatable
     public function builder()
     {
         return Cdr::query()
-        ->leftJoin('queuecount', function($join) {
-            $join->on('cdr.uniqueid', '=', 'queuecount.uniqueid')
-                 ->where('queuecount.status', '=', 2);
-        })
-        ->whereIn('lastapp', ['Dial', 'Queue']);
+            ->leftJoin('au_queuecount_report', function ($join) {
+                $join->on('cdr.uniqueid', '=', 'au_queuecount_report.uniqueid')
+                    ->where('au_queuecount_report.status', '=', 2);
+            })
+            ->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src','<>','');
     }
 
     public function columns()
@@ -46,10 +48,10 @@ class CdrDetailTable extends LivewireDatatable
             NumberColumn::name('billsec')->label('Bill Sec')->filterable()->hide(),
             Column::raw('SEC_TO_TIME(billsec)')->label('Bill Sec Duration')->filterable(),
             Column::name('disposition')->label('Disposition')->filterable($this->dispositions),
-            Column::name('queuecount.agent')->label('Extension')->filterable(),
+            Column::name('au_queuecount_report.agent')->label('Extension')->filterable(),
             Column::callback(['lastapp'], function ($lastapp) {
                 return $lastapp == 'Dial' ? 'Out' : 'In';
-            })->label('Direction')->filterable(['Dial' => 'Out','Queue' => 'In']),
+            })->label('Direction')->filterable(['Dial' => 'Out', 'Queue' => 'In']),
             Column::callback(['id', 'uniqueid'], function ($id, $uniqueid) {
                 return view('table-actions-v2', ['id' => $id, 'uniqueid' => $uniqueid]);
             })->unsortable()->excludeFromExport()
@@ -85,5 +87,15 @@ class CdrDetailTable extends LivewireDatatable
         $this->activeDateFilters[$index]['end'] = $end == "" ? $end : $end . " 23:59:59";;
         $this->page = 1;
         $this->setSessionStoredFilters();
+    }
+
+    public function export(string $filename = 'DatatableExport.xlsx')
+    {
+        $this->forgetComputed();
+
+        $export = new DatatableExport($this->getExportResultsSet());
+        $export->setFilename('cdr_detail_report_' . Carbon::now()->format('Ymdhis') . '.csv');
+
+        return $export->download();
     }
 }

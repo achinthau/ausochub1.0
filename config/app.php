@@ -214,4 +214,16 @@ return [
         // 'ExampleClass' => App\Example\ExampleClass::class,
     ])->toArray(),
 
+    // idle time
+        'idle_time' => env('IDLE_TIME_MINUTES', 2),
+
+        // raise hand time
+        'raise_hand_time' => env('RAISE_HAND_TIME', 10),
+
+        // user delete
+        'datecounts' => env('DATECOUNTS', 7),
+
+
+    
+
 ];

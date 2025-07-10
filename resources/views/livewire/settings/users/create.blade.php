@@ -25,6 +25,7 @@
         />
 
         <x-textarea label="Address" placeholder="Enter address" rows=1 wire:model.defer="user.address"/>
+        <x-textarea label="Tenant Contex" placeholder="Enter Company" rows=1 wire:model.defer="user.tenant_context"/>
 
         @if ($user && in_array($user->user_type_id,[5,6]))
         <x-native-select
@@ -33,6 +34,17 @@
             :options="$outlets"
             wire:model="user.outlet_id"
             option-label="title"
+            option-value="id"
+        />
+        @endif
+
+        @if ($user && in_array($user->user_type_id,[9]))
+        <x-native-select
+            label="Department"
+            placeholder="Select department"
+            :options="$departments"
+            wire:model="user.department_id"
+            option-label="name"
             option-value="id"
         />
         @endif

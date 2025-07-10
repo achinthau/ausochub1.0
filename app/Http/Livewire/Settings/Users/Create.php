@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Settings\Users;
 
 use App\Models\Agent;
+use App\Models\CrmDepartment;
 use App\Models\Outlet;
 use App\Models\User;
 use App\Models\UserType;
@@ -14,6 +15,7 @@ class Create extends Component
     public $createUserModal= false;
     public $userTypes ;
     public $outlets ;
+    public $departments ;
 
     public User $user;
 
@@ -27,7 +29,9 @@ class Create extends Component
         'user.nic' => 'required',
         'user.gender' => 'required',
         'user.address' => 'nullable',
+        'user.tenant_context' => 'nullable',
         'user.outlet_id' => 'required_if:user.user_type_id,5,6',
+        'user.department_id' => 'required_if:user.user_type_id,9',
     
     ];
 
@@ -37,6 +41,7 @@ class Create extends Component
 
     protected $messages = [
         'user.outlet_id.required_if' => 'The outlet field is required.',
+        'user.department_id.required_if' => 'The Department field is required.',
     ];
     
 
@@ -44,6 +49,7 @@ class Create extends Component
     {
         $this->userTypes = UserType::select('id','title')->get()->toArray();
         $this->outlets = Outlet::select('id','title')->get()->toArray();
+        $this->departments = CrmDepartment::select('id','name')->get()->toArray();
 
     }
 

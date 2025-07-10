@@ -1,6 +1,6 @@
-<div wire:poll="refreshComponent" class="flex items-center">
+<div wire:poll="refreshComponent" class="flex items-center {{ !$isVisible ? 'pointer-events-none opacity-50' : '' }}">
 
-    <div class="flex pr-8">
+    {{-- <div class="flex pr-8">
     <label for="toggle" class="relative inline-flex items-center cursor-pointer">
         <input type="checkbox" id="toggle" wire:model="isOutbound" class="sr-only peer" />
         <div
@@ -13,9 +13,9 @@
         <span class="ml-3 text-gray-700 font-medium">
             {{$boundType}}
         </span>
-    </div>
+    </div> --}}
 
-    <div class="flex ">
+    <div class="flex cursor-pointer">
         @if($isAcw)
         <div class=" font-bold text-gray-700 text-2xl pt-1 pl-4 pr-1">
             {{ gmdate('H:i:s', $time) }}
@@ -44,7 +44,7 @@
         @elseif($isAcw) <svg  wire:click="$emit('setAcw')" class="w-10 h-10 text-orange-500 hover:text-orange-400 hover:ring-orange-500" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" clip-rule="evenodd" d="M19.7778 2H4.22222C3 2 2 3 2 4.22222V19.7778C2 21 3 22 4.22222 22H19.7778C21 22 22 21 22 19.7778V4.22222C22 3 21 2 19.7778 2ZM16 8H8V16H16V8ZM14.6667 9.33333V14.6667H9.33333V9.33333H14.6667Z" fill="currentColor"></path></svg>
 
         @else
-        <svg wire:click="$emit('setAcw')" class="w-10 h-10 {{ $pauseTime ? 'text-red-500 hover:text-red-600 hover:ring-red-600' : ($isAcw ? 'text-orange-500 hover:text-orange-400 hover:ring-orange-500' : 'text-gray-500 hover:text-gray-600 hover:ring-gray-600') }}" viewBox="0 0 24 24"><path fill="currentColor" d="M3.464 20.536C4.93 22 7.286 22 12 22c4.714 0 7.071 0 8.535-1.465C22 19.072 22 16.714 22 12s0-7.071-1.465-8.536C19.072 2 16.714 2 12 2S4.929 2 3.464 3.464C2 4.93 2 7.286 2 12c0 4.714 0 7.071 1.464 8.535" opacity=".5"></path><path fill="currentColor" fill-rule="evenodd" d="M12 7.25a.75.75 0 0 1 .75.75v3.69l2.28 2.28a.75.75 0 1 1-1.06 1.06l-2.5-2.5a.75.75 0 0 1-.22-.53V8a.75.75 0 0 1 .75-.75" clip-rule="evenodd"></path></svg>
+        <svg wire:click="$emit('setAcw')" class="w-10 h-10 {{ $pauseTime ? 'text-red-500 hover:text-red-600 hover:ring-red-600' : ($isAcw ? 'text-orange-500 hover:text-orange-400 hover:ring-orange-500' : 'text-gray-500 hover:text-gray-900 hover:ring-gray-600') }}" viewBox="0 0 24 24"><path fill="currentColor" d="M3.464 20.536C4.93 22 7.286 22 12 22c4.714 0 7.071 0 8.535-1.465C22 19.072 22 16.714 22 12s0-7.071-1.465-8.536C19.072 2 16.714 2 12 2S4.929 2 3.464 3.464C2 4.93 2 7.286 2 12c0 4.714 0 7.071 1.464 8.535" opacity=".5"></path><path fill="currentColor" fill-rule="evenodd" d="M12 7.25a.75.75 0 0 1 .75.75v3.69l2.28 2.28a.75.75 0 1 1-1.06 1.06l-2.5-2.5a.75.75 0 0 1-.22-.53V8a.75.75 0 0 1 .75-.75" clip-rule="evenodd"></path></svg>
         @endif
 
 

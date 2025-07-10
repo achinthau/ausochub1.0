@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\UserActivityController;
+use App\Http\Livewire\Chat\Index as ChatIndex;
 use App\Http\Livewire\ContactFeeds\Index as ContactFeedsIndex;
 use App\Http\Livewire\Dashboard\Index;
 use App\Http\Livewire\Leads\Create;
@@ -11,6 +13,8 @@ use App\Http\Livewire\Reports\AbandonedCall;
 use App\Http\Livewire\Reports\BreakSummary;
 use App\Http\Livewire\Reports\AgentCallSummary;
 use App\Http\Livewire\Reports\AgentLoginLogoutReport;
+use App\Http\Livewire\Reports\NuisanceCustomers;
+use App\Http\Livewire\Reports\UnsatisfiedCustomers;
 // use App\Http\Livewire\Reports\CallDetail;
 use App\Http\Livewire\Reports\CdrDetail;
 use App\Http\Livewire\Reports\CdrListen;
@@ -26,14 +30,20 @@ use App\Http\Livewire\Settings\Index as SettingsIndex;
 use App\Http\Livewire\Settings\Moh\Index as MohIndex;
 use App\Http\Livewire\Settings\Queues\Index as QueuesIndex;
 use App\Http\Livewire\Settings\Skills\Index as SkillsIndex;
+use App\Http\Livewire\Settings\Tickets\Departments\Index as TicketDepartmentsIndex;
+use App\Http\Livewire\Settings\Tickets\ServiceCenter\Index as ServCenterIndex;
 use App\Http\Livewire\Settings\Users\Index as UsersIndex;
 use App\Http\Livewire\Tickets\Index as TicketsIndex;
 use App\Http\Livewire\Tickets\IndexNew;
+use App\Http\Livewire\CxTickets\Index as CxTicketsIndex;
+use App\Http\Livewire\CxTickets\Survey\Index as SurveyIndex;
 use App\Models\CallCenter\AbandonedCall as CallCenterAbandonedCall;
 use App\Models\DailyCallSummary;
 use App\Models\QueueCount;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -51,6 +61,15 @@ use Illuminate\Support\Facades\Route;
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
 
     Route::get('/', DashboardController::class)->name('dashboard.index');
+    Route::get('/live-dashboard', function () {
+        if (Gate::allows('live-dashboard-user')) {
+            return view('livewire.dashboard.admin.live.uaindex');
+        } elseif (Gate::allows('is-admin')) {
+            return view('livewire.dashboard.admin.live.index');
+        } else {
+            return abort(403, 'Unauthorized action.');
+        }
+    })->name('live-dashboard.index');
     Route::prefix('leads')->group(function () {
         Route::get('/', LeadsIndex::class)->name('leads.index')->can('can-view-leads');
         // Route::get('/{lead}', Create::class)->name('leads.create')->can('can-view-leads');
@@ -80,6 +99,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/daily-queue-summary-report', DailyQueueSummary::class)->name('reports.daily-queue-summary-report')->can('is-admin');
         Route::get('/daily-call-summary-report', ReportsDailyCallSummary::class)->name('reports.daily-calls-summary-report')->can('is-admin');
         Route::get('/agent-login-logout-report', AgentLoginLogoutReport::class)->name('reports.agent-login-logout-report')->can('is-admin');
+        Route::get('/nuisance-customers-report', NuisanceCustomers::class)->name('reports.nuisance-customers-report')->can('is-admin');
+        Route::get('/unsatisfied-customers-report', UnsatisfiedCustomers::class)->name('reports.unsatisfied-customers-report')->can('is-admin');
         // Route::get('/call-queue-report', CallQueue::class)->name('reports.call-queue-report')->can('is-admin');
     });
 
@@ -89,10 +110,44 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/extensions/', ExtensionsIndex::class)->name('settings.extensions.index')->can('is-admin');
         Route::get('/moh/', MohIndex::class)->name('settings.moh.index')->can('is-admin');
         Route::get('/skills/', SkillsIndex::class)->name('settings.skills.index')->can('is-admin');
+        Route::get('/ticketdep/', TicketDepartmentsIndex::class)->name('settings.tickets.departments.index')->can('is-admin');
+        Route::get('/service-center/', ServCenterIndex::class)->name('settings.tickets.serv-center.index')->can('is-admin');
     });
 
 
-        Route::get('/test', function(Request $request){
-            return session()->getId();
-        });
+    Route::get('/test', function (Request $request) {
+        return session()->getId();
+    });
+
+    // Route::post('/logout', function () {
+    //     Auth::logout();
+    //     return response()->json(['message' => 'Logged out']);
+    // })->name('logout');
+
+    // Route::post('/logout', function (Request $request) {
+    //     if (Auth::guard('web')->check()) {
+    //         Auth::guard('web')->logout();
+    
+    //         $request->session()->invalidate();
+    //         $request->session()->regenerateToken();
+    //     }
+    
+    //     return redirect('/login');
+    // })->name('logout');
+    
+
+
+    // Route::post('/logout', function (Request $request) {
+    //     $request->session()->invalidate();
+    //     $request->session()->regenerateToken();
+    //     return redirect('/login');
+    // })->name('logout');
+    
+
+    Route::get('/chat', ChatIndex::class)->name('chat.index');
+
+    Route::get('/cx-tickets', CxTicketsIndex::class)->name('cx-tickets.index');
+    Route::get('/cx-tickets/survey', SurveyIndex::class)->name('cx-tickets-survey.index');
+    
+    
 });

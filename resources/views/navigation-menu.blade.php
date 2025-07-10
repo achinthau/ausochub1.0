@@ -19,15 +19,46 @@
                         </x-jet-nav-link>
                     </div>
                 @endcan
+
+                {{-- @php
+                    use Illuminate\Support\Facades\Redis;
+
+                    $loggedUserId = Auth::id();
+                    $redisKey = "highlighted_users:$loggedUserId";
+
+                    $redis = app('redis')->connection();
+                    $redis->select(5);
+
+                    $messagesCountIds = $redis->get($redisKey);
+                    $messagesCountIds = $messagesCountIds ? json_decode($messagesCountIds, true) : [];
+                    $messagesCount = max(count($messagesCountIds) - 1, 0);
+                @endphp
+
+                <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex" wire:poll.3000ms>
+                    <x-jet-nav-link href="{{ route('chat.index') }}" :active="request()->routeIs('chat.index')"
+                        class="{{ $messagesCount > 0 ? 'text-green-500 font-bold' : '' }}">
+                        {{ __('Chat') }}
+                        @if ($messagesCount > 0)
+                            <span class="ml-2 bg-green-500 text-white px-2 py-1 text-xs rounded-full">
+                                {{ $messagesCount }}
+                            </span>
+                        @endif
+                    </x-jet-nav-link>
+                </div> --}}
+                @livewire('chat.chat-nav-button')
+
+
+
                 @can('can-view-leads')
                     <!-- Navigation Links -->
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                         <x-jet-nav-link href="{{ route('leads.index') }}" :active="request()->routeIs('leads.index')">
-                            {{ __('Leads') }}
+                            {{-- {{ __('Leads') }} --}}
+                            {{ __('Customers') }}
                         </x-jet-nav-link>
                     </div>
                 @endcan
-                @can('can-view-leads')
+                @can('can-view-tickets')
                     <!-- Navigation Links -->
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                         <x-jet-nav-link href="{{ route('tickets.index') }}" :active="request()->routeIs('tickets.index')">
@@ -35,6 +66,39 @@
                         </x-jet-nav-link>
                     </div>
                 @endcan
+                @can('can-view-leads')
+                    <!-- Navigation Bar with Dropdown -->
+                    <div class="hidden sm:flex sm:ml-10 pt-4">
+                        <div x-data="{ open: false }" class="relative">
+                            <!-- Dropdown Button -->
+                            <button @click="open = !open"
+                                class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none transition">
+                                Service-Tickets
+                                <svg class="ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
+                                    fill="currentColor">
+                                    <path fill-rule="evenodd"
+                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                                        clip-rule="evenodd" />
+                                </svg>
+                            </button>
+
+                            <!-- Dropdown Menu -->
+                            <div x-show="open" @click.away="open = false"
+                                class="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                                <a href="{{ route('cx-tickets.index') }}"
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    Info
+                                </a>
+                                <a href="{{ route('cx-tickets-survey.index') }}"
+                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                                    Survey
+                                </a>
+
+                            </div>
+                        </div>
+                    </div>
+                @endcan
+
                 {{-- @can('can-view-leads')
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
@@ -52,7 +116,16 @@
                     </div>
                 @endcan
                 @can('can-view-reports')
-                    <!-- Navigation Links -->
+                    @if (config('auso.external_extension_url'))
+                        <!-- Navigation Links -->
+                        <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                            <x-jet-nav-link href="{{ route('live-dashboard.index') }}" :active="request()->routeIs('live-dashboard.index')">
+                                {{-- {{ __('Live') }} --}}
+                                {{ __('Live Agents') }}
+                            </x-jet-nav-link>
+                        </div>
+                    @endif
+
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                         <x-jet-nav-link href="{{ route('reports.index') }}" :active="request()->routeIs('reports.index')">
                             {{ __('Reports') }}
@@ -131,28 +204,36 @@
                     <div class="ml-3 relative">
                         <div class="flex">
                             @can('is-agent')
-                            <div class="pr-8 pt-4">
-                                @livewire('dashboard.select-bound')
-                            </div>
+                                @if (Route::is('dashboard.index'))
+                                {{-- @if (request()->is('/')) --}}
+                                    <div class="flex justify-between">
+                                        <div class="pr-8 pt-4">
+                                            @livewire('dashboard.hand-raise')
+                                        </div>
+                                        <div class="pr-8 pt-4">
+                                        @livewire('dashboard.select-bound')
+                                    </div>
+                                    </div>
+                                @endif
                             @endcan
 
                             <x-jet-dropdown align="right" width="48">
                                 <x-slot name="trigger">
                                     @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
-                                    <div class="flex justify-between">
+                                        <div class="flex justify-between">
 
-                                        
 
-                                        <div>
-                                            <button
-                                            class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition mt-4">
-                                            <img class="h-8 w-8 rounded-full object-cover"
-                                                src="{{ Auth::user()->profile_photo_url }}"
-                                                alt="{{ Auth::user()->name }}" />
-                                        </button>
+
+                                            <div>
+                                                <button
+                                                    class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition mt-4">
+                                                    <img class="h-8 w-8 rounded-full object-cover"
+                                                        src="{{ Auth::user()->profile_photo_url }}"
+                                                        alt="{{ Auth::user()->name }}" />
+                                                </button>
+                                            </div>
+
                                         </div>
-                                        
-                                    </div>
                                     @else
                                         <span class="inline-flex rounded-md">
                                             <button type="button"

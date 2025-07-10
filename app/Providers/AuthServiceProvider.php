@@ -65,5 +65,19 @@ class AuthServiceProvider extends ServiceProvider
             return in_array($user->user_type_id, [1,2,3]);
         });
 
+        Gate::define('live-dashboard-user', function (User $user) {
+            return in_array($user->user_type_id, [8]);
+        });
+
+        Gate::define('can-see-user-details', function (User $user) {
+            return in_array($user->user_type_id, [1,2,3]);
+        });
+
+        Gate::define('can-view-tickets', function (User $user) {
+            return in_array($user->user_type_id, [1,2,3,4,9]);
+        });
+
+
+
     }
 }

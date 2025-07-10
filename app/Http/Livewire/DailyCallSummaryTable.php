@@ -9,6 +9,7 @@ use App\Models\DailyCallSummary;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Facades\Excel;
 use Rappasoft\LaravelLivewireTables\Views\Filters\DateFilter;
+use Rappasoft\LaravelLivewireTables\Views\Filters\DateTimeFilter;
 
 class DailyCallSummaryTable extends DataTableComponent
 {

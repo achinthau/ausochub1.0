@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Tables;
 
 use App\Models\QueueCount;
 use App\Models\Agent;
+use App\Models\QueueCountReport;
 use Carbon\Carbon;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\DateColumn;
@@ -18,19 +19,19 @@ class AgentCallSummaryTable extends LivewireDatatable
 
     public function builder()
     {
-        return QueueCount::select([
+        return QueueCountReport::select([
             'au_user.fname as agent_name',
-            'queuecount.queuename as queue_name',
-            'queuecount.ani as contact_number',
-            'queuecount.date as timestamp',
-            // \DB::raw('SEC_TO_TIME(TIMESTAMPDIFF(SECOND, queuecount.date, MIN(disconnected.date))) AS duration') // Adding 'AS duration'
+            'au_queuecount_report.queuename as queue_name',
+            'au_queuecount_report.ani as contact_number',
+            'au_queuecount_report.date as timestamp',
+            // \DB::raw('SEC_TO_TIME(TIMESTAMPDIFF(SECOND, au_queuecount_report.date, MIN(disconnected.date))) AS duration') // Adding 'AS duration'
         ])
-            ->join('queuecount as disconnected', 'queuecount.uniqueid', '=', 'disconnected.uniqueid')
-            ->join('au_user', 'queuecount.agent', '=', 'au_user.extension')
-            ->where('queuecount.status', 2)
+            ->join('au_queuecount_report as disconnected', 'au_queuecount_report.uniqueid', '=', 'disconnected.uniqueid')
+            ->join('au_user', 'au_queuecount_report.agent', '=', 'au_user.extension')
+            ->where('au_queuecount_report.status', 2)
             ->where('disconnected.status', 0)
-            ->groupBy('queuecount.uniqueid', 'queuecount.queuename', 'queuecount.agent', 'queuecount.date');
-        // ->orderBy('queuecount.date', 'desc');
+            ->groupBy('au_queuecount_report.uniqueid', 'au_queuecount_report.queuename', 'au_queuecount_report.agent', 'au_queuecount_report.date');
+        // ->orderBy('au_queuecount_report.date', 'desc');
 
     }
 
@@ -39,7 +40,7 @@ class AgentCallSummaryTable extends LivewireDatatable
         return [
             DateColumn::name('date')->label('Date')
                 // ->defaultSort('desc')
-                ->sortBy('DATE_FORMAT(queuecount.date, "%m%d%Y")')
+                // ->sortBy('DATE_FORMAT(au_queuecount_report.date, "%m%d%Y")')
                 ->sortable()->defaultSort('desc')
                 ->filterable(),
 
@@ -50,14 +51,17 @@ class AgentCallSummaryTable extends LivewireDatatable
             Column::name('queuename')->label('Queue Name')
                 ->filterable(),
 
-            Column::name('ani')->label('Contact Number')
+            Column::name('ani')->label('From')
                 ->filterable(),
 
-            Column::raw('SEC_TO_TIME(TIMESTAMPDIFF(SECOND, queuecount.date, MIN(disconnected.date))) AS duration')->label('Duration')
+                Column::name('dnis')->label('To')
+                ->filterable(),
+
+            Column::raw('SEC_TO_TIME(TIMESTAMPDIFF(SECOND, au_queuecount_report.date, MIN(disconnected.date))) AS duration')->label('Duration')
                 ->sortable(),
 
-            Column::raw("TIMESTAMPDIFF(SECOND, queuecount.date, MIN(disconnected.date)) AS total_seconds")
-                ->label('Total Seconds'),
+            // Column::raw("TIMESTAMPDIFF(SECOND, au_queuecount_report.date, MIN(disconnected.date)) AS total_seconds")
+            //     ->label('Total Seconds'),
         ];
     }
 

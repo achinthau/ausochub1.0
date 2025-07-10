@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Dashboard;
 
 use App\Models\AgentBreakSummary;
+use App\Models\AgentBreakSummaryReport;
 use App\Models\BreakType;
 use App\Repositories\ApiManager;
 use Carbon\Carbon;
@@ -23,6 +24,8 @@ class SelectBound extends Component
     public $breakType = 3;
     public $description;
 
+    public $isVisible;
+
     protected $listeners = ['changeBound' => 'changeTheBound', 'setAcw' => 'setAcw', 'updateTime' => 'updateTime'];
 
     protected $rules = [
@@ -36,6 +39,12 @@ class SelectBound extends Component
 
         $this->breakTypes = BreakType::all();
 
+        if (Cache::get('setBreak') === 'true') {
+            $this->isVisible = false;
+        } else {
+            $this->isVisible = true;
+        }
+
         $userId = auth()->id();
         $cachedState = Cache::get("acw_state_{$userId}");
 
@@ -45,6 +54,7 @@ class SelectBound extends Component
             $this->isAcw = $cachedState['isAcw'];
         }
     }
+
 
     public function refreshComponent()
     {
@@ -92,6 +102,7 @@ class SelectBound extends Component
 
     public function startAcw()
     {
+        $this->emitTo('dashboard.index','hideBreak');
         // $this->validate();
         $user = Auth::user();
 
@@ -148,21 +159,38 @@ class SelectBound extends Component
             'isAcw' => $this->isAcw,
         ]);
 
+        
         ApiManager::startBreak($data);
     }
 
     public function endAcw()
     {
         $user = Auth::user();
+
+        // if ($user->agent_break_id) {
         $agentBreakSummary = AgentBreakSummary::find($user->agent_break_id);
-        $agentBreakSummary->unbreaktime = Carbon::now();
-        $agentBreakSummary->status = 0;
-        $agentBreakSummary->save();
+        if ($agentBreakSummary) {
+            $agentBreakSummary->unbreaktime = Carbon::now();
+            $agentBreakSummary->status = 0;
+            $agentBreakSummary->save();
+            // }
+        }
+        else
+        {
+            $agentBreakSummary = AgentBreakSummaryReport::find($user->agent_break_id);
+            if ($agentBreakSummary) {
+                $agentBreakSummary->unbreaktime = Carbon::now();
+                $agentBreakSummary->status = 0;
+                $agentBreakSummary->save();
+            }
+        }
+
 
         $user->break_started_at = null;
         $user->agent_break_id = null;
         $user->agent_break_type = null;
         $user->save();
+
 
         $breakType = $this->breakTypes->where('id', $this->breakType)->first();
         $data = [
@@ -189,7 +217,7 @@ class SelectBound extends Component
             ],
             [
                 'name' => 'comment',
-                'contents' => $agentBreakSummary->desc
+                'contents' => $agentBreakSummary ? $agentBreakSummary->desc  : 'Invalid Rec'
             ],
             [
                 'name' => 'breakType',
@@ -200,6 +228,7 @@ class SelectBound extends Component
         $userId = auth()->id();
         Cache::forget("acw_state_{$userId}");
 
+        $this->emit('showBreak');
         ApiManager::startBreak($data);
     }
 
@@ -228,6 +257,16 @@ class SelectBound extends Component
             'time' => $this->time,
             'isAcw' => $this->isAcw,
         ]);
+    }
+
+    public function setVisibility()
+    {
+        $this->isVisible = true;
+    }
+
+    public function setInvisibility()
+    {
+        $this->isVisible = false;
     }
 
 

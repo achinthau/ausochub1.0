@@ -9,6 +9,7 @@ use App\Models\AgentLogin;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Rappasoft\LaravelLivewireTables\Views\Filters\DateFilter;
+use Rappasoft\LaravelLivewireTables\Views\Filters\DateTimeFilter;
 
 class AgentLoginLogoutTable extends DataTableComponent
 {
@@ -20,7 +21,8 @@ class AgentLoginLogoutTable extends DataTableComponent
 
     public function configure(): void
     {
-        $this->setPrimaryKey('id');
+        $this->setPrimaryKey('id')
+        ->setDefaultSort('login_time', 'desc');
 
         $this->setBulkActions([
             'exportSelected' => 'Export',
@@ -78,21 +80,26 @@ class AgentLoginLogoutTable extends DataTableComponent
 
     public function filters(): array
     {
+
         return [
-            
-            DateFilter::make('From')
+            DateTimeFilter::make('From')
                 ->config([
-                    // 'min' => '2020-01-01',
-                    // 'max' => '2021-12-31',
+                    // Optional: Specify format or range limits
+                    'enableTime' => true, // Enables time selection
+                    'time_24hr' => true, // Optional: Use 24-hour format
                 ])
                 ->filter(function (Builder $builder, string $value) {
                     $builder->where('login_time', '>=', $value);
                 }),
-            DateFilter::make('To')
+    
+            DateTimeFilter::make('To')
+                ->config([
+                    'enableTime' => true, // Enables time selection
+                    'time_24hr' => true, // Optional: Use 24-hour format
+                ])
                 ->filter(function (Builder $builder, string $value) {
                     $builder->where('login_time', '<=', $value);
-                })
-
+                }),
         ];
     }
 

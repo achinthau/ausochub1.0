@@ -131,10 +131,10 @@ class Index extends Component
 
             // dd($skills);
 
-             $currentSkills = Auth::user()->currentQueues()->active()->get()->pluck('skill')->unique();
-        foreach ($currentSkills as $skill) { 
-            dd($skill,$value,$name);
-        }
+        //      $currentSkills = Auth::user()->currentQueues()->active()->get()->pluck('skill')->unique();
+        // foreach ($currentSkills as $skill) { 
+        //     dd($skill,$value,$name);
+        // }
         
       
         $data = [

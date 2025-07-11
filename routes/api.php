@@ -346,80 +346,11 @@ Route::post('/agent-disconnected', function (Request $request) {
 // Route::post('/asterisk-events', [AsteriskEventController::class, 'handleEvent']);
 
 
-// Route::post('/logout-socket', function (\Illuminate\Http\Request $request) {
-//     $userId = $request->input('user_id');
-
-
-//     if ($userId) {
-
-
-//         $currentSkills = Auth::user()->currentQueues()->active()->get()->pluck('skill')->unique();
-//         if($currentSkills)
-//         {
-//         foreach ($currentSkills as $skill) { 
-
-//                  $data = [
-//             [
-//                 'name' => 'extension',
-//                 'contents' => Auth::user()->agent->extension
-//             ],
-//             [
-//                 'name' => 'type',
-//                 // 'contents' => 'SIP'
-//                 'contents' => Auth::user()->agent->extensionDetails->exten_type
-//             ],
-//             [
-//                 'name' => 'agentip',
-//                 'contents' => '123.231.121.61'
-//             ],
-//             [
-//                 'name' => 'queue',
-//                 'contents' => $skill
-//             ],
-//             [
-//                 'name' => 'action',
-//                 'contents' => 'remove'
-//             ],
-//             [
-//                 'name' => 'agentid',
-//                 'contents' => Auth::user()->agent_id
-//             ],
-//             [
-//                 'name' => 'crm_token',
-//                 'contents' => session()->getId() ? session()->getId() : null,
-//             ],
-//         ];
-//         ApiManager::updateSkill($data);
-//         } 
-//     }
-
-
-
-//         DB::table('sessions')
-//             ->where('user_id', $userId)
-//             ->delete();
-
-//     }
-     
-
-    
-//     \App\Models\AgentLogin::where('user_id', $userId)
-//         ->latest('login_time')
-//         ->first()
-//         ?->update(['logout_time' => now()]);
-
-//     Log::info("Socket logout for user {$userId}");
-
-//     return response()->noContent();
-
-    
-// });
-
 Route::post('/logout-socket', function (\Illuminate\Http\Request $request) {
     $userId = $request->input('user_id');
 
     if ($userId) {
-        $user = User::with(['agent', 'agent.extensionDetails', 'currentQueues'])->find($userId); // preload necessary relations
+        $user = User::with(['agent', 'agent.extensionDetails', 'currentQueues'])->find($userId); 
 
         if (!$user) {
             return response()->json(['error' => 'User not found'], 404);
@@ -435,7 +366,7 @@ Route::post('/logout-socket', function (\Illuminate\Http\Request $request) {
                 ['name' => 'queue', 'contents' => $skill],
                 ['name' => 'action', 'contents' => 'remove'],
                 ['name' => 'agentid', 'contents' => $user->agent_id],
-                ['name' => 'crm_token', 'contents' => null], // No session here, so set to null
+                ['name' => 'crm_token', 'contents' => null], 
             ];
 
             ApiManager::updateSkill($data);

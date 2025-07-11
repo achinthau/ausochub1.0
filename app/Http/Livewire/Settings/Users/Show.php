@@ -180,14 +180,14 @@ public function deleteUser($id)
         return;
     }
 
-    $dateLimit = Carbon::now()->subDays(config('app.datecounts'));
+    $dateLimit = Carbon::now()->subDays(config('app.user_inactive_days'));
 
     $lastLogin = optional($user->agentLogins()->latest('login_time')->first())->login_time;
 
     if ($lastLogin && $lastLogin > $dateLimit) {
         $this->dispatchBrowserEvent('notification', [
             'type' => 'error',
-            'message' => 'Cannot delete user who logged in within the last ' . config('app.datecounts') . ' days.'
+            'message' => 'Cannot delete user who logged in within the last ' . config('app.user_inactive_days') . ' days.'
         ]);
         return;
     }

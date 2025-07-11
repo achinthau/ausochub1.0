@@ -130,6 +130,11 @@ class Index extends Component
 
 
             // dd($skills);
+
+             $currentSkills = Auth::user()->currentQueues()->active()->get()->pluck('skill')->unique();
+        foreach ($currentSkills as $skill) { 
+            dd($skill,$value,$name);
+        }
         
       
         $data = [
@@ -163,7 +168,7 @@ class Index extends Component
                 'contents' => $value ? session()->getId() : null
             ],
         ];
-        ApiManager::updateSkill($data);
+        // ApiManager::updateSkill($data);
 
         return redirect(route('dashboard.index'));
     }

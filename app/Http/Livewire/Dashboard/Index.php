@@ -168,7 +168,7 @@ class Index extends Component
                 'contents' => $value ? session()->getId() : null
             ],
         ];
-        // ApiManager::updateSkill($data);
+        ApiManager::updateSkill($data);
 
         return redirect(route('dashboard.index'));
     }

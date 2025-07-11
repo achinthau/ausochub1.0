@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AsteriskEventController;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\DB;
+use App\Repositories\ApiManager;
 
 
 /*
@@ -347,13 +348,54 @@ Route::post('/logout-socket', function (\Illuminate\Http\Request $request) {
     $userId = $request->input('user_id');
 
     if ($userId) {
-        // Optionally: Find and delete user's session
+
+        $currentSkills = Auth::user()->currentQueues()->active()->get()->pluck('skill')->unique();
+        foreach ($currentSkills as $skill) { 
+
+                 $data = [
+            [
+                'name' => 'extension',
+                'contents' => Auth::user()->agent->extension
+            ],
+            [
+                'name' => 'type',
+                // 'contents' => 'SIP'
+                'contents' => Auth::user()->agent->extensionDetails->exten_type
+            ],
+            [
+                'name' => 'agentip',
+                'contents' => '123.231.121.61'
+            ],
+            [
+                'name' => 'queue',
+                'contents' => $skill
+            ],
+            [
+                'name' => 'action',
+                'contents' => 'remove'
+            ],
+            [
+                'name' => 'agentid',
+                'contents' => Auth::user()->agent_id
+            ],
+            [
+                'name' => 'crm_token',
+                'contents' => session()->getId() ? session()->getId() : null,
+            ],
+        ];
+        ApiManager::updateSkill($data);
+        } 
+
+        
         DB::table('sessions')
             ->where('user_id', $userId)
             ->delete();
-    }
 
-    // Record logout time in your DB
+        
+    }
+     
+
+    
     \App\Models\AgentLogin::where('user_id', $userId)
         ->latest('login_time')
         ->first()

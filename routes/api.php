@@ -347,9 +347,7 @@ Route::post('/agent-disconnected', function (Request $request) {
 Route::post('/logout-socket', function (\Illuminate\Http\Request $request) {
     $userId = $request->input('user_id');
 
-    if ($userId) {
-
-        $currentSkills = Auth::user()->currentQueues()->active()->get()->pluck('skill')->unique();
+    $currentSkills = Auth::user()->currentQueues()->active()->get()->pluck('skill')->unique();
         foreach ($currentSkills as $skill) { 
 
                  $data = [
@@ -385,6 +383,10 @@ Route::post('/logout-socket', function (\Illuminate\Http\Request $request) {
         ];
         ApiManager::updateSkill($data);
         } 
+
+    if ($userId) {
+
+        
 
         
         DB::table('sessions')

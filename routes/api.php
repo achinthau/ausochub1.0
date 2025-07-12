@@ -15,6 +15,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AsteriskEventController;
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\DB;
+use App\Repositories\ApiManager;
+use Illuminate\Support\Facades\Auth;
+
 
 
 /*
@@ -347,19 +350,43 @@ Route::post('/logout-socket', function (\Illuminate\Http\Request $request) {
     $userId = $request->input('user_id');
 
     if ($userId) {
-        // Optionally: Find and delete user's session
+        $user = User::with(['agent', 'agent.extensionDetails', 'currentQueues'])->find($userId); 
+
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $currentSkills = $user->currentQueues()->active()->pluck('skill')->unique();
+
+        foreach ($currentSkills as $skill) {
+            $data = [
+                ['name' => 'extension', 'contents' => optional($user->agent)->extension],
+                ['name' => 'type', 'contents' => optional(optional($user->agent)->extensionDetails)->exten_type],
+                ['name' => 'agentip', 'contents' => '123.231.121.61'],
+                ['name' => 'queue', 'contents' => $skill],
+                ['name' => 'action', 'contents' => 'remove'],
+                ['name' => 'agentid', 'contents' => $user->agent_id],
+                ['name' => 'crm_token', 'contents' => null], 
+            ];
+
+            ApiManager::updateSkill($data);
+        }
+
         DB::table('sessions')
             ->where('user_id', $userId)
             ->delete();
+
+        \App\Models\AgentLogin::where('user_id', $userId)
+            ->latest('login_time')
+            ->first()
+            ?->update(['logout_time' => now()]);
+
+        Log::info("Socket logout for user {$userId}");
+
+        return response()->noContent();
     }
 
-    // Record logout time in your DB
-    \App\Models\AgentLogin::where('user_id', $userId)
-        ->latest('login_time')
-        ->first()
-        ?->update(['logout_time' => now()]);
-
-    Log::info("Socket logout for user {$userId}");
-
-    return response()->noContent();
+    return response()->json(['error' => 'User ID required'], 400);
 });
+
+

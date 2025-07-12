@@ -123,6 +123,19 @@ class Index extends Component
     public function updatedSelectedSkills($value, $name)
     {
 
+        // dd($value,$name);
+        // dd(Auth::user()->currentQueues()->active()->get());
+        // $currentSkills = Auth::user()->currentQueues()->active()->get();
+        // $skills = Auth::user()->currentQueues()->active()->get()->pluck('skill')->unique();
+
+
+            // dd($skills);
+
+        //      $currentSkills = Auth::user()->currentQueues()->active()->get()->pluck('skill')->unique();
+        // foreach ($currentSkills as $skill) { 
+        //     dd($skill,$value,$name);
+        // }
+        
       
         $data = [
             [

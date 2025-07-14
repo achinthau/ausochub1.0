@@ -27,6 +27,15 @@
 </a>
 
     </div>
+
+    <div class="flex space-x-1 justify-around pl-2">
+        <a href="#"
+    wire:click.prevent="$emitTo('cx-tickets.survey.rating-panel', 'reOpenTicket', {{ $clientActivity }})"
+    class="py-1 px-4 pt-1 bg-orange-400 hover:bg-orange-500 text-black rounded-md">
+    <button >ReOpen</button>
+</a>
+
+    </div>
     
     <script>
         function confirmCancel(clientActivity) {

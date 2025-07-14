@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('product');
             $table->string('company');
             $table->string('model');
-            $table->string('work_order_no')->unique();
+            $table->string('work_order_no');
             $table->string('service_center');
             $table->string('warranty_status');
             $table->date('sold_date');

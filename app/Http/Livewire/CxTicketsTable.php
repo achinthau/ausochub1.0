@@ -66,6 +66,7 @@ class CxTicketsTable extends DataTableComponent
                 'Closed' => 'Closed',
                 'Rated' => 'Rated',
                 'Canceled' => 'Canceled',
+                'ReOpened' => 'ReOpened',
             ])
             ->filter(function ($query, $value) {
                 if ($value !== '') {

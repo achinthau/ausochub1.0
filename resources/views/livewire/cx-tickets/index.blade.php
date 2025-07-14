@@ -30,11 +30,17 @@
                 <div class="flex-1">
                 @livewire('cx-tickets.counts.un-satisfied')
                 </div>
+
+                </div>
+                <div class="flex justify-between pb-4 gap-4">
                 <div class="flex-1">
                 @livewire('cx-tickets.counts.passive')
                 </div>
                 <div class="flex-1">
                 @livewire('cx-tickets.counts.canceled')
+                </div>
+                <div class="flex-1">
+                @livewire('cx-tickets.counts.re-opened')
                 </div>
             </div>
             <livewire:cx-tickets-table />

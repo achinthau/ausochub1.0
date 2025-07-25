@@ -18,7 +18,7 @@ class RatingPanel extends Component
     public $rating = 0;
     public $hoverRating = 0;
 
-    protected $listeners = ['showCxTicketRatingModal' => 'showCxTicketRating', 'cancelRatings' => 'cancelRatings', 'reOpenTicket' => 'reOpenTicket'];
+    protected $listeners = ['showCxTicketRatingModal' => 'showCxTicketRating', 'cancelRatings' => 'cancelRatings'];
 
     public $ticket_id;
 
@@ -193,23 +193,6 @@ class RatingPanel extends Component
             $this->emit('cxTicketSurveyUpdated');
         }
     }
-
-    public function reOpenTicket($id)
-    {
-        $ticket = CxTicket::find($id);
-        if($ticket)
-        {
-            $ticket->status = 'ReOpened';
-            $ticket->save();
-
-            $newTicket = $ticket->replicate();
-            $newTicket->status = 'Open';
-            $newTicket->created_at = now();
-            $newTicket->updated_at = now();
-            $newTicket->save();
-        }
-    }
-
 
     public function render()
     {

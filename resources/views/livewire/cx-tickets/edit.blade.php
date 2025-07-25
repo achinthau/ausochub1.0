@@ -134,7 +134,7 @@
 
                 <div class="flex items-center space-x-2">
                     <x-button flat label="Cancel" x-on:click="close" />
-                    @if($status == "Open")
+                    @if($status == "Open" || $status == "ReOpened")
                         <x-button primary label="Close Ticket" wire:click="closeTicket" />
                     @endif
                     <x-button primary label="Update" wire:click="update" />

@@ -18,19 +18,6 @@ class UnsatisfiedCustomersTable extends LivewireDatatable
 
     public function builder()
     {
-        // return Cdr::query()
-        //     ->where(function ($query) {
-        //         $query->whereIn('uniqueid', function ($q) {
-        //             $q->select('uniqueid')
-        //               ->from('au_callcount_report')
-        //               ->where('customer_reaction', 1);
-        //         })
-        //         ->orWhereIn('uniqueid', function ($q) {
-        //             $q->select('uniqueid')
-        //               ->from('au_queuecount_report')
-        //               ->where('customer_reaction', 1);
-        //         });
-        //     });
 
         return Cdr::query()
     ->leftJoin('au_queuecount_report', function ($join) {

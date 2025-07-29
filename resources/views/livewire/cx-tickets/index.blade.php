@@ -21,26 +21,27 @@
                     @livewire('cx-tickets.counts.open')
                 </div>
                 <div class="flex-1">
+                @livewire('cx-tickets.counts.re-opened')
+                </div>
+                <div class="flex-1">
                 @livewire('cx-tickets.counts.closed')
                 </div>
                 <div class="flex-1">
-                
-                @livewire('cx-tickets.counts.rated')
-                </div>
-                <div class="flex-1">
-                @livewire('cx-tickets.counts.un-satisfied')
+                @livewire('cx-tickets.counts.canceled')
                 </div>
 
                 </div>
                 <div class="flex justify-between pb-4 gap-4">
                 <div class="flex-1">
+                @livewire('cx-tickets.counts.rated')
+                </div>
+                <div class="flex-1">
+                
                 @livewire('cx-tickets.counts.passive')
                 </div>
                 <div class="flex-1">
-                @livewire('cx-tickets.counts.canceled')
-                </div>
-                <div class="flex-1">
-                @livewire('cx-tickets.counts.re-opened')
+                
+                @livewire('cx-tickets.counts.un-satisfied')
                 </div>
             </div>
             <livewire:cx-tickets-table />

@@ -18,34 +18,24 @@ class UnsatisfiedCustomersTable extends LivewireDatatable
 
     public function builder()
     {
-        // return Cdr::query()
-        //     ->where(function ($query) {
-        //         $query->whereIn('uniqueid', function ($q) {
-        //             $q->select('uniqueid')
-        //               ->from('au_callcount_report')
-        //               ->where('customer_reaction', 1);
-        //         })
-        //         ->orWhereIn('uniqueid', function ($q) {
-        //             $q->select('uniqueid')
-        //               ->from('au_queuecount_report')
-        //               ->where('customer_reaction', 1);
-        //         });
-        //     });
 
-        return Cdr::query()
-    ->leftJoin('au_queuecount_report', function ($join) {
-        $join->on('cdr.uniqueid', '=', 'au_queuecount_report.uniqueid')
-             ->where('au_queuecount_report.customer_reaction', '=', 1);
-    })
-    ->leftJoin('au_callcount_report', function ($join) {
-        $join->on('cdr.uniqueid', '=', 'au_callcount_report.uniqueid')
-             ->where('au_callcount_report.customer_reaction', '=', 1)
-             ->where('au_callcount_report.direction', '=', 'out');
-    })
-    ->where(function ($query) {
-        $query->whereNotNull('au_queuecount_report.uniqueid')
-              ->orWhereNotNull('au_callcount_report.uniqueid');
-    });
+    //     return Cdr::query()
+    // ->leftJoin('au_queuecount_report', function ($join) {
+    //     $join->on('cdr.uniqueid', '=', 'au_queuecount_report.uniqueid')
+    //          ->where('au_queuecount_report.customer_reaction', '=', 1);
+    // })
+    // ->leftJoin('au_callcount_report', function ($join) {
+    //     $join->on('cdr.uniqueid', '=', 'au_callcount_report.uniqueid')
+    //          ->where('au_callcount_report.customer_reaction', '=', 1)
+    //          ->where('au_callcount_report.direction', '=', 'out');
+    // })
+    // ->where(function ($query) {
+    //     $query->whereNotNull('au_queuecount_report.uniqueid')
+    //           ->orWhereNotNull('au_callcount_report.uniqueid');
+    // });
+
+    return Cdr::query();
+
     }
 
     public function columns()
@@ -64,9 +54,21 @@ class UnsatisfiedCustomersTable extends LivewireDatatable
             // NumberColumn::name('duration')->label('Duration')->filterable(),
             NumberColumn::name('billsec')->label('BillSec')->filterable(),
             // Column::name('disposition')->label('Disposition')->filterable(),
-            Column::callback(['lastapp', 'au_queuecount_report.agent', 'au_callcount_report.ani'], function ($lastapp, $agent, $ani) {
-    return $lastapp == 'Queue' ? $agent : ('Dial' ? $ani :'');
+
+//             Column::callback(['lastapp', 'au_queuecount_report.agent', 'au_callcount_report.ani'], function ($lastapp, $agent, $ani) {
+//     return $lastapp == 'Queue' ? $agent : ('Dial' ? $ani :'');
+// })->label('Extension')->sortable()->searchable(),
+
+Column::callback(['lastapp', 'dstchannel'], function ($lastapp, $dstchannel) {
+    if ($lastapp === 'Queue' && $dstchannel) {
+        if (preg_match('/SIP\/(\d+)-/', $dstchannel, $matches)) {
+            return $matches[1]; 
+        }
+    }
+
+    return ''; 
 })->label('Extension')->sortable()->searchable(),
+
 
             Column::callback(['id', 'uniqueid'], function ($id, $uniqueid) {
                 return view('table-actions-v2', ['id' => $id, 'uniqueid' => $uniqueid]);

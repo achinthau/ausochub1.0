@@ -151,6 +151,7 @@ public function builder(): Builder
             // Column::make("Created at", "created_at")->sortable(),
             Column::make("Closed_BY", "closed_by")->sortable(),
             Column::make("Reopened_BY", "reopened_by")->sortable(),
+            Column::make("Reopened_REASON", "reopened_reasons")->sortable(),
             Column::make("Company", "company")->sortable(),
             Column::make("Surveyed By", "surveyed_by")->sortable(),
             Column::make("Updated at", "updated_at")->sortable(),

@@ -101,7 +101,7 @@ public function builder(): Builder
 
     }
 
-    return $query;
+    return $query->orderBy('updated_at', 'desc');
 }
 
 // public function filters(): array

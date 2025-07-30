@@ -27,7 +27,17 @@ class NewTicketTable extends DataTableComponent
     public $selectedDepartment = null;
     public $selectedItem = null;
 
-protected $listeners = ['departmentUpdated' => 'setDepartment', 'refreshTable' => '$refresh', 'ItemUpdated' => 'setItem', 'updatedTicketTable' => '$refresh'];
+protected $listeners = ['departmentUpdated' => 'setDepartment', 'refreshTable' => '$refresh', 'ItemUpdated' => 'setItem', 'updatedTicketTable' => '$refresh',  'TicketsFilterByStatus' => 'TicketsFilterByStatus'];
+
+
+public function TicketsFilterByStatus($status)
+{
+    // dd('dsd');
+    // $this->setFilter('Status', $status);
+     $this->setFilter('status', is_array($status) ? $status : [$status]);
+    $this->resetPage();
+}
+
 
 public function setDepartment($deptId)
 {

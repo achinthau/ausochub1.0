@@ -23,19 +23,19 @@
         <div class="">
 
             <div class="flex justify-between pb-2 gap-4">
-                <div class="flex-1">
+                <div wire:click="$emit('TicketsFilterByStatus', '1')" class="flex-1">
                     @livewire('ticket-items.counts.new-count')
                 </div>
-                <div class="flex-1">
+                <div wire:click="$emit('TicketsFilterByStatus', '2')" class="flex-1">
                     @livewire('ticket-items.counts.open-count')
                 </div>
-                <div class="flex-1">
+                <div wire:click="$emit('TicketsFilterByStatus', '3')" class="flex-1">
                     @livewire('ticket-items.counts.overdue-count')
                 </div>
-                <div class="flex-1">
+                <div wire:click="$emit('TicketsFilterByStatus', '4')" class="flex-1">
                     @livewire('ticket-items.counts.closed-count')
                 </div>
-                <div class="flex-1">
+                <div wire:click="$emit('TicketsFilterByStatus', '5')" class="flex-1">
                     @livewire('ticket-items.counts.canceled-count')
                 </div>
             </div>

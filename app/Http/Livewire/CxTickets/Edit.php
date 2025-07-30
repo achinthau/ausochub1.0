@@ -5,6 +5,7 @@ use App\Models\CxTicket;
 use App\Models\CxTicketServCenter;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use App\Models\User;
 
 class Edit extends Component
 {
@@ -18,13 +19,35 @@ class Edit extends Component
 
     public $serviceCenters = [];
 
+    public $technicians = [];
+    public $supervisors = [];
+
     protected $listeners = ['showUpdateTicketModal' => 'showUpdateTicket'];
 
     public function mount()
     {
         $this->ticket = new CxTicket(); 
         $this->serviceCenters = CxTicketServCenter::all(['id', 'name']);
+         $this->technicians = User::where('user_type_id', 10)->get(['id', 'name', 'phone']);
+         $this->supervisors = User::whereIn('user_type_id', [11,10])->get(['id', 'name', 'phone']);
     }
+
+    public function updatedTechnicianName($value)
+{
+    $tech = $this->technicians->firstWhere('name', $value);
+    $this->technician_contact = $tech?->phone ?? '';
+}
+
+public function updatedSupervisorName($value)
+{
+    $user = $this->supervisors->firstWhere('name', $value);
+    if ($user) {
+        $this->supervisor_contact = $user->phone;
+    } else {
+        $this->supervisor_contact = '';
+    }
+}
+
 
 
     public function showUpdateTicket($id)

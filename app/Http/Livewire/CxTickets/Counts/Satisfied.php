@@ -20,7 +20,7 @@ class Satisfied extends Component
 
     public function refreshComponent()
     {
-        $this->ratedCount = CxTicket::where('status', 'Rated')->where('satisfaction_rate','>',3)->count();
+        $this->ratedCount = CxTicket::where('status', 'Rated')->where('satisfaction_rate','>=',3)->count();
         // $this->ratedCount = CxTicket::whereNotNull('satisfaction_rate')
         //                     ->where('satisfaction_rate', '<', 3)
         //                     ->count();

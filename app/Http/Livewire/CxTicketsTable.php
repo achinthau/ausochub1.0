@@ -14,7 +14,15 @@ class CxTicketsTable extends DataTableComponent
 {
     protected $model = CxTicket::class;
 
-    protected $listeners = ['cxTicketUpdated' => 'refreshTable'];
+    protected $listeners = ['cxTicketUpdated' => 'refreshTable', 'filterTicketsByStatus' => 'filterByStatus',];
+
+    public function filterByStatus($status)
+{
+    
+    $this->setFilter('status', $status);
+    $this->resetPage();
+}
+
 
     public function refreshTable()
     {
@@ -59,20 +67,53 @@ class CxTicketsTable extends DataTableComponent
                 }
             }),
 
+            // SelectFilter::make('Status')
+            // ->options([
+            //     '' => 'All',
+            //     'Open' => 'Open',
+            //     'Closed' => 'Closed',
+            //     'Rated' => 'Rated',
+            //     'Canceled' => 'Canceled',
+            //     'ReOpened' => 'ReOpened',
+            // ])
+            // ->filter(function ($query, $value) {
+            //     if ($value !== '') {
+            //         $query->where('status', $value);
+            //     }
+            // }),
+
             SelectFilter::make('Status')
-            ->options([
-                '' => 'All',
-                'Open' => 'Open',
-                'Closed' => 'Closed',
-                'Rated' => 'Rated',
-                'Canceled' => 'Canceled',
-                'ReOpened' => 'ReOpened',
-            ])
-            ->filter(function ($query, $value) {
-                if ($value !== '') {
-                    $query->where('status', $value);
-                }
-            }),
+    ->options([
+        '' => 'All',
+        'Open' => 'Pending',
+        'Closed' => 'Completed',
+        'Rated' => 'Rated',
+        'Canceled' => 'Canceled',
+        'ReOpened' => 'ReOpened',
+        'Satisfied' => 'Satisfied',     
+        'Unsatisfied' => 'Unsatisfied', 
+        // 'Neutral' => 'Neutral', 
+        // 'Passive' => 'Passive', 
+    ])
+    ->filter(function ($query, $value) {
+        if ($value === 'Satisfied') {
+            $query->where('status', 'Rated')
+                  ->where('satisfaction_rate', '>=', 3);
+        } elseif ($value === 'Unsatisfied') {
+            $query->where(function ($q) {
+                $q->where('status', 'Rated')
+                  ->where('satisfaction_rate', '<', 3);
+            });
+        // } elseif ($value === 'Neutral') {
+        //     $query->where(function ($q) {
+        //         $q->where('status', 'Rated')
+        //           ->where('satisfaction_rate', '==', 3);
+        //     });
+        } elseif ($value !== '') {
+            $query->where('status', $value);
+        }
+    }),
+
 
             DateFilter::make('Due From')
                 ->config([
@@ -91,17 +132,18 @@ class CxTicketsTable extends DataTableComponent
 
 public function builder(): Builder
 {
-    $query = CxTicket::query();
+    // $query = CxTicket::query();
 
-    $filters = $this->getFilters();
+    // $filters = $this->getFilters();
 
-    if (!empty($filters['Category'])) {
-        $query->where('category', $filters['Category']);
+    // if (!empty($filters['Category'])) {
+    //     $query->where('category', $filters['Category']);
 
 
-    }
+    // }
 
-    return $query->orderBy('updated_at', 'desc');
+    // return $query->orderBy('updated_at', 'desc');
+    return CxTicket::query()->orderBy('updated_at', 'desc');
 }
 
 // public function filters(): array

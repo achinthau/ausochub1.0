@@ -6,6 +6,7 @@ use App\Models\CxTicket;
 use App\Models\CxTicketCategory;
 use App\Models\CxTicketServCenter;
 use Livewire\Component;
+use App\Models\User;
 
 class CreateCxTicket extends Component
 {
@@ -20,12 +21,40 @@ class CreateCxTicket extends Component
     public $ticketId = null;
     public $editMode = false;
 
+    public $technicians = [];
+    public $supervisors = [];
+
+
+
 
     public function mount()
     {
         $this->categories = CxTicketCategory::all(['id', 'name']);
         $this->serviceCenters = CxTicketServCenter::all(['id', 'name']);
+        $this->technicians = User::where('user_type_id', 10)->get(['id', 'name', 'phone']);
+        $this->supervisors = User::whereIn('user_type_id', [11,10])->get(['id', 'name', 'phone']);
     }
+
+    public function updatedTechnicianName($value)
+{
+    $user = $this->technicians->firstWhere('name', $value);
+    if ($user) {
+        $this->technician_contact = $user->phone;
+    } else {
+        $this->technician_contact = '';
+    }
+}
+
+    public function updatedSupervisorName($value)
+{
+    $user = $this->supervisors->firstWhere('name', $value);
+    if ($user) {
+        $this->supervisor_contact = $user->phone;
+    } else {
+        $this->supervisor_contact = '';
+    }
+}
+
 
 
     // protected $listeners = ['editTicket' => 'loadTicket'];

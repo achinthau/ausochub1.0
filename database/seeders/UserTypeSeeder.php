@@ -48,5 +48,11 @@ class UserTypeSeeder extends Seeder
         UserType::create([
             'title'=>'Back Office User'
         ]);
+        UserType::create([
+            'title'=>'Technician '
+        ]);
+        UserType::create([
+            'title'=>'Tehnical Supervisor'
+        ]);
     }
 }

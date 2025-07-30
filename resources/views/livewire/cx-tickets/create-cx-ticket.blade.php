@@ -75,16 +75,28 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
 
-                    <x-input label="Technician Name" placeholder="Enter the Technician Name"
-                        wire:model="technician_name" />
+                    {{-- <x-input label="Technician Name" placeholder="Enter the Technician Name"
+                        wire:model="technician_name" /> --}}
+                    <x-native-select label="Technician" wire:model="technician_name">
+                        <option value="">Select Technician</option>
+                        @foreach ($technicians as $technician)
+                            <option value="{{ $technician->name }}">{{ $technician->name }}</option>
+                        @endforeach
+                    </x-native-select>
                     <div class="py-2">
                         <x-input label="Technician Contact" placeholder="Enter the Technician Contact"
                             wire:model="technician_contact" />
                     </div>
                 </div>
                 <div>
-                    <x-input label="Supervisor Name" placeholder="Enter the Supervisor Name"
-                        wire:model="supervisor_name" />
+                    {{-- <x-input label="Supervisor Name" placeholder="Enter the Supervisor Name"
+                        wire:model="supervisor_name" /> --}}
+                    <x-native-select label="Supervisor" wire:model="supervisor_name">
+                        <option value="">Select Technician</option>
+                        @foreach ($supervisors as $supervisor)
+                            <option value="{{ $supervisor->name }}">{{ $supervisor->name }}</option>
+                        @endforeach
+                    </x-native-select>
                     <div class="py-2">
                         <x-input label="Supervisor Contact" placeholder="Enter the Supervisor Contact"
                             wire:model="supervisor_contact" />

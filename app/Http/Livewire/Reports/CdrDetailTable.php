@@ -20,11 +20,13 @@ class CdrDetailTable extends LivewireDatatable
     public function builder()
     {
         return Cdr::query()
+        // only for get extention
             ->leftJoin('au_queuecount_report', function ($join) {
                 $join->on('cdr.uniqueid', '=', 'au_queuecount_report.uniqueid')
                     ->where('au_queuecount_report.status', '=', 2);
             })
-            ->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src','<>','');
+        // to filter
+            ->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
     }
 
     public function columns()
@@ -48,7 +50,17 @@ class CdrDetailTable extends LivewireDatatable
             NumberColumn::name('billsec')->label('Bill Sec')->filterable()->hide(),
             Column::raw('SEC_TO_TIME(billsec)')->label('Bill Sec Duration')->filterable(),
             Column::name('disposition')->label('Disposition')->filterable($this->dispositions),
-            Column::name('au_queuecount_report.agent')->label('Extension')->filterable(),
+            // Column::name('au_queuecount_report.agent')->label('Extension')->filterable(),
+            Column::callback(['lastapp', 'channel', 'dstchannel'], function ($lastapp, $channel, $dstchannel) {
+                $raw = $lastapp === 'Queue' ? $dstchannel : ($lastapp === 'Dial' ? $channel : null);
+
+                if ($raw && preg_match('/\/(\d+)-/', $raw, $matches)) {
+                    return $matches[1]; 
+                }
+
+                return;
+            })->label('Extension')->filterable(),
+
             Column::callback(['lastapp'], function ($lastapp) {
                 return $lastapp == 'Dial' ? 'Out' : 'In';
             })->label('Direction')->filterable(['Dial' => 'Out', 'Queue' => 'In']),
@@ -84,7 +96,8 @@ class CdrDetailTable extends LivewireDatatable
 
     public function doDatetimeFilterEnd($index, $end)
     {
-        $this->activeDateFilters[$index]['end'] = $end == "" ? $end : $end . " 23:59:59";;
+        $this->activeDateFilters[$index]['end'] = $end == "" ? $end : $end . " 23:59:59";
+        ;
         $this->page = 1;
         $this->setSessionStoredFilters();
     }

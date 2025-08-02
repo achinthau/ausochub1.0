@@ -20,12 +20,12 @@ class CdrDetailTable extends LivewireDatatable
     public function builder()
     {
         return Cdr::query()
-        // only for get extention
-            ->leftJoin('au_queuecount_report', function ($join) {
-                $join->on('cdr.uniqueid', '=', 'au_queuecount_report.uniqueid')
-                    ->where('au_queuecount_report.status', '=', 2);
-            })
-        // to filter
+            // only for get extention
+            // ->leftJoin('au_queuecount_report', function ($join) {
+            //     $join->on('cdr.uniqueid', '=', 'au_queuecount_report.uniqueid')
+            //         ->where('au_queuecount_report.status', '=', 2);
+            // })
+            // to filter
             ->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
     }
 
@@ -51,15 +51,34 @@ class CdrDetailTable extends LivewireDatatable
             Column::raw('SEC_TO_TIME(billsec)')->label('Bill Sec Duration')->filterable(),
             Column::name('disposition')->label('Disposition')->filterable($this->dispositions),
             // Column::name('au_queuecount_report.agent')->label('Extension')->filterable(),
-            Column::callback(['lastapp', 'channel', 'dstchannel'], function ($lastapp, $channel, $dstchannel) {
-                $raw = $lastapp === 'Queue' ? $dstchannel : ($lastapp === 'Dial' ? $channel : null);
+            // Column::callback(['lastapp', 'channel', 'dstchannel'], function ($lastapp, $channel, $dstchannel) {
+            //     $raw = $lastapp === 'Queue' ? $dstchannel : ($lastapp === 'Dial' ? $channel : null);
 
-                if ($raw && preg_match('/\/(\d+)-/', $raw, $matches)) {
-                    return $matches[1]; 
+            //     if ($raw && preg_match('/\/(\d+)-/', $raw, $matches)) {
+            //         return $matches[1]; 
+            //     }
+
+            //     return;
+            // })->label('Extension')->filterable(),
+            Column::callback(['lastapp', 'channel', 'dstchannel', 'lastdata'], function ($lastapp, $channel, $dstchannel, $lastdata) {
+                $raw = null;
+
+                if ($lastapp === 'Queue') {
+                    $raw = $dstchannel;
+
+                } elseif ($lastapp === 'Dial') {
+                    if (strpos($lastdata, '@') !== false) {
+                        $raw = $channel;
+                    }
                 }
 
-                return;
+                if ($raw && preg_match('/\/(\d+)-/', $raw, $matches)) {
+                    return $matches[1]; // Extracted extension
+                }
+
+                return null;
             })->label('Extension')->filterable(),
+
 
             Column::callback(['lastapp'], function ($lastapp) {
                 return $lastapp == 'Dial' ? 'Out' : 'In';

@@ -173,4 +173,10 @@ class User extends Authenticatable
     {
         return $this->belongsTo(CrmDepartment::class, 'department_id');
     }
+
+    public function callbacks()
+{
+    return $this->hasMany(CallbackCustomer::class);
+}
+
 }

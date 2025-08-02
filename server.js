@@ -38,6 +38,34 @@ app.post("/emit", (req, res) => {
 
 
 
+
+
+
+
+app.post("/emit-custom", (req, res) => {
+    const { event, agent_id, payload } = req.body;
+
+    console.log(`Custom callback_notify event sent for agent ${agent_id}`);
+
+    // Emit only to the correct agent (user)
+    for (const [socketId, userId] of Object.entries(connectedUsers)) {
+        if (userId == agent_id) {
+            io.to(socketId).emit(event, payload);
+            console.log(`Emitted callback_notify to socket ${socketId}`);
+        }
+    }
+
+    res.json({ status: "sent" });
+});
+
+
+
+
+
+
+
+
+
 const connectedUsers = {};
 
 io.on("connection", (socket) => {
@@ -110,8 +138,36 @@ socket.on("user_connected", (userId) => {
 });
 
 
+
+
+
+
+socket.on("callback_notify", (data) => {
+    const { agent_id, payload } = data;
+
+    // Only emit to the connected user with matching ID
+    for (const [socketId, userId] of Object.entries(connectedUsers)) {
+        if (userId == agent_id) {
+            io.to(socketId).emit("callback.notification", payload);
+            console.log(`Callback notification sent to user ${userId}`);
+        }
+    }
+});
+
+
+
+
+
+
 });
 
 server.listen(SOCKET_PORT, () => {
     console.log(`Socket.IO server running on url  port ${SOCKET_PORT}`);
 });
+
+
+
+
+
+
+

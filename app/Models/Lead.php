@@ -76,4 +76,9 @@ class Lead extends Model
     {
         return $this->belongsTo(CustomersProvince::class);
     }
+
+    public function callbacks()
+{
+    return $this->hasMany(CallbackCustomer::class);
+}
 }

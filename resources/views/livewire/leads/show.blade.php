@@ -316,14 +316,16 @@
 
 @if($callBack)
     <div class="space-y-4">
-        <div>
+        <div class="flex justify-between  items-end gap-4">
+            <div  class="w-1/2">
             <label for="callback_date" class="block text-sm font-medium">Select Date</label>
             <input type="date" id="callback_date" wire:model="callbackDate" class="mt-1 block w-full border rounded p-2">
         </div>
 
-        <div>
+        <div  class="w-1/2">
             <label for="callback_time" class="block text-sm font-medium">Select Time</label>
             <input type="time" id="callback_time" wire:model="callbackTime" class="mt-1 block w-full border rounded p-2">
+        </div>
         </div>
 
         <div>

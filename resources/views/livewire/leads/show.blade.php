@@ -27,9 +27,8 @@
                         </svg>
                         Ticket
                     </a>
-                    {{-- <a href="#" onclick="$openModal('CreatingOrder')"
-                        class="outline-none inline-flex justify-center items-center group transition-all ease-in duration-150 focus:ring-2 focus:ring-offset-2 hover:shadow-sm disabled:opacity-80 disabled:cursor-not-allowed rounded gap-x-2 text-sm px-4 py-0.5     ring-positive-500 text-positive-500 border border-positive-500 hover:bg-positive-50
-                   dark:ring-offset-slate-800 dark:hover:bg-slate-700">
+                    {{-- <a href="#" onclick="$openModal('CreatingOrder')" class="outline-none inline-flex justify-center items-center group transition-all ease-in duration-150 focus:ring-2 focus:ring-offset-2 hover:shadow-sm disabled:opacity-80 disabled:cursor-not-allowed rounded gap-x-2 text-sm px-4 py-0.5     ring-positive-500 text-positive-500 border border-positive-500 hover:bg-positive-50
+                       dark:ring-offset-slate-800 dark:hover:bg-slate-700">
                         <svg class="w-6 h-6" width="48" height="48" viewBox="0 0 48 48" fill="currentColor"
                             xmlns="http://www.w3.org/2000/svg">
                             <path
@@ -49,8 +48,7 @@
                         Order
                     </a> --}}
                 @else
-                    <x-button icon="pencil" positive label="Complete Profile"
-                        onclick="$openModal('showTicketEditModal')" />
+                    <x-button icon="pencil" positive label="Complete Profile" onclick="$openModal('showTicketEditModal')" />
                 @endif
 
             </div>
@@ -81,7 +79,7 @@
                                 <div class="w-1/2">Alternative Contact : </div>
                                 <div class="w-1/2">{{ $lead->contact_number_2 ?? '--' }}</div>
                             </div>
-                            {{--  <div class="flex ">
+                            {{-- <div class="flex ">
                                 <div class="w-1/2">NIC: </div>
                                 <div class="w-1/2">{{ $lead->nic ?? '--' }} </div>
                             </div> --}}
@@ -94,13 +92,13 @@
                                 <div class="w-1/2 flex items-center space-x-2">
                                     <span>{{ $lead->whatsapp ?? '--' }}</span>
                                     @if($lead->whatsapp)
-                                    <svg wire:click="openWhatsApp" class="w-5 h-5 text-green-600" fill="currentColor"
-                                        xmlns="http://www.w3.org/2000/svg"
-                                        viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. -->
-                                        <path
-                                            d="M224 122.8c-72.7 0-131.8 59.1-131.9 131.8 0 24.9 7 49.2 20.2 70.1l3.1 5-13.3 48.6 49.9-13.1 4.8 2.9c20.2 12 43.4 18.4 67.1 18.4h.1c72.6 0 133.3-59.1 133.3-131.8 0-35.2-15.2-68.3-40.1-93.2-25-25-58-38.7-93.2-38.7zm77.5 188.4c-3.3 9.3-19.1 17.7-26.7 18.8-12.6 1.9-22.4.9-47.5-9.9-39.7-17.2-65.7-57.2-67.7-59.8-2-2.6-16.2-21.5-16.2-41s10.2-29.1 13.9-33.1c3.6-4 7.9-5 10.6-5 2.6 0 5.3 0 7.6.1 2.4.1 5.7-.9 8.9 6.8 3.3 7.9 11.2 27.4 12.2 29.4s1.7 4.3.3 6.9c-7.6 15.2-15.7 14.6-11.6 21.6 15.3 26.3 30.6 35.4 53.9 47.1 4 2 6.3 1.7 8.6-1 2.3-2.6 9.9-11.6 12.5-15.5 2.6-4 5.3-3.3 8.9-2 3.6 1.3 23.1 10.9 27.1 12.9s6.6 3 7.6 4.6c.9 1.9.9 9.9-2.4 19.1zM400 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zM223.9 413.2c-26.6 0-52.7-6.7-75.8-19.3L64 416l22.5-82.2c-13.9-24-21.2-51.3-21.2-79.3C65.4 167.1 136.5 96 223.9 96c42.4 0 82.2 16.5 112.2 46.5 29.9 30 47.9 69.8 47.9 112.2 0 87.4-72.7 158.5-160.1 158.5z">
-                                        </path>
-                                    </svg>
+                                        <svg wire:click="openWhatsApp" class="w-5 h-5 text-green-600" fill="currentColor"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. -->
+                                            <path
+                                                d="M224 122.8c-72.7 0-131.8 59.1-131.9 131.8 0 24.9 7 49.2 20.2 70.1l3.1 5-13.3 48.6 49.9-13.1 4.8 2.9c20.2 12 43.4 18.4 67.1 18.4h.1c72.6 0 133.3-59.1 133.3-131.8 0-35.2-15.2-68.3-40.1-93.2-25-25-58-38.7-93.2-38.7zm77.5 188.4c-3.3 9.3-19.1 17.7-26.7 18.8-12.6 1.9-22.4.9-47.5-9.9-39.7-17.2-65.7-57.2-67.7-59.8-2-2.6-16.2-21.5-16.2-41s10.2-29.1 13.9-33.1c3.6-4 7.9-5 10.6-5 2.6 0 5.3 0 7.6.1 2.4.1 5.7-.9 8.9 6.8 3.3 7.9 11.2 27.4 12.2 29.4s1.7 4.3.3 6.9c-7.6 15.2-15.7 14.6-11.6 21.6 15.3 26.3 30.6 35.4 53.9 47.1 4 2 6.3 1.7 8.6-1 2.3-2.6 9.9-11.6 12.5-15.5 2.6-4 5.3-3.3 8.9-2 3.6 1.3 23.1 10.9 27.1 12.9s6.6 3 7.6 4.6c.9 1.9.9 9.9-2.4 19.1zM400 32H48C21.5 32 0 53.5 0 80v352c0 26.5 21.5 48 48 48h352c26.5 0 48-21.5 48-48V80c0-26.5-21.5-48-48-48zM223.9 413.2c-26.6 0-52.7-6.7-75.8-19.3L64 416l22.5-82.2c-13.9-24-21.2-51.3-21.2-79.3C65.4 167.1 136.5 96 223.9 96c42.4 0 82.2 16.5 112.2 46.5 29.9 30 47.9 69.8 47.9 112.2 0 87.4-72.7 158.5-160.1 158.5z">
+                                            </path>
+                                        </svg>
                                     @endif
                                 </div>
                             </div>
@@ -112,7 +110,7 @@
                                     });
                                 });
                             </script>
-                            
+
 
 
                             <div class="flex">
@@ -129,7 +127,7 @@
                                     @endif
                                 </div>
                             </div>
-                            
+
                         </div>
 
                         <div class="grid grid-cols-2">
@@ -156,78 +154,65 @@
                         <hr>
                         This Call Reaction:
                         <div>
-    <!-- Toggle Button -->
-    <div class="flex justify-between">
-        <div>
-            @if(!$isNuisance)
-            <button
-        wire:click="toggle"
-        class="relative inline-flex items-center h-6 rounded-full w-11 focus:outline-none transition-colors duration-200 {{ $moodStatus ? 'bg-red-500' : 'bg-gray-300' }}"
-    >
-        <span
-            class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 {{ $moodStatus ? 'translate-x-6' : 'translate-x-1' }}"
-        ></span>
-    </button>
-    <span class="ml-2 text-sm">Unsatisfied</span>
-    @endif
-        </div>
+                            <!-- Toggle Button -->
+                            <div class="flex justify-between">
+                                <div>
+                                    @if(!$isNuisance)
+                                        <button wire:click="toggle"
+                                            class="relative inline-flex items-center h-6 rounded-full w-11 focus:outline-none transition-colors duration-200 {{ $moodStatus ? 'bg-red-500' : 'bg-gray-300' }}">
+                                            <span
+                                                class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 {{ $moodStatus ? 'translate-x-6' : 'translate-x-1' }}"></span>
+                                        </button>
+                                        <span class="ml-2 text-sm">Unsatisfied</span>
+                                    @endif
+                                </div>
 
-        <div>
-            @if(!$moodStatus)
-<button
-        wire:click="nuisance"
-        class="relative inline-flex items-center h-6 rounded-full w-11 focus:outline-none transition-colors duration-200 {{ $isNuisance ? 'bg-amber-500' : 'bg-gray-300' }}"
-    >
-        <span
-            class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 {{ $isNuisance ? 'translate-x-6' : 'translate-x-1' }}"
-        ></span>
-    </button>
-    <span class="ml-2 text-sm">Nuisance</span>
-    @endif
-        </div>
-    </div>
+                                <div>
+                                    @if(!$moodStatus)
+                                        <button wire:click="nuisance"
+                                            class="relative inline-flex items-center h-6 rounded-full w-11 focus:outline-none transition-colors duration-200 {{ $isNuisance ? 'bg-amber-500' : 'bg-gray-300' }}">
+                                            <span
+                                                class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 {{ $isNuisance ? 'translate-x-6' : 'translate-x-1' }}"></span>
+                                        </button>
+                                        <span class="ml-2 text-sm">Nuisance</span>
+                                    @endif
+                                </div>
+                            </div>
 
-    <!-- Comment Box: Show only if toggle is on AND no flash message -->
-    @if (($moodStatus || $isNuisance) && !session()->has('message'))
-        <div class="mt-3">
-            
+                            <!-- Comment Box: Show only if toggle is on AND no flash message -->
+                            @if (($moodStatus || $isNuisance) && !session()->has('message'))
+                                <div class="mt-3">
 
-<div x-data="{ count: 0 }">
-    <textarea
-        id="message"
-        wire:model="comment"
-        maxlength="200"
-        x-on:input="count = $event.target.value.length"
-        class="w-full p-2 border rounded"
-        rows="3"
-        placeholder="Please tell us what went wrong..."
-    ></textarea>
-    
-    <p class="text-sm text-gray-500 mt-1 text-right">
-        <span x-text="count">0</span>/200 characters
-    </p>
-</div>
+
+                                    <div x-data="{ count: 0 }">
+                                        <textarea id="message" wire:model="comment" maxlength="200"
+                                            x-on:input="count = $event.target.value.length"
+                                            class="w-full p-2 border rounded" rows="3"
+                                            placeholder="Please tell us what went wrong..."></textarea>
+
+                                        <p class="text-sm text-gray-500 mt-1 text-right">
+                                            <span x-text="count">0</span>/200 characters
+                                        </p>
+                                    </div>
 
 
 
-            <div class=" flex justify-end">
-                <button
-                wire:click="submitReaction"
-                class="mt-2 px-4 py-2 bg-gray-500 text-white rounded hover:bg-red-600 transition"
-            >
-                Submit
-            </button>
-            </div>
-        </div>
-    @endif
+                                    <div class=" flex justify-end">
+                                        <button wire:click="submitReaction"
+                                            class="mt-2 px-4 py-2 bg-gray-500 text-white rounded hover:bg-red-600 transition">
+                                            Submit
+                                        </button>
+                                    </div>
+                                </div>
+                            @endif
 
-    <!-- Flash Message -->
-    @if (session()->has('message'))
-        <div class="mt-2 text-green-600 text-sm">
-            {{ session('message') }}
-        </div>
-    @endif
-</div>
+                            <!-- Flash Message -->
+                            @if (session()->has('message'))
+                                <div class="mt-2 text-green-600 text-sm">
+                                    {{ session('message') }}
+                                </div>
+                            @endif
+                        </div>
 
 
 
@@ -256,13 +241,15 @@
                             <div class="flex">
                                 <div class="w-1/2">Last Ordered At : </div>
                                 <div class="w-1/2">
-                                    {{ $lead->orders && $lead->orders->max('created_at') ? $lead->orders->max('created_at')->format('Y-m-d') : '--' }}
+                                    {{ $lead->orders && $lead->orders->max('created_at') ?
+                                    $lead->orders->max('created_at')->format('Y-m-d') : '--' }}
                                 </div>
                             </div>
                             <div class="flex">
                                 <div class="w-1/2">Last Ordered Outlet : </div>
                                 <div class="w-1/2">
-                                    {{ $lead->lastOrder && $lead->lastOrder->outlet ? $lead->lastOrder->outlet->title : '--' }}
+                                    {{ $lead->lastOrder && $lead->lastOrder->outlet ? $lead->lastOrder->outlet->title :
+                                    '--' }}
                                 </div>
                             </div>
 
@@ -272,7 +259,8 @@
                         <div class="grid grid-cols-2">
                             <div class="col-span-2  text-center ">
                                 <div class="font-semibold text-green-600">Average Basket Value :
-                                    {{ number_format($lead->orders->count() == 0 ? 0 : $lead->orders->sum('order_total') / $lead->orders->count(), 2) }}
+                                    {{ number_format($lead->orders->count() == 0 ? 0 : $lead->orders->sum('order_total')
+                                    / $lead->orders->count(), 2) }}
                                 </div>
                             </div>
                         </div>
@@ -315,6 +303,50 @@
                         <div class="grid grid-cols-2">
 
                         </div>
+
+                        <h1 class="font-bold mb-2">Call later</h1>
+
+<div class="mb-4">
+    <span>Set time:</span>
+    <button wire:click="toggleCallbackCustomer"
+        class="relative inline-flex items-center h-6 rounded-full w-11 focus:outline-none transition-colors duration-200 {{ $callBack ? 'bg-blue-500' : 'bg-gray-300' }}">
+        <span class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 {{ $callBack ? 'translate-x-6' : 'translate-x-1' }}"></span>
+    </button>
+</div>
+
+@if($callBack)
+    <div class="space-y-4">
+        <div>
+            <label for="callback_date" class="block text-sm font-medium">Select Date</label>
+            <input type="date" id="callback_date" wire:model="callbackDate" class="mt-1 block w-full border rounded p-2">
+        </div>
+
+        <div>
+            <label for="callback_time" class="block text-sm font-medium">Select Time</label>
+            <input type="time" id="callback_time" wire:model="callbackTime" class="mt-1 block w-full border rounded p-2">
+        </div>
+
+        <div>
+            <label for="callback_comment" class="block text-sm font-medium">Comment</label>
+            <textarea id="callback_comment" wire:model="callbackComment" class="mt-1 block w-full border rounded p-2" rows="3"></textarea>
+        </div>
+
+        <div>
+            <button wire:click="saveCallback" class="px-4 py-2 bg-blue-300 rounded hover:bg-blue-400">
+                Save Callback
+            </button>
+            
+        </div>
+    </div>
+    
+@endif
+@if (session()->has('messagedialog'))
+                                <div class="mt-2 text-green-600 text-sm">
+                                    {{ session('messagedialog') }}
+                                </div>
+                            @endif
+
+
                     </div>
                 </div>
                 @livewire('leads.partials.activity-log', ['lead' => $lead])
@@ -330,3 +362,7 @@
     @livewire('tickets.create', ['leadId' => $lead->id])
     @livewire('orders.create', ['leadId' => $lead->id])
 @endpush
+
+
+
+

@@ -18,6 +18,9 @@ class Kernel extends ConsoleKernel
         // $schedule->command('inspire')->hourly();
 
         $schedule->command('daily:call-summary')->dailyAt('01:30');
+
+        // for callback notifications
+        $schedule->command('callbacks:check')->everyMinute();
     }
 
     /**

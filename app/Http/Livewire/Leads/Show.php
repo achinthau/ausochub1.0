@@ -2,10 +2,12 @@
 
 namespace App\Http\Livewire\Leads;
 
+use App\Models\CallbackCustomer;
 use App\Models\CallCount;
 use App\Models\Lead;
 use App\Models\QueueCount;
 use App\Models\Ticket;
+use Carbon\Carbon;
 use Livewire\Component;
 use WireUi\Traits\Actions;
 
@@ -20,6 +22,15 @@ class Show extends Component
     public  $timelineLogs;
 
     public $isIncomming = false;
+
+     public $moodStatus = false;
+public $comment = '';
+public $isNuisance = false;
+
+public $callBack = false;
+public $callbackDate;
+public $callbackTime;
+public $callbackComment;
 
     protected $listeners = ['refreshCard' => 'refreshCard'];
 
@@ -39,9 +50,7 @@ class Show extends Component
 
     ];
 
-    public $moodStatus = false;
-public $comment = '';
-public $isNuisance = false;
+   
 
 public function toggle()
 {
@@ -213,4 +222,33 @@ public function submitReaction()
 
         $this->emit('whatsappOpened', $url);
     }
+
+
+    public function toggleCallbackCustomer()
+    {
+        $this->callBack = !$this->callBack;
+    }
+
+    public function saveCallback()
+{
+    $this->validate([
+        'callbackDate' => 'required|date',
+        'callbackTime' => 'required',
+        'callbackComment' => 'nullable|string',
+    ]);
+
+    CallbackCustomer::create([
+        'agent_id' => auth()->id(),
+        'lead_id' => $this->lead->id, 
+        'callback_at' => Carbon::parse("{$this->callbackDate} {$this->callbackTime}"),
+        'comment' => $this->callbackComment,
+    ]);
+
+    session()->flash('messagedialog', 'Callback saved successfully.');
+
+    // Optionally reset
+    $this->reset(['callBack', 'callbackDate', 'callbackTime', 'callbackComment']);
+}
+
+
 }

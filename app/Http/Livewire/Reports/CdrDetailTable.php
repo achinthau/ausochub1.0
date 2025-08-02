@@ -77,7 +77,8 @@ class CdrDetailTable extends LivewireDatatable
                 }
 
                 return null;
-            })->label('Extension')->filterable(),
+            })->label('Extension')->searchable(),
+            // ->filterable('filterByExtension'),
 
 
             Column::callback(['lastapp'], function ($lastapp) {
@@ -88,6 +89,27 @@ class CdrDetailTable extends LivewireDatatable
             })->unsortable()->excludeFromExport()
         ];
     }
+
+
+//     public function scopeFilterByExtension($query, $value)
+// {
+//     return $query->where(function ($q) use ($value) {
+//         // Case 1: Dial + lastdata contains "@"
+//         $q->where(function ($q2) use ($value) {
+//             $q2->where('lastapp', 'Dial')
+//                 ->where('lastdata', 'like', '%@%')
+//                 ->where('channel', 'like', "%/{$value}-%");
+//         })
+//         // Case 2: Queue or CallQueue
+//         ->orWhere(function ($q2) use ($value) {
+//             $q2->where('lastapp', 'like', '%Queue')
+//                 ->where('dstchannel', 'like', "%/{$value}-%");
+//         });
+//     });
+// }
+
+
+
 
     public function getDispositionsProperty()
     {

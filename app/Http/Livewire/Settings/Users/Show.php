@@ -11,6 +11,7 @@ use App\Repositories\ApiManager;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
+use App\Models\Company;
 
 class Show extends Component
 {
@@ -23,6 +24,7 @@ class Show extends Component
     public $extensions;
 
     public $departments;
+    public $companies;
 
     protected $rules  = [
 
@@ -52,6 +54,7 @@ class Show extends Component
         $this->extensions = [];
 
         $this->departments = CrmDepartment::select('id','name')->get()->toArray();
+        $this->companies = Company::select('id', 'name')->get()->toArray();
     }
     public function render()
     {
@@ -65,6 +68,7 @@ class Show extends Component
         $this->user = User::find($id);
         $this->extensions = Extension::notAssigned($this->user->agent_id)->get();
         $this->updateUserModal = true;
+        $this->companies = Company::select('id', 'name')->get()->toArray(); 
     }
 
     public function save()

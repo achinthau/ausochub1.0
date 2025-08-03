@@ -19,14 +19,26 @@ class CdrDetailTable extends LivewireDatatable
     public $exportable = true;
     public function builder()
     {
+        $companyName = \DB::table('companies')
+        ->where('id', auth()->user()->tenant_context)
+        ->value('name');
+
+
         return Cdr::query()
             // only for get extention
             // ->leftJoin('au_queuecount_report', function ($join) {
             //     $join->on('cdr.uniqueid', '=', 'au_queuecount_report.uniqueid')
             //         ->where('au_queuecount_report.status', '=', 2);
             // })
+
+
+
             // to filter
-            ->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
+            // ->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
+            ->where('dcontext', $companyName)->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
+
+
+
     }
 
     public function columns()

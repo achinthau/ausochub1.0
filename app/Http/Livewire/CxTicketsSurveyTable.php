@@ -54,14 +54,23 @@ class CxTicketsSurveyTable extends DataTableComponent
         $this->setPerPage(1);
     }
 
+    // public function builder(): Builder
+    // {
+    //     $query = CxTicket::query()->where('status', 'Closed');
+    //     return $query;
+    // }
+
     public function builder(): Builder
-    {
-        $query = CxTicket::query()->where('status', 'Closed');
+{
+    $companyName = \DB::table('companies')
+        ->where('id', auth()->user()->tenant_context)
+        ->value('name');
 
-
-
-        return $query;
-    }
+    return CxTicket::query()
+    ->where('status', 'Closed')
+        ->where('company', $companyName)
+        ->orderBy('updated_at', 'desc');
+}
 
     public function columns(): array
     {

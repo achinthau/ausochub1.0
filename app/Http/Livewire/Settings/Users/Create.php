@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Models\UserType;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
+use App\Models\Company;
+
 
 class Create extends Component
 {
@@ -18,6 +20,8 @@ class Create extends Component
     public $departments ;
 
     public User $user;
+    public $companies;
+
 
     protected $rules  = [
        
@@ -29,7 +33,7 @@ class Create extends Component
         'user.nic' => 'required',
         'user.gender' => 'required',
         'user.address' => 'nullable',
-        'user.tenant_context' => 'nullable',
+        'user.tenant_context' => 'required',
         'user.outlet_id' => 'required_if:user.user_type_id,5,6',
         'user.department_id' => 'required_if:user.user_type_id,9',
     
@@ -50,6 +54,7 @@ class Create extends Component
         $this->userTypes = UserType::select('id','title')->get()->toArray();
         $this->outlets = Outlet::select('id','title')->get()->toArray();
         $this->departments = CrmDepartment::select('id','name')->get()->toArray();
+        $this->companies = Company::select('id', 'name')->get()->toArray();
 
     }
 

@@ -12,7 +12,17 @@
             option-label="title" option-value="id" />
 
         <x-textarea label="Address" placeholder="Enter address" rows=1 wire:model.defer="user.address" />
-        <x-textarea label="Tenant Contex" placeholder="Enter Company" rows=1 wire:model.defer="user.tenant_context"/>
+        {{-- <x-textarea label="Tenant Contex" placeholder="Enter Company" rows=1 wire:model.defer="user.tenant_context"/> --}}
+
+        <x-native-select 
+    label="User Company" 
+    placeholder="Select user company" 
+    :options="$companies"
+    wire:model.defer="user.tenant_context" 
+    option-label="name" 
+    option-value="id" 
+/>
+
 
         @if (($user && $user->agent) || ($user && $user->user_type_id > 2))
             <x-native-select label="Extension" placeholder="Select extension" :options="$extensions"

@@ -93,22 +93,22 @@ class CxTicketsTable extends DataTableComponent
         'Satisfied' => 'Satisfied',     
         'Unsatisfied' => 'Unsatisfied', 
         // 'Neutral' => 'Neutral', 
-        // 'Passive' => 'Passive', 
+        'Passive' => 'Passive', 
     ])
     ->filter(function ($query, $value) {
         if ($value === 'Satisfied') {
             $query->where('status', 'Rated')
-                  ->where('satisfaction_rate', '>=', 3);
+                  ->where('satisfaction_rate', '>', 3);
         } elseif ($value === 'Unsatisfied') {
             $query->where(function ($q) {
                 $q->where('status', 'Rated')
                   ->where('satisfaction_rate', '<', 3);
             });
-        // } elseif ($value === 'Neutral') {
-        //     $query->where(function ($q) {
-        //         $q->where('status', 'Rated')
-        //           ->where('satisfaction_rate', '==', 3);
-        //     });
+        } elseif ($value === 'Neutral') {
+            $query->where(function ($q) {
+                $q->where('status', 'Rated')
+                  ->where('satisfaction_rate', '==', 3);
+            });
         } elseif ($value !== '') {
             $query->where('status', $value);
         }
@@ -130,39 +130,26 @@ class CxTicketsTable extends DataTableComponent
     ];
 }
 
+// public function builder(): Builder
+// {
+
+//     return CxTicket::query()->orderBy('updated_at', 'desc');
+
+// }
+
 public function builder(): Builder
 {
-    // $query = CxTicket::query();
+    $companyName = \DB::table('companies')
+        ->where('id', auth()->user()->tenant_context)
+        ->value('name');
 
-    // $filters = $this->getFilters();
-
-    // if (!empty($filters['Category'])) {
-    //     $query->where('category', $filters['Category']);
-
-
-    // }
-
-    // return $query->orderBy('updated_at', 'desc');
-    return CxTicket::query()->orderBy('updated_at', 'desc');
+    return CxTicket::query()
+        ->where('company', $companyName)
+        ->orderBy('updated_at', 'desc');
 }
 
-// public function filters(): array
-//     {
-//         return [
-//             DateFilter::make('Due From')
-//                 ->config([
-//                     // 'min' => '2020-01-01',
-//                     // 'max' => '2021-12-31',
-//                 ])
-//                 ->filter(function (Builder $builder, string $value) {
-//                     $builder->where('due_at', '>=', $value);
-//                 }),
-//             DateFilter::make('Due To')
-//                 ->filter(function (Builder $builder, string $value) {
-//                     $builder->where('due_at', '<=', $value);
-//                 })
-//             ];
-//             }
+
+
 
 
     public function columns(): array

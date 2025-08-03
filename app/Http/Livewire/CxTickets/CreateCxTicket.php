@@ -7,6 +7,7 @@ use App\Models\CxTicketCategory;
 use App\Models\CxTicketServCenter;
 use Livewire\Component;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class CreateCxTicket extends Component
 {
@@ -78,10 +79,16 @@ class CreateCxTicket extends Component
     ];
 
     public function save()
-    {
+    {$companyName = DB::table('companies')
+    ->where('id', auth()->user()?->tenant_context)
+    ->value('name');
+
+    // dd($companyName);
         $this->validate();
 
         if ($this->editMode) {
+
+            
             $ticket = CxTicket::findOrFail($this->ticketId);
 
             $ticket->update([
@@ -121,8 +128,7 @@ class CreateCxTicket extends Component
                 'supervisor_name' => $this->supervisor_name,
                 'supervisor_contact' => $this->supervisor_contact,
                 'creator' => auth()->user()->name,
-                'company' => auth()->user()->tenant_context,
-                'company' => auth()->user()?->tenant_context ?? NULL,
+                'company' => $companyName ?? null,
                 'status' => 'Open',
             ]);
 
@@ -131,7 +137,7 @@ class CreateCxTicket extends Component
 
         $this->emitTo('cx-tickets-table', 'cxTicketUpdated');
 
-        $this->resetExcept(['categories', 'serviceCenters']);
+        $this->resetExcept(['categories', 'serviceCenters', 'supervisors', 'technicians']);
     }
 
 

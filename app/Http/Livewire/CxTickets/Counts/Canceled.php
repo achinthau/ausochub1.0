@@ -10,14 +10,17 @@ class Canceled extends Component
     public $canceledCount = 0 ;
 
     public $readyToLoad = false;
-    public $companyName ='';
+    public $companyNames ;
 
      public function loaded()
     {
         $this->readyToLoad = true;
-        $this->companyName = \DB::table('companies')
-    ->where('id', auth()->user()->tenant_context)
-    ->value('name');
+        $companyIds = array_filter(array_map('intval', explode(',', auth()->user()->tenant_context)));
+
+        $this->companyNames = \DB::table('companies')
+            ->whereIn('id', $companyIds)
+            ->pluck('name') 
+            ->toArray();
         $this->refreshComponent();
     }
 
@@ -27,7 +30,7 @@ class Canceled extends Component
         
 
 $this->canceledCount = CxTicket::where('status', 'Canceled')
-    ->where('company', $this->companyName)
+    ->whereIn('company', $this->companyNames)
     ->count();
 
     }

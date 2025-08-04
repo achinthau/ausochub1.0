@@ -19,9 +19,17 @@ class CdrDetailTable extends LivewireDatatable
     public $exportable = true;
     public function builder()
     {
-        $companyName = \DB::table('companies')
-        ->where('id', auth()->user()->tenant_context)
-        ->value('name');
+        // $companyName = \DB::table('companies')
+        // ->where('id', auth()->user()->tenant_context)
+        // ->value('name');
+        $companyIds = array_filter(array_map('intval', explode(',', auth()->user()->tenant_context)));
+
+        $companyNames = \DB::table('companies')
+            ->whereIn('id', $companyIds)
+            ->pluck('name') 
+            ->toArray();
+
+
 
 
         return Cdr::query()
@@ -35,7 +43,8 @@ class CdrDetailTable extends LivewireDatatable
 
             // to filter
             // ->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
-            ->where('dcontext', $companyName)->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
+            // ->where('dcontext', $companyName)->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
+            ->whereIn('dcontext', $companyNames)->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
 
 
 
@@ -103,7 +112,7 @@ class CdrDetailTable extends LivewireDatatable
     }
 
 
-//     public function scopeFilterByExtension($query, $value)
+    //     public function scopeFilterByExtension($query, $value)
 // {
 //     return $query->where(function ($q) use ($value) {
 //         // Case 1: Dial + lastdata contains "@"

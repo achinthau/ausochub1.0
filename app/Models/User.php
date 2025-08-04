@@ -181,7 +181,7 @@ class User extends Authenticatable
 
 public function company()
 {
-    return $this->belongsTo(Company::class);
+    return $this->belongsToMany(Company::class);
 }
 
 }

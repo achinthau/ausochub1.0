@@ -139,12 +139,15 @@ class CxTicketsTable extends DataTableComponent
 
 public function builder(): Builder
 {
-    $companyName = \DB::table('companies')
-        ->where('id', auth()->user()->tenant_context)
-        ->value('name');
+    $companyIds = array_filter(array_map('intval', explode(',', auth()->user()->tenant_context)));
+
+        $companyNames = \DB::table('companies')
+            ->whereIn('id', $companyIds)
+            ->pluck('name') 
+            ->toArray();
 
     return CxTicket::query()
-        ->where('company', $companyName)
+        ->whereIn('company', $companyNames)
         ->orderBy('updated_at', 'desc');
 }
 

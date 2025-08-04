@@ -16,12 +16,7 @@ class Closed extends Component
      public function loaded()
     {
         $this->readyToLoad = true;
-        $companyIds = array_filter(array_map('intval', explode(',', auth()->user()->tenant_context)));
-
-        $this->companyNames = \DB::table('companies')
-            ->whereIn('id', $companyIds)
-            ->pluck('name') 
-            ->toArray();
+        $this->companyNames = array_filter(array_map('trim', explode(',', auth()->user()->tenant_context)));
         $this->refreshComponent();
     }
 

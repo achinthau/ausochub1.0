@@ -11,6 +11,7 @@ use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 use Mediconesystems\LivewireDatatables\NumberColumn;
 use Mediconesystems\LivewireDatatables\TimeColumn;
+use Illuminate\Support\Facades\DB;
 
 class CdrDetailTable extends LivewireDatatable
 {
@@ -18,16 +19,11 @@ class CdrDetailTable extends LivewireDatatable
     public $hideable = 'select';
     public $exportable = true;
     public function builder()
-    {
-        // $companyName = \DB::table('companies')
-        // ->where('id', auth()->user()->tenant_context)
-        // ->value('name');
-        $companyIds = array_filter(array_map('intval', explode(',', auth()->user()->tenant_context)));
+    {            
 
-        $companyNames = \DB::table('companies')
-            ->whereIn('id', $companyIds)
-            ->pluck('name') 
-            ->toArray();
+        $companyNames = array_filter(array_map('trim', explode(',', auth()->user()->tenant_context)));
+        // dd($companyNames);
+
 
 
 
@@ -71,16 +67,8 @@ class CdrDetailTable extends LivewireDatatable
             NumberColumn::name('billsec')->label('Bill Sec')->filterable()->hide(),
             Column::raw('SEC_TO_TIME(billsec)')->label('Bill Sec Duration')->filterable(),
             Column::name('disposition')->label('Disposition')->filterable($this->dispositions),
+            Column::name('dcontext')->label('Company')->filterable(),
             // Column::name('au_queuecount_report.agent')->label('Extension')->filterable(),
-            // Column::callback(['lastapp', 'channel', 'dstchannel'], function ($lastapp, $channel, $dstchannel) {
-            //     $raw = $lastapp === 'Queue' ? $dstchannel : ($lastapp === 'Dial' ? $channel : null);
-
-            //     if ($raw && preg_match('/\/(\d+)-/', $raw, $matches)) {
-            //         return $matches[1]; 
-            //     }
-
-            //     return;
-            // })->label('Extension')->filterable(),
             Column::callback(['lastapp', 'channel', 'dstchannel', 'lastdata'], function ($lastapp, $channel, $dstchannel, $lastdata) {
                 $raw = null;
 
@@ -94,7 +82,7 @@ class CdrDetailTable extends LivewireDatatable
                 }
 
                 if ($raw && preg_match('/\/(\d+)-/', $raw, $matches)) {
-                    return $matches[1]; // Extracted extension
+                    return $matches[1]; 
                 }
 
                 return null;

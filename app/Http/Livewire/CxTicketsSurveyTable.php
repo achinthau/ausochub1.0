@@ -62,12 +62,7 @@ class CxTicketsSurveyTable extends DataTableComponent
 
     public function builder(): Builder
 {
-    $companyIds = array_filter(array_map('intval', explode(',', auth()->user()->tenant_context)));
-
-        $companyNames = \DB::table('companies')
-            ->whereIn('id', $companyIds)
-            ->pluck('name') 
-            ->toArray();
+    $companyNames = array_filter(array_map('trim', explode(',', auth()->user()->tenant_context)));
 
     return CxTicket::query()
     ->where('status', 'Closed')

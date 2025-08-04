@@ -20,7 +20,7 @@
     :options="$companies"
     wire:model.defer="user.tenant_context" 
     option-label="name" 
-    option-value="id" 
+    option-value="name" 
 />
 
 

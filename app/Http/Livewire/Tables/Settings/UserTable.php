@@ -8,6 +8,7 @@ use App\Models\UserType;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\DateColumn;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
+use Illuminate\Support\Facades\DB;
 
 class UserTable extends LivewireDatatable
 {
@@ -37,19 +38,50 @@ class UserTable extends LivewireDatatable
     //     ];
     // }
 
-    public function builder()
+//     public function builder()
+// {
+
+//     $companyIds = array_filter(array_map('intval', explode(',', auth()->user()->tenant_context)));
+
+//     $user = new User();
+//     $userType = new UserType();
+
+//     $userTable = $user->getTable();       
+//     $userTypeTable = $userType->getTable(); 
+//     $companyTable = 'companies';          
+
+//     return User::leftJoin($userTypeTable, "$userTypeTable.id", "$userTable.user_type_id")
+//             //    ->leftJoin($companyTable, "$companyTable.id", "$userTable.tenant_context")
+//                ->whereIn('tenant_context', $companyIds);
+//             //    ->select("$userTable.*", "$userTypeTable.title as user_type_title", "$companyTable.name as company_name");
+// }
+
+
+
+public function builder()
 {
-    $user = new User();
-    $userType = new UserType();
+    $contexts = explode(',', auth()->user()->tenant_context);
+    $contexts = array_map('trim', $contexts); // ['internal', 'Hutch']
 
-    $userTable = $user->getTable();       
-    $userTypeTable = $userType->getTable(); 
-    $companyTable = 'companies';          
-
-    return User::leftJoin($userTypeTable, "$userTypeTable.id", "$userTable.user_type_id")
-               ->leftJoin($companyTable, "$companyTable.id", "$userTable.tenant_context")
-               ->select("$userTable.*", "$userTypeTable.title as user_type_title", "$companyTable.name as company_name");
+    return User::query()
+        ->leftJoin('user_types', 'user_types.id', 'users.user_type_id')
+        ->leftJoin('companies', 'companies.id', '=', 'users.tenant_context')
+        ->where(function ($query) use ($contexts) {
+            foreach ($contexts as $context) {
+                $query->orWhere('users.tenant_context', 'LIKE', '%' . $context . '%');
+            }
+        })
+        ->select(
+            'users.*',
+            'user_types.title as user_type_title',
+            'companies.name as company_name'
+        );
 }
+
+
+
+
+
 
 public function columns()
 {
@@ -64,7 +96,8 @@ public function columns()
         Column::name('user_name')->filterable()->searchable(),
         // Column::name("$userTypeTable.title")->filterable(UserType::all()->pluck('title')->toArray())->label('User Type')->searchable(),
         Column::name("$userTypeTable.title")->filterable()->label('User Type')->searchable(),
-        Column::name("$companyTable.name")->filterable()->label('Company')->searchable(),
+        // Column::name("$companyTable.name")->filterable()->label('Company')->searchable(),
+
         Column::name('extension')->filterable()->label('Extension'),
         Column::name('tenant_context')->filterable()->label('Tenant Context'),
         DateColumn::name('created_at')->filterable()->searchable(),

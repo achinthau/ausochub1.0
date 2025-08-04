@@ -44,7 +44,7 @@
                 
                 @livewire('cx-tickets.counts.un-satisfied')
                 </div>
-                <div class="flex-1">
+                <div wire:click="$emit('filterTicketsByStatus', 'Passive')" class="flex-1">
                 
                 @livewire('cx-tickets.counts.passive')
                 </div>

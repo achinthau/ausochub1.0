@@ -104,10 +104,10 @@ class CxTicketsTable extends DataTableComponent
                 $q->where('status', 'Rated')
                   ->where('satisfaction_rate', '<', 3);
             });
-        } elseif ($value === 'Neutral') {
+        } elseif ($value === 'Passive') {
             $query->where(function ($q) {
                 $q->where('status', 'Rated')
-                  ->where('satisfaction_rate', '==', 3);
+                  ->where('satisfaction_rate', 3);
             });
         } elseif ($value !== '') {
             $query->where('status', $value);
@@ -139,12 +139,8 @@ class CxTicketsTable extends DataTableComponent
 
 public function builder(): Builder
 {
-    $companyIds = array_filter(array_map('intval', explode(',', auth()->user()->tenant_context)));
+    $companyNames = array_filter(array_map('trim', explode(',', auth()->user()->tenant_context)));
 
-        $companyNames = \DB::table('companies')
-            ->whereIn('id', $companyIds)
-            ->pluck('name') 
-            ->toArray();
 
     return CxTicket::query()
         ->whereIn('company', $companyNames)

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('agent_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('lead_id')->constrained('leads')->onDelete('cascade');
+            $table->text('unique_id')->nullable();
             $table->datetime('callback_at');
             $table->datetime('called_at')->nullable();
             $table->text('comment')->nullable();

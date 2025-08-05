@@ -208,6 +208,9 @@
                                 {{-- @if (request()->is('/')) --}}
                                     <div class="flex justify-between">
                                         <div class="pr-8 pt-4">
+                                            @livewire('dashboard.reminder')
+                                        </div>
+                                        <div class="pr-8 pt-4">
                                             @livewire('dashboard.hand-raise')
                                         </div>
                                         <div class="pr-8 pt-4">

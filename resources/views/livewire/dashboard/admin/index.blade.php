@@ -88,28 +88,6 @@
     </div>
 </div>
 
-<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
-<script>
-  // Make sure this is set from your app (e.g. from server-rendered blade)
-  const userId = @json(auth()->id()); // or set manually for testing
-
-  // Connect to socket.io server
-  const socket = io('http://localhost:3000', {
-    path: '/socket.io',
-    transports: ['websocket']
-  });
-
-  // Tell server which user just connected
-  socket.emit('user_connected', userId);
-
-  // Listen for notification event for this user
-  socket.on('callback_notify', (data) => {
-    console.log("Notification received:", data.message);
-    alert(data.message);  // Show alert popup when notification arrives
-  });
-</script>
-
-
 @push('modals')
 
     @livewire('dashboard.partials.agent-info')

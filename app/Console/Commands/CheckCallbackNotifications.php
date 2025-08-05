@@ -6,6 +6,8 @@ use Illuminate\Console\Command;
 use App\Models\CallbackCustomer;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Auth;
 
 class CheckCallbackNotifications extends Command
 {
@@ -55,6 +57,17 @@ class CheckCallbackNotifications extends Command
                     'type' => 'now',
                 ]
             ]);
+
+
+             // Get the logged-in user's ID
+
+            // 🔁 Switch to Redis DB 6
+            Redis::connection()->select(6);
+
+            // 🟢 Store only isReminder = true for that user
+            Redis::set("isReminder:{$callback->agent_id}", json_encode([
+                'isReminder' => true,
+            ]));
 
             \Log::info("Socket emit response status: {$response->status()}");
             \Log::info("Socket emit response body: {$response->body()}");

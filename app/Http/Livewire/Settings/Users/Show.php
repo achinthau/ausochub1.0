@@ -25,6 +25,7 @@ class Show extends Component
 
     public $departments;
     public $companies;
+    public $selectedCompanies = [];
 
     protected $rules  = [
 
@@ -54,7 +55,13 @@ class Show extends Component
         $this->extensions = [];
 
         $this->departments = CrmDepartment::select('id','name')->get()->toArray();
-        $this->companies = Company::select('id', 'name')->get()->toArray();
+        // $this->companies = Company::select('id', 'name')->get()->toArray();
+        $this->companies = Company::select('id', 'name')
+            ->whereIn('name', explode(',', auth()->user()->tenant_context))
+            ->get()
+            ->toArray();
+
+         
     }
     public function render()
     {
@@ -68,13 +75,20 @@ class Show extends Component
         $this->user = User::find($id);
         $this->extensions = Extension::notAssigned($this->user->agent_id)->get();
         $this->updateUserModal = true;
-        $this->companies = Company::select('id', 'name')->get()->toArray(); 
+        // $this->companies = Company::select('id', 'name')->get()->toArray(); 
+        $this->companies = Company::select('id', 'name')
+            ->whereIn('name', explode(',', auth()->user()->tenant_context))
+            ->get()
+            ->toArray();
+
+            $this->selectedCompanies = explode(',', $this->user->tenant_context ?? '');
     }
 
     public function save()
     {
         $this->rules['user.email'] =  $this->rules['user.email'] .','.$this->user->id;
         $this->rules['user.user_name'] =  $this->rules['user.user_name'] .','.$this->user->id;
+        $this->user['tenant_context'] = implode(',', $this->selectedCompanies);
         $this->validate();
         $this->user->save();
         

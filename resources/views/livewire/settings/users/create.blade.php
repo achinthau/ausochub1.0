@@ -13,8 +13,12 @@
 
         <x-textarea label="Address" placeholder="Enter address" rows=1 wire:model.defer="user.address" />
 
-<x-native-select label="User Company" placeholder="Select user company" :options="$companies"
-            wire:model.defer="user.tenant_context" option-label="name" option-value="name" />
+        {{-- <x-native-select label="User Company" placeholder="Select user company" :options="$companies"
+            wire:model.defer="user.tenant_context" option-label="name" option-value="name" /> --}}
+        <x-select label="User Company" placeholder="Select user companies" multiselect :options="$companies"
+            wire:model.defer="selectedCompanies" {{-- This will be an array --}} option-label="name"
+            option-value="name" />
+
 
 
 

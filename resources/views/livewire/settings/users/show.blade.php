@@ -14,14 +14,16 @@
         <x-textarea label="Address" placeholder="Enter address" rows=1 wire:model.defer="user.address" />
         {{-- <x-textarea label="Tenant Contex" placeholder="Enter Company" rows=1 wire:model.defer="user.tenant_context"/> --}}
 
-        <x-native-select 
-    label="User Company" 
-    placeholder="Select user company" 
+        <x-select
+    label="Companies"
+    placeholder="Select Companies"
+    multiselect
     :options="$companies"
-    wire:model.defer="user.tenant_context" 
-    option-label="name" 
-    option-value="name" 
+    wire:model.defer="selectedCompanies"
+    option-label="name"
+    option-value="name"
 />
+
 
 
         @if (($user && $user->agent) || ($user && $user->user_type_id > 2))

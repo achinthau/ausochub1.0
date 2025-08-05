@@ -14,29 +14,31 @@ use App\Models\Company;
 
 class Create extends Component
 {
-    public $createUserModal= false;
-    public $userTypes ;
-    public $outlets ;
-    public $departments ;
+    public $createUserModal = false;
+    public $userTypes;
+    public $outlets;
+    public $departments;
 
     public User $user;
     public $companies;
+    public $selectedCompanies = [];
 
 
-    protected $rules  = [
-       
+    protected $rules = [
+
         'user.name' => 'required',
         'user.user_type_id' => 'required|exists:user_types,id',
         'user.email' => 'required|email|unique:users,email',
-        'user.user_name'=>'required|unique:users,user_name',
+        'user.user_name' => 'required|unique:users,user_name',
         'user.phone' => 'nullable',
         'user.nic' => 'required',
         'user.gender' => 'required',
         'user.address' => 'nullable',
-        'user.tenant_context' => 'required',
+        // 'user.tenant_context' => 'required',
+        'selectedCompanies' => 'required|array|min:1',
         'user.outlet_id' => 'required_if:user.user_type_id,5,6',
         'user.department_id' => 'required_if:user.user_type_id,9',
-    
+
     ];
 
     protected $validationAttributes = [
@@ -47,14 +49,19 @@ class Create extends Component
         'user.outlet_id.required_if' => 'The outlet field is required.',
         'user.department_id.required_if' => 'The Department field is required.',
     ];
-    
+
 
     public function mount()
     {
-        $this->userTypes = UserType::select('id','title')->get()->toArray();
-        $this->outlets = Outlet::select('id','title')->get()->toArray();
-        $this->departments = CrmDepartment::select('id','name')->get()->toArray();
-        $this->companies = Company::select('id', 'name')->get()->toArray();
+        $this->userTypes = UserType::select('id', 'title')->get()->toArray();
+        $this->outlets = Outlet::select('id', 'title')->get()->toArray();
+        $this->departments = CrmDepartment::select('id', 'name')->get()->toArray();
+        // $this->companies = Company::select('id', 'name')->get()->toArray();
+        $this->companies = Company::select('id', 'name')
+            ->whereIn('name', explode(',', auth()->user()->tenant_context))
+            ->get()
+            ->toArray();
+
 
     }
 
@@ -66,24 +73,25 @@ class Create extends Component
 
     public function updatedCreateUserModal($value)
     {
-       $this->resetForm();
+        $this->resetForm();
     }
 
     public function save()
     {
         $this->validate();
         $this->user->password = Hash::make("auso123");
+        $this->user['tenant_context'] = implode(',', $this->selectedCompanies);
         $this->user->save();
-        $this->createUserModal= false;
-        
-        $this->emitTo('tables.settings.user-table','refreshLivewireDatatable');
-        $this->emitTo('settings.users.partials.assign-extension','refreshData');
+        $this->createUserModal = false;
+
+        $this->emitTo('tables.settings.user-table', 'refreshLivewireDatatable');
+        $this->emitTo('settings.users.partials.assign-extension', 'refreshData');
     }
 
     public function resetForm()
     {
         $this->user = new User();
-        
+
         $this->resetErrorBag();
         $this->resetValidation();
     }

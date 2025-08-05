@@ -36,6 +36,7 @@ use App\Http\Livewire\Settings\Users\Index as UsersIndex;
 use App\Http\Livewire\Tickets\Index as TicketsIndex;
 use App\Http\Livewire\Tickets\IndexNew;
 use App\Http\Livewire\CxTickets\Index as CxTicketsIndex;
+use App\Http\Livewire\Reminders\Index as ReminderIndex;
 use App\Http\Livewire\CxTickets\Survey\Index as SurveyIndex;
 use App\Models\CallCenter\AbandonedCall as CallCenterAbandonedCall;
 use App\Models\DailyCallSummary;
@@ -45,6 +46,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Redis;
 
 /*
 |--------------------------------------------------------------------------
@@ -119,35 +121,18 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         return session()->getId();
     });
 
-    // Route::post('/logout', function () {
-    //     Auth::logout();
-    //     return response()->json(['message' => 'Logged out']);
-    // })->name('logout');
-
-    // Route::post('/logout', function (Request $request) {
-    //     if (Auth::guard('web')->check()) {
-    //         Auth::guard('web')->logout();
-    
-    //         $request->session()->invalidate();
-    //         $request->session()->regenerateToken();
-    //     }
-    
-    //     return redirect('/login');
-    // })->name('logout');
-    
-
-
-    // Route::post('/logout', function (Request $request) {
-    //     $request->session()->invalidate();
-    //     $request->session()->regenerateToken();
-    //     return redirect('/login');
-    // })->name('logout');
-    
-
     Route::get('/chat', ChatIndex::class)->name('chat.index');
 
     Route::get('/cx-tickets', CxTicketsIndex::class)->name('cx-tickets.index');
     Route::get('/cx-tickets/survey', SurveyIndex::class)->name('cx-tickets-survey.index');
     
-    
+    Route::get('/reminders', ReminderIndex::class)->name('reminder.index');
+
+Route::get('/reminders/clear-and-show', function () {
+    Redis::connection()->select(6);
+    Redis::del('isReminder:' . auth()->id());
+
+    return redirect()->route('reminder.index');
+})->name('reminder.clear');
 });
+    

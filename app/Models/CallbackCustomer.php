@@ -17,14 +17,15 @@ class CallbackCustomer extends Model
     protected $fillable = [
         "agent_id",
         "lead_id",
+        "unique_id",
         "callback_at",
         "comment",
         "called_at",
     ];
 
-    public function user()
+    public function users()
 {
-    return $this->belongsTo(User::class);
+    return $this->belongsTo(User::class, 'agent_id');
 }
 
 public function leads()

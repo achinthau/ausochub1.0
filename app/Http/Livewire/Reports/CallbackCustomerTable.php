@@ -15,8 +15,15 @@ use WireUi\View\Components\Select;
 class CallbackCustomerTable extends LivewireDatatable
 {
     // public $model = CallbackCustomer::class;
+
+    protected $listeners = ['reminderTimeUpdated' => 'refreshTable',];
     public $exportable = true;
     public $hideable = 'select';
+
+    public function refreshTable()
+    {
+        $this->resetPage();
+    }
 
 //     public function builder()
 // {
@@ -27,7 +34,7 @@ class CallbackCustomerTable extends LivewireDatatable
 {
     return CallbackCustomer::query()
     
-        ->select('callback_customers.*')->with('users');
+        ->select('callback_customers.*')->with('users')->whereDate('callback_at', Carbon::today())->orderBy('callback_at', 'desc');
 }
 
 
@@ -37,7 +44,7 @@ class CallbackCustomerTable extends LivewireDatatable
     {
 
         return [
-            Column::name('id')->label('ID')->hide(),
+            // Column::name('id')->label('ID')->filterable()->searchable(),
 
             Column::name('lead_id')->label('Lead ID')->filterable()->searchable(),
 
@@ -50,7 +57,8 @@ class CallbackCustomerTable extends LivewireDatatable
             DateColumn::name('callback_at')
                 ->label('Callback At')
                 ->format('Y-m-d H:i:s')
-                ->filterable(),
+                ->filterable()
+                ->hide(),
 
             
 
@@ -67,6 +75,12 @@ class CallbackCustomerTable extends LivewireDatatable
                     'uniqueid' => $unique_id
                 ]);
             })->label('Call Record')->unsortable()->excludeFromExport(),
+
+            Column::callback(['id'], function ($id) {
+                return view('table-actions-v2-copy', [
+                    'id' => $id,
+                ]);
+            })->label('Actions')->unsortable()->excludeFromExport(),
         ];
     }
 

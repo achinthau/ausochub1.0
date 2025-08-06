@@ -203,13 +203,16 @@
                 <div class="flex justify-between">
                     <div class="ml-3 relative">
                         <div class="flex">
-                            @can('is-agent')
+                            
                                 @if (Route::is('dashboard.index'))
                                 {{-- @if (request()->is('/')) --}}
                                     <div class="flex justify-between">
+                                        @canany(['is-admin', 'is-agent'])
                                         <div class="pr-8 pt-4">
                                             @livewire('dashboard.reminder')
                                         </div>
+                                        @endcanany
+                                        @can('is-agent')
                                         <div class="pr-8 pt-4">
                                             @livewire('dashboard.hand-raise')
                                         </div>

@@ -11,6 +11,7 @@ use Mediconesystems\LivewireDatatables\DateColumn;
 use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 use WireUi\View\Components\Select;
+use Illuminate\Support\Facades\Auth;
 
 class CallbackCustomerTable extends LivewireDatatable
 {
@@ -28,13 +29,24 @@ class CallbackCustomerTable extends LivewireDatatable
 //     public function builder()
 // {
 //     return CallbackCustomer::query()
-//         ->select('id', 'lead_id', 'agent_id', 'unique_id', 'callback_at', 'called_at', 'comment');
-// }
-    public function builder()
-{
-    return CallbackCustomer::query()
     
-        ->select('callback_customers.*')->with('users')->whereDate('callback_at', Carbon::today())->orderBy('callback_at', 'desc');
+//         ->select('callback_customers.*')->with('users')->whereDate('callback_at', Carbon::today())->orderBy('callback_at', 'desc');
+// }
+
+public function builder()
+{
+    $query = CallbackCustomer::query()
+        ->select('callback_customers.*')
+        ->with('users')
+        ->whereDate('callback_at', Carbon::today())
+        ->orderBy('callback_at', 'desc');
+
+    // Check user type and filter accordingly
+    if (Auth::user()->user_type_id != 1) {
+        $query->where('callback_customers.agent_id', Auth::id());
+    }
+
+    return $query;
 }
 
 

@@ -1,4 +1,4 @@
-<x-modal.card title="Cx Ticket Rating Panel" blur align="center" wire:model="cxTicketRatingModal">
+<x-modal.card title="Service Ticket Rating Panel" blur align="center" wire:model="cxTicketRatingModal">
 
     <div>
 

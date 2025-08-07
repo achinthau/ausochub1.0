@@ -109,11 +109,11 @@
                 @endcan --}}
                 @can('is-admin')
                     <!-- Navigation Links -->
-                    <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
+                    {{-- <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                         <x-jet-nav-link href="{{ route('contact-feeds.index') }}" :active="request()->routeIs('contact-feeds.index')">
                             {{ __('Contact Feed') }}
                         </x-jet-nav-link>
-                    </div>
+                    </div> --}}
                 @endcan
                 @can('can-view-reports')
                     @if (config('auso.external_extension_url'))

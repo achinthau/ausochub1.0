@@ -1,4 +1,4 @@
-<x-modal.card title="Update Cx Ticket" blur align="center" wire:model="updateTicketModal">
+<x-modal.card title="Update Service Ticket" blur align="center" wire:model="updateTicketModal">
     <div class="max-h-[500px] overflow-y-auto px-2">
         {{-- Product Details --}}
         <div class="border p-4 rounded-lg shadow-md mt-4">

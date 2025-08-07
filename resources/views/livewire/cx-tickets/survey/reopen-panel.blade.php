@@ -1,4 +1,4 @@
-<x-modal.card title="Cx Ticket ReOpen" blur align="center" wire:model="cxTicketReOpenModal">
+<x-modal.card title="Service Ticket ReOpen" blur align="center" wire:model="cxTicketReOpenModal">
 
     <div>
 

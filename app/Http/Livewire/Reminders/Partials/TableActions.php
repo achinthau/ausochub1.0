@@ -19,6 +19,7 @@ class TableActions extends Component
     {
         $this->callback = CallbackCustomer::find($id);
         $this->callback_at =$this->callback->callback_at;
+        $this->selectedUser =$this->callback->agent_id;
         $this->users = User::all();
     }
 

@@ -18,9 +18,17 @@ class TableActions extends Component
     public function mount($id)
     {
         $this->callback = CallbackCustomer::find($id);
-        $this->callback_at =$this->callback->callback_at;
-        $this->selectedUser =$this->callback->agent_id;
-        $this->users = User::all();
+        $this->callback_at = $this->callback->callback_at;
+        $this->selectedUser = $this->callback->agent_id;
+        // $this->users = User::where('tenant_context',auth()->user()->tenant_context)->get();
+        $tenantContexts = explode(',', auth()->user()->tenant_context);
+
+        $this->users = User::where(function ($query) use ($tenantContexts) {
+            foreach ($tenantContexts as $context) {
+                $query->orWhere('tenant_context', 'like', '%' . trim($context) . '%');
+            }
+        })->get();
+
     }
 
     public function setEdit()
@@ -30,7 +38,7 @@ class TableActions extends Component
 
     public function updateReminder()
     {
-        
+
 
         $this->callback->callback_at = $this->callback_at;
         $this->callback->save();
@@ -40,7 +48,7 @@ class TableActions extends Component
         session()->flash('success', 'updated successfully');
     }
 
-     public function toggleDropdown()
+    public function toggleDropdown()
     {
         $this->showDropdown = !$this->showDropdown;
     }

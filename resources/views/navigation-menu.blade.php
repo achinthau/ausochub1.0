@@ -204,23 +204,29 @@
                     <div class="ml-3 relative">
                         <div class="flex">
                             
-                                @if (Route::is('dashboard.index'))
+                                
                                 {{-- @if (request()->is('/')) --}}
                                     <div class="flex justify-between">
+                                        
                                         @canany(['is-admin', 'is-agent'])
                                         <div class="pr-8 pt-4">
                                             @livewire('dashboard.reminder')
                                         </div>
                                         @endcanany
+
+                                       
+                                        
                                         @can('is-agent')
+                                         @if (Route::is('dashboard.index'))
                                         <div class="pr-8 pt-4">
                                             @livewire('dashboard.hand-raise')
                                         </div>
                                         <div class="pr-8 pt-4">
                                         @livewire('dashboard.select-bound')
                                     </div>
+                                    @endif
                                     </div>
-                                @endif
+                                
                             @endcan
 
                             <x-jet-dropdown align="right" width="48">

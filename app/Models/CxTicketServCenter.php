@@ -9,5 +9,6 @@ class CxTicketServCenter extends Model
 {
     use HasFactory;
 
+    protected $table = "cx_ticket_serv_centers";
     protected $fillable = ['name'];
 }

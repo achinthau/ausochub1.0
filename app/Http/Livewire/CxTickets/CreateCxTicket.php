@@ -61,21 +61,21 @@ class CreateCxTicket extends Component
     // protected $listeners = ['editTicket' => 'loadTicket'];
 
     protected $rules = [
-        'category' => 'required',
-        'product' => 'required|string',
-        'model' => 'required|string',
-        'work_order_no' => 'required|string|unique:cx_tickets,work_order_no',
-        'service_center' => 'required',
-        'warranty_status' => 'required',
-        'sold_date' => 'required|date',
-        'customer_name' => 'required|string',
-        'customer_address' => 'required|string',
-        'customer_contact_01' => 'required|string',
+        // 'category' => 'required',
+        'product' => 'string',
+        'model' => 'string',
+        'work_order_no' => 'string|unique:cx_tickets,work_order_no',
+        // 'service_center' => 'required',
+        // 'warranty_status' => 'required',
+        'sold_date' => 'date',
+        'customer_name' => 'string',
+        'customer_address' => 'string',
+        'customer_contact_01' => 'string',
         'customer_contact_02' => 'nullable|string',
-        'technician_name' => 'required|string',
-        'technician_contact' => 'required|string',
-        'supervisor_name' => 'required|string',
-        'supervisor_contact' => 'required|string',
+        'technician_name' => 'string',
+        'technician_contact' => 'string',
+        'supervisor_name' => 'nullable|string',
+        'supervisor_contact' => 'nullable|string',
     ];
 
     public function save()

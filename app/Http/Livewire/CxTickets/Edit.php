@@ -92,9 +92,9 @@ public function updatedSupervisorName($value)
         // 'customer_address' => 'required|string',
         // 'customer_contact_01' => 'nullable|string',
         // 'customer_contact_02' => 'nullable|string',
-        'technician_name' => 'required|string',
+        'technician_name' => 'nullable|string',
         'technician_contact' => 'nullable|string',
-        'supervisor_name' => 'required|string',
+        'supervisor_name' => 'nullable|string',
         'supervisor_contact' => 'nullable|string',
     ]);
 

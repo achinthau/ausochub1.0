@@ -2,6 +2,7 @@
 namespace App\Http\Livewire;
 
 use App\Exports\CxTicketsExport;
+use App\Models\CxTicketCategory;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
@@ -53,19 +54,36 @@ class CxTicketsTable extends DataTableComponent
 
     public function filters(): array
 {
+    $categories = CxTicketCategory::pluck('name', 'name')->toArray();
+
+    // Prepend "All" option
+    $options = ['' => 'All'] + $categories;
+
+
     return [
+        // SelectFilter::make('Category')
+        //     ->options([
+        //         '' => 'All',
+        //         'Service' => 'Service',
+        //         'Repair' => 'Repair',
+        //         'Installation' => 'Installation',
+        //     ])
+        //     ->filter(function ($query, $value) {
+        //         if ($value !== '') {
+        //             $query->where('category', $value);
+        //         }
+        //     }),
+
+
         SelectFilter::make('Category')
-            ->options([
-                '' => 'All',
-                'Service' => 'Service',
-                'Repair' => 'Repair',
-                'Installation' => 'Installation',
-            ])
+            ->options($options)
             ->filter(function ($query, $value) {
                 if ($value !== '') {
                     $query->where('category', $value);
                 }
             }),
+
+
 
             // SelectFilter::make('Status')
             // ->options([

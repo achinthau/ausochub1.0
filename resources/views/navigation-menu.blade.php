@@ -118,7 +118,7 @@
                         </x-jet-nav-link>
                     </div> --}}
                 @endcan
-                @canany(['can-view-reports', 'can-view-cdr-reports'])
+                @can('can-view-reports')
                     @if (config('auso.external_extension_url'))
                         <!-- Navigation Links -->
                         <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
@@ -128,6 +128,9 @@
                             </x-jet-nav-link>
                         </div>
                     @endif
+
+                        @endcan
+                @canany(['can-view-reports', 'can-view-cdr-reports'])
 
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                         <x-jet-nav-link href="{{ route('reports.index') }}" :active="request()->routeIs('reports.index')">

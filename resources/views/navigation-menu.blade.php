@@ -45,9 +45,12 @@
                         @endif
                     </x-jet-nav-link>
                 </div> --}}
+
+                @can('can-view-chat')
+
                 @livewire('chat.chat-nav-button')
 
-
+                @endcan
 
                 @can('can-view-leads')
                     <!-- Navigation Links -->
@@ -66,7 +69,7 @@
                         </x-jet-nav-link>
                     </div>
                 @endcan
-                @can('can-view-leads')
+                @can('can-view-service-tickets')
                     <!-- Navigation Bar with Dropdown -->
                     <div class="hidden sm:flex sm:ml-10 pt-4">
                         <div x-data="{ open: false }" class="relative">
@@ -115,7 +118,7 @@
                         </x-jet-nav-link>
                     </div> --}}
                 @endcan
-                @can('can-view-reports')
+                @canany(['can-view-reports', 'can-view-cdr-reports'])
                     @if (config('auso.external_extension_url'))
                         <!-- Navigation Links -->
                         <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
@@ -131,7 +134,7 @@
                             {{ __('Reports') }}
                         </x-jet-nav-link>
                     </div>
-                @endcan
+                @endcanany
 
                 @can('is-admin')
                     <!-- Navigation Links -->

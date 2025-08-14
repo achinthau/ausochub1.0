@@ -129,7 +129,7 @@
                     </div>
                 </a> --}}
                 @endcan
-                @can('can-view-reports')
+                @can('can-view-cdr-reports')
                 <a href="{{ route('reports.cdr-detail') }}"
                     class="flex p-2 space-x-2 transform transition duration-500 hover:scale-105 hover:bg-[#5E81F4]/[.1]  hover:text-[#5E81F4] rounded-md ">
                     <div class="p-2 bg-gray-100 rounded-md max-h-12">
@@ -146,7 +146,8 @@
                     </div>
                 </a>
 
-                
+                 @endcan
+                @can('can-view-reports')
 
                 <a href="{{ route('reports.daily-calls-summary-report') }}"
                     class="flex p-2 space-x-2 transform transition duration-500 hover:scale-105 hover:bg-[#5E81F4]/[.1]  hover:text-[#5E81F4] rounded-md ">

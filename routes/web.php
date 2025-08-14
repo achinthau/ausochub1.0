@@ -89,7 +89,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     Route::prefix('reports')->group(function () {
         Route::get('/', ReportsIndex::class)->name('reports.index');
         // Route::get('/call-detail-report', CallDetail::class)->name('reports.call-detail')->can('is-admin');
-        Route::get('/cdr-detail-report', CdrDetail::class)->name('reports.cdr-detail')->can('can-view-reports');
+        Route::get('/cdr-detail-report', CdrDetail::class)->name('reports.cdr-detail')->middleware('can:can-view-cdr-reports');;
         Route::get('/cdr-listen-calls-report', CdrListen::class)->name('reports.cdr-listen-calls')->can('is-admin');
         Route::get('/ivr-detail-report', IvrDetail::class)->name('reports.ivr-detail')->can('is-admin');
         Route::get('/agent-missed-call-summary', AgentMissedCallSummary::class)->name('reports.agent-missed-call-summary')->can('is-admin');

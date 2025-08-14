@@ -54,5 +54,8 @@ class UserTypeSeeder extends Seeder
         UserType::create([
             'title'=>'Tehnical Supervisor'
         ]);
+        UserType::create([
+            'title'=>'NPS User'
+        ]);
     }
 }

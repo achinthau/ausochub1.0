@@ -79,6 +79,22 @@ class AuthServiceProvider extends ServiceProvider
             return in_array($user->user_type_id, [1,2,3,4,9]);
         });
 
+        Gate::define('can-view-chat', function (User $user) {
+            return in_array($user->user_type_id, [1,2,3,4,9]);
+        });
+
+        Gate::define('nps-user', function (User $user) {
+            return in_array($user->user_type_id, [12]);
+        });
+
+        Gate::define('can-view-service-tickets', function (User $user) {
+            return in_array($user->user_type_id, [1,2,3,4,9,12]);
+        });
+
+        Gate::define('can-view-cdr-reports', function (User $user) {
+            return in_array($user->user_type_id, [1,8,12]);
+        });
+
 
 
     }

@@ -9,10 +9,13 @@ class ViewPanel extends Component
 {
     public $CxTicketViewingModal = false;
     public $ticket;
-    protected $listeners = ['showCxTicketViewingModal' => 'showCxTicketViewingModal'];
+    protected $listeners = ['showCxTicketViewingModal' => 'showCxTicketViewingModal', 'cxTicketSurveyUpdated' => 'closeModal'];
 
 
-
+    public function closeModal()
+    {
+        $this->CxTicketViewingModal = false;
+    }
     public function showCxTicketViewingModal($id)
     {
         $this->CxTicketViewingModal = true;

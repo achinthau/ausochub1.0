@@ -20,6 +20,8 @@
     </div>
     
     @push('modals')
+    
+    @livewire('cx-tickets.survey.view-panel')
     @livewire('cx-tickets.survey.rating-panel')
     @livewire('cx-tickets.survey.reopen-panel')
 @endpush

@@ -21,6 +21,7 @@ class RatingPanel extends Component
     protected $listeners = ['showCxTicketRatingModal' => 'showCxTicketRating', 'cancelRatings' => 'cancelRatings'];
 
     public $ticket_id;
+    public $ticket;
 
     public array $satisfactionReasons = [];
     public array $dissatisfactionReasons = [];
@@ -103,6 +104,7 @@ class RatingPanel extends Component
 
         
             if ($ticket) {
+                $this->ticket = $ticket;
                 $this->rating = $ticket->satisfaction_rate;
     
                 if(!$isCancel)

@@ -1,7 +1,7 @@
 <x-modal.card title="Service Ticket Rating Panel" blur align="center" wire:model="cxTicketRatingModal">
 
     <div>
-
+        
         @if(!$isCancel)
         <div>
             <style>

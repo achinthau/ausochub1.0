@@ -46,6 +46,10 @@ return new class extends Migration
             $table->string('reopened_by')->nullable();
             $table->string('closed_by')->nullable();
             $table->string('surveyed_by')->nullable();
+            
+            $table->string('skipped_reasons')->nullable();
+            $table->string('skipped_by')->nullable();
+
             $table->timestamps();
         });
     }

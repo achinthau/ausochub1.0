@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Auth;
 class ReopenPanel extends Component
 {
     public $ticket_id;
+    public $isReOpen = false;
     public $cxTicketReOpenModal;
     public $comment = '';
 
@@ -25,8 +26,9 @@ class ReopenPanel extends Component
         return view('livewire.cx-tickets.survey.reopen-panel');
     }
 
-    public function showReOpenModal($id)
+    public function showReOpenModal($id, $value)
     {
+        $this->isReOpen= $value;
         $this->ticket_id = $id;
         $this->cxTicketReOpenModal = true;
     }
@@ -38,9 +40,19 @@ class ReopenPanel extends Component
         $ticket = CxTicket::find($this->ticket_id);
         if($ticket)
         {
-            $ticket->status = 'ReOpened';
+            if($this->isReOpen)
+            {
+                $ticket->status = 'ReOpened';
             $ticket->reopened_reasons = $this->comment;
             $ticket->reopened_by = Auth::user()->name;
+            }
+            elseif(!$this->isReOpen)
+            {
+                $ticket->status = 'Skip';
+            $ticket->skipped_reasons = $this->comment;
+            $ticket->skipped_by = Auth::user()->name;
+            }
+
             $ticket->save();
 
             // $newTicket = $ticket->replicate();

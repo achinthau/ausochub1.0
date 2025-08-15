@@ -123,10 +123,24 @@
 
     <div class="flex space-x-1 justify-around pl-2">
         <a href="#"
-    wire:click.prevent="$emitTo('cx-tickets.survey.reopen-panel', 'showReOpenPanel', {{  $ticket->id }})"
+    wire:click.prevent="$emitTo('cx-tickets.survey.reopen-panel', 'showReOpenPanel', {{  $ticket->id }}, true)"
     class="py-1 px-4 pt-1 bg-orange-400 hover:bg-orange-500 text-black rounded-md">
     {{-- <button >ReOpen</button> --}}
     <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path d="M5 4a2 2 0 0 0-2 2v6H0l4 4 4-4H5V6h7l2-2H5zm10 4h-3l4-4 4 4h-3v6a2 2 0 0 1-2 2H6l2-2h7V8z"></path></svg>
+</a>
+
+    </div>
+
+    <div class="flex space-x-1 justify-around pl-2">
+        <a href="#"
+    wire:click.prevent="$emitTo('cx-tickets.survey.reopen-panel', 'showReOpenPanel', {{  $ticket->id }}, false)"
+    class="py-1 px-4 pt-1 bg-yellow-400 hover:bg-yellow-500 text-black rounded-md">
+    {{-- <button >ReOpen</button> --}}
+    <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+  <path d="M2 5v14c0 .86 1.012 1.318 1.659 .753l8 -7a1 1 0 0 0 0 -1.506l-8 -7c-.647 -.565 -1.659 -.106 -1.659 .753z"></path>
+  <path d="M13 5v14c0 .86 1.012 1.318 1.659 .753l8 -7a1 1 0 0 0 0 -1.506l-8 -7c-.647 -.565 -1.659 -.106 -1.659 .753z"></path>
+</svg>
 </a>
 
     </div>

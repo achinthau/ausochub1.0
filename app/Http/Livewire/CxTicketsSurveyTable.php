@@ -73,6 +73,7 @@ public function builder(): Builder
         ->whereIn('company', $companyNames)
         ->where(function ($q) {
             $q->where('status', 'Closed')
+        ->orWhere('status', 'Remind')
               ->orWhere(function ($q2) {
                   $q2->where('status', 'Skip')
                      ->whereDate('updated_at', '!=', now()->toDateString());
@@ -129,7 +130,7 @@ public function builder(): Builder
             Column::make("Updated at", "updated_at")
                 ->sortable(),
             Column::make("Actions")
-                ->label(fn($row) => view('livewire.cx-tickets.survey.rating-button', ['clientActivity' => $row->id]))
+                ->label(fn($row) => view('livewire.cx-tickets.survey.rating-button', ['ticket' => $row]))
                 ->html(),
         ];
     }

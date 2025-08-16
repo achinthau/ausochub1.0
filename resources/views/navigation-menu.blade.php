@@ -214,7 +214,7 @@
                                 {{-- @if (request()->is('/')) --}}
                                     <div class="flex justify-between">
                                         
-                                        @canany(['is-admin', 'is-agent'])
+                                        @canany(['is-admin', 'is-agent', 'nps-user'])
                                         <div class="pr-8 pt-4">
                                             @livewire('dashboard.reminder')
                                         </div>

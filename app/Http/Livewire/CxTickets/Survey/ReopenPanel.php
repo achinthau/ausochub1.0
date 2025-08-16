@@ -66,6 +66,10 @@ class ReopenPanel extends Component
     public function saveCallback()
     {
         $ticket = CxTicket::find($this->ticket_id);
+        if ($ticket){
+            $ticket->status = 'Remind';
+        }
+        $ticket->save();
 
         $this->validate([
             'callbackDate' => 'required|date',

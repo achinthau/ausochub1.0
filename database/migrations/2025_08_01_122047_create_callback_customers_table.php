@@ -16,8 +16,11 @@ return new class extends Migration
         Schema::create('callback_customers', function (Blueprint $table) {
             $table->id();
             $table->foreignId('agent_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('lead_id')->constrained('leads')->onDelete('cascade');
+            $table->text('contact_number')->nullable();
+            $table->text('lead_id')->nullable();
             $table->text('unique_id')->nullable();
+            $table->text('cx_ticket_id')->nullable();
+            $table->text('src')->nullable();
             $table->datetime('callback_at');
             $table->datetime('called_at')->nullable();
             $table->text('comment')->nullable();

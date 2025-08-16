@@ -58,11 +58,14 @@ public function builder()
         return [
             // Column::name('id')->label('ID')->filterable()->searchable(),
 
+            Column::name('contact_number')->label('Contact Number')->filterable()->searchable(),
+
             Column::name('lead_id')->label('Lead ID')->filterable()->searchable(),
 
             // Column::name('agent_id')->label('Agent ID')->filterable()->searchable(),
 
             Column::name('cx_ticket_id')->label('Ticket ID')->filterable()->searchable(),
+            
             Column::name('src')->label('Source')->filterable()->searchable(),
 
             Column::name('users.name')->label('Agent ID')->filterable()->searchable(),

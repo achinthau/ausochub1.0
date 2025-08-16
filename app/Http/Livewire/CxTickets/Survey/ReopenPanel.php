@@ -77,7 +77,7 @@ class ReopenPanel extends Component
             'agent_id' => auth()->id(),
             'cx_ticket_id' => $this->ticket_id,
             'contact_number' => $ticket->customer_contact_01,
-            'src' => 'cx',
+            'src' => 'survey',
             'callback_at' => Carbon::parse("{$this->callbackDate} {$this->callbackTime}"),
             'comment' => $this->callbackComment,
         ]);

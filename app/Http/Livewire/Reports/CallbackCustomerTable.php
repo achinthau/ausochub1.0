@@ -62,24 +62,26 @@ public function builder()
 
             // Column::name('agent_id')->label('Agent ID')->filterable()->searchable(),
 
+            Column::name('cx_ticket_id')->label('Ticket ID')->filterable()->searchable(),
+            Column::name('src')->label('Source')->filterable()->searchable(),
+
             Column::name('users.name')->label('Agent ID')->filterable()->searchable(),
 
-            Column::name('unique_id')->label('Call Unique ID')->filterable()->searchable(),
 
             DateColumn::name('callback_at')
                 ->label('Callback At')
                 ->format('Y-m-d H:i:s')
-                ->filterable()
-                ->hide(),
+                ->filterable(),
+                // ->hide(),
 
             
 
             Column::name('comment')->label('Comment')->truncate(30)->searchable(),
 
-            DateColumn::name('called_at')
-                ->label('Called At')
-                ->format('Y-m-d H:i:s')
-                ->filterable(),
+            // DateColumn::name('called_at')
+            //     ->label('Called At')
+            //     ->format('Y-m-d H:i:s')
+            //     ->filterable(),
 
             Column::callback(['id', 'unique_id'], function ($id, $unique_id) {
                 return view('table-actions-v2', [

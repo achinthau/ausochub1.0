@@ -240,7 +240,9 @@ public function submitReaction()
     CallbackCustomer::create([
         'agent_id' => auth()->id(),
         'lead_id' => $this->lead->id,
-        'unique_id' => $this->lead->unique_id,  
+        'unique_id' => $this->lead->unique_id,
+        'contact_number' => $this->lead->contact_number,
+        'src' => 'lead',  
         'callback_at' => Carbon::parse("{$this->callbackDate} {$this->callbackTime}"),
         'comment' => $this->callbackComment,
     ]);

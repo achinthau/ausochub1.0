@@ -39,6 +39,7 @@ public function builder()
         ->select('callback_customers.*')
         ->with('users')
         ->whereDate('callback_at', Carbon::today())
+        ->where('closing_reason',Null)
         ->orderBy('callback_at', 'desc');
 
     // Check user type and filter accordingly

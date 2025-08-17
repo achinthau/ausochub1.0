@@ -24,6 +24,8 @@ return new class extends Migration
             $table->datetime('callback_at');
             $table->datetime('called_at')->nullable();
             $table->text('comment')->nullable();
+            $table->text('closing_reason')->nullable();
+            $table->text('closed_by')->nullable();
             $table->timestamps();
         });
     }

@@ -26,3 +26,8 @@
 
     {{-- @livewire('leads.manual-create') --}}
 </div>
+
+
+@push('modals')
+    @livewire('reminders.partials.close-modal')
+@endpush

@@ -3,7 +3,11 @@
 namespace App\Http\Livewire\Reminders\Partials;
 
 use App\Models\CallbackCustomer;
+use App\Models\CxTicket;
+use App\Models\Lead;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Livewire\Component;
 
 class TableActions extends Component
@@ -30,6 +34,44 @@ class TableActions extends Component
         })->get();
 
     }
+
+    public function callApi($id)
+{
+    $extension = Auth::user()->extension;
+    $tenant_context = Auth::user()->tenant_context;
+    $this->callback = CallbackCustomer::find($id);
+    $phone = $this->callback->contact_number;
+    // if($this->callback->cx_ticket_id)
+    // {
+    //     $ticket = CxTicket::find($this->callback->cx_ticket_id);
+    //     if($ticket)
+    //     {
+    //         $phone = $ticket->customer_contact_01;
+    //     }
+    // }
+    // elseif($this->callback->lead_id)
+    // {
+    //     $lead = Lead::find($this->callback->lead_id);
+    //     if($lead)
+    //     {
+    //         $phone = $lead->contact_number;
+    //     }
+    // }
+    
+    $url = "123.231.74.22:8080/ausoadmin/dialscripts/dial.php";
+    $response = $response = Http::get($url, [
+        'type'   => 'out',
+        'exten'  => $extension,
+        'num'    => $phone,
+        'tenant' => $tenant_context,
+    ]);
+
+    if ($response->successful()) {
+        $this->dispatchBrowserEvent('notify', ['message' => 'API call successful!']);
+    } else {
+        $this->dispatchBrowserEvent('notify', ['message' => 'API call failed!']);
+    }
+}
 
     public function setEdit()
     {

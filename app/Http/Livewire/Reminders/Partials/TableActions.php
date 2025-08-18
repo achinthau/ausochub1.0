@@ -41,14 +41,14 @@ class TableActions extends Component
     $tenant_context = Auth::user()->tenant_context;
     $this->callback = CallbackCustomer::find($id);
     $phone = $this->callback->contact_number;
-    // if($this->callback->cx_ticket_id)
-    // {
-    //     $ticket = CxTicket::find($this->callback->cx_ticket_id);
-    //     if($ticket)
-    //     {
-    //         $phone = $ticket->customer_contact_01;
-    //     }
-    // }
+    if($this->callback->cx_ticket_id)
+    {
+        $ticket = CxTicket::find($this->callback->cx_ticket_id);
+        if($ticket)
+        {
+            $tenant_context = $ticket->company;
+        }
+    }
     // elseif($this->callback->lead_id)
     // {
     //     $lead = Lead::find($this->callback->lead_id);

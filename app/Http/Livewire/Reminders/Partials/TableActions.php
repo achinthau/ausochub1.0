@@ -58,8 +58,8 @@ class TableActions extends Component
     //     }
     // }
     
-    $url = "123.231.74.22:8080/ausoadmin/dialscripts/dial.php";
-    // $url = env('CALL_SERVER_API_URL') .'/dialscripts/dial.php';
+    // $url = "123.231.74.22:8080/ausoadmin/dialscripts/dial.php";
+    $url = env('CALL_SERVER_API_URL') .'/dialscripts/dial.php';
 
     $response = $response = Http::get($url, [
         'type'   => 'out',

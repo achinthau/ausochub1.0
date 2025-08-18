@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Settings\Extensions;
 
+use App\Models\Company;
 use App\Models\Extension;
 use App\Repositories\ApiManager;
 use Carbon\Carbon;
@@ -14,6 +15,8 @@ class Create extends Component
     use Actions;
 
     public Extension $extension;
+
+    public $companyOptions = [];
 
     public $createExtensionModal = false;
 
@@ -29,6 +32,13 @@ class Create extends Component
     protected $validationAttributes = [
         'extension.exten_type' => 'extension type',
     ];
+
+    public function mount()
+{
+    $this->companyOptions = Company::select('id','name')->get()->toArray();
+    $this->extension = new Extension();
+}
+
 
     public function render()
     {

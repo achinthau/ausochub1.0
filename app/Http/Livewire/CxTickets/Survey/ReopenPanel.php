@@ -19,6 +19,9 @@ class ReopenPanel extends Component
     public $callbackDate;
     public $callbackTime;
     public $callbackComment;
+    public array $skipReasons = [];
+    public array $selectedReasons = [];
+    public $selectedSkippingReason = null;
 
     protected $listeners = ['showReOpenPanel' => 'showReOpenModal'];
 
@@ -29,6 +32,36 @@ class ReopenPanel extends Component
     public function render()
     {
         return view('livewire.cx-tickets.survey.reopen-panel');
+    }
+
+    public function mount()
+    {
+        $this->skipReasons = [
+        '1st Call No Answer',
+        '2nd Call No Answer',
+        '3rd Call No Answer',
+        'Not in use',
+        'Unreacherble'
+    ];
+    }
+
+    public function updatedselectedSkippingReason($value)
+    {
+        if ($value) {
+            $this->selectReason($value);
+        }
+    }
+
+    public function selectReason($reason)
+    {
+        if (!in_array($reason, $this->selectedReasons)) {
+            $this->selectedReasons[] = $reason;
+        }
+    }
+
+    public function removeReason($reason)
+    {
+        $this->selectedReasons = array_filter($this->selectedReasons, fn($r) => $r !== $reason);
     }
 
     public function showReOpenModal($id, $value)
@@ -51,12 +84,15 @@ class ReopenPanel extends Component
                 $ticket->reopened_by = Auth::user()->name;
             }
             elseif ($this->isReOpen === 'skip') {
+                $allReasons = array_filter(array_merge($this->selectedReasons, [$this->comment]));
                 $ticket->status = 'Skip';
-                $ticket->skipped_reasons = $this->comment;
+                $ticket->skipped_reasons = implode(', ', $allReasons);
                 $ticket->skipped_by = Auth::user()->name;
             }
             $ticket->save();
         }
+
+        $this->selectedReasons = [];
 
         $this->emit('cxTicketSurveyUpdated');
         $this->cxTicketReOpenModal = false;

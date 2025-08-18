@@ -100,6 +100,22 @@
 </div>
 
 
+<div class="border p-2 rounded-lg shadow-md mt-4">
+    @if($ticket->status =="Skip")
+<h1 class="p-1 pl-0 font-bold text-lg">Skipped Reasons</h1>
+<div class="flex pt-2 space-x-3">
+    <ul class="list-disc ml-4">
+@foreach(explode(',', $ticket->skipped_reasons) as $reason)
+    <li>{{ trim($reason) }}</li>
+@endforeach
+</ul>
+
+</div>
+@endif
+</div>
+
+
+
 <div class="flex pt-2 space-x-3">
 
     {{-- RATE --}}
@@ -159,6 +175,7 @@
     </div>
 
 </div>
+
 
 
 @endif

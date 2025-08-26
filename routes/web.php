@@ -38,6 +38,11 @@ use App\Http\Livewire\Tickets\IndexNew;
 use App\Http\Livewire\CxTickets\Index as CxTicketsIndex;
 use App\Http\Livewire\Reminders\Index as ReminderIndex;
 use App\Http\Livewire\CxTickets\Survey\Index as SurveyIndex;
+use App\Http\Livewire\Dialer\Index as DialerIndex;
+use App\Http\Livewire\Dialer\Settings\Index as DialerSettingsIndex;
+use App\Http\Livewire\Dialer\Dashboard\Index as DialerDashboardIndex;
+use App\Http\Livewire\Dialer\Settings\Campaign\Index as DialerCampSettingsIndex;
+use App\Http\Livewire\Dialer\Settings\Feed\Index as DialerFeedSettingsIndex;
 use App\Models\CallCenter\AbandonedCall as CallCenterAbandonedCall;
 use App\Models\DailyCallSummary;
 use App\Models\QueueCount;
@@ -131,8 +136,18 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 Route::get('/reminders/clear-and-show', function () {
     Redis::connection()->select(6);
     Redis::del('isReminder:' . auth()->id());
-
     return redirect()->route('reminder.index');
 })->name('reminder.clear');
+
+
+Route::prefix('dialer')->group(function () {
+        Route::get('/', DialerIndex::class)->name('dialer.index');
+        Route::get('/settings', DialerSettingsIndex::class)->name('dialer.settings.index');
+        Route::get('/settings/camp', DialerCampSettingsIndex::class)->name('dialer.settings.camp.index');
+        Route::get('/settings/feed', DialerFeedSettingsIndex::class)->name('dialer.settings.feed.index');
+        Route::get('/dashboard', DialerDashboardIndex::class)->name('dialer.dashboard.index');
+    });
+
+
 });
     

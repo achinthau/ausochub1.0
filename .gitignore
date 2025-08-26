@@ -14,3 +14,5 @@ yarn-error.log
 /.vscode
 app/Http/Livewire/Reports/CdrDetailTable.php.bak
 .history/
+composer.lock
+storage/debugbar/*.json

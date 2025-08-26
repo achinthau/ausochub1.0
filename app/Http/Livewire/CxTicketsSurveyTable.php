@@ -48,10 +48,10 @@ class CxTicketsSurveyTable extends DataTableComponent
     {
         $this->setPrimaryKey('id');
 
-        $this->setPaginationVisibilityDisabled();
+        // $this->setPaginationVisibilityDisabled();
         // $this->setPerPageVisibilityDisabled();
-        $this->setPerPageAccepted([10, 25, 50, 100]);
-        $this->setPerPage(10);
+        // $this->setPerPageAccepted([10, 25, 50, 100]);
+        // $this->setPerPage(10);
     }
 
 

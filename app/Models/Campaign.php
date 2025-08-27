@@ -9,7 +9,9 @@ class Campaign extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'status', 'assigned_users', 'assigned_feeds','company','created_by'];
+    protected $table = 'campaigns';
+
+    protected $fillable = ['name', 'status', 'assigned_users', 'assigned_feeds','company','created_by','schedule'];
 
     public function creator()
     {

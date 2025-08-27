@@ -10,6 +10,10 @@ import Echo from 'laravel-echo';
 import {livewire_hot_reload} from 'virtual:livewire-hot-reload'
 
 
+import flatpickr from 'flatpickr';
+import 'flatpickr/dist/flatpickr.min.css';
+window.flatpickr = flatpickr;
+
 import Pusher from 'pusher-js';
 window.Pusher = Pusher;
  

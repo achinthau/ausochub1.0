@@ -55,6 +55,8 @@ class CampaignTable extends DataTableComponent
                 ->sortable(),
             Column::make("Updated at", "updated_at")
                 ->sortable(),
+            Column::make("Scheduled time", "schedule")
+                ->sortable(),
                 Column::make("Actions")
                 ->label(fn($row) => view('livewire.dialer.settings.campaign.table-action', ['feed' => $row]))
                 ->html(),

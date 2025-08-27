@@ -7,6 +7,7 @@ use App\Models\Company;
 use App\Models\Feed;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
 class Create extends Component
@@ -15,6 +16,7 @@ class Create extends Component
         'showUpdateCampaignModal' => 'showUpdateCampaignModal',
         'showCreateCampaignModal' => 'showCreateCampaignModal',
     ];
+
     public $campaignId = null;
     public $createCampaignModal = false;
     public $name;
@@ -24,35 +26,64 @@ class Create extends Component
     public $companies = [];
     public $feeds = [];
     public $users;
+    public $schedule = [
+        'monday' => ['start' => '', 'end' => ''],
+        'tuesday' => ['start' => '', 'end' => ''],
+        'wednesday' => ['start' => '', 'end' => ''],
+        'thursday' => ['start' => '', 'end' => ''],
+        'friday' => ['start' => '', 'end' => ''],
+        'saturday' => ['start' => '', 'end' => ''],
+        'sunday' => ['start' => '', 'end' => ''],
+    ];
+    public $savedSchedule = '';
 
     public function mount($campaign = null)
     {
-        $this->reset(['campaignId', 'name', 'company_id', 'user_ids', 'feed_ids', 'users']);
+        $this->reset(['campaignId', 'name', 'company_id', 'user_ids', 'feed_ids', 'users', 'schedule']);
         $this->companies = Company::orderBy('name')->get(['id', 'name']);
         $this->feeds = Feed::orderBy('name')->get(['id', 'name']);
         $this->users = collect();
 
         if ($campaign) {
-            $this->campaignId = $campaign->id;
-            $this->name = $campaign->name;
-            $this->company_id = $campaign->company;
-            $this->user_ids = $campaign->assigned_users
-                ? array_map('intval', explode(',', trim($campaign->assigned_users)))
-                : [];
-            $this->feed_ids = $campaign->assigned_feeds
-                ? array_map('intval', array_filter(explode(',', trim($campaign->assigned_feeds))))
-                : [];
-            $this->updatedCompanyId($this->company_id);
+            $this->loadCampaign($campaign);
         }
+
+        $this->savedSchedule = json_encode($this->formatSchedule(), JSON_PRETTY_PRINT);
+    }
+
+    private function loadCampaign($campaign)
+    {
+        $this->campaignId = $campaign->id;
+        $this->name = $campaign->name;
+        $this->company_id = $campaign->company;
+        $this->user_ids = $campaign->assigned_users
+            ? array_map('intval', array_filter(explode(',', trim($campaign->assigned_users))))
+            : [];
+        $this->feed_ids = $campaign->assigned_feeds
+            ? array_map('intval', array_filter(explode(',', trim($campaign->assigned_feeds))))
+            : [];
+        // Load schedule
+        if ($campaign->schedule) {
+            $scheduleData = json_decode($campaign->schedule, true);
+            foreach ($this->schedule as $day => &$times) {
+                if (isset($scheduleData[$day])) {
+                    [$start, $end] = explode('-', $scheduleData[$day]);
+                    $times['start'] = trim($start);
+                    $times['end'] = trim($end);
+                }
+            }
+        }
+        $this->updatedCompanyId($this->company_id);
     }
 
     public function showCreateCampaignModal()
     {
-        $this->reset(['campaignId', 'name', 'company_id', 'user_ids', 'feed_ids', 'users']);
+        $this->reset(['campaignId', 'name', 'company_id', 'user_ids', 'feed_ids', 'users', 'schedule']);
         $this->companies = Company::orderBy('name')->get(['id', 'name']);
         $this->feeds = Feed::orderBy('name')->get(['id', 'name']);
         $this->users = collect();
         $this->createCampaignModal = true;
+        $this->savedSchedule = json_encode($this->formatSchedule(), JSON_PRETTY_PRINT);
         $this->dispatchBrowserEvent('refresh-modal');
 
         \Log::debug('Create Campaign Modal Opened', [
@@ -63,30 +94,21 @@ class Create extends Component
             'feed_ids' => $this->feed_ids,
             'users' => $this->users->toArray(),
             'feeds' => $this->feeds->toArray(),
+            'schedule' => $this->schedule,
         ]);
     }
 
     public function showUpdateCampaignModal($campaign_id)
     {
-        $this->reset(['user_ids', 'feed_ids', 'users', 'name', 'company_id', 'campaignId']);
+        $this->reset(['campaignId', 'name', 'company_id', 'user_ids', 'feed_ids', 'users', 'schedule']);
         $this->companies = Company::orderBy('name')->get(['id', 'name']);
         $this->feeds = Feed::orderBy('name')->get(['id', 'name']);
         $this->users = collect();
 
-        $this->campaign = Campaign::find($campaign_id);
-        if ($this->campaign) {
-            $this->campaignId = $this->campaign->id;
-            $this->name = $this->campaign->name;
-            $this->company_id = $this->campaign->company;
-            $this->user_ids = $this->campaign->assigned_users
-                ? array_map('intval', array_filter(explode(',', trim($this->campaign->assigned_users))))
-                : [];
-            $this->feed_ids = $this->campaign->assigned_feeds
-                ? array_map('intval', array_filter(explode(',', trim($this->campaign->assigned_feeds))))
-                : [];
-            $this->updatedCompanyId($this->company_id);
-
-            \Log::debug('Campaign Data', [
+        $campaign = Campaign::find($campaign_id);
+        if ($campaign) {
+            $this->loadCampaign($campaign);
+            \Log::debug('Campaign Data Loaded', [
                 'campaign_id' => $this->campaignId,
                 'name' => $this->name,
                 'company_id' => $this->company_id,
@@ -94,8 +116,10 @@ class Create extends Component
                 'feed_ids' => $this->feed_ids,
                 'users' => $this->users->toArray(),
                 'feeds' => $this->feeds->toArray(),
-                'raw_assigned_users' => $this->campaign->assigned_users,
-                'raw_assigned_feeds' => $this->campaign->assigned_feeds,
+                'schedule' => $this->schedule,
+                'raw_assigned_users' => $campaign->assigned_users,
+                'raw_assigned_feeds' => $campaign->assigned_feeds,
+                'raw_schedule' => $campaign->schedule,
             ]);
         } else {
             \Log::error('Campaign not found', ['campaign_id' => $campaign_id]);
@@ -157,31 +181,62 @@ class Create extends Component
 
     public function save()
     {
-        $validated = $this->validate([
-            'name' => 'required|string|max:255',
-            'company_id' => 'required|exists:ac_companies,id',
-            'user_ids' => 'array|exists:ac_users,id',
-            'feed_ids' => 'array|exists:ac_feeds,id',
-        ]);
+        // $validated = $this->validate([
+        //     'name' => 'required|string|max:255',
+        //     'company_id' => 'required|exists:companies,id',
+        //     'user_ids' => 'array|exists:users,id',
+        //     'feed_ids' => 'array|exists:feeds,id',
+        //     'schedule.monday.start' => 'nullable|date_format:h:i A',
+        //     'schedule.monday.end' => 'nullable|date_format:h:i A|after:schedule.monday.start',
+        //     'schedule.tuesday.start' => 'nullable|date_format:h:i A',
+        //     'schedule.tuesday.end' => 'nullable|date_format:h:i A|after:schedule.tuesday.start',
+        //     'schedule.wednesday.start' => 'nullable|date_format:h:i A',
+        //     'schedule.wednesday.end' => 'nullable|date_format:h:i A|after:schedule.wednesday.start',
+        //     'schedule.thursday.start' => 'nullable|date_format:h:i A',
+        //     'schedule.thursday.end' => 'nullable|date_format:h:i A|after:schedule.thursday.start',
+        //     'schedule.friday.start' => 'nullable|date_format:h:i A',
+        //     'schedule.friday.end' => 'nullable|date_format:h:i A|after:schedule.friday.start',
+        //     'schedule.saturday.start' => 'nullable|date_format:h:i A',
+        //     'schedule.saturday.end' => 'nullable|date_format:h:i A|after:schedule.saturday.start',
+        //     'schedule.sunday.start' => 'nullable|date_format:h:i A',
+        //     'schedule.sunday.end' => 'nullable|date_format:h:i A|after:schedule.sunday.start',
+        // ]);
+
+        $formattedSchedule = $this->formatSchedule();
+        $this->savedSchedule = json_encode($formattedSchedule, JSON_PRETTY_PRINT);
 
         $data = [
             'name' => $this->name,
             'company' => $this->company_id,
             'assigned_users' => !empty($this->user_ids) ? implode(',', $this->user_ids) : null,
             'assigned_feeds' => !empty($this->feed_ids) ? implode(',', $this->feed_ids) : null,
+            'schedule' => $this->savedSchedule,
         ];
 
         if ($this->campaignId) {
             $campaign = Campaign::findOrFail($this->campaignId);
             $campaign->update($data);
+            \Log::debug('Campaign Updated', ['data' => $data]);
         } else {
             $data['status'] = 'inactive';
             $data['created_by'] = Auth::user()->id;
             Campaign::create($data);
+            \Log::debug('Campaign Created', ['data' => $data]);
         }
 
         $this->createCampaignModal = false;
         $this->emit('campaignTableUpdated');
+    }
+
+    private function formatSchedule()
+    {
+        $formatted = [];
+        foreach ($this->schedule as $day => $times) {
+            if (!empty($times['start']) && !empty($times['end'])) {
+                $formatted[$day] = sprintf('%s-%s', $times['start'], $times['end']);
+            }
+        }
+        return $formatted;
     }
 
     public function render()

@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Dialer\Settings\Campaign;
 
 use App\Models\Campaign;
+use App\Models\CampaignType;
 use App\Models\Company;
 use App\Models\Feed;
 use App\Models\User;
@@ -21,9 +22,11 @@ class Create extends Component
     public $createCampaignModal = false;
     public $name;
     public $company_id;
+    public $campaign_type_id;
     public $user_ids = [];
     public $feed_ids = [];
     public $companies = [];
+    public $campaignTypes = [];
     public $feeds = [];
     public $users;
     public $schedule = [
@@ -41,6 +44,7 @@ class Create extends Component
     {
         $this->reset(['campaignId', 'name', 'company_id', 'user_ids', 'feed_ids', 'users', 'schedule']);
         $this->companies = Company::orderBy('name')->get(['id', 'name']);
+        $this->campaignTypes = CampaignType::orderBy('name')->get(['id', 'name']);
         $this->feeds = Feed::orderBy('name')->get(['id', 'name']);
         $this->users = collect();
 
@@ -56,6 +60,7 @@ class Create extends Component
         $this->campaignId = $campaign->id;
         $this->name = $campaign->name;
         $this->company_id = $campaign->company;
+        $this->campaign_type_id = $campaign->type;
         $this->user_ids = $campaign->assigned_users
             ? array_map('intval', array_filter(explode(',', trim($campaign->assigned_users))))
             : [];
@@ -80,6 +85,7 @@ class Create extends Component
     {
         $this->reset(['campaignId', 'name', 'company_id', 'user_ids', 'feed_ids', 'users', 'schedule']);
         $this->companies = Company::orderBy('name')->get(['id', 'name']);
+        $this->campaignTypes = CampaignType::orderBy('name')->get(['id', 'name']);
         $this->feeds = Feed::orderBy('name')->get(['id', 'name']);
         $this->users = collect();
         $this->createCampaignModal = true;
@@ -102,6 +108,7 @@ class Create extends Component
     {
         $this->reset(['campaignId', 'name', 'company_id', 'user_ids', 'feed_ids', 'users', 'schedule']);
         $this->companies = Company::orderBy('name')->get(['id', 'name']);
+        $this->campaignTypes = CampaignType::orderBy('name')->get(['id', 'name']);
         $this->feeds = Feed::orderBy('name')->get(['id', 'name']);
         $this->users = collect();
 
@@ -181,8 +188,8 @@ class Create extends Component
 
     public function save()
     {
-        // $validated = $this->validate([
-        //     'name' => 'required|string|max:255',
+        $validated = $this->validate([
+            'name' => 'required|string|max:255',
         //     'company_id' => 'required|exists:companies,id',
         //     'user_ids' => 'array|exists:users,id',
         //     'feed_ids' => 'array|exists:feeds,id',
@@ -200,7 +207,7 @@ class Create extends Component
         //     'schedule.saturday.end' => 'nullable|date_format:h:i A|after:schedule.saturday.start',
         //     'schedule.sunday.start' => 'nullable|date_format:h:i A',
         //     'schedule.sunday.end' => 'nullable|date_format:h:i A|after:schedule.sunday.start',
-        // ]);
+        ]);
 
         $formattedSchedule = $this->formatSchedule();
         $this->savedSchedule = json_encode($formattedSchedule, JSON_PRETTY_PRINT);
@@ -208,6 +215,7 @@ class Create extends Component
         $data = [
             'name' => $this->name,
             'company' => $this->company_id,
+            'type' => $this->campaign_type_id,
             'assigned_users' => !empty($this->user_ids) ? implode(',', $this->user_ids) : null,
             'assigned_feeds' => !empty($this->feed_ids) ? implode(',', $this->feed_ids) : null,
             'schedule' => $this->savedSchedule,

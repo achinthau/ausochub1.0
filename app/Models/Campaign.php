@@ -11,7 +11,7 @@ class Campaign extends Model
 
     protected $table = 'campaigns';
 
-    protected $fillable = ['name', 'status', 'assigned_users', 'assigned_feeds','company','created_by','schedule'];
+    protected $fillable = ['name', 'status', 'assigned_users', 'assigned_feeds','company','created_by','schedule','type'];
 
     public function creator()
     {

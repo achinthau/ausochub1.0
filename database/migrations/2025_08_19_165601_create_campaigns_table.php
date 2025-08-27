@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('status')->nullable();
             $table->unsignedBigInteger('company')->nullable();
+            $table->unsignedBigInteger('type')->nullable();
             $table->unsignedBigInteger('created_by')->nullable();
             $table->string('assigned_feeds')->nullable();
             $table->string('schedule')->nullable();

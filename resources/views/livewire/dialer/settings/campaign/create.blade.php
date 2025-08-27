@@ -3,12 +3,21 @@
         <!-- Campaign Name -->
         <x-input label="Campaign Name" placeholder="Enter campaign name" wire:model.defer="name" />
 
+        <!-- Campaign Selection -->
+        <x-select label="Select Campaign Type" placeholder="Choose a Campaign Type" wire:model="campaign_type_id">
+            @foreach($campaignTypes as $type)
+                <x-select.option :label="$type->name" :value="$type->id" />
+            @endforeach
+        </x-select>
+
         <!-- Company Selection -->
         <x-select label="Select Company" placeholder="Choose a company" wire:model="company_id">
             @foreach($companies as $company)
                 <x-select.option :label="$company->name" :value="$company->id" />
             @endforeach
         </x-select>
+
+        
 
         <!-- Assign Users -->
         <x-select
@@ -50,13 +59,13 @@
 
 
         <div>
-    <div class="max-w-4xl mx-auto p-4">
+    <div class="max-w-4xl mx-auto px-4 pt-2">
         <h2 class="text-  font-semibold mb-4">Weekly Schedule</h2>
 
         <!-- Make it 2 columns -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             @foreach(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as $day)
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center border p-3 rounded-lg">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 items-center  px-3 rounded-lg">
                     <label class="capitalize font-medium">{{ $day }}</label>
                     <div class="pr-2">
                         <x-input

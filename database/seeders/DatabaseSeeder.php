@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             // BreakTypeSeeder::class,
             // LeadStatusSeeder::class,
             // CxSatisReasonSeeder::class,
+            // CampaignTypeSeeder::class,
         ]);
     }
 }

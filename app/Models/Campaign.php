@@ -21,4 +21,8 @@ class Campaign extends Model
     {
         return $this->belongsTo(Company::class, 'company', 'id');
     }
+    public function types()
+    {
+        return $this->belongsTo(CampaignType::class, 'type', 'id');
+    }
 }

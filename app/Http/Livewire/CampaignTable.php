@@ -24,7 +24,7 @@ class CampaignTable extends DataTableComponent
 
     public function builder(): Builder
 {
-    return Campaign::query()->with('creator')->with('companies');
+    return Campaign::query()->with('creator')->with('companies')->with('types');
 }
 
     public function columns(): array
@@ -34,6 +34,8 @@ class CampaignTable extends DataTableComponent
                 ->sortable(),
             Column::make("Name", "name")
                 ->sortable(),
+                Column::make("Type")
+            ->format(fn($value, $row) => $row->types?->name ?? 'N/A'),
             Column::make("Status", "status")
                 ->sortable(),
             // Assigned users
@@ -49,6 +51,7 @@ class CampaignTable extends DataTableComponent
             ),
             Column::make("Company")
             ->format(fn($value, $row) => $row->companies?->name ?? 'N/A'),
+            
                 Column::make("Created by")
             ->format(fn($value, $row) => $row->creator?->name ?? 'N/A'),
             // Column::make("Created at", "created_at")

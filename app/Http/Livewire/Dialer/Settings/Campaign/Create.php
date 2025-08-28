@@ -29,6 +29,8 @@ class Create extends Component
     public $campaignTypes = [];
     public $feeds = [];
     public $users;
+    public $status;
+
     public $schedule = [
         'monday' => ['start' => '', 'end' => ''],
         'tuesday' => ['start' => '', 'end' => ''],
@@ -61,6 +63,7 @@ class Create extends Component
         $this->name = $campaign->name;
         $this->company_id = $campaign->company;
         $this->campaign_type_id = $campaign->type;
+        $this->status = $campaign->status;
         $this->user_ids = $campaign->assigned_users
             ? array_map('intval', array_filter(explode(',', trim($campaign->assigned_users))))
             : [];
@@ -111,6 +114,7 @@ class Create extends Component
         $this->campaignTypes = CampaignType::orderBy('name')->get(['id', 'name']);
         $this->feeds = Feed::orderBy('name')->get(['id', 'name']);
         $this->users = collect();
+        
 
         $campaign = Campaign::find($campaign_id);
         if ($campaign) {
@@ -222,6 +226,7 @@ class Create extends Component
         ];
 
         if ($this->campaignId) {
+            $data['status'] = $this->status;
             $campaign = Campaign::findOrFail($this->campaignId);
             $campaign->update($data);
             \Log::debug('Campaign Updated', ['data' => $data]);

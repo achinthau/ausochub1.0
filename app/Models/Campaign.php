@@ -25,4 +25,11 @@ class Campaign extends Model
     {
         return $this->belongsTo(CampaignType::class, 'type', 'id');
     }
+
+    public function getFeedIdsAttribute(): array
+    {
+        return $this->assigned_feeds
+            ? array_filter(explode(',', $this->assigned_feeds))
+            : [];
+    }
 }

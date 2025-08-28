@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId('feed_id')->constrained()->onDelete('cascade');
             $table->string('phone')->nullable();
             $table->string('customer_name')->nullable();
+            $table->string('status')->nullable();
             $table->json('data')->nullable();
             $table->timestamps();
         });

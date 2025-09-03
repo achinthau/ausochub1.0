@@ -39,7 +39,8 @@ use App\Http\Livewire\CxTickets\Index as CxTicketsIndex;
 use App\Http\Livewire\Reminders\Index as ReminderIndex;
 use App\Http\Livewire\CxTickets\Survey\Index as SurveyIndex;
 use App\Http\Livewire\Dialer\Index as DialerIndex;
-use App\Http\Livewire\Dialer\Dashboard\Agent\Index as DialerAgentIndex;
+use App\Http\Livewire\Dialer\Dashboard\Admin\Index as DialerAdminIndex;
+use App\Http\Livewire\Dialer\Dashboard\Index as DialerAgentIndex;
 use App\Http\Livewire\Dialer\Settings\Index as DialerSettingsIndex;
 use App\Http\Livewire\Dialer\Dashboard\Index as DialerDashboardIndex;
 use App\Http\Livewire\Dialer\Settings\Campaign\Index as DialerCampSettingsIndex;
@@ -152,5 +153,6 @@ Route::prefix('dialer')->group(function () {
 
 });
 
+Route::get('/dialer/admin', DialerAdminIndex::class)->name('dialer.admin.dashboard');
 Route::get('/dialer/agent', DialerAgentIndex::class)->name('dialer.agent.dashboard');
     

@@ -98,7 +98,7 @@
             <div class="px-4 py-2 font-semibold text-sm text-gray-700">Dashboard</div>
             <hr>
             <div class="bg-white rounded-md p-4 grid grid-cols-3 gap-3">
-                <a href="{{ route('dialer.agent.dashboard') }}">
+                <a href="{{ route('dialer.admin.dashboard') }}">
                 <div class="flex hover:cursor-pointer">
                     
                     <div class="p-2 bg-gray-100 rounded-md max-h-12">

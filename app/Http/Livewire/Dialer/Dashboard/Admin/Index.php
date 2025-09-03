@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Livewire\Dialer\Dashboard\Agent;
+namespace App\Http\Livewire\Dialer\Dashboard\Admin;
 
 use App\Models\Campaign;
 use App\Models\CampaignMetric;
@@ -69,6 +69,6 @@ class Index extends Component
     }
     public function render()
     {
-        return view('livewire.dialer.dashboard.agent.index');
+        return view('livewire.dialer.dashboard.admin.index');
     }
 }

@@ -33,12 +33,16 @@ class Create extends Component
     {
         $this->validate();
 
-        $originalName = pathinfo($this->file->getClientOriginalName(), PATHINFO_FILENAME);
+        if($this->file)
+        {
+            $originalName = pathinfo($this->file->getClientOriginalName(), PATHINFO_FILENAME);
         $timestampedName = $originalName . '_' . now()->format('YmdHis') . '.' . $this->file->getClientOriginalExtension();
 
         $path = $this->file->storeAs('feeds', $timestampedName, 'public');
 
 
+        }
+        
 
         $feed = Feed::create([
             'name' => $this->feed['name'],

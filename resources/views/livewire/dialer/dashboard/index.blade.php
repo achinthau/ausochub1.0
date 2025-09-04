@@ -10,31 +10,34 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-7 gap-6">
             <!-- Left Side: Four Cards -->
-            <div class="lg:col-span-2 space-y-6">
+            <div class="lg:col-span-5 space-y-6">
                 <!-- Row 1 -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 sm:grid-cols-3 md:grid-cols-3 gap-4">
                     <!-- Card 1: Total Assigned Campaigns -->
                     <div class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-lg font-semibold text-gray-700">Total Assigned Campaigns</h3>
+                        <h3 class="text-base  font-semibold text-gray-700">Total Assigned Campaigns</h3>
                         <p class="text-3xl font-bold text-blue-600">{{ $totalAssignedCampaigns }}</p>
                     </div>
                     <!-- Card 2: Active Assigned Campaigns -->
                     <div class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-lg font-semibold text-gray-700">Active Assigned Campaigns</h3>
+                        <h3 class="text-base  font-semibold text-gray-700">Active Assigned Campaigns</h3>
                         <p class="text-3xl font-bold text-green-600">{{ $activeAssignedCampaigns }}</p>
                     </div>
                     <!-- Card 3: Total Calls Today -->
                     <div class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-lg font-semibold text-gray-700">Total Calls Today</h3>
+                        <h3 class="text-base  font-semibold text-gray-700">Total Calls Today</h3>
                         <p class="text-3xl font-bold text-purple-600">{{ $totalCallsToday }}</p>
                     </div>
                     <!-- Card 4: Answered Calls Today -->
                     <div class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-lg font-semibold text-gray-700">Answered Calls Today</h3>
+                        <h3 class="text-base  font-semibold text-gray-700">Answered Calls Today</h3>
                         <p class="text-3xl font-bold text-teal-600">{{ $answeredCallsToday }}</p>
                     </div>
+
+                    <!-- Card 5:  -->
+                        @livewire('dialer.dashboard.partials.call-panel')
                 </div>
                 <!-- Row 2: Campaign Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
@@ -72,7 +75,7 @@
                 </div>
             </div>
             <!-- Right Side: Agents Panel -->
-            <div class="bg-white rounded-lg shadow p-6">
+            <div class="lg:col-span-2 bg-white rounded-lg shadow p-6">
                 <h3 class="text-lg font-semibold text-gray-700 mb-4">Agents</h3>
                 <ul class="space-y-3">
                     @forelse ($agents as $agent)

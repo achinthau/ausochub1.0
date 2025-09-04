@@ -16,10 +16,10 @@ return new class extends Migration
         Schema::create('leads', function (Blueprint $table) {
             $table->id();
             $table->string('contact_number');
-            $table->string('unique_id');
-            $table->foreignId('agent_id');
-            $table->foreignId('skill_id');
-            $table->string('extension');
+            $table->string('unique_id')->nullable();
+            $table->foreignId('agent_id')->nullable();
+            $table->foreignId('skill_id')->nullable();
+            $table->string('extension')->nullable();
             $table->foreignId('status_id')->nullable();
             $table->string('first_name')->nullable();
             $table->string('last_name')->nullable();

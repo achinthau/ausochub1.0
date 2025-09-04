@@ -390,3 +390,55 @@ Route::post('/logout-socket', function (\Illuminate\Http\Request $request) {
 });
 
 
+Route::post('/get-number', function (Request $request) {
+    $validator = Validator::make($request->all(), [
+        'phone_number' => 'required',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation error',
+            'errors' => $validator->errors(),
+        ], 422); // HTTP 422 Unprocessable Entity
+    }
+
+    $phoneNumber = $request->input('phone_number');
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Phone number received successfully.',
+        'data' => [
+            'phone_number' => $phoneNumber,
+        ],
+    ], 200); // HTTP 200 OK
+});
+
+Route::post('/get-answered-number', function (Request $request) {
+    $validator = Validator::make($request->all(), [
+        'phone_number' => 'required',
+        'extention' => 'required',
+    ]);
+
+    if ($validator->fails()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Validation error',
+            'errors' => $validator->errors(),
+        ], 422); // HTTP 422 Unprocessable Entity
+    }
+
+    $phoneNumber = $request->input('phone_number');
+    $exten = $request->input('extention');
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Phone number received successfully.',
+        'data' => [
+            'phone_number' => $phoneNumber,
+            'extention' => $exten,
+        ],
+    ], 200); // HTTP 200 OK
+});
+
+

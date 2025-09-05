@@ -58,12 +58,12 @@
         @if($campaignId)
         <x-select label="Select Status" placeholder="Choose a Status" wire:model="status">
             
-                <x-select.option label="active" value="active" />
-                <x-select.option label="inactive" value="inactive" />
-                <x-select.option label="hold" value="hold" />
-                <x-select.option label="running" value="running" />
-                <x-select.option label="completed" value="completed" />
-                <x-select.option label="canceled" value="canceled" />
+                <x-select.option label="active" value="1" />
+                <x-select.option label="inactive" value="0" />
+                <x-select.option label="hold" value="2" />
+                {{-- <x-select.option label="running" value="running" /> --}}
+                <x-select.option label="completed" value="3" />
+                <x-select.option label="canceled" value="4" />
             
         </x-select>
         @endif

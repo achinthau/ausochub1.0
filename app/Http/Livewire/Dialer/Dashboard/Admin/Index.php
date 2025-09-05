@@ -19,12 +19,26 @@ class Index extends Component
     public $agents;
     public $campaigns;
 
+    protected $listeners = ['changeStatus'];
+
+    public function changeStatus($campaignId, $newStatus)
+    {
+        $campaign = Campaign::findOrFail($campaignId);
+        $campaign->status = $newStatus;
+        $campaign->save();
+
+        $this->campaigns = CampaignMetric::with('types')
+            ->whereNotIn('status', [3, 4])
+            ->get();
+
+        $this->dispatchBrowserEvent('notify', 'Campaign status updated!');
+    }
     public function mount()
     {
         // Load data for cards
         $this->totalCampaigns = Campaign::count();
-        $this->activeCampaigns = Campaign::where('status', 'active')->count();
-        $this->inactiveCampaigns = Campaign::where('status', 'inactive')->count();
+        $this->activeCampaigns = Campaign::where('status', '1')->count();
+        $this->inactiveCampaigns = Campaign::where('status', '0')->count();
         $this->totalUsers = User::count();
         $this->recentCampaigns = Campaign::orderBy('created_at', 'desc')->take(3)->get(['id', 'name', 'created_at']);
         $this->agents = User::whereNotNull('tenant_context')->orderBy('name')->take(5)->get(['id', 'name']);
@@ -64,7 +78,7 @@ class Index extends Component
     //     });
 
     $this->campaigns = CampaignMetric::with('types')
-            ->where('status', 'inactive')
+            ->whereNotIn('status', [3, 4])
             ->get();
     }
     public function render()

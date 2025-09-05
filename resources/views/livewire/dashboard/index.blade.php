@@ -23,6 +23,7 @@
                 <div>
                     {{-- @dump(Auth::user()->has_queue) --}}
                     {{-- @if (Auth::user()->has_queue) --}}
+                    <label><button type="button" onclick="Livewire.emitTo('dashboard.index', 'setOutbound')">Outbound</button></label>
 
 
 

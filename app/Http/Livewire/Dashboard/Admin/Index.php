@@ -18,6 +18,16 @@ class Index extends Component
     public $queue_wating_count = 0;
     public $on_going = 0;
 
+    protected $listeners = ['setOutbound'=>'setOutbound'];
+
+
+    public function setOutbound()
+    {
+        
+        return redirect()->route('dialer.admin.dashboard');
+        // dd('gh');
+    }
+
 
 
 

@@ -40,9 +40,89 @@
                                 <div class="bg-white rounded-xl border border-gray-200 shadow-md p-6 
                         transition-transform duration-300 ease-in-out hover:scale-[1.01] hover:shadow-lg">
 
-                                    <div class="border-b border-gray-200 pb-3 mb-3">
-                                        <h3 class="text-sm font-bold text-gray-800">{{$campaign->name}}</h3>
-                                    </div>
+                                    <div class="border-b border-gray-200 pb-3 mb-3 flex justify-between">
+                                        <div>
+                                            <h3 class="text-sm font-bold text-gray-800">{{$campaign->name}}</h3>
+                                        </div>
+                                        <div class="flex space-x-3">
+    {{-- Play (status = 0,2) --}}
+    @if (in_array($campaign->status, [0, 2]))
+        <div class="relative group">
+            <svg class="w-5 h-5 cursor-pointer"
+                 onclick="confirmStatusChange({{ $campaign->campaign_id }},'1', 'run')"
+                 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
+                <rect width="48" height="48" fill="white" fill-opacity="0.01"/>
+                <path d="M24 44C35.0457 44 44 35.0457 44 24C44 12.9543 35.0457 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0457 12.9543 44 24 44Z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
+                <path d="M20 24V17.0718L26 20.5359L32 24L26 27.4641L20 30.9282V24Z" fill="#fff" stroke="#fff" stroke-width="2" stroke-linejoin="round"/>
+            </svg>
+            <span class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block 
+                         bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
+                Run
+            </span>
+        </div>
+    @endif
+
+    {{-- Pause (status = 1) --}}
+    @if ($campaign->status == 1)
+        <div class="relative group">
+            <svg class="w-5 h-5 cursor-pointer"
+                 onclick="confirmStatusChange({{ $campaign->campaign_id }},'2', 'pause')"
+                 xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12ZM9 8.25a.75.75 0 0 0-.75.75v6c0 .414.336.75.75.75h.75a.75.75 0 0 0 .75-.75V9a.75.75 0 0 0-.75-.75H9Zm5.25 0a.75.75 0 0 0-.75.75v6c0 .414.336.75.75.75H15a.75.75 0 0 0 .75-.75V9a.75.75 0 0 0-.75-.75h-.75Z" clip-rule="evenodd"/>
+            </svg>
+            <span class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block 
+                         bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
+                Pause
+            </span>
+        </div>
+    @endif
+
+    {{-- Complete (status = 1,2) --}}
+    @if (in_array($campaign->status, [1, 2]))
+        <div class="relative group">
+            <svg class="w-5 h-5 cursor-pointer"
+                 onclick="confirmStatusChange({{ $campaign->campaign_id }},'3', 'complete')"
+                 xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M5 22h14c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2h-2a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1H5c-1.103 0-2 .897-2 2v15c0 1.103.897 2 2 2zM5 5h2v2h10V5h2v15H5V5z"/>
+                <path d="m11 13.586-1.793-1.793-1.414 1.414L11 16.414l5.207-5.207-1.414-1.414z"/>
+            </svg>
+            <span class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block 
+                         bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
+                Complete
+            </span>
+        </div>
+    @endif
+
+    {{-- Cancel (status = 0,1,2) --}}
+    @if (in_array($campaign->status, [0, 1, 2]))
+        <div class="relative group">
+            <svg class="w-5 h-5 cursor-pointer"
+                 onclick="confirmStatusChange({{ $campaign->campaign_id }},'4', 'cancel')"
+                 xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M3 20c0 1.103.897 2 2 2h14c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2h-2a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1H5c-1.103 0-2 .897-2 2v15zM5 5h2v2h10V5h2v15H5V5z"/>
+                <path d="M14.292 10.295 12 12.587l-2.292-2.292-1.414 1.414 2.292 2.292-2.292 2.292 1.414 1.414L12 15.415l2.292 2.292 1.414-1.414-2.292-2.292 2.292-2.292z"/>
+            </svg>
+            <span class="absolute bottom-full mb-1 left-1/2 -translate-x-1/2 hidden group-hover:block 
+                         bg-gray-800 text-white text-xs rounded px-2 py-1 whitespace-nowrap">
+                Cancel
+            </span>
+        </div>
+    @endif
+</div>
+
+
+
+<script>
+    function confirmStatusChange(campaignId, newStatus, statusString) {
+        if (confirm('Are you sure you want to ' + statusString + ' the campaign?')) {
+            Livewire.emit('changeStatus', campaignId, newStatus);
+        }
+    }
+</script>
+
+
+
+                                        </div>
 
                                     <div class="space-y-2">
                                         <div class="flex justify-between items-center">
@@ -52,7 +132,20 @@
 
                                         <div class="flex justify-between items-center">
                                             <span class="text-sm font-semibold text-gray-600">Status:</span>
-                                            <span class="text-sm text-gray-800 font-medium">{{ $campaign->status }}</span>
+                                            @php
+                                                $statuses = [
+                                                    '0' => 'Inactive',
+                                                    '1' => 'Active',
+                                                    '2' => 'On Hold',
+                                                    '3' => 'Completed',
+                                                    '4' => 'Canceled',
+                                                ];
+                                            @endphp
+
+                                            <span class="text-sm text-gray-800 font-medium">
+                                                {{ $statuses[$campaign->status] ?? 'Unknown' }}
+                                            </span>
+
                                         </div>
 
                                         <div class="flex justify-between items-center">

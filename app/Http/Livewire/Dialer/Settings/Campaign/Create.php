@@ -231,7 +231,7 @@ class Create extends Component
             $campaign->update($data);
             \Log::debug('Campaign Updated', ['data' => $data]);
         } else {
-            $data['status'] = 'inactive';
+            $data['status'] = '0';
             $data['created_by'] = Auth::user()->id;
             Campaign::create($data);
             \Log::debug('Campaign Created', ['data' => $data]);
@@ -240,6 +240,13 @@ class Create extends Component
         $this->createCampaignModal = false;
         $this->emit('campaignTableUpdated');
     }
+
+    //status
+    //['0'=>'inactive'] not started
+    //['1'=>'active'] running
+    //['2'=>'hold']
+    //['3'=>'completed']
+    //['4'=>'canceled']
 
     private function formatSchedule()
     {

@@ -42,7 +42,7 @@ use App\Http\Livewire\Dialer\Index as DialerIndex;
 use App\Http\Livewire\Dialer\Dashboard\Admin\Index as DialerAdminIndex;
 use App\Http\Livewire\Dialer\Dashboard\Index as DialerAgentIndex;
 use App\Http\Livewire\Dialer\Settings\Index as DialerSettingsIndex;
-use App\Http\Livewire\Dialer\Dashboard\Index as DialerDashboardIndex;
+use App\Http\Livewire\Dialer\Dashboard\Dashboard as DialerDashboardIndex;
 use App\Http\Livewire\Dialer\Settings\Campaign\Index as DialerCampSettingsIndex;
 use App\Http\Livewire\Dialer\Settings\Feed\Index as DialerFeedSettingsIndex;
 use App\Models\CallCenter\AbandonedCall as CallCenterAbandonedCall;
@@ -148,11 +148,12 @@ Route::prefix('dialer')->group(function () {
         Route::get('/settings/camp', DialerCampSettingsIndex::class)->name('dialer.settings.camp.index');
         Route::get('/settings/feed', DialerFeedSettingsIndex::class)->name('dialer.settings.feed.index');
         Route::get('/dashboard', DialerDashboardIndex::class)->name('dialer.dashboard.index');
+        Route::get('/admin', DialerAdminIndex::class)->name('dialer.admin.dashboard');
+        Route::get('/agent', DialerAgentIndex::class)->name('dialer.agent.dashboard');
     });
 
 
 });
 
-Route::get('/dialer/admin', DialerAdminIndex::class)->name('dialer.admin.dashboard');
-Route::get('/dialer/agent', DialerAgentIndex::class)->name('dialer.agent.dashboard');
+
     

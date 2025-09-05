@@ -22,10 +22,10 @@ class Index extends Component
     public $queueWiseData;
     public $selectedSkills = [];
 
-    public $isVisible =true;
-    public $messagesCount ;
+    public $isVisible = true;
+    public $messagesCount;
 
-    protected $listeners = ['hideBreak' => 'hideBreak', 'showBreak' => 'showBreak'];
+    protected $listeners = ['hideBreak' => 'hideBreak', 'showBreak' => 'showBreak', 'setOutbound'=>'setOutbound'];
 
     public function mount()
     {
@@ -40,7 +40,7 @@ class Index extends Component
 
 
 
-        $this->skills = Auth::user()->skills ?  Auth::user()->skills->skill_ids : [];
+        $this->skills = Auth::user()->skills ? Auth::user()->skills->skill_ids : [];
         // $this->totalBreakTime = AgentBreakSummary::whereBetween('breaktime', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->where('agentid', Auth::user()->agent_id)->selectRaw('SEC_TO_TIME(SUM(TIMESTAMPDIFF(SECOND, breaktime, unbreaktime))) AS today_total_break')->first()->today_total_break;
         $currentSkills = Auth::user()->currentQueues()->active()->get();
 
@@ -51,7 +51,7 @@ class Index extends Component
 
     }
 
-    
+
     public function hideBreak()
     {
         $this->isVisible = false;
@@ -103,17 +103,17 @@ class Index extends Component
 
 
 
-        
-        $loggedUserId = Auth::id(); 
-    $redisKey = "highlighted_users:$loggedUserId";
 
-    Redis::select(5);
+        $loggedUserId = Auth::id();
+        $redisKey = "highlighted_users:$loggedUserId";
 
-    
-    $messagesCountIds = Redis::get($redisKey);
-    $messagesCountIds = $messagesCountIds ? json_decode($messagesCountIds, true) : [];
-    // $this->messagesCount = count($messagesCountIds) - 1 ;
-    $this->messagesCount = count($messagesCountIds) ;
+        Redis::select(5);
+
+
+        $messagesCountIds = Redis::get($redisKey);
+        $messagesCountIds = $messagesCountIds ? json_decode($messagesCountIds, true) : [];
+        // $this->messagesCount = count($messagesCountIds) - 1 ;
+        $this->messagesCount = count($messagesCountIds);
 
 
 
@@ -129,14 +129,14 @@ class Index extends Component
         // $skills = Auth::user()->currentQueues()->active()->get()->pluck('skill')->unique();
 
 
-            // dd($skills);
+        // dd($skills);
 
         //      $currentSkills = Auth::user()->currentQueues()->active()->get()->pluck('skill')->unique();
         // foreach ($currentSkills as $skill) { 
         //     dd($skill,$value,$name);
         // }
-        
-      
+
+
         $data = [
             [
                 'name' => 'extension',
@@ -173,5 +173,32 @@ class Index extends Component
         return redirect(route('dashboard.index'));
     }
 
-    
+    public function setOutbound()
+    {
+        $user = Auth::user()->load([
+            'agent',
+            'agent.extensionDetails',
+            'currentQueues'
+        ]);
+
+        $currentSkills = $user->currentQueues()->active()->pluck('skill')->unique();
+
+        foreach ($currentSkills as $skill) {
+            $data = [
+                ['name' => 'extension', 'contents' => optional($user->agent)->extension],
+                ['name' => 'type', 'contents' => optional(optional($user->agent)->extensionDetails)->exten_type],
+                ['name' => 'agentip', 'contents' => '123.231.121.61'],
+                ['name' => 'queue', 'contents' => $skill],
+                ['name' => 'action', 'contents' => 'remove'],
+                ['name' => 'agentid', 'contents' => $user->agent_id],
+                ['name' => 'crm_token', 'contents' => null],
+            ];
+
+            ApiManager::updateSkill($data);
+        }
+        return redirect()->route('dialer.admin.dashboard');
+        // dd('gh');
+    }
+
+
 }

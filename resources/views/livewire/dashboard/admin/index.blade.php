@@ -4,6 +4,12 @@
             <h2 class="flex-1 font-semibold text-xl text-gray-800 leading-tight ">
                 {{ __('Dashboard') }}
             </h2>
+
+            <div class="flex">
+                <div>
+                    <label><button type="button" onclick="Livewire.emitTo('dashboard.admin.index', 'setOutbound')">Outbound</button></label>
+                </div>
+            </div>
         </div>
     </x-slot>
 

@@ -18,11 +18,13 @@ class Create extends Component
     protected $rules  = [
         'skill.skillname' => 'required|alpha_dash|unique:mysql-old.au_skills,skillname',
         'skill.mohClass' => 'required',
+        'skill.type' => 'required',
     ];
 
     protected $validationAttributes = [
         'skill.skillname' => 'skill name',
         'skill.mohClass' => 'MOH class',
+        'skill.type' => 'skill type',
     ];
 
     public function mount()
@@ -51,7 +53,8 @@ class Create extends Component
 
         $data = [
             ['name' => 'queueName', 'contents' => $this->skill->skillname],
-            ['name' => 'mohClass', 'contents' => $this->skill->mohClass]
+            ['name' => 'mohClass', 'contents' => $this->skill->mohClass],
+            ['name' => 'type', 'contents' => $this->skill->type],
         ];
         
         $response = ApiManager::createSkill($data);

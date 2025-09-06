@@ -2,10 +2,12 @@
 
 namespace App\Http\Livewire\Dialer\Settings\Campaign;
 
+use App\Models\AgentSkill;
 use App\Models\Campaign;
 use App\Models\CampaignType;
 use App\Models\Company;
 use App\Models\Feed;
+use App\Models\Skill;
 use App\Models\User;
 use App\Repositories\ApiManager;
 use Illuminate\Support\Facades\Auth;
@@ -238,6 +240,7 @@ class Create extends Component
             \Log::debug('Campaign Created', ['data' => $data]);
 
 
+            //Updated part for dialer
 
             $data2 = [
                 ['name' => 'queueName', 'contents' => $this->name],
@@ -246,6 +249,33 @@ class Create extends Component
             ];
 
             $response = ApiManager::createSkill($data2);
+
+            $skill = Skill::where('skillname', $this->name)->first();
+            $userIds = $this->user_ids; // array of agent IDs
+
+            foreach ($userIds as $userId) {
+                $agentSkill = AgentSkill::firstOrCreate(
+                    ['agentid' => $userId],
+                    ['skills' => '', 'dialer_skill_ids' => json_encode([])]
+                );
+
+                // Decode current JSON to array (if null, default to empty array)
+                $existingDialer = json_decode($agentSkill->dialer_skill_ids, true) ?? [];
+                $existingSkills = $agentSkill->skills ? explode(',', $agentSkill->skills) : [];
+
+                // Add new skill
+                $existingDialer[$skill->skillid] = $skill->skillname;
+                if (!in_array($skill->skillname, $existingSkills)) {
+                    $existingSkills[] = $skill->skillname;
+                }
+
+                // Update record
+                $agentSkill->update([
+                    'type' => 'dialer',
+                    'dialer_skill_ids' => json_encode($existingDialer),
+                    'skills' => implode(',', $existingSkills),
+                ]);
+            }
         }
 
 

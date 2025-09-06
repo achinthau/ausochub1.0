@@ -16,12 +16,14 @@ class AgentSkill extends Model
 
     protected $casts = [
         'skill_ids' => 'array',
+        'dialer_skill_ids' => 'array',
     ];
 
     protected $fillable=[
         'agentid',
         'skills',
         'skill_ids',
+        'type',
     ];
     
 

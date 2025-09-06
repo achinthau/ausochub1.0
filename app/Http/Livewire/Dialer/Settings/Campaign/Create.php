@@ -242,6 +242,14 @@ class Create extends Component
 
             //Updated part for dialer
 
+            $data2 = [
+                ['name' => 'queueName', 'contents' => $this->name],
+                ['name' => 'mohClass', 'contents' => 'silence'],
+                ['name' => 'type', 'contents' => 'dialer'],
+            ];
+
+            $response = ApiManager::createSkill($data2);
+
             $skill = Skill::where('skillname', $this->name)->first();
             $userIds = $this->user_ids; // array of agent IDs
 

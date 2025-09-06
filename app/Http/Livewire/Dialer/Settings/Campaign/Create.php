@@ -2,11 +2,14 @@
 
 namespace App\Http\Livewire\Dialer\Settings\Campaign;
 
+use App\Models\AgentSkill;
 use App\Models\Campaign;
 use App\Models\CampaignType;
 use App\Models\Company;
 use App\Models\Feed;
+use App\Models\Skill;
 use App\Models\User;
+use App\Repositories\ApiManager;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
@@ -114,7 +117,7 @@ class Create extends Component
         $this->campaignTypes = CampaignType::orderBy('name')->get(['id', 'name']);
         $this->feeds = Feed::orderBy('name')->get(['id', 'name']);
         $this->users = collect();
-        
+
 
         $campaign = Campaign::find($campaign_id);
         if ($campaign) {
@@ -194,23 +197,23 @@ class Create extends Component
     {
         $validated = $this->validate([
             'name' => 'required|string|max:255',
-        //     'company_id' => 'required|exists:companies,id',
-        //     'user_ids' => 'array|exists:users,id',
-        //     'feed_ids' => 'array|exists:feeds,id',
-        //     'schedule.monday.start' => 'nullable|date_format:h:i A',
-        //     'schedule.monday.end' => 'nullable|date_format:h:i A|after:schedule.monday.start',
-        //     'schedule.tuesday.start' => 'nullable|date_format:h:i A',
-        //     'schedule.tuesday.end' => 'nullable|date_format:h:i A|after:schedule.tuesday.start',
-        //     'schedule.wednesday.start' => 'nullable|date_format:h:i A',
-        //     'schedule.wednesday.end' => 'nullable|date_format:h:i A|after:schedule.wednesday.start',
-        //     'schedule.thursday.start' => 'nullable|date_format:h:i A',
-        //     'schedule.thursday.end' => 'nullable|date_format:h:i A|after:schedule.thursday.start',
-        //     'schedule.friday.start' => 'nullable|date_format:h:i A',
-        //     'schedule.friday.end' => 'nullable|date_format:h:i A|after:schedule.friday.start',
-        //     'schedule.saturday.start' => 'nullable|date_format:h:i A',
-        //     'schedule.saturday.end' => 'nullable|date_format:h:i A|after:schedule.saturday.start',
-        //     'schedule.sunday.start' => 'nullable|date_format:h:i A',
-        //     'schedule.sunday.end' => 'nullable|date_format:h:i A|after:schedule.sunday.start',
+            //     'company_id' => 'required|exists:companies,id',
+            //     'user_ids' => 'array|exists:users,id',
+            //     'feed_ids' => 'array|exists:feeds,id',
+            //     'schedule.monday.start' => 'nullable|date_format:h:i A',
+            //     'schedule.monday.end' => 'nullable|date_format:h:i A|after:schedule.monday.start',
+            //     'schedule.tuesday.start' => 'nullable|date_format:h:i A',
+            //     'schedule.tuesday.end' => 'nullable|date_format:h:i A|after:schedule.tuesday.start',
+            //     'schedule.wednesday.start' => 'nullable|date_format:h:i A',
+            //     'schedule.wednesday.end' => 'nullable|date_format:h:i A|after:schedule.wednesday.start',
+            //     'schedule.thursday.start' => 'nullable|date_format:h:i A',
+            //     'schedule.thursday.end' => 'nullable|date_format:h:i A|after:schedule.thursday.start',
+            //     'schedule.friday.start' => 'nullable|date_format:h:i A',
+            //     'schedule.friday.end' => 'nullable|date_format:h:i A|after:schedule.friday.start',
+            //     'schedule.saturday.start' => 'nullable|date_format:h:i A',
+            //     'schedule.saturday.end' => 'nullable|date_format:h:i A|after:schedule.saturday.start',
+            //     'schedule.sunday.start' => 'nullable|date_format:h:i A',
+            //     'schedule.sunday.end' => 'nullable|date_format:h:i A|after:schedule.sunday.start',
         ]);
 
         $formattedSchedule = $this->formatSchedule();
@@ -235,7 +238,47 @@ class Create extends Component
             $data['created_by'] = Auth::user()->id;
             Campaign::create($data);
             \Log::debug('Campaign Created', ['data' => $data]);
+
+
+            //Updated part for dialer
+
+            $data2 = [
+                ['name' => 'queueName', 'contents' => $this->name],
+                ['name' => 'mohClass', 'contents' => 'silence'],
+                ['name' => 'type', 'contents' => 'dialer'],
+            ];
+
+            $response = ApiManager::createSkill($data2);
+
+            $skill = Skill::where('skillname', $this->name)->first();
+            $userIds = $this->user_ids; // array of agent IDs
+
+            foreach ($userIds as $userId) {
+                $agentSkill = AgentSkill::firstOrCreate(
+                    ['agentid' => $userId],
+                    ['skills' => '', 'dialer_skill_ids' => json_encode([])]
+                );
+
+                // Decode current JSON to array (if null, default to empty array)
+                $existingDialer = json_decode($agentSkill->dialer_skill_ids, true) ?? [];
+                $existingSkills = $agentSkill->skills ? explode(',', $agentSkill->skills) : [];
+
+                // Add new skill
+                $existingDialer[$skill->skillid] = $skill->skillname;
+                if (!in_array($skill->skillname, $existingSkills)) {
+                    $existingSkills[] = $skill->skillname;
+                }
+
+                // Update record
+                $agentSkill->update([
+                    'type' => 'dialer',
+                    'dialer_skill_ids' => json_encode($existingDialer),
+                    'skills' => implode(',', $existingSkills),
+                ]);
+            }
         }
+
+
 
         $this->createCampaignModal = false;
         $this->emit('campaignTableUpdated');

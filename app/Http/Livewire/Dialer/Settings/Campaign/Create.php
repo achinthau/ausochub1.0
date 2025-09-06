@@ -162,6 +162,7 @@ class Create extends Component
         $companyName = strtolower(str_replace(' ', '', trim($company->name)));
 
         $this->users = User::query()
+            ->where('user_type_id','4')
             ->whereNotNull('tenant_context')
             ->whereRaw(
                 "FIND_IN_SET(?, LOWER(REPLACE(tenant_context, ' ', '')))",
@@ -254,13 +255,20 @@ class Create extends Component
             $userIds = $this->user_ids; // array of agent IDs
 
             foreach ($userIds as $userId) {
+                $user = User::with('agent')->find($userId);
+
+                if ($user && $user->agent) {
+                    $agentId = $user->agent->id; 
+                } else {
+                    $agentId = null;
+                }
                 $agentSkill = AgentSkill::firstOrCreate(
-                    ['agentid' => $userId],
-                    ['skills' => '', 'dialer_skill_ids' => json_encode([])]
+                    ['agentid' => $agentId],
+                    ['skills' => '', 'dialer_skill_ids' => []] // use array because of cast
                 );
 
-                // Decode current JSON to array (if null, default to empty array)
-                $existingDialer = json_decode($agentSkill->dialer_skill_ids, true) ?? [];
+                // Work with arrays directly (Laravel handles JSON casting)
+                $existingDialer = $agentSkill->dialer_skill_ids ?? [];
                 $existingSkills = $agentSkill->skills ? explode(',', $agentSkill->skills) : [];
 
                 // Add new skill
@@ -269,13 +277,13 @@ class Create extends Component
                     $existingSkills[] = $skill->skillname;
                 }
 
-                // Update record
-                $agentSkill->update([
-                    'type' => 'dialer',
-                    'dialer_skill_ids' => json_encode($existingDialer),
-                    'skills' => implode(',', $existingSkills),
-                ]);
+                // Save updates
+                $agentSkill->type = 'dialer';
+                $agentSkill->dialer_skill_ids = $existingDialer; // will be JSON encoded
+                $agentSkill->skills = implode(',', $existingSkills);
+                $agentSkill->save();
             }
+
         }
 
 

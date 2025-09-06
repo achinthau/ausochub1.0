@@ -24,8 +24,9 @@ class Index extends Component
 
     public $isVisible = true;
     public $messagesCount;
+    public $boundType;
 
-    protected $listeners = ['hideBreak' => 'hideBreak', 'showBreak' => 'showBreak', 'setOutbound'=>'setOutbound'];
+    protected $listeners = ['hideBreak' => 'hideBreak', 'showBreak' => 'showBreak', 'setOutbound' => 'setOutbound', 'setInbound'=>'setInbound'];
 
     public function mount()
     {
@@ -38,9 +39,24 @@ class Index extends Component
             }
         ])->first();
 
+        $userId = Auth::user()->id;
+        $this->boundType = Redis::get("user:{$userId}:bound_type");
+        if (!$this->boundType) {
+            $this->boundType = 'inbound';
+            Redis::set("user:{$userId}:bound_type", $this->boundType);
+        }
 
 
-        $this->skills = Auth::user()->skills ? Auth::user()->skills->skill_ids : [];
+        // if($this->boundType == "dialer")
+        // {
+        //     $this->skills = Auth::user()->skills ? Auth::user()->skills->dialer_skill_ids : [];
+        // }
+        // else
+        // {
+        //     $this->skills = Auth::user()->skills ? Auth::user()->skills->skill_ids : [];
+        // }
+        $this->setBound();
+        
         // $this->totalBreakTime = AgentBreakSummary::whereBetween('breaktime', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->where('agentid', Auth::user()->agent_id)->selectRaw('SEC_TO_TIME(SUM(TIMESTAMPDIFF(SECOND, breaktime, unbreaktime))) AS today_total_break')->first()->today_total_break;
         $currentSkills = Auth::user()->currentQueues()->active()->get();
 
@@ -175,6 +191,48 @@ class Index extends Component
 
     public function setOutbound()
     {
+        $this->boundType = 'dialer';
+        $userId = Auth::user()->id;
+        Redis::set("user:{$userId}:bound_type", $this->boundType);
+        $this->setBound();
+
+        // $user = Auth::user()->load([
+        //     'agent',
+        //     'agent.extensionDetails',
+        //     'currentQueues'
+        // ]);
+
+        // $currentSkills = $user->currentQueues()->active()->pluck('skill')->unique();
+
+        // $this->skills = Auth::user()->skills ? Auth::user()->skills->dialer_skill_ids : [];
+
+        // foreach ($currentSkills as $skill) {
+        //     $data = [
+        //         ['name' => 'extension', 'contents' => optional($user->agent)->extension],
+        //         ['name' => 'type', 'contents' => optional(optional($user->agent)->extensionDetails)->exten_type],
+        //         ['name' => 'agentip', 'contents' => '123.231.121.61'],
+        //         ['name' => 'queue', 'contents' => $skill],
+        //         ['name' => 'action', 'contents' => 'remove'],
+        //         ['name' => 'agentid', 'contents' => $user->agent_id],
+        //         ['name' => 'crm_token', 'contents' => null],
+        //     ];
+
+        //     ApiManager::updateSkill($data);
+        // }
+        // return redirect()->route('dialer.admin.dashboard');
+        // dd('gh');
+    }
+
+    public function setInbound()
+    {
+        $this->boundType = 'inbound';
+        $userId = Auth::user()->id;
+        Redis::set("user:{$userId}:bound_type", $this->boundType);
+        $this->setBound();
+    }
+
+    public function setBound()
+    {
         $user = Auth::user()->load([
             'agent',
             'agent.extensionDetails',
@@ -196,8 +254,15 @@ class Index extends Component
 
             ApiManager::updateSkill($data);
         }
-        return redirect()->route('dialer.admin.dashboard');
-        // dd('gh');
+
+        if($this->boundType == "dialer")
+        {
+            $this->skills = Auth::user()->skills ? Auth::user()->skills->dialer_skill_ids : [];
+        }
+        else
+        {
+            $this->skills = Auth::user()->skills ? Auth::user()->skills->skill_ids : [];
+        }
     }
 
 

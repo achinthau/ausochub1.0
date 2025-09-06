@@ -254,8 +254,15 @@ class Create extends Component
             $userIds = $this->user_ids; // array of agent IDs
 
             foreach ($userIds as $userId) {
+                $user = User::with('agent')->find($userId);
+
+                if ($user && $user->agent) {
+                    $agentId = $user->agent->id; 
+                } else {
+                    $agentId = null;
+                }
                 $agentSkill = AgentSkill::firstOrCreate(
-                    ['agentid' => $userId],
+                    ['agentid' => $agentId],
                     ['skills' => '', 'dialer_skill_ids' => []] // use array because of cast
                 );
 

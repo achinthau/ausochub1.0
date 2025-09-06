@@ -63,8 +63,10 @@ class AssignUser extends Component
     }
 
     if ($type === 'inbound' && !empty($agentSkill->skill_ids) && is_array($agentSkill->skill_ids)) {
+        $this->skills = Skill::where('type','inbound')->get();
         $this->selectedSkills = array_keys($agentSkill->skill_ids);
     } elseif ($type === 'dialer' && !empty($agentSkill->dialer_skill_ids) && is_array($agentSkill->dialer_skill_ids)) {
+        $this->skills = Skill::where('type','dialer')->get();
         $this->selectedSkills = array_keys($agentSkill->dialer_skill_ids);
     } else {
         $this->selectedSkills = [];

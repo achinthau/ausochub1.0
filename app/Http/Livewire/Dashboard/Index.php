@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Dashboard;
 
 use App\Models\AgentBreakSummary;
+use App\Models\CampaignMetric;
 use App\Models\Skill;
 use App\Models\User;
 use App\Repositories\ApiManager;
@@ -47,15 +48,15 @@ class Index extends Component
         }
 
 
-        // if($this->boundType == "dialer")
-        // {
-        //     $this->skills = Auth::user()->skills ? Auth::user()->skills->dialer_skill_ids : [];
-        // }
-        // else
-        // {
-        //     $this->skills = Auth::user()->skills ? Auth::user()->skills->skill_ids : [];
-        // }
-        $this->setBound();
+        if($this->boundType == "dialer")
+        {
+            $this->skills = Auth::user()->skills ? Auth::user()->skills->dialer_skill_ids : [];
+        }
+        else
+        {
+            $this->skills = Auth::user()->skills ? Auth::user()->skills->skill_ids : [];
+        }
+        // $this->setBound();
         
         // $this->totalBreakTime = AgentBreakSummary::whereBetween('breaktime', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->where('agentid', Auth::user()->agent_id)->selectRaw('SEC_TO_TIME(SUM(TIMESTAMPDIFF(SECOND, breaktime, unbreaktime))) AS today_total_break')->first()->today_total_break;
         $currentSkills = Auth::user()->currentQueues()->active()->get();
@@ -63,6 +64,12 @@ class Index extends Component
         foreach ($currentSkills as $key => $value) {
             $this->selectedSkills[$value["skill"]] = $value["skill"];
         }
+
+        $userId = Auth::id();
+
+        $this->campaigns = CampaignMetric::with('types')
+            ->whereRaw('FIND_IN_SET(?, assigned_users)', [$userId])
+            ->get();
 
 
     }

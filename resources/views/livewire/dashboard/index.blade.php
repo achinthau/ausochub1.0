@@ -25,10 +25,10 @@
                             {{-- @dump(Auth::user()->has_queue) --}}
                             {{-- @if (Auth::user()->has_queue) --}}
 
-                                <div class="flex items-center space-x-2 px-2">
-                                {{-- <label for="boundType" class="text-sm font-medium text-gray-700">
-                                    Bound Type:
-                                </label> --}}
+                            <div class="flex items-center space-x-2 px-4">
+                                <label for="boundType" class="text-lg  font-medium text-gray-700">
+                                    Mode:
+                                </label>
                                 <select id="boundType"
                                     class="block w-40 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 shadow-sm focus:border-indigo-800 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
                                     onchange="Livewire.emitTo('dashboard.index', this.value === 'inbound' ? 'setInbound' : 'setOutbound')">
@@ -110,18 +110,36 @@
                             <div class="bg-white p-6 rounded-md shadow-md space-y-2">
                                 <h1 class="text-xs text-gray-400 font-semibold">Skills</h1>
                                 <hr>
-                                @foreach ($skills as $key => $skill)
-                                    <div class="flex">
-                                        <label
-                                            class="flex-1  text-sm font-medium text-secondary-700 dark:text-gray-400 mr-2">
-                                            {{ $skill }}
-                                        </label>
-                                        @if (config('auso.allow_skill_change'))
-                                            <x-toggle lg wire:model="selectedSkills.{{ $skill }}" value="{{ $skill }}" />
-                                        @endif
-                                    </div>
-                                @endforeach
+                                {{-- @foreach ($skills as $key => $skill)
+                                <div class="flex">
+                                    <label
+                                        class="flex-1  text-sm font-medium text-secondary-700 dark:text-gray-400 mr-2">
+                                        {{ $skill }}
+                                    </label>
+                                    @if (config('auso.allow_skill_change'))
+                                    <x-toggle lg wire:model="selectedSkills.{{ $skill }}" value="{{ $skill }}" />
+                                    @endif
+                                </div>
+                                @endforeach --}}
+                                @if(!empty($skills) && is_iterable($skills))
+                                    @foreach ($skills as $key => $skill)
+                                        <div class="flex">
+                                            <label
+                                                class="flex-1 text-sm font-medium text-secondary-700 dark:text-gray-400 mr-2">
+                                                {{ $skill }}
+                                            </label>
+                                            @if (config('auso.allow_skill_change'))
+                                                <x-toggle lg wire:model="selectedSkills.{{ $skill }}" value="{{ $skill }}" />
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <p class="text-xs text-gray-400 italic">No skills assigned.</p>
+                                @endif
+
                             </div>
+
+                            @if($boundType != 'dialer')
 
                             <div class="bg-white p-4 space-y-2">
                                 <h1 class="text-xs text-gray-400 font-semibold">Ongoing Queue Count</h1>
@@ -136,6 +154,7 @@
                                     </div>
                                 @endforeach
                             </div>
+                            @endif
 
                             {{-- <div class="bg-white p-6 rounded-md shadow-md space-y-2">
                                 <h1 class="text-xs text-gray-400 font-semibold">Break</h1>
@@ -150,6 +169,42 @@
                                 @endif
                             </div> --}}
                         </div>
+
+                        @if($boundType == 'dialer')
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                    @foreach ($campaigns as $campaign)
+                        <div class="bg-white rounded-lg shadow p-6">
+                            <h3 class="text-base font-semibold text-gray-700">{{ $campaign->name }}</h3>
+                            <div class="mt-2 space-y-1">
+                                <div>
+                                    <span class="text-sm font-bold text-gray-700">Type:</span>
+                                    <span class="text-sm">{{ $campaign->types?->name ?? 'N/A' }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-bold text-gray-700">Status:</span>
+                                    <span class="text-sm">{{ $campaign->status }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-bold text-gray-700">Total Numbers:</span>
+                                    <span class="text-sm">{{ $campaign->contact_count ?? 0 }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-bold text-gray-700">Dialed Count:</span>
+                                    <span class="text-sm">{{ $campaign->dialed_count ?? 0 }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-bold text-gray-700">Answered Count:</span>
+                                    <span class="text-sm">{{ $campaign->answered_count ?? 0 }}</span>
+                                </div>
+                                <div>
+                                    <span class="text-sm font-bold text-gray-700">Agents Count:</span>
+                                    <span class="text-sm">{{ $campaign->agents_count ?? 0 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                @endif
 
                         <div class="grid grid-cols-3  gap-4">
 

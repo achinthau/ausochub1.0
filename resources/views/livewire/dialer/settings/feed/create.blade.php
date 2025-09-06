@@ -1,9 +1,9 @@
-<x-modal.card title="Create Feed" blur align="center" wire:model="createFeedModal">
+<x-modal.card title="Create Base" blur align="center" wire:model="createFeedModal">
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
         <!-- Feed Name -->
         <x-input 
-            label="Feed Name" 
+            label="Base Name" 
             placeholder="Enter feed name" 
             wire:model.defer="feed.name"
         />

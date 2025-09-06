@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Dashboard;
 
 use App\Models\AgentBreakSummary;
+use App\Models\CampaignMetric;
 use App\Models\Skill;
 use App\Models\User;
 use App\Repositories\ApiManager;
@@ -63,6 +64,12 @@ class Index extends Component
         foreach ($currentSkills as $key => $value) {
             $this->selectedSkills[$value["skill"]] = $value["skill"];
         }
+
+        $userId = Auth::id();
+
+        $this->campaigns = CampaignMetric::with('types')
+            ->whereRaw('FIND_IN_SET(?, assigned_users)', [$userId])
+            ->get();
 
 
     }

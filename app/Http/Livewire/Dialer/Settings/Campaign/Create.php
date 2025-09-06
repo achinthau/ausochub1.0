@@ -162,6 +162,7 @@ class Create extends Component
         $companyName = strtolower(str_replace(' ', '', trim($company->name)));
 
         $this->users = User::query()
+            ->where('user_type_id','4')
             ->whereNotNull('tenant_context')
             ->whereRaw(
                 "FIND_IN_SET(?, LOWER(REPLACE(tenant_context, ' ', '')))",

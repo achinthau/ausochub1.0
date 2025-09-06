@@ -47,15 +47,15 @@ class Index extends Component
         }
 
 
-        // if($this->boundType == "dialer")
-        // {
-        //     $this->skills = Auth::user()->skills ? Auth::user()->skills->dialer_skill_ids : [];
-        // }
-        // else
-        // {
-        //     $this->skills = Auth::user()->skills ? Auth::user()->skills->skill_ids : [];
-        // }
-        $this->setBound();
+        if($this->boundType == "dialer")
+        {
+            $this->skills = Auth::user()->skills ? Auth::user()->skills->dialer_skill_ids : [];
+        }
+        else
+        {
+            $this->skills = Auth::user()->skills ? Auth::user()->skills->skill_ids : [];
+        }
+        // $this->setBound();
         
         // $this->totalBreakTime = AgentBreakSummary::whereBetween('breaktime', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->where('agentid', Auth::user()->agent_id)->selectRaw('SEC_TO_TIME(SUM(TIMESTAMPDIFF(SECOND, breaktime, unbreaktime))) AS today_total_break')->first()->today_total_break;
         $currentSkills = Auth::user()->currentQueues()->active()->get();

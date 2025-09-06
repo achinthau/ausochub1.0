@@ -25,7 +25,7 @@
                             {{-- @dump(Auth::user()->has_queue) --}}
                             {{-- @if (Auth::user()->has_queue) --}}
 
-                                <div class="flex items-center space-x-2 px-2">
+                            <div class="flex items-center space-x-2 px-2">
                                 {{-- <label for="boundType" class="text-sm font-medium text-gray-700">
                                     Bound Type:
                                 </label> --}}
@@ -110,17 +110,33 @@
                             <div class="bg-white p-6 rounded-md shadow-md space-y-2">
                                 <h1 class="text-xs text-gray-400 font-semibold">Skills</h1>
                                 <hr>
-                                @foreach ($skills as $key => $skill)
-                                    <div class="flex">
-                                        <label
-                                            class="flex-1  text-sm font-medium text-secondary-700 dark:text-gray-400 mr-2">
-                                            {{ $skill }}
-                                        </label>
-                                        @if (config('auso.allow_skill_change'))
-                                            <x-toggle lg wire:model="selectedSkills.{{ $skill }}" value="{{ $skill }}" />
-                                        @endif
-                                    </div>
-                                @endforeach
+                                {{-- @foreach ($skills as $key => $skill)
+                                <div class="flex">
+                                    <label
+                                        class="flex-1  text-sm font-medium text-secondary-700 dark:text-gray-400 mr-2">
+                                        {{ $skill }}
+                                    </label>
+                                    @if (config('auso.allow_skill_change'))
+                                    <x-toggle lg wire:model="selectedSkills.{{ $skill }}" value="{{ $skill }}" />
+                                    @endif
+                                </div>
+                                @endforeach --}}
+                                @if(!empty($skills) && is_iterable($skills))
+                                    @foreach ($skills as $key => $skill)
+                                        <div class="flex">
+                                            <label
+                                                class="flex-1 text-sm font-medium text-secondary-700 dark:text-gray-400 mr-2">
+                                                {{ $skill }}
+                                            </label>
+                                            @if (config('auso.allow_skill_change'))
+                                                <x-toggle lg wire:model="selectedSkills.{{ $skill }}" value="{{ $skill }}" />
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <p class="text-xs text-gray-400 italic">No skills assigned.</p>
+                                @endif
+
                             </div>
 
                             <div class="bg-white p-4 space-y-2">

@@ -141,19 +141,19 @@
 
                             @if($boundType != 'dialer')
 
-                            <div class="bg-white p-4 space-y-2">
-                                <h1 class="text-xs text-gray-400 font-semibold">Ongoing Queue Count</h1>
-                                <hr>
+                                <div class="bg-white p-4 space-y-2">
+                                    <h1 class="text-xs text-gray-400 font-semibold">Ongoing Queue Count</h1>
+                                    <hr>
 
-                                @foreach ($queueWiseData as $data)
-                                    <div class="flex ">
-                                        <div class="flex-1  text-sm font-medium text-secondary-700 dark:text-gray-400 mr-2">
-                                            {{ $data->queuename }}
+                                    @foreach ($queueWiseData as $data)
+                                        <div class="flex ">
+                                            <div class="flex-1  text-sm font-medium text-secondary-700 dark:text-gray-400 mr-2">
+                                                {{ $data->queuename }}
+                                            </div>
+                                            <div>{{ $data->queue_wating_count }}</div>
                                         </div>
-                                        <div>{{ $data->queue_wating_count }}</div>
-                                    </div>
-                                @endforeach
-                            </div>
+                                    @endforeach
+                                </div>
                             @endif
 
                             {{-- <div class="bg-white p-6 rounded-md shadow-md space-y-2">
@@ -171,40 +171,53 @@
                         </div>
 
                         @if($boundType == 'dialer')
-                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                    @foreach ($campaigns as $campaign)
-                        <div class="bg-white rounded-lg shadow p-6">
-                            <h3 class="text-base font-semibold text-gray-700">{{ $campaign->name }}</h3>
-                            <div class="mt-2 space-y-1">
-                                <div>
-                                    <span class="text-sm font-bold text-gray-700">Type:</span>
-                                    <span class="text-sm">{{ $campaign->types?->name ?? 'N/A' }}</span>
-                                </div>
-                                <div>
-                                    <span class="text-sm font-bold text-gray-700">Status:</span>
-                                    <span class="text-sm">{{ $campaign->status }}</span>
-                                </div>
-                                <div>
-                                    <span class="text-sm font-bold text-gray-700">Total Numbers:</span>
-                                    <span class="text-sm">{{ $campaign->contact_count ?? 0 }}</span>
-                                </div>
-                                <div>
-                                    <span class="text-sm font-bold text-gray-700">Dialed Count:</span>
-                                    <span class="text-sm">{{ $campaign->dialed_count ?? 0 }}</span>
-                                </div>
-                                <div>
-                                    <span class="text-sm font-bold text-gray-700">Answered Count:</span>
-                                    <span class="text-sm">{{ $campaign->answered_count ?? 0 }}</span>
-                                </div>
-                                <div>
-                                    <span class="text-sm font-bold text-gray-700">Agents Count:</span>
-                                    <span class="text-sm">{{ $campaign->agents_count ?? 0 }}</span>
-                                </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                                @foreach ($campaigns as $campaign)
+                                    <div class="bg-white rounded-lg shadow p-6">
+                                        <h3 class="text-base font-semibold text-gray-700">{{ $campaign->name }}</h3>
+                                        <div class="mt-2 space-y-1">
+                                            <div>
+                                                <span class="text-sm font-bold text-gray-700">Type:</span>
+                                                <span class="text-sm">{{ $campaign->types?->name ?? 'N/A' }}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-sm font-bold text-gray-700">Status:</span>
+                                                @php
+                                                    $statusMap = [
+                                                        0 => 'Inactive',
+                                                        1 => 'Active',
+                                                        2 => 'On Hold',
+                                                        3 => 'Completed',
+                                                        4 => 'Canceled',
+                                                    ];
+                                                @endphp
+
+                                                <span class="text-sm">
+                                                    {{ $statusMap[$campaign->status] ?? 'Unknown' }}
+                                                </span>
+
+                                            </div>
+                                            <div>
+                                                <span class="text-sm font-bold text-gray-700">Total Numbers:</span>
+                                                <span class="text-sm">{{ $campaign->contact_count ?? 0 }}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-sm font-bold text-gray-700">Dialed Count:</span>
+                                                <span class="text-sm">{{ $campaign->dialed_count ?? 0 }}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-sm font-bold text-gray-700">Answered Count:</span>
+                                                <span class="text-sm">{{ $campaign->answered_count ?? 0 }}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-sm font-bold text-gray-700">Agents Count:</span>
+                                                <span class="text-sm">{{ $campaign->agents_count ?? 0 }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
                             </div>
-                        </div>
-                    @endforeach
-                </div>
-                @endif
+                        @endif
 
                         <div class="grid grid-cols-3  gap-4">
 

@@ -37,14 +37,24 @@ class CampaignTable extends DataTableComponent
                 Column::make("Type")
             ->format(fn($value, $row) => $row->types?->name ?? 'N/A'),
             Column::make("Status", "status")
-                ->sortable(),
-            // Assigned users
+            ->sortable()
+            ->format(function ($value, $row) {
+                $statusMap = [
+                    0 => 'Inactive (Not Started)',
+                    1 => 'Active (Running)',
+                    2 => 'On Hold',
+                    3 => 'Completed',
+                    4 => 'Canceled',
+                ];
+                return $statusMap[$value] ?? 'Unknown';
+            }),
+            
         Column::make("Assigned Users", "assigned_users")
             ->format(fn($value, $row) => 
                 implode(', ', \App\Models\User::whereIn('id', explode(',', $row->assigned_users))->pluck('name')->toArray())
             ),
 
-        // Assigned feeds
+        
         Column::make("Assigned Feeds", "assigned_feeds")
             ->format(fn($value, $row) => 
                 implode(', ', \App\Models\Feed::whereIn('id', explode(',', $row->assigned_feeds))->pluck('name')->toArray())

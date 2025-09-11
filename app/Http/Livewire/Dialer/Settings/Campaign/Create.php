@@ -241,7 +241,7 @@ class Create extends Component
             \Log::debug('Campaign Created', ['data' => $data]);
 
 
-            //Updated part for dialer
+            
 
             $data2 = [
                 ['name' => 'queueName', 'contents' => $this->name],
@@ -250,9 +250,10 @@ class Create extends Component
             ];
 
             $response = ApiManager::createSkill($data2);
+            sleep(2);
 
             $skill = Skill::where('skillname', $this->name)->first();
-            $userIds = $this->user_ids; // array of agent IDs
+            $userIds = $this->user_ids; 
 
             foreach ($userIds as $userId) {
                 $user = User::with('agent')->find($userId);
@@ -264,22 +265,22 @@ class Create extends Component
                 }
                 $agentSkill = AgentSkill::firstOrCreate(
                     ['agentid' => $agentId],
-                    ['skills' => '', 'dialer_skill_ids' => []] // use array because of cast
+                    ['skills' => '', 'dialer_skill_ids' => []] 
                 );
 
-                // Work with arrays directly (Laravel handles JSON casting)
+                
                 $existingDialer = $agentSkill->dialer_skill_ids ?? [];
                 $existingSkills = $agentSkill->skills ? explode(',', $agentSkill->skills) : [];
 
-                // Add new skill
+                
                 $existingDialer[$skill->skillid] = $skill->skillname;
                 if (!in_array($skill->skillname, $existingSkills)) {
                     $existingSkills[] = $skill->skillname;
                 }
 
-                // Save updates
+                
                 $agentSkill->type = 'dialer';
-                $agentSkill->dialer_skill_ids = $existingDialer; // will be JSON encoded
+                $agentSkill->dialer_skill_ids = $existingDialer; 
                 $agentSkill->skills = implode(',', $existingSkills);
                 $agentSkill->save();
             }

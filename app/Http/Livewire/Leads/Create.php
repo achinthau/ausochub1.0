@@ -69,6 +69,12 @@ class Create extends Component
     public function save()
     {
         $this->validate();
+
+        if (!empty($this->lead->contact_number) && strlen($this->lead->contact_number) === 9) {
+        // $this->lead->contact_number = substr($this->lead->contact_number, 1);
+        $this->lead->contact_number = '0' . $this->lead->contact_number;
+    }
+
         $this->lead->status_id = 2;
         $this->lead->save();
 

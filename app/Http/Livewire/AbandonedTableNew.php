@@ -41,6 +41,7 @@ class AbandonedTableNew extends DataTableComponent
                 'id' => $item->id,
                 'ani' => $item->ani,
                 'dnis' => $item->dnis,
+                'queuename' => $item->queuename,
                 'recalled_status' => $item->recalled_status,
                 'received_time' => $item->received_time,
                 'recalled_time' => $item->recalled_time,

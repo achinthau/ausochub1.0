@@ -59,9 +59,10 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
     Log::info($request);
     // $lead = Lead::where('contact_number', $request['ani'])->first();
     $number = $request['ani'];
-    // $withZero    = str_starts_with($number, '0') ? $number : '0'.$number;
+    $withZero    = str_starts_with($number, '0') ? $number : '0'.$number;
     $withoutZero = ltrim($number, '0');
     $lead = Lead::where('contact_number', $withoutZero)
+                ->orWhere('contact_number', $withZero)
                 ->first();
     $agent = Agent::where('extension', $request['agent'])->first();
     $skill = Skill::where('skillname', $request['queuename'])->first();

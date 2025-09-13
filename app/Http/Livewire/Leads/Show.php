@@ -4,10 +4,13 @@ namespace App\Http\Livewire\Leads;
 
 use App\Models\CallbackCustomer;
 use App\Models\CallCount;
+use App\Models\FeedContactValid;
 use App\Models\Lead;
 use App\Models\QueueCount;
 use App\Models\Ticket;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redis;
 use Livewire\Component;
 use WireUi\Traits\Actions;
 
@@ -31,6 +34,9 @@ public $callBack = false;
 public $callbackDate;
 public $callbackTime;
 public $callbackComment;
+
+public $feedContacts = [];
+public $selectedFeedContact = null;
 
     protected $listeners = ['refreshCard' => 'refreshCard'];
 
@@ -172,6 +178,16 @@ public function submitReaction()
     {
         $this->lead = $lead->load('tickets', 'tickets.category', 'tickets.status', 'tickets.outlet', 'orders', 'orders.items');
         $this->isIncomming = filter_var(request()->query('isIncomming'), FILTER_VALIDATE_BOOLEAN);
+
+        $userId = Auth::user()->id;
+        $boundType = Redis::get("user:{$userId}:bound_type");
+        if($boundType && $boundType == 'dialer')
+        {
+            $phone = $this->lead->contact_number;
+            $this->feedContacts = FeedContactValid::where('phone', $phone)->get();
+            
+        // dd($phone);
+        }
     }
 
     public function render()

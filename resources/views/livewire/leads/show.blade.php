@@ -28,7 +28,7 @@
                         Ticket
                     </a>
                     {{-- <a href="#" onclick="$openModal('CreatingOrder')" class="outline-none inline-flex justify-center items-center group transition-all ease-in duration-150 focus:ring-2 focus:ring-offset-2 hover:shadow-sm disabled:opacity-80 disabled:cursor-not-allowed rounded gap-x-2 text-sm px-4 py-0.5     ring-positive-500 text-positive-500 border border-positive-500 hover:bg-positive-50
-                       dark:ring-offset-slate-800 dark:hover:bg-slate-700">
+                           dark:ring-offset-slate-800 dark:hover:bg-slate-700">
                         <svg class="w-6 h-6" width="48" height="48" viewBox="0 0 48 48" fill="currentColor"
                             xmlns="http://www.w3.org/2000/svg">
                             <path
@@ -306,50 +306,87 @@
 
                         <h1 class="font-bold mb-2">Call later</h1>
 
-<div class="mb-4">
-    <span>Set time:</span>
-    <button wire:click="toggleCallbackCustomer"
-        class="relative inline-flex items-center h-6 rounded-full w-11 focus:outline-none transition-colors duration-200 {{ $callBack ? 'bg-blue-500' : 'bg-gray-300' }}">
-        <span class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 {{ $callBack ? 'translate-x-6' : 'translate-x-1' }}"></span>
-    </button>
-</div>
+                        <div class="mb-4">
+                            <span>Set time:</span>
+                            <button wire:click="toggleCallbackCustomer"
+                                class="relative inline-flex items-center h-6 rounded-full w-11 focus:outline-none transition-colors duration-200 {{ $callBack ? 'bg-blue-500' : 'bg-gray-300' }}">
+                                <span
+                                    class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 {{ $callBack ? 'translate-x-6' : 'translate-x-1' }}"></span>
+                            </button>
+                        </div>
 
-@if($callBack)
-    <div class="space-y-4">
-        <div class="flex justify-between  items-end gap-4">
-            <div  class="w-1/2">
-            <label for="callback_date" class="block text-sm font-medium">Select Date</label>
-            <input type="date" id="callback_date" wire:model="callbackDate" class="mt-1 block w-full border rounded p-2">
-        </div>
+                        @if($callBack)
+                            <div class="space-y-4">
+                                <div class="flex justify-between  items-end gap-4">
+                                    <div class="w-1/2">
+                                        <label for="callback_date" class="block text-sm font-medium">Select Date</label>
+                                        <input type="date" id="callback_date" wire:model="callbackDate"
+                                            class="mt-1 block w-full border rounded p-2">
+                                    </div>
 
-        <div  class="w-1/2">
-            <label for="callback_time" class="block text-sm font-medium">Select Time</label>
-            <input type="time" id="callback_time" wire:model="callbackTime" class="mt-1 block w-full border rounded p-2">
-        </div>
-        </div>
-
-        <div>
-            <label for="callback_comment" class="block text-sm font-medium">Comment</label>
-            <textarea id="callback_comment" wire:model="callbackComment" class="mt-1 block w-full border rounded p-2" rows="3"></textarea>
-        </div>
-
-        <div>
-            <button wire:click="saveCallback" class="px-4 py-2 bg-blue-300 rounded hover:bg-blue-400">
-                Save Callback
-            </button>
-            
-        </div>
-    </div>
-    
-@endif
-@if (session()->has('messagedialog'))
-                                <div class="mt-2 text-green-600 text-sm">
-                                    {{ session('messagedialog') }}
+                                    <div class="w-1/2">
+                                        <label for="callback_time" class="block text-sm font-medium">Select Time</label>
+                                        <input type="time" id="callback_time" wire:model="callbackTime"
+                                            class="mt-1 block w-full border rounded p-2">
+                                    </div>
                                 </div>
-                            @endif
+
+                                <div>
+                                    <label for="callback_comment" class="block text-sm font-medium">Comment</label>
+                                    <textarea id="callback_comment" wire:model="callbackComment"
+                                        class="mt-1 block w-full border rounded p-2" rows="3"></textarea>
+                                </div>
+
+                                <div>
+                                    <button wire:click="saveCallback"
+                                        class="px-4 py-2 bg-blue-300 rounded hover:bg-blue-400">
+                                        Save Callback
+                                    </button>
+
+                                </div>
+                            </div>
+
+                        @endif
+                        @if (session()->has('messagedialog'))
+                            <div class="mt-2 text-green-600 text-sm">
+                                {{ session('messagedialog') }}
+                            </div>
+                        @endif
 
 
                     </div>
+
+                    <div class="bg-white p-4 space-y-3 text-xs">
+    @if($feedContacts->isNotEmpty())
+        <h2 class="font-bold text-sm mb-2">All Work Orders</h2>
+
+        @foreach($feedContacts as $contact)
+            @php
+                $contactData = json_decode($contact->data, true);
+            @endphp
+
+            <details class="border rounded-lg bg-gray-50 shadow-sm">
+                <summary class="cursor-pointer px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-t-lg">
+                    {{ $contact->customer_name ?? 'No name' }} ({{ $contact->phone }})
+                </summary>
+                <div class="px-4 py-3 border-t text-xs text-gray-600">
+                    <ul class="grid grid-cols-2 gap-x-4 gap-y-1">
+                        @foreach($contactData as $key => $value)
+                            <li>
+                                <span class="font-medium">{{ ucfirst(str_replace('_',' ', $key)) }}:</span>
+                                {{ $value }}
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </details>
+        @endforeach
+    @else
+        <p class="text-gray-500 text-sm">No work order found.</p>
+    @endif
+</div>
+
+
                 </div>
                 @livewire('leads.partials.activity-log', ['lead' => $lead])
             </div>
@@ -358,13 +395,14 @@
 
         </div>
     </div>
+
+
+
+
+
 </div>
 @push('modals')
     @livewire('leads.create', ['lead' => $lead])
     @livewire('tickets.create', ['leadId' => $lead->id])
     @livewire('orders.create', ['leadId' => $lead->id])
 @endpush
-
-
-
-

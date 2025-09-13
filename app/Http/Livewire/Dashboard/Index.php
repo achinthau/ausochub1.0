@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Dashboard;
 
 use App\Models\AgentBreakSummary;
+use App\Models\Campaign;
 use App\Models\CampaignMetric;
 use App\Models\Skill;
 use App\Models\User;
@@ -27,7 +28,7 @@ class Index extends Component
     public $messagesCount;
     public $boundType;
 
-    protected $listeners = ['hideBreak' => 'hideBreak', 'showBreak' => 'showBreak', 'setOutbound' => 'setOutbound', 'setInbound'=>'setInbound'];
+    protected $listeners = ['hideBreak' => 'hideBreak', 'showBreak' => 'showBreak', 'setOutbound' => 'setOutbound', 'setInbound' => 'setInbound'];
 
     public function mount()
     {
@@ -48,16 +49,22 @@ class Index extends Component
         }
 
 
-        if($this->boundType == "dialer")
-        {
-            $this->skills = Auth::user()->skills ? Auth::user()->skills->dialer_skill_ids : [];
-        }
-        else
-        {
+        if ($this->boundType == "dialer") {
+            // $this->skills = Auth::user()->skills ? Auth::user()->skills->dialer_skill_ids : [];
+            $skills = Auth::user()->skills ? Auth::user()->skills->dialer_skill_ids : [];
+
+            $validCampaigns = Campaign::whereIn('status', [1])
+                ->pluck('name')
+                ->toArray();
+
+            $this->skills = collect($skills)
+                ->filter(fn($skillName) => in_array($skillName, $validCampaigns))
+                ->toArray();
+        } else {
             $this->skills = Auth::user()->skills ? Auth::user()->skills->skill_ids : [];
         }
         // $this->setBound();
-        
+
         // $this->totalBreakTime = AgentBreakSummary::whereBetween('breaktime', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->where('agentid', Auth::user()->agent_id)->selectRaw('SEC_TO_TIME(SUM(TIMESTAMPDIFF(SECOND, breaktime, unbreaktime))) AS today_total_break')->first()->today_total_break;
         $currentSkills = Auth::user()->currentQueues()->active()->get();
 
@@ -262,12 +269,19 @@ class Index extends Component
             ApiManager::updateSkill($data);
         }
 
-        if($this->boundType == "dialer")
-        {
-            $this->skills = Auth::user()->skills ? Auth::user()->skills->dialer_skill_ids : [];
-        }
-        else
-        {
+        if ($this->boundType == "dialer") {
+            $skills = Auth::user()->skills ? Auth::user()->skills->dialer_skill_ids : [];
+
+            $validCampaigns = Campaign::whereIn('status', [1])
+                ->pluck('name')
+                ->toArray();
+
+            $this->skills = collect($skills)
+                ->filter(fn($skillName) => in_array($skillName, $validCampaigns))
+                ->toArray();
+                // dd($validCampaigns);
+                // dd($skills);
+        } else {
             $this->skills = Auth::user()->skills ? Auth::user()->skills->skill_ids : [];
         }
     }

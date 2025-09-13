@@ -13,6 +13,12 @@ class Campaign extends Model
 
     protected $fillable = ['name', 'status', 'assigned_users', 'assigned_feeds','company','created_by','schedule','type'];
 
+     //status
+    //['0'=>'inactive'] not started
+    //['1'=>'active'] running
+    //['2'=>'hold']
+    //['3'=>'completed']
+    //['4'=>'canceled']
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by', 'id');

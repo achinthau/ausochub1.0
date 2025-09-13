@@ -58,7 +58,17 @@ Route::get('/items', function (Request $request) {
 
 Route::post('/call-answered', function (StoreAnsweredCall $request) {
     Log::info($request);
-    $lead = Lead::where('contact_number', $request['ani'])->first();
+    // $lead = Lead::where('contact_number', $request['ani'])->first();
+    $number = $request['ani'];
+    if (!empty($number) && strlen($number) === 9) {
+        $number = '0' . $number;
+    }
+
+    // $withZero    = str_starts_with($number, '0') ? $number : '0'.$number;
+    // $withoutZero = ltrim($number, '0');
+    $lead = Lead::where('contact_number', $number)
+                // ->orWhere('contact_number', $withZero)
+                ->first();
     $agent = Agent::where('extension', $request['agent'])->first();
     $skill = Skill::where('skillname', $request['queuename'])->first();
 
@@ -239,7 +249,13 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
 
 Route::post('/call-dialed', function (StoreAnsweredCall $request) {
     Log::info($request);
-    $lead = Lead::where('contact_number', $request['ani'])->first();
+    // $lead = Lead::where('contact_number', $request['ani'])->first();
+    $number = $request['ani'];
+    if (!empty($number) && strlen($number) === 9) {
+        $number = '0' . $number;
+    }
+    $lead = Lead::where('contact_number', $number)
+                ->first();
     $agent = Agent::where('extension', $request['agent'])->first();
     $skill = Skill::where('skillname', $request['queuename'])->first();
 

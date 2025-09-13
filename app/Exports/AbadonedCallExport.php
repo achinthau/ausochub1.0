@@ -32,6 +32,7 @@ class AbadonedCallExport implements FromArray, WithHeadings
             'Id',
             'From',
             'To',
+            'Skill Name',
             'Recalled Status',
             'Received',
             'Recalled',

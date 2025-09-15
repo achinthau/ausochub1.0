@@ -10,6 +10,7 @@ use App\Models\QueueCount;
 use App\Models\Ticket;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
 use Livewire\Component;
 use WireUi\Traits\Actions;
@@ -19,24 +20,24 @@ class Show extends Component
     use Actions;
 
     public Lead $lead;
-    public  $tickets;
-    public  $callLogs;
-    public  $outCallLogs;
-    public  $timelineLogs;
+    public $tickets;
+    public $callLogs;
+    public $outCallLogs;
+    public $timelineLogs;
 
     public $isIncomming = false;
 
-     public $moodStatus = false;
-public $comment = '';
-public $isNuisance = false;
+    public $moodStatus = false;
+    public $comment = '';
+    public $isNuisance = false;
 
-public $callBack = false;
-public $callbackDate;
-public $callbackTime;
-public $callbackComment;
+    public $callBack = false;
+    public $callbackDate;
+    public $callbackTime;
+    public $callbackComment;
 
-public $feedContacts = [];
-public $selectedFeedContact = null;
+    public $feedContacts = [];
+    public $selectedFeedContact = null;
 
     protected $listeners = ['refreshCard' => 'refreshCard'];
 
@@ -56,122 +57,116 @@ public $selectedFeedContact = null;
 
     ];
 
-   
-
-public function toggle()
-{
-    $this->moodStatus = !$this->moodStatus;
-    // if($this->isIncomming)
-    // {
-    //     $ani = $this->lead->contact_number;
-
-    // if ($ani) {
-    //     $latestRecord = QueueCount::where('ani', $ani)
-    //         ->where('status', 2)
-    //         ->orderBy('id', 'desc')
-    //         ->first();
-
-    //     if ($latestRecord) {
-    //         if ($this->moodStatus) {
-    //             // Toggle is ON (unsatisfied) – store reaction only
-    //             $latestRecord->customer_reaction = 1;
-    //             $latestRecord->save();
-    //         } else {
-    //             // Toggle is OFF – clear reaction and comment
-    //             $latestRecord->customer_reaction = null;
-    //             $latestRecord->comment = null;
-    //             $latestRecord->save();
-
-    //             // Also clear local state if needed
-    //             $this->comment = '';
-    //             session()->forget('message');
-    //         }
-    //     }
-    // }
-    // }
-    // else{
-    //     $dnis = $this->lead->contact_number;
-
-    // if ($dnis) {
-    //     $latestRecord = CallCount::where('dnis', $dnis)
-    //         ->where('status', 1)
-    //         ->orderBy('id', 'desc')
-    //         ->first();
-
-    //     if ($latestRecord) {
-    //         if ($this->moodStatus) {
-    //             // Toggle is ON (unsatisfied) – store reaction only
-    //             $latestRecord->customer_reaction = 1;
-    //             $latestRecord->save();
-    //         } else {
-    //             // Toggle is OFF – clear reaction and comment
-    //             $latestRecord->customer_reaction = null;
-    //             $latestRecord->comment = null;
-    //             $latestRecord->save();
-
-    //             // Also clear local state if needed
-    //             $this->comment = '';
-    //             session()->forget('message');
-    //         }
-    //     }
-    // }
-    // }
-}
-
-public function nuisance()
-{
- $this->isNuisance = !$this->isNuisance;
-}
 
 
-public function submitReaction()
-{
-    if($this->isNuisance)
+    public function toggle()
     {
-        $reaction = 2;
-    }
-    elseif($this->moodStatus)
-    {
-        $reaction = 1;
+        $this->moodStatus = !$this->moodStatus;
+        // if($this->isIncomming)
+        // {
+        //     $ani = $this->lead->contact_number;
+
+        // if ($ani) {
+        //     $latestRecord = QueueCount::where('ani', $ani)
+        //         ->where('status', 2)
+        //         ->orderBy('id', 'desc')
+        //         ->first();
+
+        //     if ($latestRecord) {
+        //         if ($this->moodStatus) {
+        //             // Toggle is ON (unsatisfied) – store reaction only
+        //             $latestRecord->customer_reaction = 1;
+        //             $latestRecord->save();
+        //         } else {
+        //             // Toggle is OFF – clear reaction and comment
+        //             $latestRecord->customer_reaction = null;
+        //             $latestRecord->comment = null;
+        //             $latestRecord->save();
+
+        //             // Also clear local state if needed
+        //             $this->comment = '';
+        //             session()->forget('message');
+        //         }
+        //     }
+        // }
+        // }
+        // else{
+        //     $dnis = $this->lead->contact_number;
+
+        // if ($dnis) {
+        //     $latestRecord = CallCount::where('dnis', $dnis)
+        //         ->where('status', 1)
+        //         ->orderBy('id', 'desc')
+        //         ->first();
+
+        //     if ($latestRecord) {
+        //         if ($this->moodStatus) {
+        //             // Toggle is ON (unsatisfied) – store reaction only
+        //             $latestRecord->customer_reaction = 1;
+        //             $latestRecord->save();
+        //         } else {
+        //             // Toggle is OFF – clear reaction and comment
+        //             $latestRecord->customer_reaction = null;
+        //             $latestRecord->comment = null;
+        //             $latestRecord->save();
+
+        //             // Also clear local state if needed
+        //             $this->comment = '';
+        //             session()->forget('message');
+        //         }
+        //     }
+        // }
+        // }
     }
 
-    if($this->isIncomming)
+    public function nuisance()
     {
-        $ani = $this->lead->contact_number;
+        $this->isNuisance = !$this->isNuisance;
+    }
 
-    if ($ani) {
-        $latestRecord = QueueCount::where('ani', $ani)->where('status', 2)
-            ->orderBy('id', 'desc')
-            ->first();
 
-        if ($latestRecord) {
-            $latestRecord->customer_reaction = $reaction;
-            $latestRecord->comment = $this->comment;
-            $latestRecord->save();
+    public function submitReaction()
+    {
+        if ($this->isNuisance) {
+            $reaction = 2;
+        } elseif ($this->moodStatus) {
+            $reaction = 1;
         }
-    }
-    }
-    else
-    {
-        $dnis = $this->lead->contact_number;
 
-    if ($dnis) {
-        $latestRecord = CallCount::where('dnis', $dnis)->where('status', 1)
-            ->orderBy('id', 'desc')
-            ->first();
+        if ($this->isIncomming) {
+            $ani = $this->lead->contact_number;
 
-        if ($latestRecord) {
-            $latestRecord->customer_reaction = $reaction;
-            $latestRecord->comment = $this->comment;
-            $latestRecord->save();
+            if ($ani) {
+                $latestRecord = QueueCount::where('ani', $ani)->where('status', 2)
+                    ->orderBy('id', 'desc')
+                    ->first();
+
+                if ($latestRecord) {
+                    $latestRecord->customer_reaction = $reaction;
+                    $latestRecord->comment = $this->comment;
+                    $latestRecord->save();
+                }
+            }
+        } else {
+            $dnis = $this->lead->contact_number;
+
+            if ($dnis) {
+                $latestRecord = CallCount::where('dnis', $dnis)->where('status', 1)
+                    ->orderBy('id', 'desc')
+                    ->first();
+
+                if ($latestRecord) {
+                    $latestRecord->customer_reaction = $reaction;
+                    $latestRecord->comment = $this->comment;
+                    $latestRecord->save();
+                }
+            }
         }
-    }
-    }
 
-    session()->flash('message', 'Feedback submitted successfully!');
-    // $this->moodStatus = false;
-    $this->comment = '';
-}
+        session()->flash('message', 'Feedback submitted successfully!');
+        // $this->moodStatus = false;
+        $this->comment = '';
+    }
 
 
     public function mount($lead)
@@ -181,12 +176,11 @@ public function submitReaction()
 
         $userId = Auth::user()->id;
         $boundType = Redis::get("user:{$userId}:bound_type");
-        if($boundType && $boundType == 'dialer')
-        {
+        if ($boundType && $boundType == 'dialer') {
             $phone = $this->lead->contact_number;
             $this->feedContacts = FeedContactValid::where('phone', $phone)->get();
-            
-        // dd($phone);
+
+            // dd($phone);
         }
     }
 
@@ -210,9 +204,9 @@ public function submitReaction()
     {
         $this->validate();
         if (!empty($this->lead->contact_number) && strlen($this->lead->contact_number) === 9) {
-        // $this->lead->contact_number = substr($this->lead->contact_number, 1);
-        $this->lead->contact_number = '0' . $this->lead->contact_number;
-    }
+            // $this->lead->contact_number = substr($this->lead->contact_number, 1);
+            $this->lead->contact_number = '0' . $this->lead->contact_number;
+        }
         $this->lead->status_id = 2;
         $this->lead->save();
 
@@ -250,28 +244,48 @@ public function submitReaction()
     }
 
     public function saveCallback()
-{
-    $this->validate([
-        'callbackDate' => 'required|date',
-        'callbackTime' => 'required',
-        'callbackComment' => 'nullable|string',
-    ]);
+    {
+        $this->validate([
+            'callbackDate' => 'required|date',
+            'callbackTime' => 'required',
+            'callbackComment' => 'nullable|string',
+        ]);
 
-    CallbackCustomer::create([
-        'agent_id' => auth()->id(),
-        'lead_id' => $this->lead->id,
-        'unique_id' => $this->lead->unique_id,
-        'contact_number' => $this->lead->contact_number,
-        'src' => 'lead',  
-        'callback_at' => Carbon::parse("{$this->callbackDate} {$this->callbackTime}"),
-        'comment' => $this->callbackComment,
-    ]);
+        CallbackCustomer::create([
+            'agent_id' => auth()->id(),
+            'lead_id' => $this->lead->id,
+            'unique_id' => $this->lead->unique_id,
+            'contact_number' => $this->lead->contact_number,
+            'src' => 'lead',
+            'callback_at' => Carbon::parse("{$this->callbackDate} {$this->callbackTime}"),
+            'comment' => $this->callbackComment,
+        ]);
 
-    session()->flash('messagedialog', 'Callback saved successfully.');
+        session()->flash('messagedialog', 'Callback saved successfully.');
 
-    // Optionally reset
-    $this->reset(['callBack', 'callbackDate', 'callbackTime', 'callbackComment']);
-}
+        // Optionally reset
+        $this->reset(['callBack', 'callbackDate', 'callbackTime', 'callbackComment']);
+    }
+
+    public function makeCall($phone)
+    {
+        $extension = Auth::user()->extension;
+        $tenant_context = Auth::user()->tenant_context;
+        $url = env('CALL_SERVER_API_URL') . '/dialscripts/dial.php';
+
+        $response = $response = Http::get($url, [
+            'type' => '2',
+            'exten' => $extension,
+            'num' => $phone,
+            'tenant' => $tenant_context,
+        ]);
+
+        if ($response->successful()) {
+            $this->dispatchBrowserEvent('notify', ['message' => 'API call successful!']);
+        } else {
+            $this->dispatchBrowserEvent('notify', ['message' => 'API call failed!']);
+        }
+    }
 
 
 }

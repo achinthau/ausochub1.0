@@ -154,7 +154,12 @@
                                         </div>
                                     @endforeach
                                 </div>
+
+                                @else
+                                @livewire('dashboard.partials.dialer.call-panel')
+
                             @endif
+                            
 
                             {{-- <div class="bg-white p-6 rounded-md shadow-md space-y-2">
                                 <h1 class="text-xs text-gray-400 font-semibold">Break</h1>

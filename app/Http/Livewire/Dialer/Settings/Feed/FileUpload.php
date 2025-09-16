@@ -108,15 +108,17 @@ ProcessFeedFile::dispatch($feed->id, $filePath)
                 return;
             }
 
-            $phone = $rowData['phone'] ?? $rowData['contact'] ?? null;
+            $phone1 = $rowData['contact_no_01'] ?? $rowData['contact'] ?? null;
+            $phone2 = $rowData['contact_no_02'] ?? null;
             $customer_name = $rowData['customer name'] ?? $rowData['customer_name'] ?? null;
             // $phone = is_string($phone) ? preg_replace('/\D/', '', $phone) : $phone;
 
-            unset($rowData['phone'], $rowData['contact'], $rowData['customer name'], $rowData['customer_name']);
+            unset($rowData['contact_no_01'],$rowData['contact_no_02'], $rowData['contact'], $rowData['customer name'], $rowData['customer_name']);
 
             $this->buffer[] = [
                 'feed_id'       => $this->feedId,
-                'phone'         => $phone,
+                'contact_no_01' => $phone1,
+                'contact_no_02' => $phone2,
                 'customer_name' => $customer_name,
                 'data'          => json_encode($rowData),
                 'created_at'    => now(),

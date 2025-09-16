@@ -13,7 +13,7 @@ class CallPanel extends Component
     {
         $record = FeedContactValid::whereNull('status')->first();
 
-        $this->phone = $record?->phone;
+        $this->phone = $record?->contact_no_01;
     }
 
     public function openProfile($phone)

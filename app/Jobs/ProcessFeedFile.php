@@ -45,8 +45,10 @@ class ProcessFeedFile implements ShouldQueue
                 $invalid = [];
 
                 foreach ($contacts as $contact) {
-                    $phone = $contact->phone ?? '';
-                    $cleanPhone = preg_replace('/\D/', '', $phone);
+                    $phone1 = $contact->contact_no_01 ?? '';
+                    $phone2 = $contact->contact_no_02 ?? '';
+                    $cleanPhone = preg_replace('/\D/', '', $phone1);
+                    $cleanPhone2 = preg_replace('/\D/', '', $phone2);
 
                     // Normalize Sri Lankan numbers
                     if (str_starts_with($cleanPhone, '94')) {
@@ -54,12 +56,21 @@ class ProcessFeedFile implements ShouldQueue
                     } elseif (str_starts_with($cleanPhone, '9') && strlen($cleanPhone) === 9) {
                         $cleanPhone = '0' . $cleanPhone;
                     } elseif (str_starts_with($cleanPhone, '0')) {
-                        // keep as is
+                        // 
+                    }
+
+                    if (str_starts_with($cleanPhone2, '94')) {
+                        $cleanPhone2 = '0' . substr($cleanPhone2, 2);
+                    } elseif (str_starts_with($cleanPhone2, '9') && strlen($cleanPhone2) === 9) {
+                        $cleanPhone2 = '0' . $cleanPhone2;
+                    } elseif (str_starts_with($cleanPhone2, '0')) {
+                        // 
                     }
 
                     $data = [
                         'feed_id'       => $contact->feed_id,
-                        'phone'         => $contact->phone,
+                        'contact_no_01'         => $contact->contact_no_01,
+                        'contact_no_02'         => $contact->contact_no_02,
                         'customer_name' => $contact->customer_name,
                         'data'          => $contact->data,
                         'created_at'    => now(),
@@ -69,7 +80,11 @@ class ProcessFeedFile implements ShouldQueue
                     if ($cleanPhone && preg_match('/^\d{9,10}$/', $cleanPhone)) {
                         $valid[] = $data;
                     } else {
+                        if ($cleanPhone2 && preg_match('/^\d{9,10}$/', $cleanPhone2)) {
+                        $valid[] = $data;
+                    } else {
                         $invalid[] = $data;
+                    }
                     }
 
                     Log::debug("Contact {$contact->id} | Original: {$contact->phone} → Normalized: {$cleanPhone} | " .

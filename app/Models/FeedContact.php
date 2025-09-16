@@ -11,7 +11,7 @@ class FeedContact extends Model
 
     protected $table = 'feed_contacts';
 
-    protected $fillable = ['feed_id', 'phone', 'customer_name', 'data'];
+    protected $fillable = ['feed_id', 'contact_no_01','contact_no_02','customer_name', 'data'];
 
     // protected $casts = [
     //     'data' => 'array', 

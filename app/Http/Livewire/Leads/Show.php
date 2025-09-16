@@ -38,6 +38,9 @@ class Show extends Component
 
     public $feedContacts = [];
     public $selectedFeedContact = null;
+    public $selectedContact;
+    public $phone1;
+    public $phone2;
 
     protected $listeners = ['refreshCard' => 'refreshCard'];
 
@@ -178,7 +181,20 @@ class Show extends Component
         $boundType = Redis::get("user:{$userId}:bound_type");
         if ($boundType && $boundType == 'dialer') {
             $phone = $this->lead->contact_number;
-            $this->feedContacts = FeedContactValid::where('phone', $phone)->get();
+            $this->selectedContact = $phone;
+            $this->feedContacts = FeedContactValid::where('contact_no_01', $phone)->orWhere('contact_no_02', $phone)->get();
+
+
+            if ($this->feedContacts->isNotEmpty()) {
+                $foundContact = $this->feedContacts->first();
+                if ($foundContact->contact_no_01 === $phone) {
+                    $this->phone2 = $foundContact->contact_no_02;
+                } else {
+                    $this->phone2 = $foundContact->contact_no_01;
+                }
+            } else {
+                $this->phone2 = null;
+            }
 
             // dd($phone);
         }

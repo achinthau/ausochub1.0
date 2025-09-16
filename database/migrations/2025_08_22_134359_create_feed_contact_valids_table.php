@@ -16,7 +16,8 @@ return new class extends Migration
         Schema::create('feed_contact_valids', function (Blueprint $table) {
             $table->id();
             $table->foreignId('feed_id')->constrained()->onDelete('cascade');
-            $table->string('phone')->nullable();
+            $table->string('contact_no_01')->nullable();
+            $table->string('contact_no_02')->nullable();
             $table->string('customer_name')->nullable();
             $table->string('status')->nullable();
             $table->json('data')->nullable();

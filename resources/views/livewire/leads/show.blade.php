@@ -28,7 +28,7 @@
                         Ticket
                     </a>
                     {{-- <a href="#" onclick="$openModal('CreatingOrder')" class="outline-none inline-flex justify-center items-center group transition-all ease-in duration-150 focus:ring-2 focus:ring-offset-2 hover:shadow-sm disabled:opacity-80 disabled:cursor-not-allowed rounded gap-x-2 text-sm px-4 py-0.5     ring-positive-500 text-positive-500 border border-positive-500 hover:bg-positive-50
-                               dark:ring-offset-slate-800 dark:hover:bg-slate-700">
+                                           dark:ring-offset-slate-800 dark:hover:bg-slate-700">
                         <svg class="w-6 h-6" width="48" height="48" viewBox="0 0 48 48" fill="currentColor"
                             xmlns="http://www.w3.org/2000/svg">
                             <path
@@ -358,52 +358,111 @@
 
                     <div class="bg-white p-4 space-y-3 text-xs">
                         @if($feedContacts->isNotEmpty())
-                                <div class="flex justify-between">
-                                    <h2 class="font-bold text-sm mb-2">All Work Orders</h2>
-                                    <div class="pr-10">
-                                        <div class="relative group">
-                                            <svg wire:click="makeCall('{{ $lead->contact_number }}')" class="w-6 h-6 cursor-pointer text-green-400"
-                                                xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"
-                                                aria-hidden="true" data-slot="icon">
-                                                <path fill-rule="evenodd"
-                                                    d="M15 3.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0V5.56l-4.72 4.72a.75.75 0 1 1-1.06-1.06l4.72-4.72h-2.69a.75.75 0 0 1-.75-.75Z"
-                                                    clip-rule="evenodd"></path>
-                                                <path fill-rule="evenodd"
-                                                    d="M1.5 4.5a3 3 0 0 1 3-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 0 1-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 0 0 6.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 0 1 1.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 0 1-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5Z"
-                                                    clip-rule="evenodd"></path>
-                                            </svg>
+                            <div class="flex justify-between">
+                                <h2 class="font-bold text-sm mb-2">All Work Orders</h2>
+                                <div class="pr-10 space-x-4">
+                                    {{-- <div class="relative group">
+                                        <svg wire:click="makeCall('{{ $lead->contact_number }}')"
+                                            class="w-6 h-6 cursor-pointer text-green-400" xmlns="http://www.w3.org/2000/svg"
+                                            viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" data-slot="icon">
+                                            <path fill-rule="evenodd"
+                                                d="M15 3.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0V5.56l-4.72 4.72a.75.75 0 1 1-1.06-1.06l4.72-4.72h-2.69a.75.75 0 0 1-.75-.75Z"
+                                                clip-rule="evenodd"></path>
+                                            <path fill-rule="evenodd"
+                                                d="M1.5 4.5a3 3 0 0 1 3-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 0 1-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 0 0 6.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 0 1 1.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 0 1-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5Z"
+                                                clip-rule="evenodd"></path>
+                                        </svg>
 
-                                            <span class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2
-                             bg-gray-800 text-white text-xs rounded-lg px-2 py-1
-                             opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                                                Make a call
-                                            </span>
-                                        </div>
-                                    </div>
+                                        <span
+                                            class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2
+                                         bg-gray-800 text-white text-xs rounded-lg px-2 py-1
+                                         opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                                            Make a call
+                                        </span>
+                                    </div> --}}
+                                    {{-- <button type="button" wire:click="makeCall('{{ $lead->contact_number }}')"
+                                        class="w-24 bg-green-300 font-bold hover:bg-green-400 p-2 rounded-md shadow-md ">
+                                        Make a call</button> --}}
+                                    <button type="button" wire:click=""
+                                        class="w-24 bg-orange-300 font-bold hover:bg-orange-400 p-2 rounded-md shadow-md ">
+                                        Skip</button>
+                                </div>
+                                
+                            </div>
+                            <hr>
+
+                            <div class="bg-white p-4 rounded-lg shadow-md space-y-3">
+                                <h2 class="text-sm font-semibold text-gray-700">Select Contact</h2>
+
+                                <div class="space-y-2  text-lg">
+                                    <label class="flex items-center space-x-2 cursor-pointer">
+                                        <input type="radio" wire:model="selectedContact" value="{{ $lead->contact_number }}"
+                                            class="text-green-500">
+                                        <span class="text-gray-700">{{ $lead->contact_number }}</span>
+                                    </label>
+
+                                    @if($phone2)
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="radio" wire:model="selectedContact" value="{{ $phone2 }}"
+                                                class="text-green-500">
+                                            <span class="text-gray-700">{{ $phone2 }}</span>
+                                        </label>
+                                    @endif
                                 </div>
 
-                                @foreach($feedContacts as $contact)
-                                    @php
-                                        $contactData = json_decode($contact->data, true);
-                                    @endphp
+                                <div>
+                                    <button type="button" wire:click="makeCall('{{ $selectedContact }}')"
+                                        class="w-full bg-green-500 text-white font-bold hover:bg-green-600 px-4 py-2 rounded-md shadow">
+                                        Make a Call
+                                    </button>
+                                </div>
+                            </div>
 
-                                    <details class="border rounded-lg bg-gray-50 shadow-sm">
-                                        <summary
-                                            class="cursor-pointer px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-100 rounded-t-lg">
-                                            {{ $contact->customer_name ?? 'No name' }} ({{ $contact->phone }})
-                                        </summary>
-                                        <div class="px-4 py-3 border-t text-xs text-gray-600">
-                                            <ul class="grid grid-cols-2 gap-x-4 gap-y-1">
-                                                @foreach($contactData as $key => $value)
+
+
+                            @foreach($feedContacts as $contact)
+                                @php
+                                    $contactData = json_decode($contact->data, true);
+                                @endphp
+
+                                <details class="border rounded-lg bg-gray-50 shadow-sm" open>
+                                    <summary
+                                        class="flex items-center justify-between cursor-pointer px-4 py-2 text-lg font-semibold text-gray-700 hover:bg-gray-100 rounded-t-lg">
+                                        <span>
+                                            {{ $contact->customer_name ?? 'No name' }} ({{ $contact->contact_no_01 }})
+                                        </span>
+                                        {{-- <button type="button"
+                                            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-full text-sm transition-colors duration-200">
+                                            Update
+                                        </button> --}}
+                                    </summary>
+                                    <div class="px-4 py-3 border-t text-xs text-gray-600">
+                                        <ul class="grid grid-cols-2 gap-x-4 gap-y-1 text-base">
+                                            @foreach($contactData as $key => $value)
+                                                @if(!empty($key))
                                                     <li>
-                                                        <span class="font-medium">{{ ucfirst(str_replace('_', ' ', $key)) }}:</span>
+                                                        <span
+                                                            class="font-medium text-base ">{{ ucfirst(str_replace('_', ' ', $key)) }}:</span>
                                                         {{ $value }}
                                                     </li>
-                                                @endforeach
-                                            </ul>
-                                        </div>
-                                    </details>
-                                @endforeach
+                                                @endif
+                                            @endforeach
+                                        </ul>
+                                    </div>
+                                    <!-- Action buttons at the end of the card -->
+                                    <div class="px-4 py-3 flex justify-end gap-2 border-t mt-4">
+                                        {{-- <button
+                                            class="bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-md hover:bg-gray-400 transition-colors duration-200">
+                                            Cancel
+                                        </button> --}}
+                                        <button
+                                            class="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-200">
+                                            Update
+                                        </button>
+                                    </div>
+                                </details>
+                            @endforeach
+
                         @else
                             <p class="text-gray-500 text-sm">No work order found.</p>
                         @endif

@@ -11,7 +11,7 @@ class FeedContactInValid extends Model
 
     protected $table = 'feed_contact_in_valids';
 
-    protected $fillable = ['feed_id',  'contact_no_01','contact_no_02', 'customer_name', 'data'];
+    protected $fillable = ['feed_id',  'contact_no_01','contact_no_02', 'priority_field', 'data'];
 
     // protected $casts = [
     //     'data' => 'array', 

@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('feed_id')->constrained()->onDelete('cascade');
             $table->string('contact_no_01')->nullable();
             $table->string('contact_no_02')->nullable();
-            $table->string('customer_name')->nullable();
+            $table->string('priority_field')->nullable();
             $table->json('data')->nullable();
             $table->timestamps();
         });

@@ -360,7 +360,7 @@
                         @if($feedContacts->isNotEmpty())
                             <div class="flex justify-between">
                                 <h2 class="font-bold text-sm mb-2">All Work Orders</h2>
-                                <div class="pr-10 space-x-4">
+                                <div class="pr-4 space-x-4">
                                     {{-- <div class="relative group">
                                         <svg wire:click="makeCall('{{ $lead->contact_number }}')"
                                             class="w-6 h-6 cursor-pointer text-green-400" xmlns="http://www.w3.org/2000/svg"
@@ -412,8 +412,8 @@
 
                                 <div>
                                     <button type="button" wire:click="makeCall('{{ $selectedContact }}')"
-                                        class="w-full bg-green-500 text-white font-bold hover:bg-green-600 px-4 py-2 rounded-md shadow">
-                                        Make a Call
+                                        class="w-full bg-green-500 text-white font-bold text-lg hover:bg-green-600 px-4 py-2 rounded-md shadow">
+                                        Call
                                     </button>
                                 </div>
                             </div>

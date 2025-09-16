@@ -383,7 +383,7 @@
                                     {{-- <button type="button" wire:click="makeCall('{{ $lead->contact_number }}')"
                                         class="w-24 bg-green-300 font-bold hover:bg-green-400 p-2 rounded-md shadow-md ">
                                         Make a call</button> --}}
-                                    <button type="button" wire:click=""
+                                    <button type="button" wire:click="$emit('openSkipContactModal', '{{ $lead->contact_number }}')"
                                         class="w-24 bg-orange-300 font-bold hover:bg-orange-400 p-2 rounded-md shadow-md ">
                                         Skip</button>
                                 </div>
@@ -429,7 +429,7 @@
                                     <summary
                                         class="flex items-center justify-between cursor-pointer px-4 py-2 text-lg font-semibold text-gray-700 hover:bg-gray-100 rounded-t-lg">
                                         <span>
-                                            {{ $contact->customer_name ?? 'No name' }} ({{ $contact->contact_no_01 }})
+                                            {{ $contact->priority_field ?? 'No Title' }}
                                         </span>
                                         {{-- <button type="button"
                                             class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-full text-sm transition-colors duration-200">
@@ -455,7 +455,7 @@
                                             class="bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-md hover:bg-gray-400 transition-colors duration-200">
                                             Cancel
                                         </button> --}}
-                                        <button
+                                        <button type="button" wire:click="$emit('openCallStatusModal', '{{ $contact->id }}')"
                                             class="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-200">
                                             Update
                                         </button>
@@ -487,4 +487,6 @@
     @livewire('leads.create', ['lead' => $lead])
     @livewire('tickets.create', ['leadId' => $lead->id])
     @livewire('orders.create', ['leadId' => $lead->id])
+    @livewire('leads.partials.skip-modal', ['leadId' => $lead->contact_number])
+    @livewire('leads.partials.submit-call-status')
 @endpush

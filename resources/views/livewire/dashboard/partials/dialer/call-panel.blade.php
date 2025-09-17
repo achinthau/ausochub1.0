@@ -1,11 +1,19 @@
-<div wire:click="openProfile('{{ $phone }}')" class="bg-white p-4 space-y-2 cursor-pointer">
+<div wire:poll.1s="loadContact"
+    @if($phone) wire:click="openProfile('{{ $phone }}')" class="bg-white p-4 space-y-2 cursor-pointer" 
+    @else class="bg-white p-4 space-y-2" 
+    @endif
+>
     <h1 class="text-xs text-gray-400 font-semibold">Customer Number</h1>
     <hr>
 
     {{-- @foreach ($queueWiseData as $data) --}}
     <div class="flex">
         <div class="flex-1  text-xl font-bold text-secondary-700 dark:text-gray-400 mr-2">
-            {{ $phone }}
+            @if($phone)
+                {{ $phone }}
+            @else
+                <span class="text-red-500 text-sm">{{ $reason }}</span>
+            @endif
         </div>
         <div>
             

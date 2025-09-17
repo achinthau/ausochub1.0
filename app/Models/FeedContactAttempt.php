@@ -6,17 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class FeedContactValid extends Model
+class FeedContactAttempt extends Model
 {
     use HasFactory;
 
-    protected $table = 'feed_contact_valids';
-
-    protected $fillable = ['feed_id',  'contact_no_01','contact_no_02', 'priority_field', 'data', 'status', 'assigned_to'];
-
-    // protected $casts = [
-    //     'data' => 'array', 
-    // ];
+    protected $fillable = ['feed_id', 'contact_no_01', 'contact_no_02', 'status', 'comments', 'updated_by'];
 
     public function feed(): BelongsTo
     {
@@ -24,6 +18,6 @@ class FeedContactValid extends Model
     }
     public function agent(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'assigned_to');
+        return $this->belongsTo(User::class, 'updated_by');
     }
 }

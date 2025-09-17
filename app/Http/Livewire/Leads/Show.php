@@ -41,6 +41,7 @@ class Show extends Component
     public $selectedContact;
     public $phone1;
     public $phone2;
+    public $feed_id;
 
     protected $listeners = ['refreshCard' => 'refreshCard'];
 
@@ -176,13 +177,23 @@ class Show extends Component
     {
         $this->lead = $lead->load('tickets', 'tickets.category', 'tickets.status', 'tickets.outlet', 'orders', 'orders.items');
         $this->isIncomming = filter_var(request()->query('isIncomming'), FILTER_VALIDATE_BOOLEAN);
+        $this->feed_id = request()->query('feed');
 
         $userId = Auth::user()->id;
         $boundType = Redis::get("user:{$userId}:bound_type");
         if ($boundType && $boundType == 'dialer') {
             $phone = $this->lead->contact_number;
             $this->selectedContact = $phone;
-            $this->feedContacts = FeedContactValid::where('contact_no_01', $phone)->orWhere('contact_no_02', $phone)->get();
+            // $this->feedContacts = FeedContactValid::where('contact_no_01', $phone)->orWhere('contact_no_02', $phone)->get();
+            $feedId = $this->feed_id;
+            $this->feedContacts = FeedContactValid::where(function ($query) use ($phone) {
+                $query->where('contact_no_01', $phone)
+                    ->orWhere('contact_no_02', $phone);
+            })
+                ->when($feedId, function ($query, $feedId) {
+                    $query->where('feed_id', $feedId); // filter by feed_id if present
+                })
+                ->get();
 
 
             if ($this->feedContacts->isNotEmpty()) {

@@ -13,15 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('feed_contact_valids', function (Blueprint $table) {
+        Schema::create('feed_contact_attempts', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('feed_id')->constrained()->onDelete('cascade');
+            $table->unsignedBigInteger('feed_id')->nullable();
             $table->string('contact_no_01')->nullable();
             $table->string('contact_no_02')->nullable();
-            $table->string('priority_field')->nullable();
-            $table->unsignedBigInteger('assigned_to')->nullable();
-            $table->string('status')->nullable();
-            $table->json('data')->nullable();
+            $table->string('status');
+            $table->string('comments');
+            $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
         });
     }
@@ -33,6 +32,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('feed_contact_valids');
+        Schema::dropIfExists('feed_contact_attempts');
     }
 };

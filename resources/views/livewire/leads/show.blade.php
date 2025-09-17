@@ -28,7 +28,7 @@
                         Ticket
                     </a>
                     {{-- <a href="#" onclick="$openModal('CreatingOrder')" class="outline-none inline-flex justify-center items-center group transition-all ease-in duration-150 focus:ring-2 focus:ring-offset-2 hover:shadow-sm disabled:opacity-80 disabled:cursor-not-allowed rounded gap-x-2 text-sm px-4 py-0.5     ring-positive-500 text-positive-500 border border-positive-500 hover:bg-positive-50
-                                           dark:ring-offset-slate-800 dark:hover:bg-slate-700">
+                                               dark:ring-offset-slate-800 dark:hover:bg-slate-700">
                         <svg class="w-6 h-6" width="48" height="48" viewBox="0 0 48 48" fill="currentColor"
                             xmlns="http://www.w3.org/2000/svg">
                             <path
@@ -375,19 +375,22 @@
 
                                         <span
                                             class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2
-                                         bg-gray-800 text-white text-xs rounded-lg px-2 py-1
-                                         opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                                             bg-gray-800 text-white text-xs rounded-lg px-2 py-1
+                                             opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
                                             Make a call
                                         </span>
                                     </div> --}}
                                     {{-- <button type="button" wire:click="makeCall('{{ $lead->contact_number }}')"
                                         class="w-24 bg-green-300 font-bold hover:bg-green-400 p-2 rounded-md shadow-md ">
                                         Make a call</button> --}}
-                                    <button type="button" wire:click="$emit('openSkipContactModal', '{{ $lead->contact_number }}')"
-                                        class="w-24 bg-orange-300 font-bold hover:bg-orange-400 p-2 rounded-md shadow-md ">
-                                        Skip</button>
+                                    <button type="button"
+                                        wire:click="$emit('openSkipContactModal', '{{ $lead->contact_number }}', '{{ $feed_id }}')"
+                                        class="w-24 bg-orange-300 font-bold hover:bg-orange-400 p-2 rounded-md shadow-md">
+                                        Skip
+                                    </button>
+
                                 </div>
-                                
+
                             </div>
                             <hr>
 

@@ -9,11 +9,15 @@
     {{-- @foreach ($queueWiseData as $data) --}}
     <div class="flex">
         <div class="flex-1  text-xl font-bold text-secondary-700 dark:text-gray-400 mr-2">
+            @if($displayNumber == true)
             @if($phone)
                 {{ $phone }}
             @else
                 <span class="text-red-500 text-sm">{{ $reason }}</span>
             @endif
+             @else 
+            <span class="text-red-500 text-sm">First Start a campaign</span>
+            @endif 
         </div>
         <div>
             

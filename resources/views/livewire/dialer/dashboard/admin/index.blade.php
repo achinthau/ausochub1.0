@@ -49,7 +49,7 @@
     @if (in_array($campaign->status, [0, 2]))
         <div class="relative group">
             <svg class="w-5 h-5 cursor-pointer"
-                 onclick="confirmStatusChange({{ $campaign->campaign_id }},'1', 'run')"
+                 onclick="confirmStatusChange({{ $campaign->campaign_id }}, {{ $campaign->contact_count }},'1', 'run')"
                  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none">
                 <rect width="48" height="48" fill="white" fill-opacity="0.01"/>
                 <path d="M24 44C35.0457 44 44 35.0457 44 24C44 12.9543 35.0457 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0457 12.9543 44 24 44Z" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/>
@@ -66,7 +66,7 @@
     @if ($campaign->status == 1)
         <div class="relative group">
             <svg class="w-5 h-5 cursor-pointer"
-                 onclick="confirmStatusChange({{ $campaign->campaign_id }},'2', 'pause')"
+                 onclick="confirmStatusChange({{ $campaign->campaign_id }}, {{ $campaign->contact_count }},'2', 'pause')"
                  xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
                 <path fill-rule="evenodd" d="M2.25 12c0-5.385 4.365-9.75 9.75-9.75s9.75 4.365 9.75 9.75-4.365 9.75-9.75 9.75S2.25 17.385 2.25 12ZM9 8.25a.75.75 0 0 0-.75.75v6c0 .414.336.75.75.75h.75a.75.75 0 0 0 .75-.75V9a.75.75 0 0 0-.75-.75H9Zm5.25 0a.75.75 0 0 0-.75.75v6c0 .414.336.75.75.75H15a.75.75 0 0 0 .75-.75V9a.75.75 0 0 0-.75-.75h-.75Z" clip-rule="evenodd"/>
             </svg>
@@ -81,7 +81,7 @@
     @if (in_array($campaign->status, [1, 2]))
         <div class="relative group">
             <svg class="w-5 h-5 cursor-pointer"
-                 onclick="confirmStatusChange({{ $campaign->campaign_id }},'3', 'complete')"
+                 onclick="confirmStatusChange({{ $campaign->campaign_id }}, {{ $campaign->contact_count }},'3', 'complete')"
                  xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M5 22h14c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2h-2a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1H5c-1.103 0-2 .897-2 2v15c0 1.103.897 2 2 2zM5 5h2v2h10V5h2v15H5V5z"/>
                 <path d="m11 13.586-1.793-1.793-1.414 1.414L11 16.414l5.207-5.207-1.414-1.414z"/>
@@ -97,7 +97,7 @@
     @if (in_array($campaign->status, [0, 1, 2]))
         <div class="relative group">
             <svg class="w-5 h-5 cursor-pointer"
-                 onclick="confirmStatusChange({{ $campaign->campaign_id }},'4', 'cancel')"
+                 onclick="confirmStatusChange({{ $campaign->campaign_id }}, {{ $campaign->contact_count }},'4', 'cancel')"
                  xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M3 20c0 1.103.897 2 2 2h14c1.103 0 2-.897 2-2V5c0-1.103-.897-2-2-2h-2a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1H5c-1.103 0-2 .897-2 2v15zM5 5h2v2h10V5h2v15H5V5z"/>
                 <path d="M14.292 10.295 12 12.587l-2.292-2.292-1.414 1.414 2.292 2.292-2.292 2.292 1.414 1.414L12 15.415l2.292 2.292 1.414-1.414-2.292-2.292 2.292-2.292z"/>
@@ -113,12 +113,18 @@
 
 
 <script>
-    function confirmStatusChange(campaignId, newStatus, statusString) {
+    function confirmStatusChange(campaignId, contactCount, newStatus, statusString) {
+        if (contactCount === 0 && newStatus == 1) {
+            alert("This campaign cannot be started because it has no contacts.");
+            return;
+        }
+
         if (confirm('Are you sure you want to ' + statusString + ' the campaign?')) {
             Livewire.emit('changeStatus', campaignId, newStatus);
         }
     }
 </script>
+
 
 
 

@@ -166,6 +166,14 @@ class Index extends Component
         //     dd($skill,$value,$name);
         // }
 
+        $userId = Auth::user()->id;
+        $boundType = Redis::get("user:{$userId}:bound_type");
+        if ($boundType && $boundType == 'dialer') 
+            {
+                $this->emitTo('dashboard.partials.dialer.call-panel', 'updateSkill');
+        }
+        else
+        {
 
         $data = [
             [
@@ -199,6 +207,7 @@ class Index extends Component
             ],
         ];
         ApiManager::updateSkill($data);
+    }
 
         return redirect(route('dashboard.index'));
     }

@@ -14,15 +14,37 @@ class CallPanel extends Component
     public $feed_id;
     public $reason = null;
 
-    protected $listeners = ['contactSkipped' => 'loadContact'];
+    public $displayNumber = false;
+
+    protected $listeners = ['contactSkipped' => 'loadContact', 'updateSkill' => 'displayPhone'];
 
     public function mount()
+    {
+        $currentSkills = Auth::user()->currentQueues()->active()->get();
+
+        if ($currentSkills->isNotEmpty()) {
+            $this->displayNumber = true;
+        } else {
+            $this->displayNumber = false;
+        }
+        // dd($currentSkills);
+        $this->loadContact();
+    }
+    public function displayPhone()
     {
         $this->loadContact();
     }
 
     public function loadContact()
     {
+        $currentSkills = Auth::user()->currentQueues()->active()->get();
+
+        if ($currentSkills->isNotEmpty()) {
+            $this->displayNumber = true;
+        } else {
+            $this->displayNumber = false;
+        }
+        // dd($currentSkills);
         $userId = Auth::id();
 
         // 1. Find active campaigns where user is assigned

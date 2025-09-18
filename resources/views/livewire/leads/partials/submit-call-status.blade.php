@@ -1,5 +1,5 @@
 <x-modal.card
-    title="Submit Call Status"
+    title="Update Call Status"
     blur
     align="center"
     wire:model="CallStatusModal"
@@ -8,9 +8,9 @@
 
         <div class="space-y-6">
             <h3 class="text-xl font-bold text-gray-800 text-center">
-                Submit a status for the call
+                Update status for the call
                 <span class="{{ $status == 'answered' ? 'text-green-600' : 'text-orange-500' }} ml-1">
-                    {{ $status && $status == 'answered' ? 'answered' : 'not answered' }}
+                    {{-- {{ $status && $status == 'answered' ? 'answered' : 'not answered' }} --}}
                 </span>
             </h3>
 
@@ -20,7 +20,7 @@
                 <select wire:model="selectedOption" class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 transition duration-150 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
                     <option value="">-- Choose an option --</option>
                     @foreach($options as $id => $name)
-                        <option value="{{ $name }}">{{ $name }}</option>
+                        <option value="{{ $id }}">{{ $name }}</option>
                     @endforeach
                 </select>
                 @error('selectedOption') 
@@ -30,11 +30,21 @@
 
             {{-- Comment --}}
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Comment</label>
-                <textarea wire:model="comment" rows="3" class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 transition duration-150 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"></textarea>
-                @error('comment') 
-                    <span class="mt-1 text-red-500 text-sm font-medium">{{ $message }}</span> 
-                @enderror
+                @if(optional(\App\Models\DialerCallStatusOption::find($selectedOption))->option === 'Promised to pay')
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Payment Date</label>
+                    <input type="date" 
+                           wire:model="comment" 
+                           class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 transition duration-150 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                    @error('comment') 
+                        <span class="mt-1 text-red-500 text-sm font-medium">{{ $message }}</span> 
+                    @enderror
+                @else
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Comment</label>
+                    <textarea wire:model="comment" rows="3" class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 transition duration-150 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"></textarea>
+                    @error('comment') 
+                        <span class="mt-1 text-red-500 text-sm font-medium">{{ $message }}</span> 
+                    @enderror
+                @endif
             </div>
         </div>
     </div>

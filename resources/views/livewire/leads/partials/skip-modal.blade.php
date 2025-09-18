@@ -31,3 +31,9 @@
 </div>
 
 </x-modal.card>
+
+<script>
+    window.addEventListener('close-skipped-tab', () => {
+        window.close();
+    });
+</script>

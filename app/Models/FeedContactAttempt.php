@@ -10,11 +10,11 @@ class FeedContactAttempt extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['feed_id', 'contact_no_01', 'contact_no_02', 'status', 'comments', 'updated_by'];
+    protected $fillable = ['feed_contact_valid_id', 'comments', 'updated_by'];
 
     public function feed(): BelongsTo
     {
-        return $this->belongsTo(Feed::class, 'feed_id');
+        return $this->belongsTo(FeedContactValid::class, 'feed_contact_valid_id');
     }
     public function agent(): BelongsTo
     {

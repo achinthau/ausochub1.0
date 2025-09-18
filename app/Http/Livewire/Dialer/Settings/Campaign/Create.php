@@ -64,6 +64,8 @@ class Create extends Component
     {
         $this->campaignId = $campaign->id;
         $this->name = $campaign->name;
+        $this->name = preg_replace('/([a-z])([A-Z])/', '$1 $2', $campaign->name);
+        $this->name = ucwords($this->name);
         $this->company_id = $campaign->company;
         $this->campaign_type_id = $campaign->type;
         $this->status = $campaign->status;
@@ -162,7 +164,7 @@ class Create extends Component
         $companyName = strtolower(str_replace(' ', '', trim($company->name)));
 
         $this->users = User::query()
-            ->where('user_type_id','4')
+            ->where('user_type_id', '4')
             ->whereNotNull('tenant_context')
             ->whereRaw(
                 "FIND_IN_SET(?, LOWER(REPLACE(tenant_context, ' ', '')))",
@@ -219,6 +221,9 @@ class Create extends Component
 
         $formattedSchedule = $this->formatSchedule();
         $this->savedSchedule = json_encode($formattedSchedule, JSON_PRETTY_PRINT);
+        $this->name = ucwords($this->name);
+        $this->name = str_replace(' ', '', $this->name);
+        $this->name = lcfirst($this->name);
 
         $data = [
             'name' => $this->name,
@@ -241,7 +246,7 @@ class Create extends Component
             \Log::debug('Campaign Created', ['data' => $data]);
 
 
-            
+
 
             $data2 = [
                 ['name' => 'queueName', 'contents' => $this->name],
@@ -253,34 +258,34 @@ class Create extends Component
             sleep(2);
 
             $skill = Skill::where('skillname', $this->name)->first();
-            $userIds = $this->user_ids; 
+            $userIds = $this->user_ids;
 
             foreach ($userIds as $userId) {
                 $user = User::with('agent')->find($userId);
 
                 if ($user && $user->agent) {
-                    $agentId = $user->agent->id; 
+                    $agentId = $user->agent->id;
                 } else {
                     $agentId = null;
                 }
                 $agentSkill = AgentSkill::firstOrCreate(
                     ['agentid' => $agentId],
-                    ['skills' => '', 'dialer_skill_ids' => []] 
+                    ['skills' => '', 'dialer_skill_ids' => []]
                 );
 
-                
+
                 $existingDialer = $agentSkill->dialer_skill_ids ?? [];
                 $existingSkills = $agentSkill->skills ? explode(',', $agentSkill->skills) : [];
 
-                
+
                 $existingDialer[$skill->skillid] = $skill->skillname;
                 if (!in_array($skill->skillname, $existingSkills)) {
                     $existingSkills[] = $skill->skillname;
                 }
 
-                
+
                 $agentSkill->type = 'dialer';
-                $agentSkill->dialer_skill_ids = $existingDialer; 
+                $agentSkill->dialer_skill_ids = $existingDialer;
                 $agentSkill->skills = implode(',', $existingSkills);
                 $agentSkill->save();
             }

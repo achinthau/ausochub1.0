@@ -10,7 +10,7 @@ class FeedContactAttempt extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['feed_contact_valid_id', 'comments', 'updated_by'];
+    protected $fillable = ['feed_contact_valid_id','call_status_option_id', 'comments', 'updated_by'];
 
     public function feed(): BelongsTo
     {
@@ -19,5 +19,9 @@ class FeedContactAttempt extends Model
     public function agent(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+    public function status(): BelongsTo
+    {
+        return $this->belongsTo(DialerCallStatusOption::class, 'call_status_option_id');
     }
 }

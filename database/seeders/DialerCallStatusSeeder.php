@@ -68,5 +68,9 @@ class DialerCallStatusSeeder extends Seeder
             'option'=>'Call drop',
             'type'=>'2',
         ]);
+        DialerCallStatusOption::create([
+            'option'=>'Skip',
+            'type'=>'3',
+        ]);
     }
 }

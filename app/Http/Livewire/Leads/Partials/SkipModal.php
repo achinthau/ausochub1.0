@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Leads\Partials;
 
+use App\Models\DialerCallStatusOption;
 use App\Models\FeedContactAttempt;
 use App\Models\FeedContactValid;
 use Illuminate\Support\Facades\Auth;
@@ -40,9 +41,12 @@ class SkipModal extends Component
         $feed->status = 3; // skipped
         $feed->save();
     
+        $option = DialerCallStatusOption::where('option','Skip')->first();
+        // dd($option);
 
         FeedContactAttempt::create([
             'feed_contact_valid_id' => $feed->id,
+            'call_status_option_id' => $option ? $option->id : '0',
             'comments'     => $this->comment,
             'updated_by'   => Auth::id(),
         ]);

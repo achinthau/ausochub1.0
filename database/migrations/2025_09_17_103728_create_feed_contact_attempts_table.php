@@ -15,11 +15,9 @@ return new class extends Migration
     {
         Schema::create('feed_contact_attempts', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('feed_id')->nullable();
-            $table->string('contact_no_01')->nullable();
-            $table->string('contact_no_02')->nullable();
-            $table->string('status');
-            $table->string('comments');
+            $table->unsignedBigInteger('feed_contact_valid_id')->nullable();
+            $table->unsignedBigInteger('call_status_option_id')->nullable();
+            $table->string('comments')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
         });

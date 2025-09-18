@@ -28,6 +28,7 @@ class DatabaseSeeder extends Seeder
             // LeadStatusSeeder::class,
             // CxSatisReasonSeeder::class,
             // CampaignTypeSeeder::class,
+            // DialerCallStatusSeeder::class,
         ]);
     }
 }

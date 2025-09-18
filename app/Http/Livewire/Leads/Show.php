@@ -43,7 +43,7 @@ class Show extends Component
     public $phone2;
     public $feed_id;
 
-    protected $listeners = ['refreshCard' => 'refreshCard'];
+    protected $listeners = ['refreshCard' => 'refreshCard', 'FeedCompleted'=> '$refresh'];
 
     protected $rules = [
         'lead.contact_number' => 'required',

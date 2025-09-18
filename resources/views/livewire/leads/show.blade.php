@@ -28,7 +28,7 @@
                         Ticket
                     </a>
                     {{-- <a href="#" onclick="$openModal('CreatingOrder')" class="outline-none inline-flex justify-center items-center group transition-all ease-in duration-150 focus:ring-2 focus:ring-offset-2 hover:shadow-sm disabled:opacity-80 disabled:cursor-not-allowed rounded gap-x-2 text-sm px-4 py-0.5     ring-positive-500 text-positive-500 border border-positive-500 hover:bg-positive-50
-                                               dark:ring-offset-slate-800 dark:hover:bg-slate-700">
+                                                   dark:ring-offset-slate-800 dark:hover:bg-slate-700">
                         <svg class="w-6 h-6" width="48" height="48" viewBox="0 0 48 48" fill="currentColor"
                             xmlns="http://www.w3.org/2000/svg">
                             <path
@@ -375,8 +375,8 @@
 
                                         <span
                                             class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2
-                                             bg-gray-800 text-white text-xs rounded-lg px-2 py-1
-                                             opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                                                 bg-gray-800 text-white text-xs rounded-lg px-2 py-1
+                                                 opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
                                             Make a call
                                         </span>
                                     </div> --}}
@@ -424,47 +424,60 @@
 
 
                             @foreach($feedContacts as $contact)
-                                @php
-                                    $contactData = json_decode($contact->data, true);
-                                @endphp
+                                        @php
+                                            $contactData = json_decode($contact->data, true);
+                                            $isSubmitted = !is_null($contact->status); 
+                                        @endphp
 
-                                <details class="border rounded-lg bg-gray-50 shadow-sm" open>
-                                    <summary
-                                        class="flex items-center justify-between cursor-pointer px-4 py-2 text-lg font-semibold text-gray-700 hover:bg-gray-100 rounded-t-lg">
-                                        <span>
-                                            {{ $contact->priority_field ?? 'No Title' }}
-                                        </span>
-                                        {{-- <button type="button"
-                                            class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded-full text-sm transition-colors duration-200">
-                                            Update
-                                        </button> --}}
-                                    </summary>
-                                    <div class="px-4 py-3 border-t text-xs text-gray-600">
-                                        <ul class="grid grid-cols-2 gap-x-4 gap-y-1 text-base">
-                                            @foreach($contactData as $key => $value)
-                                                @if(!empty($key))
-                                                    <li>
+                                        <details
+                                            class="border rounded-lg shadow-sm {{ $isSubmitted ? 'bg-green-50 border-green-300' : 'bg-gray-50 border-gray-200' }}"
+                                            open>
+                                            <summary class="flex items-center justify-between cursor-pointer px-4 py-2 text-lg font-semibold rounded-t-lg 
+                                   {{ $isSubmitted ? 'text-green-700 hover:bg-green-100' : 'text-gray-700 hover:bg-gray-100' }}">
+                                                <span>
+                                                    {{ $contact->priority_field ?? 'No Title' }}
+                                                    @if($isSubmitted)
                                                         <span
-                                                            class="font-medium text-base ">{{ ucfirst(str_replace('_', ' ', $key)) }}:</span>
-                                                        {{ $value }}
-                                                    </li>
-                                                @endif
-                                            @endforeach
-                                        </ul>
-                                    </div>
-                                    <!-- Action buttons at the end of the card -->
-                                    <div class="px-4 py-3 flex justify-end gap-2 border-t mt-4">
-                                        {{-- <button
-                                            class="bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded-md hover:bg-gray-400 transition-colors duration-200">
-                                            Cancel
-                                        </button> --}}
-                                        <button type="button" wire:click="$emit('openCallStatusModal', '{{ $contact->id }}')"
-                                            class="bg-blue-500 text-white font-bold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors duration-200">
-                                            Update
-                                        </button>
-                                    </div>
-                                </details>
+                                                            class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-green-600 rounded-full">
+                                                            Submitted
+                                                        </span>
+                                                    @endif
+                                                </span>
+                                            </summary>
+
+                                            <div class="px-4 py-3 border-t text-xs text-gray-600">
+                                                <ul class="grid grid-cols-2 gap-x-4 gap-y-1 text-base">
+                                                    @foreach($contactData as $key => $value)
+                                                        @if(!empty($key))
+                                                            <li>
+                                                                <span class="font-medium text-base">
+                                                                    {{ ucfirst(str_replace('_', ' ', $key)) }}:
+                                                                </span>
+                                                                {{ $value }}
+                                                            </li>
+                                                        @endif
+                                                    @endforeach
+                                                </ul>
+                                            </div>
+
+                                            {{-- Action buttons --}}
+                                            @unless($isSubmitted)
+                                                <div class="px-4 py-3 flex justify-between gap-2 border-t mt-4">
+                                                    <button type="button"
+                                                        wire:click="$emit('openCallStatusModal', '{{ $contact->id }}', 'answered')"
+                                                        class="bg-green-500 text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition-colors duration-200">
+                                                        Answered
+                                                    </button>
+                                                    <button type="button"
+                                                        wire:click="$emit('openCallStatusModal', '{{ $contact->id }}', 'not_answered')"
+                                                        class="bg-gray-500 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-600 transition-colors duration-200">
+                                                        Not Answered
+                                                    </button>
+                                                </div>
+                                            @endunless
+                                        </details>
                             @endforeach
+
 
                         @else
                             <p class="text-gray-500 text-sm">No work order found.</p>

@@ -39,21 +39,20 @@ class SkipModal extends Component
     foreach ($feeds as $feed) {
         $feed->status = 3; // skipped
         $feed->save();
-    }
+    
 
         FeedContactAttempt::create([
-            'feed_id'      => $feed->feed_id,
-            'contact_no_01'=> $feed->contact_no_01,
-            'contact_no_02'=> $feed->contact_no_02,
-            'status'       => '3',
+            'feed_contact_valid_id' => $feed->id,
             'comments'     => $this->comment,
             'updated_by'   => Auth::id(),
         ]);
+    }
     
 
     $this->SkipContactModal = false;
     $this->reset('comment');
     $this->emitTo('dashboard.partials.dialer.call-panel', 'contactSkipped');
+    $this->dispatchBrowserEvent('close-skipped-tab');
 
 }
 

@@ -42,7 +42,6 @@ class Show extends Component
     public $phone1;
     public $phone2;
     public $feed_id;
-    public $applyToAll = false;
 
     protected $listeners = ['refreshCard' => 'refreshCard', 'FeedCompleted'=> '$refresh'];
 

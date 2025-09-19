@@ -404,7 +404,7 @@
                                         <span class="text-gray-700">{{ $lead->contact_number }}</span>
                                     </label>
 
-                                    @if($phone2)
+                                    @if($phone2 && strlen($phone2) > 8)
                                         <label class="flex items-center space-x-2 cursor-pointer">
                                             <input type="radio" wire:model="selectedContact" value="{{ $phone2 }}"
                                                 class="text-green-500">
@@ -421,17 +421,6 @@
                                 </div>
                             </div>
 
-                            @if($feedContacts->count() > 1)
-                            <div class="flex justify-end">
-                                <div class="flex items-center space-x-2 mb-2 mt-4">
-                                    <input type="checkbox" wire:model="applyToAll" id="applyToAll"
-                                        class="rounded text-blue-600">
-                                    <label for="applyToAll" class="text-gray-700">Apply to all feeds with this
-                                        number</label>
-                                </div>
-
-                            </div>
-                            @endif
 
                             @foreach($feedContacts as $contact)
                                 @php
@@ -475,12 +464,12 @@
                                     @unless($isSubmitted)
                                         <div class="px-4 py-3 flex justify-between gap-2 border-t mt-4">
                                             <button type="button"
-                                                wire:click="$emit('openCallStatusModal', '{{ $contact->id }}', 'answered', '{{ $applyToAll }}')"
+                                                wire:click="$emit('openCallStatusModal', '{{ $contact->id }}', 'answered', '{{$feedContacts->count()}}')"
                                                 class="bg-green-500 text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition-colors duration-200">
                                                 Answered
                                             </button>
                                             <button type="button"
-                                                wire:click="$emit('openCallStatusModal', '{{ $contact->id }}', 'not_answered', '{{ $applyToAll }}')"
+                                                wire:click="$emit('openCallStatusModal', '{{ $contact->id }}', 'not_answered', '{{$feedContacts->count()}}')"
                                                 class="bg-gray-500 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-600 transition-colors duration-200">
                                                 Not Answered
                                             </button>

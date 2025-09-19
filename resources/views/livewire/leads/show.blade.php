@@ -355,8 +355,9 @@
 
 
                     </div>
-
+                    @if($boundType == 'dialer')
                     <div class="bg-white p-4 space-y-3 text-xs">
+                        
                         @if($feedContacts->isNotEmpty())
                             <div class="flex justify-between">
                                 <h2 class="font-bold text-sm mb-2">All Work Orders</h2>
@@ -482,7 +483,9 @@
                         @else
                             <p class="text-gray-500 text-sm">No work order found.</p>
                         @endif
+                        
                     </div>
+                    @endif
 
 
                 </div>

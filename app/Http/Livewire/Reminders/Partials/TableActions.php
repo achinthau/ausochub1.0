@@ -66,6 +66,7 @@ class TableActions extends Component
         'exten'  => $extension,
         'num'    => $phone,
         'tenant' => $tenant_context,
+        'uid' => 11,
     ]);
 
     if ($response->successful()) {

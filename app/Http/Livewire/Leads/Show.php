@@ -44,7 +44,7 @@ class Show extends Component
     public $feed_id;
     public $boundType = '';
 
-    protected $listeners = ['refreshCard' => 'refreshCard', 'FeedCompleted'=> '$refresh'];
+    protected $listeners = ['refreshCard' => 'refreshCard', 'FeedCompleted' => '$refresh'];
 
     protected $rules = [
         'lead.contact_number' => 'required',
@@ -306,6 +306,7 @@ class Show extends Component
             'exten' => $extension,
             'num' => $phone,
             'tenant' => $tenant_context,
+            'uid' => 22,
         ]);
 
         if ($response->successful()) {

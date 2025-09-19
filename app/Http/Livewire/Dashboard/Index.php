@@ -171,6 +171,43 @@ class Index extends Component
         if ($boundType && $boundType == 'dialer') 
             {
                 $this->emitTo('dashboard.partials.dialer.call-panel', 'updateSkill');
+                $data = [
+            [
+                'name' => 'extension',
+                'contents' => Auth::user()->agent->extension
+            ],
+            [
+                'name' => 'type',
+                // 'contents' => 'SIP'
+                'contents' => Auth::user()->agent->extensionDetails->exten_type
+            ],
+            [
+                'name' => 'agentip',
+                'contents' => '123.231.121.61'
+            ],
+            [
+                'name' => 'queue',
+                'contents' => $name
+            ],
+            [
+                'name' => 'action',
+                'contents' => $value ? 'add' : 'remove'
+            ],
+            [
+                'name' => 'agentid',
+                'contents' => Auth::user()->agent_id
+            ],
+            [
+                'name' => 'crm_token',
+                'contents' => $value ? session()->getId() : null
+            ],
+           
+            [
+                'name' => 'dialer',
+                'contents' => '2'
+            ],
+        ];
+        ApiManager::updateSkill($data);
         }
         else
         {
@@ -204,6 +241,10 @@ class Index extends Component
             [
                 'name' => 'crm_token',
                 'contents' => $value ? session()->getId() : null
+            ],
+            [
+                'name' => 'dialer',
+                'contents' => '0'
             ],
         ];
         ApiManager::updateSkill($data);

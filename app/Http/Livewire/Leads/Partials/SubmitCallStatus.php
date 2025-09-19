@@ -20,13 +20,15 @@ class SubmitCallStatus extends Component
     public $comment = '';
 
     public $applyToAll =false;
+    public $feedCount =0;
+    public $paymentDate;
 
     protected $listeners = ['openCallStatusModal' => 'openModal'];
 
-    public function openModal($id, $status, $apply)
+    public function openModal($id, $status, $feedCount)
     {
         $this->CallStatusModal = true;
-        $this->applyToAll = $apply;
+        $this->feedCount = $feedCount;
         $this->feed = FeedContactValid::find($id);
         // dd($this->feed);
         $this->status = $status;
@@ -44,9 +46,9 @@ class SubmitCallStatus extends Component
     // ];
 
     protected $messages = [
-    'comment.required' => 'Please select a payment date.',
-    'comment.date'     => 'The payment date must be a valid date.',
-    'comment.after_or_equal' => 'The payment date cannot be in the past.',
+    // 'comment.required' => 'Please select a payment date.',
+    'paymentDate.required'     => 'The payment date must be a valid date.',
+    'paymentDate.after_or_equal' => 'The payment date cannot be in the past.',
     'selectedOption.required' => 'You must select a call status.',
 ];
 
@@ -58,9 +60,10 @@ class SubmitCallStatus extends Component
     // Validation
     if ($option && $option->option === 'Promised to pay') {
         $this->validate([
-            'comment' => 'required|date|after_or_equal:today',
+            'paymentDate' => 'required|date|after_or_equal:today',
             'selectedOption' => 'required|exists:dialer_call_status_options,id',
         ]);
+        $this->comment = $this->comment . 'Payment Date: '. $this->paymentDate;
     } else {
         $this->validate([
             'selectedOption' => 'required|exists:dialer_call_status_options,id',

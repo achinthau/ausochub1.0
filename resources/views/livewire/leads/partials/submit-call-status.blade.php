@@ -33,19 +33,32 @@
                 @if(optional(\App\Models\DialerCallStatusOption::find($selectedOption))->option === 'Promised to pay')
                     <label class="block text-sm font-medium text-gray-700 mb-2">Select Payment Date</label>
                     <input type="date" 
-                           wire:model="comment" 
+                           wire:model="paymentDate" 
                            class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 transition duration-150 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
-                    @error('comment') 
+                    @error('paymentDate') 
                         <span class="mt-1 text-red-500 text-sm font-medium">{{ $message }}</span> 
                     @enderror
-                @else
+                @endif
                     <label class="block text-sm font-medium text-gray-700 mb-2">Comment</label>
                     <textarea wire:model="comment" rows="3" class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 transition duration-150 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"></textarea>
                     @error('comment') 
                         <span class="mt-1 text-red-500 text-sm font-medium">{{ $message }}</span> 
                     @enderror
-                @endif
+                
             </div>
+        </div>
+        <div class="flex justify-end">
+            @if($feedCount > 1)
+                            <div class="flex justify-end">
+                                <div class="flex items-center space-x-2 mb-2 mt-4">
+                                    <input type="checkbox" wire:model="applyToAll" id="applyToAll"
+                                        class="rounded text-blue-600">
+                                    <label for="applyToAll" class="text-gray-700">Apply to all items with this
+                                        number</label>
+                                </div>
+
+                            </div>
+                            @endif
         </div>
     </div>
 

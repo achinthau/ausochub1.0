@@ -13,7 +13,6 @@ use Livewire\Component;
 
 class UserSection extends Component
 {
-    public $callDirection =null ;
 
 
     public function render()

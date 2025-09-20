@@ -42,6 +42,9 @@
                                 </tr>
                             </thead>
                         <tbody class=" ">
+                            @if ($mergedData)
+                                
+                            
                             @foreach ($mergedData as $queue)
                                 <tr class="bg-white  ">
                                     <th scope="row"
@@ -60,7 +63,7 @@
 
                                 </tr>
                             @endforeach
-                            
+                            @endif
 
                         </tbody>
                     </table>

@@ -20,8 +20,7 @@
 
             {{-- queuename{{ $data->queuename }} <br> --}}
             {{-- total_queue_count{{ $data->total_queue_count }} <br> --}}
-
-            {{-- @if (!empty($queueWiseData) && count($queueWiseData) > 0) --}}
+            @if (!empty($queueWiseData) && count($queueWiseData) > 0)
 
                 <div class="relative overflow-x-auto">
                     <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
@@ -42,9 +41,6 @@
                                 </tr>
                             </thead>
                         <tbody class=" ">
-                            @if ($mergedData)
-                                
-                            
                             @foreach ($mergedData as $queue)
                                 <tr class="bg-white  ">
                                     <th scope="row"
@@ -63,14 +59,14 @@
 
                                 </tr>
                             @endforeach
-                            @endif
+                            
 
                         </tbody>
                     </table>
                 </div>
-            {{-- @else
+            @else
                 <p>No queue data available.</p>
-            @endif --}}
+            @endif
 
             <br>
 

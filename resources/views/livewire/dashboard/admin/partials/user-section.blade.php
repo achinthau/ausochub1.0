@@ -75,22 +75,25 @@
                                     // }
                                 //    echo "<script>alert('Too many outbound agents active! " . implode(', ', $dialerUsers) . "');</script>";
 
-                                        $color = '#6EB1E1'; // default color (inbound)
+                                        $color = '#A0A0A0'; // default color (inbound)
+                                        $headsetColor = '#A0A0A0'; // default color (rgb(240,88,47))
 
                                         if ($user->user) {
                                             if (in_array($user->user->id, $dialerUsers)) {
                                                 $color = '#19149C'; // dialer
+                                                $headsetColor = '#F0582F';
                                             } 
                                             if (in_array($user->user->id, $inboundUsers)) 
                                             // else 
                                             {
                                                 $color = '#6EB1E1'; // inbound
+                                                $headsetColor = '#F0582F';
                                             }
                                         }
                                 @endphp
                                 <path
                                     d="M 64.643 15.053 C 62.216 6.384 54.264 0 44.831 0 S 27.445 6.384 25.019 15.053 c -1.695 0.217 -3.022 1.659 -3.022 3.411 v 9.872 c 0 1.9 1.555 3.455 3.455 3.455 s 3.455 -1.555 3.455 -3.455 v -9.872 c 0 -1.189 -0.609 -2.243 -1.531 -2.865 c 2.176 -7.596 9.169 -13.177 17.454 -13.177 c 8.286 0 15.279 5.581 17.454 13.177 c -0.921 0.622 -1.53 1.676 -1.53 2.865 v 9.872 c 0 1.307 0.744 2.437 1.821 3.023 c -0.698 3.214 -2.242 6.114 -4.396 8.453 c -0.148 -0.029 -0.299 -0.046 -0.455 -0.046 c -1.32 0 -2.399 1.08 -2.399 2.399 s 1.08 2.399 2.399 2.399 s 2.399 -1.08 2.399 -2.399 c 0 -0.259 -0.052 -0.504 -0.129 -0.737 c 2.467 -2.688 4.225 -6.031 4.991 -9.733 c 1.528 -0.356 2.679 -1.726 2.679 -3.359 v -9.872 C 67.665 16.712 66.339 15.27 64.643 15.053 z"
-                                    style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: rgb(240,88,47); fill-rule: nonzero; opacity: 1;"
+                                    style="stroke: none; stroke-width: 1; stroke-dasharray: none; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 10; fill: {{$headsetColor}}; fill-rule: nonzero; opacity: 1;"
                                     transform=" matrix(1 0 0 1 0 0) " stroke-linecap="round" />
                                 <path
                                     d="M 55.893 35.514 c 0.655 -0.905 1.196 -1.885 1.611 -2.917 c -0.802 -1.252 -1.249 -2.724 -1.249 -4.26 v -9.872 c 0 -1.313 0.323 -2.582 0.918 -3.708 c -2.231 -4.703 -7.034 -7.834 -12.342 -7.834 s -10.11 3.131 -12.342 7.835 c 0.595 1.126 0.918 2.395 0.918 3.708 v 9.872 c 0 2.391 -1.065 4.533 -2.74 5.993 c 2.703 5.183 8.111 8.754 14.333 8.754 c 2.059 0 4.028 -0.395 5.842 -1.105 C 50.927 38.892 53.034 36.303 55.893 35.514 z"

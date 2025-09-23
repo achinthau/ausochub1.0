@@ -48,7 +48,10 @@ class Create extends Component
     public function mount($lead)
     {
         $this->lead = $lead;
-        $this->showTicketEditModal = $lead->status_id == 1;
+        if(!$lead->first_name)
+        {
+            $this->showTicketEditModal = $lead->status_id == 1;
+        }
 
         $this->provinces=CustomersProvince::select('id', 'name as title')->get()->toArray();
     }

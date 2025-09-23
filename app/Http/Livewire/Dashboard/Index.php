@@ -334,6 +334,8 @@ class Index extends Component
         } else {
             $this->skills = Auth::user()->skills ? Auth::user()->skills->skill_ids : [];
         }
+
+        $this->selectedSkills = [];
     }
 
 

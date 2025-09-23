@@ -15,7 +15,7 @@ class HandRaiseFunc extends Component
     // dd('h');
 
     $redis = Redis::connection();
-    $redis->select(1);
+    $redis->select(0);
 
     $ttl = env('RAISE_HAND_TIME', 10);
     $key = "hand_raised:$userId";

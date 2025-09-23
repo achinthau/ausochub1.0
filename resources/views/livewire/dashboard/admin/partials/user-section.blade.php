@@ -75,7 +75,7 @@
                                     // }
                                 //    echo "<script>alert('Too many outbound agents active! " . implode(', ', $dialerUsers) . "');</script>";
 
-                                        $color = '#6EB1E1'; // default color (inbound)
+                                        $color = '#A0A0A0'; // default color (inbound)
 
                                         if ($user->user) {
                                             if (in_array($user->user->id, $dialerUsers)) {

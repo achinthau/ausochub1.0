@@ -182,6 +182,7 @@ class Show extends Component
 
         $userId = Auth::user()->id;
         $boundType = Redis::get("user:{$userId}:bound_type");
+        $this->boundType = $boundType;
         if ($boundType && $boundType == 'dialer') {
             $phone = $this->lead->contact_number;
             $this->selectedContact = $phone;

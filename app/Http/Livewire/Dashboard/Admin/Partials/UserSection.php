@@ -34,7 +34,7 @@ class UserSection extends Component
     foreach ($users as $agent) {
         $userId = optional($agent->user)->id;
         if ($userId) {
-            Redis::select(1);
+            // Redis::select(0);
             $key = "hand_raised:{$userId}";
             if (Redis::get($key)) {
                 $raisedHands[$userId] = true;
@@ -42,7 +42,7 @@ class UserSection extends Component
         }
 
         if ($agent->user) {
-            Redis::select(0);
+            // Redis::select(0);
             $key = "user:{$userId}:bound_type";
             $callDirection = Redis::get($key);
             

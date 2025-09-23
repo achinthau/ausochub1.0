@@ -40,7 +40,7 @@ class UserSection extends Component
                 }
             }
 
-            if ($agent->user) {
+            if (in_array($userId, $loggedUserIds)) {
                 // Redis::select(0);
                 $key = "user:{$userId}:bound_type";
                 $callDirection = Redis::get($key);

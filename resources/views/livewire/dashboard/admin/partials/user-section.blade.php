@@ -81,8 +81,8 @@
                                             if (in_array($user->user->id, $dialerUsers)) {
                                                 $color = '#19149C'; // dialer
                                             } 
-                                            // elseif (in_array($user->user->id, $inboundUsers)) 
-                                            else 
+                                            if (in_array($user->user->id, $inboundUsers)) 
+                                            // else 
                                             {
                                                 $color = '#6EB1E1'; // inbound
                                             }

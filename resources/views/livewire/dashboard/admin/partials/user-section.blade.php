@@ -76,15 +76,18 @@
                                 //    echo "<script>alert('Too many outbound agents active! " . implode(', ', $dialerUsers) . "');</script>";
 
                                         $color = '#A0A0A0'; // default color (inbound)
+                                        $headsetColor = '#A0A0A0'; // default color (rgb(240,88,47))
 
                                         if ($user->user) {
                                             if (in_array($user->user->id, $dialerUsers)) {
                                                 $color = '#19149C'; // dialer
+                                                $headsetColor = '#F0582F';
                                             } 
                                             if (in_array($user->user->id, $inboundUsers)) 
                                             // else 
                                             {
                                                 $color = '#6EB1E1'; // inbound
+                                                $headsetColor = '#F0582F';
                                             }
                                         }
                                 @endphp

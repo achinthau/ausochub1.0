@@ -11,6 +11,9 @@ use Livewire\Component;
 class CallPanel extends Component
 {
     public $phone;
+    public $customerName;
+    public $addressLine1;
+    public $addressLine2;
     public $feed_id;
     public $reason = null;
 
@@ -72,6 +75,7 @@ class CallPanel extends Component
         if ($record) {
             $userId = Auth::id();
             $phone = $record->contact_no_01 ?? $record->contact_no_02;
+            
 
             // 1. Find all rows with this number across all feeds
             $relatedContacts = FeedContactValid::where(function ($query) use ($phone) {
@@ -85,6 +89,13 @@ class CallPanel extends Component
             $this->contact = $record;
             $this->phone = $record->contact_no_01 ?? $record->contact_no_02;
             $this->feed_id = $record->feed_id;
+
+            $data = json_decode($record->data, true);
+            $this->customerName = $data['cust_name'] ?? null;
+            $this->addressLine1 = $data['add1'] ?? null;
+            $this->addressLine2 = $data['add2'] ?? null;
+            // $this->addressLine2 = $data;
+            
         } else {
             $this->phone = null;
             $this->reason = 'No available contacts in your assigned campaigns.';
@@ -95,6 +106,7 @@ class CallPanel extends Component
     {
         // dd($this->feed_id);
         $number = $phone;
+        // dd($this->addressLine2);
 
         // If it's only 9 digits, add the 0
         // if (!empty($number) && strlen($number) === 9) {
@@ -108,6 +120,9 @@ class CallPanel extends Component
             // If not found, create new one
             $lead = new Lead();
             $lead->contact_number = $number;
+            $lead->first_name = $this->customerName;
+            $lead->address_line_1 = $this->addressLine1;
+            $lead->address_line_2 = $this->addressLine2;
             $lead->status_id = 1; // new lead status (same as in your old code)
             $lead->agent_id = auth()->user()->id ?? null; // if user has agent
             $lead->extension = auth()->user()->extension ?? null;

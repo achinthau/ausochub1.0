@@ -7,6 +7,8 @@ use App\Models\AgentLoginLogoutDetail;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redis;
 
 class RecordLogoutTime
 {
@@ -32,5 +34,11 @@ class RecordLogoutTime
             ->latest('login_time')
             ->first()
             ->update(['logout_time' => now()]);
+
+        $userId = Auth::id();
+
+        if ($userId) {
+            Redis::del("user:{$userId}:bound_type");
+        }
     }
 }

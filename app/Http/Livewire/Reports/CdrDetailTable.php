@@ -19,7 +19,7 @@ class CdrDetailTable extends LivewireDatatable
     public $hideable = 'select';
     public $exportable = true;
     public function builder()
-    {            
+    {
 
         $companyNames = array_filter(array_map('trim', explode(',', auth()->user()->tenant_context)));
         // dd($companyNames);
@@ -40,7 +40,12 @@ class CdrDetailTable extends LivewireDatatable
             // to filter
             // ->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
             // ->where('dcontext', $companyName)->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
-            ->whereIn('dcontext', $companyNames)->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
+            ->whereIn('dcontext', $companyNames)->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '')
+            ->where(function ($query) {
+                $query->where('lastapp', '<>', 'Dial')
+                    ->orWhereRaw('CHAR_LENGTH(src) <> 9');
+            });
+        ;
 
 
 
@@ -82,7 +87,7 @@ class CdrDetailTable extends LivewireDatatable
                 }
 
                 if ($raw && preg_match('/\/(\d+)-/', $raw, $matches)) {
-                    return $matches[1]; 
+                    return $matches[1];
                 }
 
                 return null;
@@ -94,20 +99,20 @@ class CdrDetailTable extends LivewireDatatable
             //     return $lastapp == 'Dial' ? 'Out' : 'In';
             // })->label('Direction')->filterable(['Dial' => 'Out', 'Queue' => 'In']),
             Column::raw("CASE 
-                        WHEN LENGTH(src) = 9 THEN 'Dialer' 
-                        ELSE 'Inbound' 
+                        WHEN LENGTH(src) = 9 THEN 'Out' 
+                        ELSE 'In' 
                     END")
-            ->label('Direction')
-            ->filterable(['Inbound', 'Dialer']),
+                ->label('Direction')
+                ->filterable(['In', 'Out']),
             Column::callback(['id', 'uniqueid'], function ($id, $uniqueid) {
                 return view('table-actions-v2', ['id' => $id, 'uniqueid' => $uniqueid]);
             })->unsortable()->excludeFromExport(),
 
-            Column::callback(['src','dst'], function ($src, $dst) {
-            return view('table-actions-cdr', ['src' => $src,'dst' => $dst]);
-        })->unsortable()->excludeFromExport()
+            Column::callback(['src', 'dst'], function ($src, $dst) {
+                return view('table-actions-cdr', ['src' => $src, 'dst' => $dst]);
+            })->unsortable()->excludeFromExport()
 
-            
+
         ];
     }
 

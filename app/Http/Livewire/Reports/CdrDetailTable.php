@@ -94,11 +94,11 @@ class CdrDetailTable extends LivewireDatatable
             //     return $lastapp == 'Dial' ? 'Out' : 'In';
             // })->label('Direction')->filterable(['Dial' => 'Out', 'Queue' => 'In']),
             Column::raw("CASE 
-                        WHEN LENGTH(src) = 9 THEN 'Dialer' 
-                        ELSE 'Inbound' 
+                        WHEN LENGTH(src) = 9 THEN 'Out' 
+                        ELSE 'In' 
                     END")
             ->label('Direction')
-            ->filterable(['Inbound', 'Dialer']),
+            ->filterable(['In', 'Out']),
             Column::callback(['id', 'uniqueid'], function ($id, $uniqueid) {
                 return view('table-actions-v2', ['id' => $id, 'uniqueid' => $uniqueid]);
             })->unsortable()->excludeFromExport(),

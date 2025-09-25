@@ -40,11 +40,18 @@ class CdrDetailTable extends LivewireDatatable
             // to filter
             // ->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
             // ->where('dcontext', $companyName)->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
-            ->whereIn('dcontext', $companyNames)->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '')
+            ->whereIn('dcontext', $companyNames)
+            ->whereIn('lastapp', ['Dial', 'Queue'])
+            ->whereNotNull('src')
+            ->where('src', '<>', '')
             ->where(function ($query) {
-                $query->where('lastapp', '==', 'Dial')
-                    ->orWhereRaw('CHAR_LENGTH(src) = 9');
+                $query->where('lastapp', 'Queue')
+                    ->orWhere(function ($q) {
+                        $q->where('lastapp', 'Dial')
+                            ->whereRaw('CHAR_LENGTH(src) = 9');
+                    });
             });
+
         ;
 
 
@@ -102,7 +109,7 @@ class CdrDetailTable extends LivewireDatatable
                     if ($dstchannel && preg_match('/\/(\d+)-/', $channel, $matches)) {
                         return $matches[1];
                     }
-                    
+
                 } elseif ($lastapp === 'Dial') {
                     // case: SIP/0761930913@dialog-1,60,WTt
                     if (preg_match('/\/(\d+)@/', $channel, $matches)) {

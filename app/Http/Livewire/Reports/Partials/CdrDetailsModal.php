@@ -27,13 +27,22 @@ class CdrDetailsModal extends Component
         return view('livewire.reports.partials.cdr-details-modal');
     }
 
-    public function showDetailsModal($src, $dst)
+    public function showDetailsModal($src, $dst,$direction,$extension)
 {
     // dd($src.$dst);
 
     $this->showCdrDetailsModal = true;
 
-    $caller = $this->findName($src);
+    // dd($direction);
+    if($direction == 'Dial')
+    {        
+        // dd($extension);
+        $caller = $this->findName($extension);
+        // dd($caller);
+    } else
+    {
+        $caller = $this->findName($src);
+    }
     $callee = $this->findName($dst);
 
     $this->callerName  = $caller['name'];

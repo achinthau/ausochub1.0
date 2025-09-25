@@ -42,7 +42,7 @@ class CdrDetailTable extends LivewireDatatable
             // ->where('dcontext', $companyName)->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
             ->whereIn('dcontext', $companyNames)->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '')
             ->where(function ($query) {
-                $query->where('lastapp', '<>', 'Dial')
+                $query->where('lastapp', '==', 'Dial')
                     ->orWhereRaw('CHAR_LENGTH(src) = 9');
             });
         ;

@@ -99,6 +99,10 @@ class CdrDetailTable extends LivewireDatatable
 
                 if ($lastapp === 'Queue') {
                     $raw = $dstchannel;
+
+                    if ($dstchannel && preg_match('/\/(\d+)-/', $channel, $matches)) {
+                        return $matches[1];
+                    }
                     
                 } elseif ($lastapp === 'Dial') {
                     // case: SIP/0761930913@dialog-1,60,WTt

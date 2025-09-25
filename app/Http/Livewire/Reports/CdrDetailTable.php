@@ -74,25 +74,48 @@ class CdrDetailTable extends LivewireDatatable
             Column::name('disposition')->label('Disposition')->filterable($this->dispositions),
             Column::name('dcontext')->label('Company')->filterable(),
             // Column::name('au_queuecount_report.agent')->label('Extension')->filterable(),
+
+            // Column::callback(['lastapp', 'channel', 'dstchannel', 'lastdata'], function ($lastapp, $channel, $dstchannel, $lastdata) {
+            //     $raw = null;
+
+            //     if ($lastapp === 'Queue') {
+            //         $raw = $dstchannel;
+
+            //     } elseif ($lastapp === 'Dial') {
+            //         if (strpos($lastdata, '@') !== false) {
+            //             $raw = $channel;
+            //         }
+            //     }
+
+            //     if ($raw && preg_match('/\/(\d+)-/', $raw, $matches)) {
+            //         return $matches[1];
+            //     }
+
+            //     return null;
+            // })->label('Extension')->searchable(),
+
             Column::callback(['lastapp', 'channel', 'dstchannel', 'lastdata'], function ($lastapp, $channel, $dstchannel, $lastdata) {
                 $raw = null;
 
                 if ($lastapp === 'Queue') {
                     $raw = $dstchannel;
-
+                    
                 } elseif ($lastapp === 'Dial') {
-                    if (strpos($lastdata, '@') !== false) {
-                        $raw = $channel;
+                    // case: SIP/0761930913@dialog-1,60,WTt
+                    if (preg_match('/\/(\d+)@/', $channel, $matches)) {
+                        return $matches[1]; // returns 0761930913
                     }
-                }
 
-                if ($raw && preg_match('/\/(\d+)-/', $raw, $matches)) {
-                    return $matches[1];
+                    // fallback: same as before, from $channel
+                    if ($channel && preg_match('/\/(\d+)-/', $channel, $matches)) {
+                        return $matches[1];
+                    }
                 }
 
                 return null;
             })->label('Extension')->searchable(),
-            // ->filterable('filterByExtension'),
+
+
 
 
             // Column::callback(['lastapp'], function ($lastapp) {

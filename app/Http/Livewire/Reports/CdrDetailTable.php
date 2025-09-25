@@ -105,6 +105,9 @@ class CdrDetailTable extends LivewireDatatable
                 ->filterable(['In', 'Out']),
             Column::callback(['id', 'uniqueid'], function ($id, $uniqueid) {
                 return view('table-actions-v2', ['id' => $id, 'uniqueid' => $uniqueid]);
+            })->unsortable()->excludeFromExport(),
+            Column::callback(['src', 'dst'], function ($src, $dst) {
+                return view('table-actions-cdr', ['src' => $src, 'dst' => $dst]);
             })->unsortable()->excludeFromExport()
         ];
     }

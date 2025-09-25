@@ -14,3 +14,8 @@
         </div>
     </div>
 </div>
+
+
+@push('modals')
+    @livewire('reports.partials.cdr-details-modal')
+@endpush

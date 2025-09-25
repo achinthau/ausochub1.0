@@ -40,11 +40,18 @@ class CdrDetailTable extends LivewireDatatable
             // to filter
             // ->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
             // ->where('dcontext', $companyName)->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
-            ->whereIn('dcontext', $companyNames)->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '')
+            ->whereIn('dcontext', $companyNames)
+            ->whereIn('lastapp', ['Dial', 'Queue'])
+            ->whereNotNull('src')
+            ->where('src', '<>', '')
             ->where(function ($query) {
-                $query->where('lastapp', '<>', 'Dial')
-                    ->orWhereRaw('CHAR_LENGTH(src) <> 9');
+                $query->where('lastapp', 'Queue')
+                    ->orWhere(function ($q) {
+                        $q->where('lastapp', 'Dial')
+                            ->whereRaw('CHAR_LENGTH(src) = 9');
+                    });
             });
+
         ;
 
 
@@ -74,25 +81,51 @@ class CdrDetailTable extends LivewireDatatable
             Column::name('disposition')->label('Disposition')->filterable($this->dispositions),
             Column::name('dcontext')->label('Company')->filterable(),
             // Column::name('au_queuecount_report.agent')->label('Extension')->filterable(),
+
+            // Column::callback(['lastapp', 'channel', 'dstchannel', 'lastdata'], function ($lastapp, $channel, $dstchannel, $lastdata) {
+            //     $raw = null;
+
+            //     if ($lastapp === 'Queue') {
+            //         $raw = $dstchannel;
+
+            //     } elseif ($lastapp === 'Dial') {
+            //         if (strpos($lastdata, '@') !== false) {
+            //             $raw = $channel;
+            //         }
+            //     }
+
+            //     if ($raw && preg_match('/\/(\d+)-/', $raw, $matches)) {
+            //         return $matches[1];
+            //     }
+
+            //     return null;
+            // })->label('Extension')->searchable(),
+
             Column::callback(['lastapp', 'channel', 'dstchannel', 'lastdata'], function ($lastapp, $channel, $dstchannel, $lastdata) {
                 $raw = null;
 
                 if ($lastapp === 'Queue') {
-                    $raw = $dstchannel;
+                    // $raw = $dstchannel;
+                    if ($dstchannel && preg_match('/\/(\d+)-/', $dstchannel, $matches)) {
+                        return $matches[1];
+                    }
 
                 } elseif ($lastapp === 'Dial') {
-                    if (strpos($lastdata, '@') !== false) {
-                        $raw = $channel;
+                    // case: SIP/0761930913@dialog-1,60,WTt
+                    if (preg_match('/\/(\d+)@/', $channel, $matches)) {
+                        return $matches[1]; // returns 0761930913
                     }
-                }
 
-                if ($raw && preg_match('/\/(\d+)-/', $raw, $matches)) {
-                    return $matches[1];
+                    // fallback: same as before, from $channel
+                    if ($channel && preg_match('/\/(\d+)-/', $channel, $matches)) {
+                        return $matches[1];
+                    }
                 }
 
                 return null;
             })->label('Extension')->searchable(),
-            // ->filterable('filterByExtension'),
+
+
 
 
             // Column::callback(['lastapp'], function ($lastapp) {

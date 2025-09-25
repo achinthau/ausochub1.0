@@ -1,23 +1,57 @@
 <x-modal.card title="More Details" blur wire:model="showCdrDetailsModal">
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div class="space-y-4">
-        <div>
-            <strong>Caller:</strong> {{ $callerName }}
+            <div>
+                <strong>Caller:</strong> {{ $callerName }}
+            </div>
+            @if($callerEmail)
+                <div>
+                    <strong>Caller Email:</strong> {{ $callerEmail }}
+                </div>
+            @endif
+            @if($callerAddress)
+                <div>
+                    <strong>Caller Address:</strong> {{ $callerAddress }}
+                </div>
+            @endif
+            @if($callerWhatsapp)
+                <div>
+                    <strong>Caller Whatsapp:</strong> {{ $callerWhatsapp }}
+                </div>
+            @endif
+            @if($callerNic)
+                <div>
+                    <strong>Caller NIC:</strong> {{ $callerNic }}
+                </div>
+            @endif
+
+            <hr>
+
+            <div>
+                <strong>Callee:</strong> {{ $calleeName }}
+            </div>
+            @if($calleeEmail)
+                <div>
+                    <strong>Callee Email:</strong> {{ $calleeEmail }}
+                </div>
+            @endif
+            @if($calleeAddress)
+                <div>
+                    <strong>Callee Address:</strong> {{ $calleeAddress }}
+                </div>
+            @endif
+            @if($calleeWhatsapp)
+                <div>
+                    <strong>Callee Whatsapp:</strong> {{ $calleeWhatsapp }}
+                </div>
+            @endif
+            @if($calleeNic)
+                <div>
+                    <strong>Callee NIC:</strong> {{ $calleeNic }}
+                </div>
+            @endif
+
         </div>
-        @if($callerEmail)
-        <div>
-            <strong>Caller Email:</strong> {{ $callerEmail }}
-        </div>
-        @endif        
-        <div>
-            <strong>Receiver:</strong> {{ $calleeName }}
-        </div>
-        @if($calleeEmail)
-        <div>
-            <strong>Receiver Email:</strong> {{ $calleeEmail }}
-        </div>
-        @endif
-    </div>
     </div>
 
     <x-slot name="footer">

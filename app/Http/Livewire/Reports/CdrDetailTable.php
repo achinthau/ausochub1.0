@@ -102,27 +102,21 @@ class CdrDetailTable extends LivewireDatatable
             // })->label('Extension')->searchable(),
 
             Column::callback(['lastapp', 'channel', 'dstchannel', 'lastdata'], function ($lastapp, $channel, $dstchannel, $lastdata) {
-                $raw = null;
+                $extension = null;
 
                 if ($lastapp === 'Queue') {
-                    // $raw = $dstchannel;
                     if ($dstchannel && preg_match('/\/(\d+)-/', $dstchannel, $matches)) {
-                        return $matches[1];
+                        $extension = $matches[1];
                     }
-
                 } elseif ($lastapp === 'Dial') {
-                    // case: SIP/0761930913@dialog-1,60,WTt
                     if (preg_match('/\/(\d+)@/', $channel, $matches)) {
-                        return $matches[1]; // returns 0761930913
-                    }
-
-                    // fallback: same as before, from $channel
-                    if ($channel && preg_match('/\/(\d+)-/', $channel, $matches)) {
-                        return $matches[1];
+                        $extension = $matches[1];
+                    } elseif ($channel && preg_match('/\/(\d+)-/', $channel, $matches)) {
+                        $extension = $matches[1];
                     }
                 }
 
-                return null;
+                return $extension;
             })->label('Extension')->searchable(),
 
 
@@ -141,9 +135,23 @@ class CdrDetailTable extends LivewireDatatable
                 return view('table-actions-v2', ['id' => $id, 'uniqueid' => $uniqueid]);
             })->unsortable()->excludeFromExport(),
 
-            Column::callback(['src', 'dst'], function ($src, $dst) {
-                return view('table-actions-cdr', ['src' => $src, 'dst' => $dst]);
+            Column::callback(['src', 'dst', 'lastapp', 'channel', 'dstchannel'], function ($src, $dst, $lastapp, $channel, $dstchannel) {
+                $extension = '';
+                if ($lastapp === 'Queue') {
+                    if ($dstchannel && preg_match('/\/(\d+)-/', $dstchannel, $matches)) {
+                        $extension = $matches[1];
+                    }
+                } elseif ($lastapp === 'Dial') {
+                    if (preg_match('/\/(\d+)@/', $channel, $matches)) {
+                        $extension = $matches[1];
+                    } elseif ($channel && preg_match('/\/(\d+)-/', $channel, $matches)) {
+                        $extension = $matches[1];
+                    }
+                }
+                
+                return view('table-actions-cdr', ['src' => $src, 'dst' => $dst, 'lastapp' => $lastapp, 'extension' => $extension]);
             })->unsortable()->excludeFromExport()
+
 
 
         ];

@@ -40,7 +40,11 @@ class CdrDetailTable extends LivewireDatatable
             // to filter
             // ->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
             // ->where('dcontext', $companyName)->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
-            ->whereIn('dcontext', $companyNames)->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
+            ->whereIn('dcontext', $companyNames)->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '')
+            ->where(function ($query) {
+                $query->where('lastapp', '<>', 'Dial')
+                    ->orWhereRaw('CHAR_LENGTH(src) <> 9');
+            });
 
 
 
@@ -90,9 +94,15 @@ class CdrDetailTable extends LivewireDatatable
             // ->filterable('filterByExtension'),
 
 
-            Column::callback(['lastapp'], function ($lastapp) {
-                return $lastapp == 'Dial' ? 'Out' : 'In';
-            })->label('Direction')->filterable(['Dial' => 'Out', 'Queue' => 'In']),
+            // Column::callback(['lastapp'], function ($lastapp) {
+            //     return $lastapp == 'Dial' ? 'Out' : 'In';
+            // })->label('Direction')->filterable(['Dial' => 'Out', 'Queue' => 'In']),
+            Column::raw("CASE 
+                        WHEN LENGTH(src) = 9 THEN 'Out' 
+                        ELSE 'In' 
+                    END")
+                ->label('Direction')
+                ->filterable(['In', 'Out']),
             Column::callback(['id', 'uniqueid'], function ($id, $uniqueid) {
                 return view('table-actions-v2', ['id' => $id, 'uniqueid' => $uniqueid]);
             })->unsortable()->excludeFromExport()

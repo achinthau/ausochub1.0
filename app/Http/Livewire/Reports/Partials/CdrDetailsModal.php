@@ -12,8 +12,14 @@ class CdrDetailsModal extends Component
     public $showCdrDetailsModal = false;
     public $callerName;
     public $calleeName;
+    public $calleeNic;
+    public $calleeAddress;
+    public $calleeWhatsapp;
     public $calleeEmail;
     public $callerEmail;
+    public $callerAddress;
+    public $callerWhatsapp;
+    public $callerNic;
 
     protected $listeners = ['show' => 'showDetailsModal'];
     public function render()
@@ -32,9 +38,15 @@ class CdrDetailsModal extends Component
 
     $this->callerName  = $caller['name'];
     $this->callerEmail = $caller['email'];
+    $this->callerAddress = $caller['address'];
+    $this->callerWhatsapp = $caller['whatsapp'];
+    $this->callerENicl = $caller['nic'];
 
     $this->calleeName  = $callee['name'];
     $this->calleeEmail = $callee['email'];
+    $this->calleeAddress = $callee['address'];
+    $this->calleeWhatsapp = $callee['whatsapp'];
+    $this->calleeNic = $callee['nic'];
 
     
 }
@@ -44,64 +56,70 @@ class CdrDetailsModal extends Component
 {
     $number = trim($number);
 
-    // if (!ctype_digit($number)) {
-    //     return [
-    //         'name'  => $number,  
-    //         'email' => null,
-    //         'type'  => 'system'
-    //     ];
-    // }
+    
     if (!preg_match('/^\d+$/', $number)) {
         return [
-            'name'  => $number,   // return raw value
+            'name'  => $number,
             'email' => null,
-            'type'  => 'system'
+            'type'  => 'system',
+            'address' => null,
+            'whatsapp' => null,
+            'nic' => null,
         ];
     }
 
     
     if (strlen($number) === 3) {
-        // $user = User::whereHas('extensionDetails', function ($query) use ($number) {
-        //     $query->where('extension', $number);
-        // })->first();
         $user = User::where('extension', $number)->first();
-        // dd($user);
-
 
         if ($user) {
             return [
-                'name'  => $user->name,
-                'email' => null,
-                'type'  => 'user'
+                'name'     => $user->name,
+                'email'    =>  null,
+                'type'     => 'user',
+                'address'  => null,
+                'whatsapp' => null,
+                'nic'      => null,
             ];
         }
 
         return [
-            'name'  => "Ext {$number}",
-            'email' => null,
-            'type'  => 'user'
+            'name'     => "Ext {$number}",
+            'email'    => null,
+            'type'     => 'user',
+            'address'  => null,
+            'whatsapp' => null,
+            'nic'      => null,
         ];
     }
 
-  
+    
     $lead = Lead::where('contact_number', $number)
                 ->orWhere('contact_number_2', $number)
                 ->first();
 
     if ($lead) {
         return [
-            'name'  => $lead->first_name.' '.$lead->last_name,
-            'email' => $lead->email,
-            'type'  => 'lead'
+            'name'     => trim($lead->first_name.' '.$lead->last_name),
+            'email'    => $lead->email,
+            'type'     => 'lead',
+            'address'  => $lead->address_line_1.' '.$lead->address_line_2.' '.$lead->city,
+            'whatsapp' => $lead->whatsapp,
+            'nic'      => $lead->nic,
         ];
     }
 
+    
     return [
-        'name'  => "Unknown ({$number})",
-        'email' => null,
-        'type'  => 'unknown'
+        'name'     => "Unknown ({$number})",
+        'email'    => null,
+        'type'     => 'unknown',
+        'address'  => null,
+        'whatsapp' => null,
+        'nic'      => null,
     ];
 }
+
 
 
 }

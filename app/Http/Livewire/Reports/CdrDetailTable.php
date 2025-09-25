@@ -99,7 +99,6 @@ class CdrDetailTable extends LivewireDatatable
 
                 if ($lastapp === 'Queue') {
                     $raw = $dstchannel;
-
                     if ($dstchannel && preg_match('/\/(\d+)-/', $channel, $matches)) {
                         return $matches[1];
                     }

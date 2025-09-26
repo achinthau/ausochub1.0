@@ -38,12 +38,16 @@ class CdrDetailsModal extends Component
     {        
         // dd($extension);
         $caller = $this->findName($extension);
+        $callee = $this->findName($src);
+
         // dd($caller);
-    } else
+    } elseif($direction == 'Queue')
     {
+        $callee = $this->findName($extension);
         $caller = $this->findName($src);
     }
-    $callee = $this->findName($dst);
+    
+    
 
     $this->callerName  = $caller['name'];
     $this->callerEmail = $caller['email'];

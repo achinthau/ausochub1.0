@@ -79,7 +79,7 @@ class CdrDetailTable extends LivewireDatatable
             NumberColumn::name('billsec')->label('Bill Sec')->filterable()->hide(),
             Column::raw('SEC_TO_TIME(billsec)')->label('Bill Sec Duration')->filterable(),
             Column::name('disposition')->label('Disposition')->filterable($this->dispositions),
-            Column::name('dcontext')->label('Company')->filterable(),
+            Column::name('dcontext')->label('Context')->filterable(),
             // Column::name('au_queuecount_report.agent')->label('Extension')->filterable(),
 
             // Column::callback(['lastapp', 'channel', 'dstchannel', 'lastdata'], function ($lastapp, $channel, $dstchannel, $lastdata) {

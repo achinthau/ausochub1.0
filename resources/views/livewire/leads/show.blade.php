@@ -16,7 +16,7 @@
                     Edit
                 </a>
 
-                @if ($lead->status_id == 2)
+                {{-- @if ($lead->status_id == 2) --}}
                     <a href="#" onclick="Livewire.emitTo('tickets.create', 'showCreatingTicket')"
                         class="border border-info-600 dark:hover:bg-slate-700 dark:ring-offset-slate-800 disabled:cursor-not-allowed disabled:opacity-80 duration-150 ease-in focus:ring-2 focus:ring-offset-2 gap-x-2 group hover:bg-info-50 hover:shadow-sm inline-flex items-center justify-center outline-none px-4 py-0.5 ring-info-600 rounded text-info-600 text-sm transition-all">
                         <svg class="w-6 h-6 " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -47,9 +47,11 @@
 
                         Order
                     </a> --}}
-                @else
+
+                    
+                {{-- @else
                     <x-button icon="pencil" positive label="Complete Profile" onclick="$openModal('showTicketEditModal')" />
-                @endif
+                @endif --}}
 
             </div>
 

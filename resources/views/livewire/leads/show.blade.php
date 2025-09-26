@@ -141,8 +141,8 @@
                             </div>
                         </div>
 
-                        <hr>
-                        <div class="grid grid-cols-2">
+                        <hr class="pb-3">
+                        {{-- <div class="grid grid-cols-2">
                             <div class="col-span-2  text-center ">
                                 @if ($lead->orders->count() > 0)
                                     <div class="font-semibold text-green-600">Return Customer</div>
@@ -151,7 +151,7 @@
                                 @endif
                             </div>
                         </div>
-                        <hr>
+                        <hr> --}}
                         This Call Reaction:
                         <div>
                             <!-- Toggle Button -->

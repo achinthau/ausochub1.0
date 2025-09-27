@@ -152,19 +152,17 @@ class Index extends Component
 
     public function updatedSelectedSkills($value, $name)
     {
+        // $user = Auth::user()->load([
+        //     'agent',
+        //     'agent.extensionDetails',
+        //     'currentQueues'
+        // ]);
+
+        // $currentSkills = $user->currentQueues()->active()->pluck('skill')->unique();
 
         // dd($value,$name);
-        // dd(Auth::user()->currentQueues()->active()->get());
-        // $currentSkills = Auth::user()->currentQueues()->active()->get();
-        // $skills = Auth::user()->currentQueues()->active()->get()->pluck('skill')->unique();
+        // dd($currentSkills);
 
-
-        // dd($skills);
-
-        //      $currentSkills = Auth::user()->currentQueues()->active()->get()->pluck('skill')->unique();
-        // foreach ($currentSkills as $skill) { 
-        //     dd($skill,$value,$name);
-        // }
 
         $userId = Auth::user()->id;
         $boundType = Redis::get("user:{$userId}:bound_type");

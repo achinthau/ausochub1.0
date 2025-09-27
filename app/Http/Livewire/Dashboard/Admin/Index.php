@@ -18,12 +18,12 @@ class Index extends Component
     public $queue_wating_count = 0;
     public $on_going = 0;
 
-    protected $listeners = ['setOutbound'=>'setOutbound'];
+    protected $listeners = ['setOutbound' => 'setOutbound'];
 
 
     public function setOutbound()
     {
-        
+
         return redirect()->route('dialer.admin.dashboard');
         // dd('gh');
     }
@@ -133,11 +133,30 @@ class Index extends Component
             GROUP BY a.queuename;
             "); */
 
+        $dialerQueueWiseData = DB::connection('mysql-old')
+            ->table('callcount')
+            ->whereNotNull('app')
+            ->select(
+                'app as queuename',
+                DB::raw('COUNT(*) as total_queue_count'),
+                DB::raw("
+            SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as answered_count,
+            SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) as busy_count,
+            SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) as no_answer_count,
+            SUM(CASE WHEN status = 5 THEN 1 ELSE 0 END) as chan_unavail_count,
+            SUM(CASE WHEN status = 6 THEN 1 ELSE 0 END) as cancel_count
+        ")
+            )
+            ->groupBy('app')
+            ->get();
+
+
 
         return view(
             'livewire.dashboard.admin.index',
             [
-                'queueWiseData' => $queueWiseData
+                'queueWiseData' => $queueWiseData,
+                'dialerQueueWiseData' => $dialerQueueWiseData,
             ]
         );
     }

@@ -84,6 +84,41 @@
                         @endforeach
 
                     </div>
+                    <div class="grid grid-cols-3  gap-4">
+                        @foreach ($dialerQueueWiseData as $data)
+                            <div class="bg-white p-4 space-y-2">
+                                <h1 class="font-bold">{{ $data->queuename }}</h1>
+                                <hr>
+                                <div class="flex">
+                                    <div class="flex-1">Dialed Count</div>
+                                    <div>{{ $data->total_queue_count }}</div>
+                                </div>
+                                <div class="flex">
+                                    <div class="flex-1">Answered</div>
+                                    <div>{{ $data->answered_count }}</div>
+                                </div>
+                                <div class="flex">
+                                    <div class="flex-1">Busy</div>
+                                    <div>{{ $data->busy_count }}</div>
+                                </div>
+                                <div class="flex">
+                                    <div class="flex-1">Not Answered</div>
+                                    <div>{{ $data->no_answer_count }}</div>
+                                </div>
+                                <div class="flex">
+                                    <div class="flex-1">Onging</div>
+                                    <div>
+                                        {{-- {{ $data->agent_conntected_count - $data->queue_wating_count < 0 ? 0 : $data->agent_conntected_count - $data->queue_wating_count }} --}}
+                                        @php
+                                            $queueOngoing = Cache::get($data->queuename . '-current-call-count') ?? 0;
+                                        @endphp
+                                        {{$queueOngoing}}
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+
+                    </div>
                 </div>
                 <div class="w-1/4 ">
                     @livewire('dashboard.admin.partials.user-section')

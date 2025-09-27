@@ -41,7 +41,7 @@ class CallPanel extends Component
 
     public function loadContact()
     {
-        $currentSkills = Auth::user()->currentQueues()->active()->get();
+        $currentSkills = Auth::user()->currentQueues()->active()->pluck('skill')->unique();
 
         if ($currentSkills->isNotEmpty()) {
             $this->displayNumber = true;
@@ -52,16 +52,21 @@ class CallPanel extends Component
         $userId = Auth::id();
 
         // 1. Find active campaigns where user is assigned
+        // $campaigns = Campaign::where('status', 1)
+        //     ->get()
+        //     ->filter(function ($campaign) use ($userId) {
+        //         $assignedUsers = $campaign->assigned_users
+        //             ? array_filter(explode(',', $campaign->assigned_users))
+        //             : [];
+        //         return in_array($userId, $assignedUsers);
+        //     });
         $campaigns = Campaign::where('status', 1)
-            ->get()
-            ->filter(function ($campaign) use ($userId) {
-                $assignedUsers = $campaign->assigned_users
-                    ? array_filter(explode(',', $campaign->assigned_users))
-                    : [];
-                return in_array($userId, $assignedUsers);
-            });
+            ->whereIn('name', $currentSkills)
+            ->get();
 
-            $this->campaignName = $campaigns->first()->name ?? null;
+        // dd($campaigns);
+
+
 
 
         // 2. Collect feed IDs from these campaigns
@@ -79,14 +84,15 @@ class CallPanel extends Component
         if ($record) {
             $userId = Auth::id();
             $phone = $record->contact_no_01 ?? $record->contact_no_02;
-            
+            $feedId = $record->feed_id;
 
             // 1. Find all rows with this number across all feeds
             $relatedContacts = FeedContactValid::where(function ($query) use ($phone) {
                 $query->where('contact_no_01', $phone)
                     ->orWhere('contact_no_02', $phone);
             })
-                ->whereNull('status'); // Only unprocessed numbers
+                ->whereNull('status');
+            // ->where('feed_id',$feedId); 
 
             // 2. Assign all of them to the current agent
             $relatedContacts->update(['assigned_to' => $userId]);
@@ -99,7 +105,15 @@ class CallPanel extends Component
             $this->addressLine1 = $data['add1'] ?? null;
             $this->addressLine2 = $data['add2'] ?? null;
             // $this->addressLine2 = $data;
-            
+
+            $campaignForNumber = $campaigns->first(function ($campaign) use ($feedId) {
+                // Assuming $campaign->feed_ids is array
+                $feedIds = is_array($campaign->feed_ids) ? $campaign->feed_ids : json_decode($campaign->feed_ids, true);
+                return in_array($feedId, $feedIds);
+            });
+
+            $this->campaignName = $campaignForNumber ? $campaignForNumber->name : null;
+
         } else {
             $this->phone = null;
             $this->reason = 'No available contacts in your assigned campaigns.';
@@ -109,6 +123,7 @@ class CallPanel extends Component
     public function openProfile($phone)
     {
         // dd($this->feed_id);
+        // dd($this->campaignName);
         $number = $phone;
 
         // dd($this->addressLine2);

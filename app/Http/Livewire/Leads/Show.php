@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Leads;
 
 use App\Models\CallbackCustomer;
 use App\Models\CallCount;
+use App\Models\Campaign;
 use App\Models\FeedContactValid;
 use App\Models\Lead;
 use App\Models\QueueCount;
@@ -43,6 +44,7 @@ class Show extends Component
     public $phone2;
     public $feed_id;
     public $boundType = '';
+    public $campaign ;
 
     protected $listeners = ['refreshCard' => 'refreshCard', 'FeedCompleted' => '$refresh'];
 
@@ -179,6 +181,9 @@ class Show extends Component
         $this->lead = $lead->load('tickets', 'tickets.category', 'tickets.status', 'tickets.outlet', 'orders', 'orders.items');
         $this->isIncomming = filter_var(request()->query('isIncomming'), FILTER_VALIDATE_BOOLEAN);
         $this->feed_id = request()->query('feed');
+        $this->campaign = request()->query('cmp');
+        // $this->campaign = Campaign::whereIn('assigned_feeds', [$this->feed_id])->get();
+        // dd($this->campaign);
 
         $userId = Auth::user()->id;
         $boundType = Redis::get("user:{$userId}:bound_type");
@@ -308,6 +313,7 @@ class Show extends Component
             'num' => $phone,
             'tenant' => $tenant_context,
             'uid' => 22,
+            'dialer'=> $this->campaign,
         ]);
 
         if ($response->successful()) {

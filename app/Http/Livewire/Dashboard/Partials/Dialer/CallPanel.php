@@ -15,6 +15,7 @@ class CallPanel extends Component
     public $addressLine1;
     public $addressLine2;
     public $feed_id;
+    public $campaignName;
     public $reason = null;
 
     public $displayNumber = false;
@@ -59,6 +60,9 @@ class CallPanel extends Component
                     : [];
                 return in_array($userId, $assignedUsers);
             });
+
+            $this->campaignName = $campaigns->first()->name ?? null;
+
 
         // 2. Collect feed IDs from these campaigns
         $feedIds = $campaigns->flatMap->feed_ids->unique()->toArray();
@@ -106,6 +110,7 @@ class CallPanel extends Component
     {
         // dd($this->feed_id);
         $number = $phone;
+
         // dd($this->addressLine2);
 
         // If it's only 9 digits, add the 0
@@ -131,12 +136,15 @@ class CallPanel extends Component
         }
 
         // Emit browser event to open new tab/window
-        $url = route('leads.show', ['lead' => $lead->id]) . '?feed=' . $this->feed_id;
+        // $url = route('leads.show', ['lead' => $lead->id]) . '?feed=' . $this->feed_id . '?cmp=' . $this->campaignName;
+        $url = route('leads.show', ['lead' => $lead->id]) . '?feed=' . $this->feed_id . '&cmp=' . $this->campaignName;
+
 
         $this->dispatchBrowserEvent('open-lead-window', [
             'url' => $url,
             'lead_id' => $lead->id,
             'feed_id' => $this->feed_id,
+            'cmp' => $this->campaignName
         ]);
     }
 

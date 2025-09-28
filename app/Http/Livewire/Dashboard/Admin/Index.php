@@ -143,7 +143,7 @@ class Index extends Component
             SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as answered_count,
             SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) as busy_count,
             SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) as no_answer_count,
-            SUM(CASE WHEN status = 5 THEN 1 ELSE 0 END) as chan_unavail_count,
+            SUM(CASE WHEN status = 5 THEN 1 ELSE 0 END) as unreachable_count,
             SUM(CASE WHEN status = 6 THEN 1 ELSE 0 END) as cancel_count
         ")
             )

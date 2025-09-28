@@ -126,7 +126,14 @@
 
                     </div>
                     <div class="flex flex-row justify-center">
-                        <div class="text-gray-600 dark:text-gray-200 text-xs">{{ $user->todayQueues->count() }}</div>
+                        <div class="text-gray-600 dark:text-gray-200 text-xs">
+                            @if (in_array(optional($user->user)->id, $dialerUsers))
+                            {{ $dialerCallCounts[$user->user->id] ?? 0 }}
+                            {{-- {{ $user->extension }} --}}
+                            @else
+                            {{ $user->todayQueues->count() }}
+                            @endif
+                        </div>
                         <button class="w-10 text-right flex justify-end">
                             {{-- <svg width="20" fill="currentColor" height="20"
                                 class="hover:text-gray-800 dark:hover:text-white dark:text-gray-200 text-gray-500"

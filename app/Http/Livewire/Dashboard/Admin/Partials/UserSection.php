@@ -14,6 +14,8 @@ use Livewire\Component;
 class UserSection extends Component
 {
 
+    public $dialerCallCount = [];
+    public $boundType ;
 
     public function render()
     {
@@ -28,6 +30,7 @@ class UserSection extends Component
 
         $inboundUsers = [];
         $dialerUsers = [];
+        $dialerCallCounts = []; 
 
 
         foreach ($users as $agent) {
@@ -57,8 +60,31 @@ class UserSection extends Component
 
             }
 
+            $extension = optional($agent->user)->extension;
 
+        if ($extension) {
+            $dialerCallCounts[$userId] = DB::connection('mysql-old')
+                ->table('callcount')
+                ->whereNotNull('app')
+                ->where('callcount', $extension)
+                ->count();
+        } else {
+            $dialerCallCounts[$userId] = 0;
         }
+    }
+
+    $this->dialerCallCounts = $dialerCallCounts;
+
+            
+            // $this->dialerCallCount = DB::connection('mysql-old')
+            // ->table('callcount')
+            // ->whereNotNull('app')
+            // ->where('callcount', Agent::->extension)
+            // ->count();
+            // dd($this->dialerCallCount);
+
+
+        // }
         // dd($inboundUsers);
 
         return view(

@@ -10,7 +10,16 @@
         <x-slot name="content">
 
             <b>Skills </b> <br>
-            <label class="ml-6">{{ $skills ?? 'No skills available' }} </label>
+            {{-- <label class="ml-6">{{ $skills ?? 'No skills available' }} </label> --}}
+            @if (!empty($skills) && is_array($skills))
+                <p class="ml-6">
+                    @foreach ($skills as $skill)
+                        {{ $skill . " | "}}
+                    @endforeach
+                </p>
+            @else
+                <label class="ml-6">No skills available</label>
+            @endif
 
             <br><br>
 

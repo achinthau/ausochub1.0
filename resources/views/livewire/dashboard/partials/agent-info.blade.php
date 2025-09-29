@@ -16,7 +16,7 @@
 
             <hr>
 
-            <b>Call Counts </b> <br>
+            <b class="block pt-3 pb-1">Inbound Call Counts </b>
 
             {{-- queuename{{ $data->queuename }} <br> --}}
             {{-- total_queue_count{{ $data->total_queue_count }} <br> --}}
@@ -68,13 +68,86 @@
                 <p>No queue data available.</p>
             @endif
 
+
+
+
+            <b class="block pt-3 pb-1">Dialer Call Counts </b>
+
+            {{-- queuename{{ $data->queuename }} <br> --}}
+            {{-- total_queue_count{{ $data->total_queue_count }} <br> --}}
+            @if (!empty($dialerQueueWiseData) && count($dialerQueueWiseData) > 0)
+
+                <div class="relative overflow-x-auto">
+                    <table class="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-100  dark:bg-gray-700 dark:text-gray-400">
+                                <tr class="">
+                                    <th scope="col" class="px-6 py-3">
+                                        Skills
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-right ">
+                                        Dialed
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-right ">
+                                        Answered
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-right ">
+                                        Busy
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-right ">
+                                        Not Answered
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-right ">
+                                        Unreachable
+                                    </th>
+                                    <th scope="col" class="px-6 py-3 text-right ">
+                                        Cancelled
+                                    </th>
+                                </tr>
+                            </thead>
+                        <tbody class=" ">
+                            @foreach ($dialerQueueWiseData as $data)
+                                <tr class="bg-white  ">
+                                    <th scope="row"
+                                        class="px-6 py-0.5 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        {{ $data->queuename }}
+                                    </th>
+                                    <td class="px-6 py-0.5 text-right">
+                                        {{ $data->total_queue_count }}
+                                    </td>
+                                    <td class="px-6 py-0.5 text-right">
+                                        {{ $data->answered_count }}
+                                    </td>
+                                    <td class="px-6 py-0.5 text-right">
+                                        {{ $data->busy_count }}
+                                    </td>
+                                    <td class="px-6 py-0.5 text-right">
+                                        {{ $data->no_answer_count }}
+                                    </td>
+                                    <td class="px-6 py-0.5 text-right">
+                                        {{ $data->unreachable_count }}
+                                    </td>
+                                    <td class="px-6 py-0.5 text-right">
+                                        {{ $data->cancel_count }}
+                                    </td>
+
+                                </tr>
+                            @endforeach
+                            
+
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <p>No queue data available.</p>
+            @endif
+
             <br>
 
             <hr>
 
             
 
-            <b>Total Break Time : </b> <br>
+            <b class="block pt-3">Total Break Time : </b> <br>
             <label class="ml-6"> {{ $totalBreakTime }} </label>
         </x-slot>
 

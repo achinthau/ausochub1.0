@@ -29,7 +29,8 @@
 
                             <svg class="mx-auto object-cover rounded-full h-10 w-10" xmlns="http://www.w3.org/2000/svg"
                                 xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 256 256"
-                                xml:space="preserve" @if ($user->current_active_queues_title)  @can('can-see-user-details') onclick="Livewire.emitTo('dashboard.partials.agent-info', 'showAgentInfoModal', {{ $user->user->id ?? 'null' }})" @endcan @endif> 
+                                xml:space="preserve" @can('can-see-user-details') onclick="Livewire.emitTo('dashboard.partials.agent-info', 'showAgentInfoModal', {{ $user->user->id ?? 'null' }})" @endcan> 
+                                {{-- xml:space="preserve" @if ($user->current_active_queues_title)  @can('can-see-user-details') onclick="Livewire.emitTo('dashboard.partials.agent-info', 'showAgentInfoModal', {{ $user->user->id ?? 'null' }})" @endcan @endif>  --}}
 
                                 {{-- cursor-pointer --}}
 
@@ -127,12 +128,13 @@
                     </div>
                     <div class="flex flex-row justify-center">
                         <div class="text-gray-600 dark:text-gray-200 text-xs">
-                            @if (in_array(optional($user->user)->id, $dialerUsers))
-                            {{ $dialerCallCounts[$user->user->id] ?? 0 }}
+                            {{-- @if (in_array(optional($user->user)->id, $dialerUsers)) --}}
+                            {{ ($dialerCallCounts[$user->user->id ?? null] ?? 0) + ($user->todayQueues->count() ?? 0) }}
+
                             {{-- {{ $user->extension }} --}}
-                            @else
+                            {{-- @else
                             {{ $user->todayQueues->count() }}
-                            @endif
+                            @endif --}}
                         </div>
                         <button class="w-10 text-right flex justify-end">
                             {{-- <svg width="20" fill="currentColor" height="20"

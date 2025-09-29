@@ -13,6 +13,7 @@ use App\Http\Livewire\Reports\AbandonedCall;
 use App\Http\Livewire\Reports\BreakSummary;
 use App\Http\Livewire\Reports\AgentCallSummary;
 use App\Http\Livewire\Reports\AgentLoginLogoutReport;
+use App\Http\Livewire\Reports\DialerContactAttemptReport;
 use App\Http\Livewire\Reports\NuisanceCustomers;
 use App\Http\Livewire\Reports\UnsatisfiedCustomers;
 // use App\Http\Livewire\Reports\CallDetail;
@@ -110,6 +111,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/agent-login-logout-report', AgentLoginLogoutReport::class)->name('reports.agent-login-logout-report')->can('is-admin');
         Route::get('/nuisance-customers-report', NuisanceCustomers::class)->name('reports.nuisance-customers-report')->can('is-admin');
         Route::get('/unsatisfied-customers-report', UnsatisfiedCustomers::class)->name('reports.unsatisfied-customers-report')->can('is-admin');
+        Route::get('/dialer-contact-attempt-report', DialerContactAttemptReport::class)->name('reports.dialer-contact-attempt-report')->can('is-admin');
         // Route::get('/call-queue-report', CallQueue::class)->name('reports.call-queue-report')->can('is-admin');
     });
 

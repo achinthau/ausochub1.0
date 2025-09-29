@@ -44,7 +44,11 @@ class AgentInfo extends Component
         }
 
 
-        $this->skills = $this->user->skills ? $this->user->skills->skills : [];
+        $skills = $this->user->skills ? $this->user->skills->skills : [];
+
+        if (is_array($skills)) {
+    $skills = implode(' | ', $skills);
+}
 
         $this->skills = str_replace(",", " |   ", $this->skills);
         // dd($this->skills);

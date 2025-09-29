@@ -52,6 +52,7 @@
 
                     <div class="grid grid-cols-3  gap-4">
                         @foreach ($queueWiseData as $data)
+                        <div class="bg-blue-400 pt-2 px-0.5 pb-0.5">
                             <div class="bg-white p-4 space-y-2">
                                 <div class="flex items-center justify-between">
                                 <h1 class="font-bold">{{ $data->queuename }}</h1>
@@ -86,12 +87,14 @@
                                     <div>{{ $data->queue_wating_count }}</div>
                                 </div>
                             </div>
+                        </div>
                         @endforeach
 
                     </div>
                     <div class="grid grid-cols-3  gap-4">
                         @foreach ($dialerQueueWiseData as $data)
-                            <div class="bg-white p-4 space-y-2">
+                            <div class="bg-green-500 pt-2 px-0.5 pb-0.5">
+                                <div class="bg-white p-4 space-y-2">
                                 <div class="flex items-center justify-between">
                                     <h1 class="font-bold">{{ $data->queuename }}</h1>
 
@@ -138,6 +141,7 @@
                                     <div class="flex-1">Cancelled</div>
                                     <div>{{ $data->cancel_count }}</div>
                                 </div>
+                            </div>
                             </div>
                         @endforeach
 

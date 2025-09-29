@@ -62,7 +62,9 @@ class AgentInfo extends Component
 
         $extension = $this->user->extension;
 
-        $this->queueWiseData = QueueCount::select('queuename', DB::raw('COUNT(*) as call_count'))
+        if($extension)
+        {
+            $this->queueWiseData = QueueCount::select('queuename', DB::raw('COUNT(*) as call_count'))
             ->where('agent', $extension)
             ->groupBy('queuename')
             ->get()
@@ -82,6 +84,9 @@ class AgentInfo extends Component
             $queue->missed_count = $missedCount; 
             return $queue;
         });
+        }
+
+        
 
 
 

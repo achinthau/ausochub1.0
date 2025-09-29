@@ -44,11 +44,11 @@ class AgentInfo extends Component
         }
 
 
-        $skills = $this->user->skills ? $this->user->skills->skills : [];
+        // $this->skills = $this->user->skills ? $this->user->skills->skills : [];
 
-        if (is_array($skills)) {
-    $skills = implode(' | ', $skills);
-}
+        $this->skills = $this->user->skills ? $this->getCombinedSkills($this->user->skills) : [];
+
+
 
         $this->skills = str_replace(",", " |   ", $this->skills);
         // dd($this->skills);
@@ -87,6 +87,24 @@ class AgentInfo extends Component
 
         // dd($this->queueWiseData);
 
+        // $this->dialerQueueWiseData = DB::connection('mysql-old')
+        //     ->table('callcount')
+        //     ->whereNotNull('app')
+        //     ->where('callcount', $extension)
+        //     ->select(
+        //         'app as queuename',
+        //         DB::raw('COUNT(*) as total_queue_count'),
+        //         DB::raw("
+        //     SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as answered_count,
+        //     SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) as busy_count,
+        //     SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) as no_answer_count,
+        //     SUM(CASE WHEN status = 5 THEN 1 ELSE 0 END) as unreachable_count,
+        //     SUM(CASE WHEN status = 6 THEN 1 ELSE 0 END) as cancel_count
+        // ")
+        //     )
+        //     ->groupBy('app')
+        //     ->get();
+
         $this->dialerQueueWiseData = DB::connection('mysql-old')
             ->table('callcount')
             ->whereNotNull('app')
@@ -95,15 +113,62 @@ class AgentInfo extends Component
                 'app as queuename',
                 DB::raw('COUNT(*) as total_queue_count'),
                 DB::raw("
-            SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as answered_count,
-            SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) as busy_count,
-            SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) as no_answer_count,
-            SUM(CASE WHEN status = 5 THEN 1 ELSE 0 END) as unreachable_count,
-            SUM(CASE WHEN status = 6 THEN 1 ELSE 0 END) as cancel_count
-        ")
+                    SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as answered_count,
+                    SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) as busy_count,
+                    SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) as no_answer_count,
+                    SUM(CASE WHEN status = 5 THEN 1 ELSE 0 END) as unreachable_count,
+                    SUM(CASE WHEN status = 6 THEN 1 ELSE 0 END) as cancel_count
+                ")
             )
             ->groupBy('app')
-            ->get();
+            ->get()
+            ->map(function ($item) {
+                return (object) $item;
+            });
+    }
+
+    private function getCombinedSkills($agentSkills)
+{
+    $skills = [];
+
+    // 1. Process the 'skills' field (comma-separated string)
+    if (!empty($agentSkills->skills)) {
+        $skillsFromString = array_filter(explode(',', $agentSkills->skills));
+        $skills = array_merge($skills, $skillsFromString);
+    }
+
+    // 2. Process the 'skill_ids' field (JSON or array)
+    if (!empty($agentSkills->skill_ids)) {
+        $skillIds = is_array($agentSkills->skill_ids) 
+            ? $agentSkills->skill_ids 
+            : json_decode($agentSkills->skill_ids, true);
+        
+        if (is_array($skillIds)) {
+            $skillsFromIds = array_values($skillIds); // Extract skill names, ignore IDs
+            $skills = array_merge($skills, $skillsFromIds);
+        }
+    }
+
+    // 3. Process the 'dialer_skill_ids' field (JSON or array)
+    if (!empty($agentSkills->dialer_skill_ids)) {
+        $dialerSkillIds = is_array($agentSkills->dialer_skill_ids) 
+            ? $agentSkills->dialer_skill_ids 
+            : json_decode($agentSkills->dialer_skill_ids, true);
+        
+        if (is_array($dialerSkillIds)) {
+            $skillsFromDialer = array_values($dialerSkillIds); // Extract skill names, ignore IDs
+            $skills = array_merge($skills, $skillsFromDialer);
+        }
+    }
+
+    // 4. Remove duplicates and trim whitespace
+    return array_unique(array_map('trim', $skills));
+}
+
+    public function close()
+    {
+        $this->dialerQueueWiseData = collect([]);
+        $this->userInfoModal = false;
     }
 
 

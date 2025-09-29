@@ -2,9 +2,12 @@
 
 namespace App\Http\Livewire\Reports;
 
+use App\Models\DialerCallStatusOption;
+use App\Models\User;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use App\Models\FeedContactAttempt;
+use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
 
 class DialerContactAttemptTable extends DataTableComponent
 {
@@ -59,4 +62,37 @@ class DialerContactAttemptTable extends DataTableComponent
                 ->sortable(),
         ];
     }
+
+    public function filters(): array
+{
+    return [
+        // ✅ Call Status Option (Dynamic)
+        SelectFilter::make('Call Status Option')
+            ->options(
+                DialerCallStatusOption::pluck('option', 'id')
+                    ->prepend('All', '')
+                    ->toArray() // ✅ Convert to array
+            )
+            ->filter(function ($builder, $value) {
+                if ($value !== '') {
+                    $builder->where('call_status_option_id', $value);
+                }
+            }),
+
+        // ✅ Updated By (Dynamic Users)
+        SelectFilter::make('Updated By')
+            ->options(
+                User::pluck('name', 'id')
+                    ->prepend('All', '')
+                    ->toArray() // ✅ Convert to array
+            )
+            ->filter(function ($builder, $value) {
+                if ($value !== '') {
+                    $builder->where('updated_by', $value);
+                }
+            }),
+    ];
+}
+
+
 }

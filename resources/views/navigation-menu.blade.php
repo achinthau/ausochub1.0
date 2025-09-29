@@ -149,9 +149,12 @@
                 
                 <!-- Navigation Links -->
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                        <x-jet-nav-link href="{{ route('dialer.index') }}" :active="request()->routeIs('dialer.index')">
+                        <x-jet-nav-link href="{{ route('dialer.admin.dashboard') }}" :active="request()->routeIs('dialer.index')">
                             {{ __('Dialer') }}
                         </x-jet-nav-link>
+                        {{-- <x-jet-nav-link href="{{ route('dialer.index') }}" :active="request()->routeIs('dialer.index')">
+                            {{ __('Dialer') }}
+                        </x-jet-nav-link> --}}
                     </div>
                     @endcan
             </div>

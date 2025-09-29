@@ -152,7 +152,7 @@
         </x-slot>
 
         <x-slot name="footer">
-            <x-jet-secondary-button wire:click="$toggle('userInfoModal')" wire:loading.attr="disabled">
+            <x-jet-secondary-button wire:click="close" wire:loading.attr="disabled">
                 Close
             </x-jet-secondary-button>
         </x-slot>

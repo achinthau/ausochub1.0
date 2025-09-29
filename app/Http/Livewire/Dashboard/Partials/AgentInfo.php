@@ -87,6 +87,24 @@ class AgentInfo extends Component
 
         // dd($this->queueWiseData);
 
+        // $this->dialerQueueWiseData = DB::connection('mysql-old')
+        //     ->table('callcount')
+        //     ->whereNotNull('app')
+        //     ->where('callcount', $extension)
+        //     ->select(
+        //         'app as queuename',
+        //         DB::raw('COUNT(*) as total_queue_count'),
+        //         DB::raw("
+        //     SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as answered_count,
+        //     SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) as busy_count,
+        //     SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) as no_answer_count,
+        //     SUM(CASE WHEN status = 5 THEN 1 ELSE 0 END) as unreachable_count,
+        //     SUM(CASE WHEN status = 6 THEN 1 ELSE 0 END) as cancel_count
+        // ")
+        //     )
+        //     ->groupBy('app')
+        //     ->get();
+
         $this->dialerQueueWiseData = DB::connection('mysql-old')
             ->table('callcount')
             ->whereNotNull('app')
@@ -95,15 +113,24 @@ class AgentInfo extends Component
                 'app as queuename',
                 DB::raw('COUNT(*) as total_queue_count'),
                 DB::raw("
-            SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as answered_count,
-            SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) as busy_count,
-            SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) as no_answer_count,
-            SUM(CASE WHEN status = 5 THEN 1 ELSE 0 END) as unreachable_count,
-            SUM(CASE WHEN status = 6 THEN 1 ELSE 0 END) as cancel_count
-        ")
+                    SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as answered_count,
+                    SUM(CASE WHEN status = 3 THEN 1 ELSE 0 END) as busy_count,
+                    SUM(CASE WHEN status = 4 THEN 1 ELSE 0 END) as no_answer_count,
+                    SUM(CASE WHEN status = 5 THEN 1 ELSE 0 END) as unreachable_count,
+                    SUM(CASE WHEN status = 6 THEN 1 ELSE 0 END) as cancel_count
+                ")
             )
             ->groupBy('app')
-            ->get();
+            ->get()
+            ->map(function ($item) {
+                return (object) $item;
+            });
+    }
+
+    public function close()
+    {
+        $this->dialerQueueWiseData = collect([]);
+        $this->userInfoModal = false;
     }
 
 

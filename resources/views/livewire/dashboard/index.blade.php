@@ -92,8 +92,13 @@
                 <div class="flex space-x-4">
                     <div class="w-3/4 space-y-4">
                         <div class="grid grid-cols-3 space-x-4">
-                            <x-dashboard.box title="Answered" :value="$user->agent->todayQueues->count()"
-                                iconBackground="bg-blue-100" name='phone' iconColor="text-blue-400" />
+                            @php
+                            $subText = '(In ' . $user->agent->todayQueues->count() . ' | Out ' . $dialerCallCounts . ')';
+
+                        @endphp
+                            <x-dashboard.box title="Answered" :value="$user->agent->todayQueues->count()+ ($dialerCallCounts ?? 0)"
+                                :subText="$subText" iconBackground="bg-blue-100" name='phone' iconColor="text-blue-400" />
+
                             {{-- <x-dashboard.box title="Missed" :value="$user->agent->todayQueues->count()"
                                 iconBackground="bg-red-100" name='phone-missed' iconColor="text-red-400" /> --}}
                             <x-dashboard.box title="Missed" :value="$user->agent->miscall_count"

@@ -14,6 +14,7 @@ class Index extends Component
     public $totalCampaigns;
     public $activeCampaigns;
     public $inactiveCampaigns;
+    public $completedCampaigns;
     public $totalUsers;
     public $recentCampaigns;
     public $agents;
@@ -39,6 +40,7 @@ class Index extends Component
         $this->totalCampaigns = Campaign::count();
         $this->activeCampaigns = Campaign::where('status', '1')->count();
         $this->inactiveCampaigns = Campaign::where('status', '0')->count();
+        $this->completedCampaigns = Campaign::where('status', '3')->count();
         $this->totalUsers = User::count();
         $this->recentCampaigns = Campaign::orderBy('created_at', 'desc')->take(3)->get(['id', 'name', 'created_at']);
         $this->agents = User::whereNotNull('tenant_context')->orderBy('name')->take(5)->get(['id', 'name']);

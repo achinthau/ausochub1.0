@@ -378,8 +378,8 @@
 
                                             <span
                                                 class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2
-                                                             bg-gray-800 text-white text-xs rounded-lg px-2 py-1
-                                                             opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                                                                     bg-gray-800 text-white text-xs rounded-lg px-2 py-1
+                                                                     opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
                                                 Make a call
                                             </span>
                                         </div> --}}
@@ -426,16 +426,20 @@
 
 
                                 @foreach($feedContacts as $contact)
-                                                    @php
-                                                        $contactData = json_decode($contact->data, true);
+                                                        @php
+                                                            $contactData = json_decode($contact->data, true);
 
-                                                        // Status classifications
-                                                        $isAnswered = $contact->status == 1;
-                                                        $isNotAnswered = in_array($contact->status, [2, 22, 222]); // adjust if needed
-                                                        $isNew = is_null($contact->status);
-                                                    @endphp
+                                                            // Status classifications
+                                                            $isAnswered = $contact->status == 1;
+                                                            $isNotAnswered = in_array($contact->status, [2, 22, 222]); // adjust as per your logic
+                                                            $isNew = is_null($contact->status);
 
-                                                    <details class="border rounded-lg shadow-sm
+                                                            // Check if Not Answered was submitted today
+                                                            $lastUpdated = \Carbon\Carbon::parse($contact->updated_at);
+                                                            $hideNotAnsweredButtons = $isNotAnswered && $lastUpdated->isToday();
+                                                        @endphp
+
+                                                        <details class="border rounded-lg shadow-sm
                                         @if($isAnswered)
                                             bg-green-50 border-green-300
                                         @elseif($isNotAnswered)
@@ -445,7 +449,7 @@
                                         @endif
                                     " open>
 
-                                                        <summary class="flex items-center justify-between cursor-pointer px-4 py-2 text-lg font-semibold rounded-t-lg
+                                                            <summary class="flex items-center justify-between cursor-pointer px-4 py-2 text-lg font-semibold rounded-t-lg
                                             @if($isAnswered)
                                                 text-green-700 hover:bg-green-100
                                             @elseif($isNotAnswered)
@@ -454,55 +458,57 @@
                                                 text-gray-700 hover:bg-gray-100
                                             @endif
                                         ">
-                                                            <span>
-                                                                {{ $contact->priority_field ?? 'No Title' }}
+                                                                <span>
+                                                                    {{ $contact->priority_field ?? 'No Title' }}
 
-                                                                @if($isAnswered)
-                                                                    <span
-                                                                        class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-green-600 rounded-full">
-                                                                        Submitted
-                                                                    </span>
-                                                                @elseif($isNotAnswered)
-                                                                    <span
-                                                                        class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-yellow-600 rounded-full">
-                                                                        Not Answered
-                                                                    </span>
-                                                                @endif
-                                                            </span>
-                                                        </summary>
-
-                                                        <div class="px-4 py-3 border-t text-xs text-gray-600">
-                                                            <ul class="grid grid-cols-2 gap-x-4 gap-y-1 text-base">
-                                                                @foreach($contactData as $key => $value)
-                                                                    @if(!empty($key))
-                                                                        <li>
-                                                                            <span class="font-medium text-base">
-                                                                                {{ ucfirst(str_replace('_', ' ', $key)) }}:
-                                                                            </span>
-                                                                            {{ $value }}
-                                                                        </li>
+                                                                    @if($isAnswered)
+                                                                        <span
+                                                                            class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-green-600 rounded-full">
+                                                                            Submitted
+                                                                        </span>
+                                                                    @elseif($isNotAnswered)
+                                                                        <span
+                                                                            class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-yellow-600 rounded-full">
+                                                                            Not Answered
+                                                                        </span>
                                                                     @endif
-                                                                @endforeach
-                                                            </ul>
-                                                        </div>
+                                                                </span>
+                                                            </summary>
 
-                                                        {{-- Action buttons --}}
-                                                        @unless($isAnswered)
-                                                            <div class="px-4 py-3 flex justify-between gap-2 border-t mt-4">
-                                                                <button type="button"
-                                                                    wire:click="$emit('openCallStatusModal', '{{ $contact->id }}', 'answered', '{{ $feedContacts->count() }}')"
-                                                                    class="bg-green-500 text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition-colors duration-200">
-                                                                    Answered
-                                                                </button>
-                                                                <button type="button"
-                                                                    wire:click="$emit('openCallStatusModal', '{{ $contact->id }}', 'not_answered', '{{ $feedContacts->count() }}')"
-                                                                    class="bg-gray-500 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-600 transition-colors duration-200">
-                                                                    Not Answered
-                                                                </button>
+                                                            <div class="px-4 py-3 border-t text-xs text-gray-600">
+                                                                <ul class="grid grid-cols-2 gap-x-4 gap-y-1 text-base">
+                                                                    @foreach($contactData as $key => $value)
+                                                                        @if(!empty($key))
+                                                                            <li>
+                                                                                <span class="font-medium text-base">
+                                                                                    {{ ucfirst(str_replace('_', ' ', $key)) }}:
+                                                                                </span>
+                                                                                {{ $value }}
+                                                                            </li>
+                                                                        @endif
+                                                                    @endforeach
+                                                                </ul>
                                                             </div>
-                                                        @endunless
-                                                    </details>
+
+                                                            {{-- Action buttons --}}
+                                                            @if(!$isAnswered && !$hideNotAnsweredButtons)
+                                                                <div class="px-4 py-3 flex justify-between gap-2 border-t mt-4">
+                                                                    <button type="button"
+                                                                        wire:click="$emit('openCallStatusModal', '{{ $contact->id }}', 'answered', '{{ $feedContacts->count() }}')"
+                                                                        class="bg-green-500 text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition-colors duration-200">
+                                                                        Answered
+                                                                    </button>
+                                                                    <button type="button"
+                                                                        wire:click="$emit('openCallStatusModal', '{{ $contact->id }}', 'not_answered', '{{ $feedContacts->count() }}')"
+                                                                        class="bg-gray-500 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-600 transition-colors duration-200">
+                                                                        Not Answered
+                                                                    </button>
+                                                                </div>
+                                                            @endif
+
+                                                        </details>
                                 @endforeach
+
 
 
 

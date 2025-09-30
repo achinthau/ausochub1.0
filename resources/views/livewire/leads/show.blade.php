@@ -17,40 +17,40 @@
                 </a>
 
                 {{-- @if ($lead->status_id == 2) --}}
-                    <a href="#" onclick="Livewire.emitTo('tickets.create', 'showCreatingTicket')"
-                        class="border border-info-600 dark:hover:bg-slate-700 dark:ring-offset-slate-800 disabled:cursor-not-allowed disabled:opacity-80 duration-150 ease-in focus:ring-2 focus:ring-offset-2 gap-x-2 group hover:bg-info-50 hover:shadow-sm inline-flex items-center justify-center outline-none px-4 py-0.5 ring-info-600 rounded text-info-600 text-sm transition-all">
-                        <svg class="w-6 h-6 " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                            stroke-width="1.5" stroke="currentColor" aria-hidden="true">
-                            <path stroke-linecap="round" stroke-linejoin="round"
-                                d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z">
-                            </path>
-                        </svg>
-                        Ticket
-                    </a>
-                    {{-- <a href="#" onclick="$openModal('CreatingOrder')" class="outline-none inline-flex justify-center items-center group transition-all ease-in duration-150 focus:ring-2 focus:ring-offset-2 hover:shadow-sm disabled:opacity-80 disabled:cursor-not-allowed rounded gap-x-2 text-sm px-4 py-0.5     ring-positive-500 text-positive-500 border border-positive-500 hover:bg-positive-50
+                <a href="#" onclick="Livewire.emitTo('tickets.create', 'showCreatingTicket')"
+                    class="border border-info-600 dark:hover:bg-slate-700 dark:ring-offset-slate-800 disabled:cursor-not-allowed disabled:opacity-80 duration-150 ease-in focus:ring-2 focus:ring-offset-2 gap-x-2 group hover:bg-info-50 hover:shadow-sm inline-flex items-center justify-center outline-none px-4 py-0.5 ring-info-600 rounded text-info-600 text-sm transition-all">
+                    <svg class="w-6 h-6 " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z">
+                        </path>
+                    </svg>
+                    Ticket
+                </a>
+                {{-- <a href="#" onclick="$openModal('CreatingOrder')" class="outline-none inline-flex justify-center items-center group transition-all ease-in duration-150 focus:ring-2 focus:ring-offset-2 hover:shadow-sm disabled:opacity-80 disabled:cursor-not-allowed rounded gap-x-2 text-sm px-4 py-0.5     ring-positive-500 text-positive-500 border border-positive-500 hover:bg-positive-50
                                                        dark:ring-offset-slate-800 dark:hover:bg-slate-700">
-                        <svg class="w-6 h-6" width="48" height="48" viewBox="0 0 48 48" fill="currentColor"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <path
-                                d="M24 10.5001C23.1056 10.0529 23.1053 10.0535 23.1053 10.0535L23.1042 10.0557L23.102 10.0601L23.0956 10.0731L23.0749 10.1162C23.0577 10.1523 23.0341 10.203 23.0055 10.2668C22.9483 10.3944 22.8708 10.5752 22.7854 10.7974C22.6156 11.2388 22.4087 11.8575 22.2694 12.554C22.0052 13.8752 21.9175 15.8318 23.2929 17.2072C23.9175 17.8318 24.0052 18.8752 23.7694 20.054C23.6587 20.6075 23.4906 21.1138 23.3479 21.4849C23.2771 21.669 23.2139 21.8162 23.1695 21.9153C23.1474 21.9647 23.13 22.0019 23.1188 22.0253L23.107 22.05L23.1053 22.0534C23.1053 22.0534 23.1056 22.0529 24 22.5001C24.8944 22.9473 24.895 22.9461 24.895 22.9461L24.8958 22.9445L24.898 22.9402L24.9044 22.9271L24.9251 22.8841C24.9423 22.848 24.9659 22.7972 24.9945 22.7334C25.0517 22.6058 25.1292 22.425 25.2146 22.2028C25.3844 21.7614 25.5913 21.1427 25.7306 20.4462C25.9948 19.125 26.0825 17.1684 24.7071 15.793C24.0825 15.1684 23.9948 14.125 24.2306 12.9462C24.3413 12.3927 24.5094 11.8864 24.6521 11.5153C24.7229 11.3312 24.7861 11.184 24.8305 11.0849C24.8526 11.0355 24.87 10.9983 24.8812 10.9749L24.893 10.9502L24.8947 10.9468C24.8947 10.9468 24.8944 10.9473 24 10.5001Z">
-                            </path>
-                            <path fill-rule="evenodd" clip-rule="evenodd"
-                                d="M4 29.0001C4 28.4478 4.44772 28.0001 5 28.0001H43C43.5523 28.0001 44 28.4478 44 29.0001C44 29.5524 43.5523 30.0001 43 30.0001H40C40 34.4184 36.4183 38.0001 32 38.0001H16C11.5817 38.0001 8 34.4184 8 30.0001H5C4.44772 30.0001 4 29.5524 4 29.0001ZM10 30.0001H38C38 33.3138 35.3137 36.0001 32 36.0001H16C12.6863 36.0001 10 33.3138 10 30.0001Z">
-                            </path>
-                            <path
-                                d="M15.1707 12.4412C15.1707 12.4412 15.1712 12.4406 16 13.0001C16.8288 13.5596 16.8292 13.5591 16.8292 13.5591L16.8169 13.5781C16.8054 13.596 16.787 13.6252 16.7632 13.6643C16.7157 13.7429 16.6475 13.8606 16.5711 14.0078C16.416 14.3066 16.2377 14.7062 16.1217 15.1358C15.8808 16.028 15.9674 16.7315 16.5952 17.1966C18.2174 18.3982 18.1308 20.1947 17.8092 21.3858C17.6439 21.9979 17.4003 22.5357 17.2039 22.914C17.1046 23.1054 17.0145 23.2612 16.9478 23.3714C16.9144 23.4266 16.8867 23.4707 16.8663 23.5024L16.8456 23.5344L16.8415 23.5406L16.8335 23.5526L16.8308 23.5567L16.8297 23.5583C16.8297 23.5583 16.8288 23.5596 16 23.0001C15.1712 22.4406 15.1708 22.4412 15.1708 22.4412L15.1831 22.4221C15.1946 22.4042 15.213 22.3751 15.2368 22.3359C15.2843 22.2573 15.3525 22.1397 15.4289 21.9924C15.584 21.6937 15.7623 21.294 15.8783 20.8644C16.1192 19.9722 16.0326 19.2687 15.4048 18.8037C13.7826 17.602 13.8692 15.8055 14.1908 14.6144C14.3561 14.0024 14.5997 13.4645 14.7961 13.0862C14.8954 12.8949 14.9855 12.7391 15.0522 12.6288C15.0856 12.5736 15.1133 12.5295 15.1337 12.4978C15.1439 12.482 15.1522 12.4692 15.1585 12.4596L15.1665 12.4476L15.1692 12.4435L15.1707 12.4412Z">
-                            </path>
-                            <path
-                                d="M33 13.0001C32.1712 12.4406 32.1707 12.4412 32.1707 12.4412L32.1692 12.4435L32.1665 12.4476L32.1585 12.4596C32.1522 12.4692 32.1439 12.482 32.1337 12.4978C32.1133 12.5295 32.0856 12.5736 32.0522 12.6288C31.9855 12.7391 31.8954 12.8949 31.7961 13.0862C31.5997 13.4645 31.3561 14.0024 31.1908 14.6144C30.8692 15.8055 30.7826 17.602 32.4048 18.8037C33.0326 19.2687 33.1192 19.9722 32.8783 20.8644C32.7623 21.294 32.584 21.6937 32.4289 21.9924C32.3525 22.1397 32.2843 22.2573 32.2367 22.3359C32.213 22.3751 32.1946 22.4042 32.1831 22.4221L32.1708 22.4412C32.1708 22.4412 32.1712 22.4406 33 23.0001C33.8288 23.5596 33.8297 23.5583 33.8297 23.5583L33.8308 23.5567L33.8335 23.5526L33.8415 23.5406L33.8573 23.5164L33.8663 23.5024C33.8867 23.4707 33.9144 23.4266 33.9478 23.3714C34.0145 23.2612 34.1046 23.1054 34.2039 22.914C34.4003 22.5357 34.6439 21.9979 34.8092 21.3858C35.1308 20.1947 35.2174 18.3982 33.5952 17.1966C32.9674 16.7315 32.8808 16.028 33.1217 15.1358C33.2377 14.7062 33.416 14.3066 33.5711 14.0078C33.6475 13.8606 33.7157 13.7429 33.7632 13.6643C33.787 13.6252 33.8054 13.596 33.8169 13.5781L33.8292 13.5591C33.8292 13.5591 33.8288 13.5596 33 13.0001Z">
-                            </path>
-                        </svg>
+                    <svg class="w-6 h-6" width="48" height="48" viewBox="0 0 48 48" fill="currentColor"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M24 10.5001C23.1056 10.0529 23.1053 10.0535 23.1053 10.0535L23.1042 10.0557L23.102 10.0601L23.0956 10.0731L23.0749 10.1162C23.0577 10.1523 23.0341 10.203 23.0055 10.2668C22.9483 10.3944 22.8708 10.5752 22.7854 10.7974C22.6156 11.2388 22.4087 11.8575 22.2694 12.554C22.0052 13.8752 21.9175 15.8318 23.2929 17.2072C23.9175 17.8318 24.0052 18.8752 23.7694 20.054C23.6587 20.6075 23.4906 21.1138 23.3479 21.4849C23.2771 21.669 23.2139 21.8162 23.1695 21.9153C23.1474 21.9647 23.13 22.0019 23.1188 22.0253L23.107 22.05L23.1053 22.0534C23.1053 22.0534 23.1056 22.0529 24 22.5001C24.8944 22.9473 24.895 22.9461 24.895 22.9461L24.8958 22.9445L24.898 22.9402L24.9044 22.9271L24.9251 22.8841C24.9423 22.848 24.9659 22.7972 24.9945 22.7334C25.0517 22.6058 25.1292 22.425 25.2146 22.2028C25.3844 21.7614 25.5913 21.1427 25.7306 20.4462C25.9948 19.125 26.0825 17.1684 24.7071 15.793C24.0825 15.1684 23.9948 14.125 24.2306 12.9462C24.3413 12.3927 24.5094 11.8864 24.6521 11.5153C24.7229 11.3312 24.7861 11.184 24.8305 11.0849C24.8526 11.0355 24.87 10.9983 24.8812 10.9749L24.893 10.9502L24.8947 10.9468C24.8947 10.9468 24.8944 10.9473 24 10.5001Z">
+                        </path>
+                        <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M4 29.0001C4 28.4478 4.44772 28.0001 5 28.0001H43C43.5523 28.0001 44 28.4478 44 29.0001C44 29.5524 43.5523 30.0001 43 30.0001H40C40 34.4184 36.4183 38.0001 32 38.0001H16C11.5817 38.0001 8 34.4184 8 30.0001H5C4.44772 30.0001 4 29.5524 4 29.0001ZM10 30.0001H38C38 33.3138 35.3137 36.0001 32 36.0001H16C12.6863 36.0001 10 33.3138 10 30.0001Z">
+                        </path>
+                        <path
+                            d="M15.1707 12.4412C15.1707 12.4412 15.1712 12.4406 16 13.0001C16.8288 13.5596 16.8292 13.5591 16.8292 13.5591L16.8169 13.5781C16.8054 13.596 16.787 13.6252 16.7632 13.6643C16.7157 13.7429 16.6475 13.8606 16.5711 14.0078C16.416 14.3066 16.2377 14.7062 16.1217 15.1358C15.8808 16.028 15.9674 16.7315 16.5952 17.1966C18.2174 18.3982 18.1308 20.1947 17.8092 21.3858C17.6439 21.9979 17.4003 22.5357 17.2039 22.914C17.1046 23.1054 17.0145 23.2612 16.9478 23.3714C16.9144 23.4266 16.8867 23.4707 16.8663 23.5024L16.8456 23.5344L16.8415 23.5406L16.8335 23.5526L16.8308 23.5567L16.8297 23.5583C16.8297 23.5583 16.8288 23.5596 16 23.0001C15.1712 22.4406 15.1708 22.4412 15.1708 22.4412L15.1831 22.4221C15.1946 22.4042 15.213 22.3751 15.2368 22.3359C15.2843 22.2573 15.3525 22.1397 15.4289 21.9924C15.584 21.6937 15.7623 21.294 15.8783 20.8644C16.1192 19.9722 16.0326 19.2687 15.4048 18.8037C13.7826 17.602 13.8692 15.8055 14.1908 14.6144C14.3561 14.0024 14.5997 13.4645 14.7961 13.0862C14.8954 12.8949 14.9855 12.7391 15.0522 12.6288C15.0856 12.5736 15.1133 12.5295 15.1337 12.4978C15.1439 12.482 15.1522 12.4692 15.1585 12.4596L15.1665 12.4476L15.1692 12.4435L15.1707 12.4412Z">
+                        </path>
+                        <path
+                            d="M33 13.0001C32.1712 12.4406 32.1707 12.4412 32.1707 12.4412L32.1692 12.4435L32.1665 12.4476L32.1585 12.4596C32.1522 12.4692 32.1439 12.482 32.1337 12.4978C32.1133 12.5295 32.0856 12.5736 32.0522 12.6288C31.9855 12.7391 31.8954 12.8949 31.7961 13.0862C31.5997 13.4645 31.3561 14.0024 31.1908 14.6144C30.8692 15.8055 30.7826 17.602 32.4048 18.8037C33.0326 19.2687 33.1192 19.9722 32.8783 20.8644C32.7623 21.294 32.584 21.6937 32.4289 21.9924C32.3525 22.1397 32.2843 22.2573 32.2367 22.3359C32.213 22.3751 32.1946 22.4042 32.1831 22.4221L32.1708 22.4412C32.1708 22.4412 32.1712 22.4406 33 23.0001C33.8288 23.5596 33.8297 23.5583 33.8297 23.5583L33.8308 23.5567L33.8335 23.5526L33.8415 23.5406L33.8573 23.5164L33.8663 23.5024C33.8867 23.4707 33.9144 23.4266 33.9478 23.3714C34.0145 23.2612 34.1046 23.1054 34.2039 22.914C34.4003 22.5357 34.6439 21.9979 34.8092 21.3858C35.1308 20.1947 35.2174 18.3982 33.5952 17.1966C32.9674 16.7315 32.8808 16.028 33.1217 15.1358C33.2377 14.7062 33.416 14.3066 33.5711 14.0078C33.6475 13.8606 33.7157 13.7429 33.7632 13.6643C33.787 13.6252 33.8054 13.596 33.8169 13.5781L33.8292 13.5591C33.8292 13.5591 33.8288 13.5596 33 13.0001Z">
+                        </path>
+                    </svg>
 
-                        Order
-                    </a> --}}
+                    Order
+                </a> --}}
 
-                    
+
                 {{-- @else
-                    <x-button icon="pencil" positive label="Complete Profile" onclick="$openModal('showTicketEditModal')" />
+                <x-button icon="pencil" positive label="Complete Profile" onclick="$openModal('showTicketEditModal')" />
                 @endif --}}
 
             </div>
@@ -147,9 +147,9 @@
                         {{-- <div class="grid grid-cols-2">
                             <div class="col-span-2  text-center ">
                                 @if ($lead->orders->count() > 0)
-                                    <div class="font-semibold text-green-600">Return Customer</div>
+                                <div class="font-semibold text-green-600">Return Customer</div>
                                 @else
-                                    <div class="font-semibold text-red-600">New Customer</div>
+                                <div class="font-semibold text-red-600">New Customer</div>
                                 @endif
                             </div>
                         </div>
@@ -358,135 +358,159 @@
 
                     </div>
                     @if($boundType == 'dialer')
-                    <div class="bg-white p-4 space-y-3 text-xs">
-                        
-                        @if($feedContacts->isNotEmpty())
-                            <div class="flex justify-between">
-                                <h2 class="font-bold text-sm mb-2">All Work Orders</h2>
-                                <div class="pr-4 space-x-4">
-                                    {{-- <div class="relative group">
-                                        <svg wire:click="makeCall('{{ $lead->contact_number }}')"
-                                            class="w-6 h-6 cursor-pointer text-green-400" xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" data-slot="icon">
-                                            <path fill-rule="evenodd"
-                                                d="M15 3.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0V5.56l-4.72 4.72a.75.75 0 1 1-1.06-1.06l4.72-4.72h-2.69a.75.75 0 0 1-.75-.75Z"
-                                                clip-rule="evenodd"></path>
-                                            <path fill-rule="evenodd"
-                                                d="M1.5 4.5a3 3 0 0 1 3-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 0 1-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 0 0 6.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 0 1 1.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 0 1-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5Z"
-                                                clip-rule="evenodd"></path>
-                                        </svg>
+                        <div class="bg-white p-4 space-y-3 text-xs">
 
-                                        <span
-                                            class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2
-                                                     bg-gray-800 text-white text-xs rounded-lg px-2 py-1
-                                                     opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                                            Make a call
-                                        </span>
-                                    </div> --}}
-                                    {{-- <button type="button" wire:click="makeCall('{{ $lead->contact_number }}')"
-                                        class="w-24 bg-green-300 font-bold hover:bg-green-400 p-2 rounded-md shadow-md ">
-                                        Make a call</button> --}}
-                                    <button type="button"
-                                        wire:click="$emit('openSkipContactModal', '{{ $lead->contact_number }}', '{{ $feed_id }}')"
-                                        class="w-24 bg-orange-300 font-bold hover:bg-orange-400 p-2 rounded-md shadow-md">
-                                        Skip
-                                    </button>
+                            @if($feedContacts->isNotEmpty())
+                                <div class="flex justify-between">
+                                    <h2 class="font-bold text-sm mb-2">All Work Orders</h2>
+                                    <div class="pr-4 space-x-4">
+                                        {{-- <div class="relative group">
+                                            <svg wire:click="makeCall('{{ $lead->contact_number }}')"
+                                                class="w-6 h-6 cursor-pointer text-green-400" xmlns="http://www.w3.org/2000/svg"
+                                                viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" data-slot="icon">
+                                                <path fill-rule="evenodd"
+                                                    d="M15 3.75a.75.75 0 0 1 .75-.75h4.5a.75.75 0 0 1 .75.75v4.5a.75.75 0 0 1-1.5 0V5.56l-4.72 4.72a.75.75 0 1 1-1.06-1.06l4.72-4.72h-2.69a.75.75 0 0 1-.75-.75Z"
+                                                    clip-rule="evenodd"></path>
+                                                <path fill-rule="evenodd"
+                                                    d="M1.5 4.5a3 3 0 0 1 3-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 0 1-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 0 0 6.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 0 1 1.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 0 1-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5Z"
+                                                    clip-rule="evenodd"></path>
+                                            </svg>
 
-                                </div>
+                                            <span
+                                                class="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2
+                                                             bg-gray-800 text-white text-xs rounded-lg px-2 py-1
+                                                             opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                                                Make a call
+                                            </span>
+                                        </div> --}}
+                                        {{-- <button type="button" wire:click="makeCall('{{ $lead->contact_number }}')"
+                                            class="w-24 bg-green-300 font-bold hover:bg-green-400 p-2 rounded-md shadow-md ">
+                                            Make a call</button> --}}
+                                        <button type="button"
+                                            wire:click="$emit('openSkipContactModal', '{{ $lead->contact_number }}', '{{ $feed_id }}')"
+                                            class="w-24 bg-orange-300 font-bold hover:bg-orange-400 p-2 rounded-md shadow-md">
+                                            Skip
+                                        </button>
 
-                            </div>
-                            <hr>
-
-                            <div class="bg-white p-4 rounded-lg shadow-md space-y-3">
-                                <h2 class="text-sm font-semibold text-gray-700">Select Contact</h2>
-
-                                <div class="space-y-2  text-lg">
-                                    <label class="flex items-center space-x-2 cursor-pointer">
-                                        <input type="radio" wire:model="selectedContact" value="{{ $lead->contact_number }}"
-                                            class="text-green-500">
-                                        <span class="text-gray-700">{{ $lead->contact_number }}</span>
-                                    </label>
-
-                                    @if($phone2 && strlen($phone2) > 8)
-                                        <label class="flex items-center space-x-2 cursor-pointer">
-                                            <input type="radio" wire:model="selectedContact" value="{{ $phone2 }}"
-                                                class="text-green-500">
-                                            <span class="text-gray-700">{{ $phone2 }}</span>
-                                        </label>
-                                    @endif
-                                </div>
-
-                                <div>
-                                    <button type="button" wire:click="makeCall('{{ $selectedContact }}')"
-                                        class="w-full bg-green-500 text-white font-bold text-lg hover:bg-green-600 px-4 py-2 rounded-md shadow">
-                                        Call
-                                    </button>
-                                </div>
-                            </div>
-
-
-                            @foreach($feedContacts as $contact)
-                                @php
-                                    $contactData = json_decode($contact->data, true);
-                                    $isSubmitted = !is_null($contact->status); 
-                                @endphp
-
-                                <details
-                                    class="border rounded-lg shadow-sm {{ $isSubmitted ? 'bg-green-50 border-green-300' : 'bg-gray-50 border-gray-200' }}"
-                                    open>
-                                    <summary
-                                        class="flex items-center justify-between cursor-pointer px-4 py-2 text-lg font-semibold rounded-t-lg 
-                                           {{ $isSubmitted ? 'text-green-700 hover:bg-green-100' : 'text-gray-700 hover:bg-gray-100' }}">
-                                        <span>
-                                            {{ $contact->priority_field ?? 'No Title' }}
-                                            @if($isSubmitted)
-                                                <span
-                                                    class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-green-600 rounded-full">
-                                                    Submitted
-                                                </span>
-                                            @endif
-                                        </span>
-                                    </summary>
-
-                                    <div class="px-4 py-3 border-t text-xs text-gray-600">
-                                        <ul class="grid grid-cols-2 gap-x-4 gap-y-1 text-base">
-                                            @foreach($contactData as $key => $value)
-                                                @if(!empty($key))
-                                                    <li>
-                                                        <span class="font-medium text-base">
-                                                            {{ ucfirst(str_replace('_', ' ', $key)) }}:
-                                                        </span>
-                                                        {{ $value }}
-                                                    </li>
-                                                @endif
-                                            @endforeach
-                                        </ul>
                                     </div>
 
-                                    {{-- Action buttons --}}
-                                    @unless($isSubmitted)
-                                        <div class="px-4 py-3 flex justify-between gap-2 border-t mt-4">
-                                            <button type="button"
-                                                wire:click="$emit('openCallStatusModal', '{{ $contact->id }}', 'answered', '{{$feedContacts->count()}}')"
-                                                class="bg-green-500 text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition-colors duration-200">
-                                                Answered
-                                            </button>
-                                            <button type="button"
-                                                wire:click="$emit('openCallStatusModal', '{{ $contact->id }}', 'not_answered', '{{$feedContacts->count()}}')"
-                                                class="bg-gray-500 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-600 transition-colors duration-200">
-                                                Not Answered
-                                            </button>
-                                        </div>
-                                    @endunless
-                                </details>
-                            @endforeach
+                                </div>
+                                <hr>
+
+                                <div class="bg-white p-4 rounded-lg shadow-md space-y-3">
+                                    <h2 class="text-sm font-semibold text-gray-700">Select Contact</h2>
+
+                                    <div class="space-y-2  text-lg">
+                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                            <input type="radio" wire:model="selectedContact" value="{{ $lead->contact_number }}"
+                                                class="text-green-500">
+                                            <span class="text-gray-700">{{ $lead->contact_number }}</span>
+                                        </label>
+
+                                        @if($phone2 && strlen($phone2) > 8)
+                                            <label class="flex items-center space-x-2 cursor-pointer">
+                                                <input type="radio" wire:model="selectedContact" value="{{ $phone2 }}"
+                                                    class="text-green-500">
+                                                <span class="text-gray-700">{{ $phone2 }}</span>
+                                            </label>
+                                        @endif
+                                    </div>
+
+                                    <div>
+                                        <button type="button" wire:click="makeCall('{{ $selectedContact }}')"
+                                            class="w-full bg-green-500 text-white font-bold text-lg hover:bg-green-600 px-4 py-2 rounded-md shadow">
+                                            Call
+                                        </button>
+                                    </div>
+                                </div>
 
 
-                        @else
-                            <p class="text-gray-500 text-sm">No work order found.</p>
-                        @endif
-                        
-                    </div>
+                                @foreach($feedContacts as $contact)
+                                                    @php
+                                                        $contactData = json_decode($contact->data, true);
+
+                                                        // Status classifications
+                                                        $isAnswered = $contact->status == 1;
+                                                        $isNotAnswered = in_array($contact->status, [2, 22, 222]); // adjust if needed
+                                                        $isNew = is_null($contact->status);
+                                                    @endphp
+
+                                                    <details class="border rounded-lg shadow-sm
+                                        @if($isAnswered)
+                                            bg-green-50 border-green-300
+                                        @elseif($isNotAnswered)
+                                            bg-yellow-50 border-yellow-300
+                                        @else
+                                            bg-gray-50 border-gray-200
+                                        @endif
+                                    " open>
+
+                                                        <summary class="flex items-center justify-between cursor-pointer px-4 py-2 text-lg font-semibold rounded-t-lg
+                                            @if($isAnswered)
+                                                text-green-700 hover:bg-green-100
+                                            @elseif($isNotAnswered)
+                                                text-yellow-700 hover:bg-yellow-100
+                                            @else
+                                                text-gray-700 hover:bg-gray-100
+                                            @endif
+                                        ">
+                                                            <span>
+                                                                {{ $contact->priority_field ?? 'No Title' }}
+
+                                                                @if($isAnswered)
+                                                                    <span
+                                                                        class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-green-600 rounded-full">
+                                                                        Submitted
+                                                                    </span>
+                                                                @elseif($isNotAnswered)
+                                                                    <span
+                                                                        class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-yellow-600 rounded-full">
+                                                                        Not Answered
+                                                                    </span>
+                                                                @endif
+                                                            </span>
+                                                        </summary>
+
+                                                        <div class="px-4 py-3 border-t text-xs text-gray-600">
+                                                            <ul class="grid grid-cols-2 gap-x-4 gap-y-1 text-base">
+                                                                @foreach($contactData as $key => $value)
+                                                                    @if(!empty($key))
+                                                                        <li>
+                                                                            <span class="font-medium text-base">
+                                                                                {{ ucfirst(str_replace('_', ' ', $key)) }}:
+                                                                            </span>
+                                                                            {{ $value }}
+                                                                        </li>
+                                                                    @endif
+                                                                @endforeach
+                                                            </ul>
+                                                        </div>
+
+                                                        {{-- Action buttons --}}
+                                                        @unless($isAnswered)
+                                                            <div class="px-4 py-3 flex justify-between gap-2 border-t mt-4">
+                                                                <button type="button"
+                                                                    wire:click="$emit('openCallStatusModal', '{{ $contact->id }}', 'answered', '{{ $feedContacts->count() }}')"
+                                                                    class="bg-green-500 text-white font-bold py-2 px-4 rounded-md hover:bg-green-600 transition-colors duration-200">
+                                                                    Answered
+                                                                </button>
+                                                                <button type="button"
+                                                                    wire:click="$emit('openCallStatusModal', '{{ $contact->id }}', 'not_answered', '{{ $feedContacts->count() }}')"
+                                                                    class="bg-gray-500 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-600 transition-colors duration-200">
+                                                                    Not Answered
+                                                                </button>
+                                                            </div>
+                                                        @endunless
+                                                    </details>
+                                @endforeach
+
+
+
+                            @else
+                                <p class="text-gray-500 text-sm">No work order found.</p>
+                            @endif
+
+                        </div>
                     @endif
 
 

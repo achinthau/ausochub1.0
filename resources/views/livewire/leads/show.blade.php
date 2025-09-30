@@ -437,6 +437,7 @@
                                                             // Check if Not Answered was submitted today
                                                             $lastUpdated = \Carbon\Carbon::parse($contact->updated_at);
                                                             $hideNotAnsweredButtons = $isNotAnswered && $lastUpdated->isToday();
+                                                            $notAnsweredCount = strlen((string) $contact->status);
                                                         @endphp
 
                                                         <details class="border rounded-lg shadow-sm
@@ -469,7 +470,7 @@
                                                                     @elseif($isNotAnswered)
                                                                         <span
                                                                             class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-yellow-600 rounded-full">
-                                                                            Not Answered
+                                                                            Not Answered ( Attempt : {{ $notAnsweredCount }})
                                                                         </span>
                                                                     @endif
                                                                 </span>

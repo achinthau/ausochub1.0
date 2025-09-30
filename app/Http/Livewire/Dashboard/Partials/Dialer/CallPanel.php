@@ -74,7 +74,14 @@ class CallPanel extends Component
 
         // 3. Find first available contact for those feeds
         $record = FeedContactValid::whereIn('feed_id', $feedIds)
-            ->whereNull('status')
+            ->where(function ($query) {
+                $query->whereNull('status') // Fresh ones
+                    ->orWhereIn('status', [2, 22, 222]); // No Answer retries
+            })
+            ->where(function ($query) {
+                $query->whereNull('next_available_at')
+                    ->orWhere('next_available_at', '<=', now());
+            })
             ->where(function ($query) use ($userId) {
                 $query->whereNull('assigned_to')        // unassigned
                     ->orWhere('assigned_to', $userId); // or already assigned to this user

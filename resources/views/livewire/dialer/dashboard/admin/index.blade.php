@@ -9,7 +9,7 @@
     </x-slot>
 
     <div class="max-w-7xl mx-auto p-12">
-        <div class="grid grid-cols-4 lg:grid-cols-4 gap-6 pt-8">
+        <div class="grid grid-cols-3 lg:grid-cols-3 gap-6 pt-8">
             <!-- Left Side: Six Cards -->
             <div class="lg:col-span-3 space-y-6">
                 <!-- Row 1 -->
@@ -28,8 +28,8 @@
                     </div>
                     <!-- Card 3: Inactive Campaigns -->
                     <div class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-lg font-semibold text-gray-700">Messages</h3>
-                        <p class="text-3xl font-bold text-purple-600">2</p>
+                        <h3 class="text-lg font-semibold text-gray-700">Completed Campaigns</h3>
+                        <p class="text-3xl font-bold text-purple-600">{{$completedCampaigns}}</p>
                     </div>
                 </div>
                 <!-- Row 2 -->
@@ -186,13 +186,13 @@
             </div>
 
             <!-- Right Side: Agent Panel -->
-            <div class="bg-white rounded-lg shadow p-6">
+            {{-- <div class="bg-white rounded-lg shadow p-6">
                 <h3 class="text-lg font-semibold text-gray-700 mb-4">Agents</h3>
                 <ul class="space-y-3">
                     @forelse ($agents as $agent)
                         <li class="flex flex-row space-x-3">
                             <span class="w-10 h-10 text-white rounded-full flex items-center justify-center">
-                                {{-- {{ strtoupper(substr($agent->name, 0, 1)) }} --}}
+                                {{-- {{ strtoupper(substr($agent->name, 0, 1)) }} 
 
                                 <svg class="mx-auto object-cover rounded-full h-10 w-10" xmlns="http://www.w3.org/2000/svg"
                                     xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 256 256"
@@ -225,7 +225,7 @@
                         <li class="text-gray-600">No agents found</li>
                     @endforelse
                 </ul>
-            </div>
+            </div> --}}
         </div>
     </div>
 

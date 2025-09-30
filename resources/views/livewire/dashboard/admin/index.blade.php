@@ -127,17 +127,6 @@
                                     <div>{{ $data->unreachable_count }}</div>
                                 </div>
                                 <div class="flex">
-                                    <div class="flex-1">Ongoing</div>
-                                    <div>
-                                        {{-- {{ $data->agent_conntected_count - $data->queue_wating_count < 0 ? 0 : $data->
-                                            agent_conntected_count - $data->queue_wating_count }} --}}
-                                            @php
-                                                $queueOngoing = Cache::get($data->queuename . '-current-call-count') ?? 0;
-                                            @endphp
-                                            {{$queueOngoing}}
-                                    </div>
-                                </div>
-                                <div class="flex">
                                     <div class="flex-1">Cancelled</div>
                                     <div>{{ $data->cancel_count }}</div>
                                 </div>

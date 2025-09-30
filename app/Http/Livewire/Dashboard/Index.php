@@ -27,6 +27,7 @@ class Index extends Component
     public $isVisible = true;
     public $messagesCount;
     public $boundType;
+    public $dialerCallCounts;
 
     protected $listeners = ['hideBreak' => 'hideBreak', 'showBreak' => 'showBreak', 'setOutbound' => 'setOutbound', 'setInbound' => 'setInbound'];
 
@@ -127,12 +128,13 @@ class Index extends Component
         $this->totalBreakTime = AgentBreakSummary::whereBetween('breaktime', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->where('agentid', Auth::user()->agent_id)->selectRaw('SEC_TO_TIME(SUM(TIMESTAMPDIFF(SECOND, breaktime, unbreaktime))) AS today_total_break')->first()->today_total_break;
 
         Log::info('$isVisible:', [$this->isVisible]);
-
-
-
-
-
-
+            $extension = $this->user->extension;
+            
+            $this->dialerCallCounts = DB::connection('mysql-old')
+                ->table('callcount')
+                ->whereNotNull('app')
+                ->where('callcount', $extension)
+                ->count();
 
         $loggedUserId = Auth::id();
         $redisKey = "highlighted_users:$loggedUserId";

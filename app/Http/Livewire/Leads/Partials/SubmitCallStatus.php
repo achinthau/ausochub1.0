@@ -71,45 +71,47 @@ class SubmitCallStatus extends Component
     }
 
     if ($this->applyToAll) {
-        // Apply to all feed contacts with the same number(s)
-        $phone = $this->feed->contact_no_01 ?? $this->feed->contact_no_02;
+    // Get the contact number
+    $phone = $this->feed->contact_no_01 ?? $this->feed->contact_no_02;
 
-        $feeds = FeedContactValid::where(function ($query) use ($phone) {
-                $query->where('contact_no_01', $phone)
-                      ->orWhere('contact_no_02', $phone);
-            })
-            ->when($this->feed->feed_id, function ($query, $feedId) {
-                // optional filter by feed_id
-                $query->where('feed_id', $feedId);
-            })
-            ->get();
+    // Fetch only feeds with same number AND not updated before
+    $feeds = FeedContactValid::where(function ($query) use ($phone) {
+            $query->where('contact_no_01', $phone)
+                  ->orWhere('contact_no_02', $phone);
+        })
+        ->whereNull('status') // ✅ Only update UNTOUCHED records
+        ->when($this->feed->feed_id, function ($query, $feedId) {
+            $query->where('feed_id', $feedId);
+        })
+        ->get();
 
-        foreach ($feeds as $feed) {
-            $feed->status = $this->status === 'answered' ? 1 : 2;
-            $feed->save();
-
-            FeedContactAttempt::create([
-                'feed_contact_valid_id' => $feed->id,
-                'call_status_option_id' => $this->selectedOption,
-                'comments'             => $this->comment,
-                'updated_by'           => Auth::id(),
-            ]);
-        }
-    } else {
-        // Only update the current feed
-        $this->feed->status = $this->status === 'answered' ? 1 : 2;
-        $this->feed->save();
+    foreach ($feeds as $feed) {
+        $feed->status = $this->status === 'answered' ? 1 : 2;
+        $feed->save();
 
         FeedContactAttempt::create([
-            'feed_contact_valid_id' => $this->feed->id,
+            'feed_contact_valid_id' => $feed->id,
             'call_status_option_id' => $this->selectedOption,
-            'comments'             => $this->comment,
-            'updated_by'           => Auth::id(),
+            'comments'              => $this->comment,
+            'updated_by'            => Auth::id(),
         ]);
     }
+} else {
+    // ✅ Update only the current feed
+    $this->feed->status = $this->status === 'answered' ? 1 : 2;
+    $this->feed->save();
 
-    $this->emit('FeedCompleted');
-    $this->CallStatusModal = false;
+    FeedContactAttempt::create([
+        'feed_contact_valid_id' => $this->feed->id,
+        'call_status_option_id' => $this->selectedOption,
+        'comments'              => $this->comment,
+        'updated_by'            => Auth::id(),
+    ]);
+}
+
+$this->emit('FeedCompleted');
+$this->CallStatusModal = false;
+
 }
 
 

@@ -474,7 +474,7 @@
                                                                             Not Answered
                                                                         </span>
                                                                         <span
-                                                                            class="ml-2 px-2 py-0.5 text-xs font-semibold text-gray-700 bg-gray-300 rounded-full">
+                                                                            class="ml-2 px-2 py-0.5 text-xs font-bold text-white bg-red-700 rounded-full">
                                                                              {{ $notAnsweredCount }}
                                                                         </span>
                                                                     @endif

@@ -468,9 +468,14 @@
                                                                             Submitted
                                                                         </span>
                                                                     @elseif($isNotAnswered)
+                                                                        
                                                                         <span
                                                                             class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-yellow-600 rounded-full">
-                                                                            Not Answered ( Attempt : {{ $notAnsweredCount }})
+                                                                            Not Answered
+                                                                        </span>
+                                                                        <span
+                                                                            class="ml-2 px-2 py-0.5 text-xs font-semibold text-gray-700 bg-gray-300 rounded-full">
+                                                                             {{ $notAnsweredCount }}
                                                                         </span>
                                                                     @endif
                                                                 </span>

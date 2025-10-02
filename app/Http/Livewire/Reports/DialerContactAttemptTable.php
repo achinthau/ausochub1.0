@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Reports;
 
+use App\Models\Campaign;
 use App\Models\DialerCallStatusOption;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -128,6 +129,30 @@ class DialerContactAttemptTable extends DataTableComponent
                         $builder->where('updated_by', $value);
                     }
                 }),
+
+            SelectFilter::make('Campaign')
+                ->options(
+                    Campaign::pluck('name', 'id')
+                        ->prepend('All', '')
+                        ->toArray()
+                )
+                ->filter(function ($builder, $campaignId) {
+                    if ($campaignId !== '') {
+                        // Get assigned_feeds string like "3,1"
+                        $assignedFeeds = Campaign::where('id', $campaignId)
+                            ->value('assigned_feeds');
+
+                        if ($assignedFeeds) {
+                            // Convert "3,1" => [3,1]
+                            $feedIds = array_map('trim', explode(',', $assignedFeeds));
+
+                            // Filter attempts whose feed_contact_valid_id is in the campaign feeds
+                            $builder->whereIn('feed_contact_valid_id', $feedIds);
+                        }
+                    }
+                }),
+
+
         ];
     }
 

@@ -130,50 +130,27 @@ class DialerContactAttemptTable extends DataTableComponent
                     }
                 }),
 
-                SelectFilter::make('Campaign')
-    ->options(
-        Campaign::pluck('name', 'id')
-            ->prepend('All', '')
-            ->toArray()
-    )
-    ->filter(function ($builder, $campaignId) {
-        if ($campaignId !== '') {
-            $assignedFeeds = Campaign::where('id', $campaignId)
-                ->value('assigned_feeds'); // e.g., "101,100"
+            SelectFilter::make('Campaign')
+                ->options(
+                    Campaign::pluck('name', 'id')
+                        ->prepend('All', '')
+                        ->toArray()
+                )
+                ->filter(function ($builder, $campaignId) {
+                    if ($campaignId !== '') {
+                        $assignedFeeds = Campaign::where('id', $campaignId)
+                            ->value('assigned_feeds'); // e.g., "101,100"
+        
+                        if ($assignedFeeds) {
+                            $feedIds = array_map('trim', explode(',', $assignedFeeds));
 
-            if ($assignedFeeds) {
-                $feedIds = array_map('trim', explode(',', $assignedFeeds));
-
-                // Filter attempts whose feed_contact_valid.feed_id is in assigned feeds
-                $builder->whereHas('feed', function ($query) use ($feedIds) {
-                    $query->whereIn('feed_id', $feedIds);
-                });
-            }
-        }
-    }),
-
-
-            // SelectFilter::make('Campaign')
-            //     ->options(
-            //         Campaign::pluck('name', 'id')
-            //             ->prepend('All', '')
-            //             ->toArray()
-            //     )
-            //     ->filter(function ($builder, $campaignId) {
-            //         if ($campaignId !== '') {
-            //             // Get assigned_feeds string like "3,1"
-            //             $assignedFeeds = Campaign::where('id', $campaignId)
-            //                 ->value('assigned_feeds');
-
-            //             if ($assignedFeeds) {
-            //                 // Convert "3,1" => [3,1]
-            //                 $feedIds = array_map('trim', explode(',', $assignedFeeds));
-
-            //                 // Filter attempts whose feed_contact_valid_id is in the campaign feeds
-            //                 $builder->whereIn('feed_contact_valid_id', $feedIds);
-            //             }
-            //         }
-            //     }),
+                            // Filter attempts whose feed_contact_valid.feed_id is in assigned feeds
+                            $builder->whereHas('feed', function ($query) use ($feedIds) {
+                                $query->whereIn('feed_id', $feedIds);
+                            });
+                        }
+                    }
+                }),
 
 
         ];

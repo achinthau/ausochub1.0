@@ -63,7 +63,7 @@ class SubmitCallStatus extends Component
                 'paymentDate' => 'required|date|after_or_equal:today',
                 'selectedOption' => 'required|exists:dialer_call_status_options,id',
             ]);
-            $this->comment = $this->comment . 'Payment Date: ' . $this->paymentDate;
+            $this->comment = $this->comment . ' Payment Date: ' . $this->paymentDate;
         } else {
             $this->validate([
                 'selectedOption' => 'required|exists:dialer_call_status_options,id',

@@ -128,13 +128,13 @@ class Index extends Component
         $this->totalBreakTime = AgentBreakSummary::whereBetween('breaktime', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->where('agentid', Auth::user()->agent_id)->selectRaw('SEC_TO_TIME(SUM(TIMESTAMPDIFF(SECOND, breaktime, unbreaktime))) AS today_total_break')->first()->today_total_break;
 
         Log::info('$isVisible:', [$this->isVisible]);
-            $extension = $this->user->extension;
-            
-            $this->dialerCallCounts = DB::connection('mysql-old')
-                ->table('callcount')
-                ->whereNotNull('app')
-                ->where('callcount', $extension)
-                ->count();
+        $extension = $this->user->extension;
+
+        $this->dialerCallCounts = DB::connection('mysql-old')
+            ->table('callcount')
+            ->whereNotNull('app')
+            ->where('callcount', $extension)
+            ->count();
 
         $loggedUserId = Auth::id();
         $redisKey = "highlighted_users:$loggedUserId";
@@ -168,87 +168,105 @@ class Index extends Component
 
         $userId = Auth::user()->id;
         $boundType = Redis::get("user:{$userId}:bound_type");
-        if ($boundType && $boundType == 'dialer') 
-            {
-                $this->emitTo('dashboard.partials.dialer.call-panel', 'updateSkill');
-                $data = [
-            [
-                'name' => 'extension',
-                'contents' => Auth::user()->agent->extension
-            ],
-            [
-                'name' => 'type',
-                // 'contents' => 'SIP'
-                'contents' => Auth::user()->agent->extensionDetails->exten_type
-            ],
-            [
-                'name' => 'agentip',
-                'contents' => '123.231.121.61'
-            ],
-            [
-                'name' => 'queue',
-                'contents' => $name
-            ],
-            [
-                'name' => 'action',
-                'contents' => $value ? 'add' : 'remove'
-            ],
-            [
-                'name' => 'agentid',
-                'contents' => Auth::user()->agent_id
-            ],
-            [
-                'name' => 'crm_token',
-                'contents' => $value ? session()->getId() : null
-            ],
-           
-            [
-                'name' => 'dialer',
-                'contents' => '2'
-            ],
-        ];
-        ApiManager::updateSkill($data);
-        }
-        else
-        {
+        if ($boundType && $boundType == 'dialer') {
+            $user = Auth::user()->load([
+                'agent',
+                'agent.extensionDetails',
+                'currentQueues'
+            ]);
+            $currentSkills = $user->currentQueues()->active()->pluck('skill')->unique();
 
-        $data = [
-            [
-                'name' => 'extension',
-                'contents' => Auth::user()->agent->extension
-            ],
-            [
-                'name' => 'type',
-                // 'contents' => 'SIP'
-                'contents' => Auth::user()->agent->extensionDetails->exten_type
-            ],
-            [
-                'name' => 'agentip',
-                'contents' => '123.231.121.61'
-            ],
-            [
-                'name' => 'queue',
-                'contents' => $name
-            ],
-            [
-                'name' => 'action',
-                'contents' => $value ? 'add' : 'remove'
-            ],
-            [
-                'name' => 'agentid',
-                'contents' => Auth::user()->agent_id
-            ],
-            [
-                'name' => 'crm_token',
-                'contents' => $value ? session()->getId() : null
-            ],
-            [
-                'name' => 'dialer',
-                'contents' => '0'
-            ],
-        ];
-        ApiManager::updateSkill($data);
-    }
+            foreach ($currentSkills as $skill) {
+                $data = [
+                    ['name' => 'extension', 'contents' => optional($user->agent)->extension],
+                    ['name' => 'type', 'contents' => optional(optional($user->agent)->extensionDetails)->exten_type],
+                    ['name' => 'agentip', 'contents' => '123.231.121.61'],
+                    ['name' => 'queue', 'contents' => $skill],
+                    ['name' => 'action', 'contents' => 'remove'],
+                    ['name' => 'agentid', 'contents' => $user->agent_id],
+                    ['name' => 'crm_token', 'contents' => null],
+                ];
+
+                ApiManager::updateSkill($data);
+            }
+
+            $this->emitTo('dashboard.partials.dialer.call-panel', 'updateSkill');
+            $data = [
+                [
+                    'name' => 'extension',
+                    'contents' => Auth::user()->agent->extension
+                ],
+                [
+                    'name' => 'type',
+                    // 'contents' => 'SIP'
+                    'contents' => Auth::user()->agent->extensionDetails->exten_type
+                ],
+                [
+                    'name' => 'agentip',
+                    'contents' => '123.231.121.61'
+                ],
+                [
+                    'name' => 'queue',
+                    'contents' => $name
+                ],
+                [
+                    'name' => 'action',
+                    'contents' => $value ? 'add' : 'remove'
+                ],
+                [
+                    'name' => 'agentid',
+                    'contents' => Auth::user()->agent_id
+                ],
+                [
+                    'name' => 'crm_token',
+                    'contents' => $value ? session()->getId() : null
+                ],
+
+                [
+                    'name' => 'dialer',
+                    'contents' => '2'
+                ],
+            ];
+            ApiManager::updateSkill($data);
+        } else {
+
+            $data = [
+                [
+                    'name' => 'extension',
+                    'contents' => Auth::user()->agent->extension
+                ],
+                [
+                    'name' => 'type',
+                    // 'contents' => 'SIP'
+                    'contents' => Auth::user()->agent->extensionDetails->exten_type
+                ],
+                [
+                    'name' => 'agentip',
+                    'contents' => '123.231.121.61'
+                ],
+                [
+                    'name' => 'queue',
+                    'contents' => $name
+                ],
+                [
+                    'name' => 'action',
+                    'contents' => $value ? 'add' : 'remove'
+                ],
+                [
+                    'name' => 'agentid',
+                    'contents' => Auth::user()->agent_id
+                ],
+                [
+                    'name' => 'crm_token',
+                    'contents' => $value ? session()->getId() : null
+                ],
+                [
+                    'name' => 'dialer',
+                    'contents' => '0'
+                ],
+            ];
+            ApiManager::updateSkill($data);
+        }
 
         return redirect(route('dashboard.index'));
     }
@@ -329,8 +347,8 @@ class Index extends Component
             $this->skills = collect($skills)
                 ->filter(fn($skillName) => in_array($skillName, $validCampaigns))
                 ->toArray();
-                // dd($validCampaigns);
-                // dd($skills);
+            // dd($validCampaigns);
+            // dd($skills);
         } else {
             $this->skills = Auth::user()->skills ? Auth::user()->skills->skill_ids : [];
         }

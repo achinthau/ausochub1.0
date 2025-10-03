@@ -341,12 +341,22 @@ class Show extends Component
         $currentSkills = $user->currentQueues()->active()->pluck('skill')->unique();
 
         // Get the only skill if there's exactly one
-        $campaignName = $currentSkills->count() === 1 ? $currentSkills->first() : null;
-        $campHotline = Campaign::where('name', $campaignName)->value('hotline');
+        $campaignName = $currentSkills->first();
+        $campHotline = $campaignName
+            ? Campaign::where('name', $campaignName)->value('hotline')
+            : null;
+//         dd([
+//     'currentSkills' => $currentSkills,
+//     'campaignName' => $campaignName,
+//     'campHotline' => $campHotline,
+// ]);
+
 
         $extension = Auth::user()->extension;
         $tenant_context = Auth::user()->tenant_context;
         $url = env('CALL_SERVER_API_URL') . '/dialscripts/dial.php';
+
+
 
         $response = $response = Http::get($url, [
             'type' => '2',

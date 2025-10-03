@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Leads;
 use App\Models\CallbackCustomer;
 use App\Models\CallCount;
 use App\Models\Campaign;
+use App\Models\CxTicket;
 use App\Models\FeedContactValid;
 use App\Models\Lead;
 use App\Models\QueueCount;
@@ -45,6 +46,8 @@ class Show extends Component
     public $feed_id;
     public $boundType = '';
     public $campaign ;
+    public $service_type;
+    public $surveyContacts;
 
     protected $listeners = ['refreshCard' => 'refreshCard', 'FeedCompleted' => '$refresh'];
 
@@ -182,13 +185,14 @@ class Show extends Component
         $this->isIncomming = filter_var(request()->query('isIncomming'), FILTER_VALIDATE_BOOLEAN);
         $this->feed_id = request()->query('feed');
         $this->campaign = request()->query('cmp');
+        $this->service_type = Campaign::where('name', $this->campaign)->value('service_type');
         // $this->campaign = Campaign::whereIn('assigned_feeds', [$this->feed_id])->get();
         // dd($this->campaign);
 
         $userId = Auth::user()->id;
         $boundType = Redis::get("user:{$userId}:bound_type");
         $this->boundType = $boundType;
-        if ($boundType && $boundType == 'dialer') {
+        if ($boundType && $boundType == 'dialer' && $this->service_type != 'survey') {
             $phone = $this->lead->contact_number;
             $this->selectedContact = $phone;
             // $this->feedContacts = FeedContactValid::where('contact_no_01', $phone)->orWhere('contact_no_02', $phone)->get();
@@ -215,6 +219,32 @@ class Show extends Component
             }
 
             // dd($phone);
+        }
+
+
+
+
+        if ($boundType && $boundType == 'dialer' && $this->service_type == 'survey')
+        {
+            $phone = $this->lead->contact_number;
+            $this->selectedContact = $phone;
+
+            $this->surveyContacts = CxTicket::where(function ($query) use ($phone) {
+                $query->where('customer_contact_01', $phone)
+                    ->orWhere('customer_contact_02', $phone);
+            })
+                ->get();
+
+                if ($this->surveyContacts->isNotEmpty()) {
+                $foundContact = $this->surveyContacts->first();
+                if ($foundContact->customer_contact_01 === $phone) {
+                    $this->phone2 = $foundContact->customer_contact_02;
+                } else {
+                    $this->phone2 = $foundContact->customer_contact_01;
+                }
+            } else {
+                $this->phone2 = null;
+            }
         }
     }
 

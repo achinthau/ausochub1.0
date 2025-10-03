@@ -13,10 +13,13 @@
         <!-- Service Selection -->
         <x-select label="Select Service Type" placeholder="Choose a Service Type" wire:model="service_type">
             {{-- @foreach($campaignTypes as $type) --}}
-                <x-select.option label="Job Cancellation" value="job_cancellation" />
-                <x-select.option label="Survey" value="survey" />
+                <x-select.option label="Satisfaction" value="satisfaction" />
+                <x-select.option label="Follow-up" value="follow-up" />
+                <x-select.option label="Confirmation" value="confirmation" />
             {{-- @endforeach --}}
         </x-select>
+
+        <x-input label="Hotline" placeholder="Enter the Hotline" wire:model.defer="hotline" />
 
         <!-- Company Selection -->
         <x-select label="Select Company" placeholder="Choose a company" wire:model="company_id">

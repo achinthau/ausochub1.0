@@ -34,6 +34,7 @@ class Create extends Component
     public $users;
     public $status;
     public $service_type;
+    public $hotline;
 
     public $schedule = [
         'monday' => ['start' => '', 'end' => ''],
@@ -71,6 +72,7 @@ class Create extends Component
         $this->campaign_type_id = $campaign->type;
         $this->status = $campaign->status;
         $this->service_type = $campaign->service_type;
+        $this->hotline = $campaign->hotline;
         $this->user_ids = $campaign->assigned_users
             ? array_map('intval', array_filter(explode(',', trim($campaign->assigned_users))))
             : [];
@@ -232,6 +234,7 @@ class Create extends Component
             'company' => $this->company_id,
             'type' => $this->campaign_type_id,
             'service_type' => $this->service_type,
+            'hotline' => $this->hotline,
             'assigned_users' => !empty($this->user_ids) ? implode(',', $this->user_ids) : null,
             'assigned_feeds' => !empty($this->feed_ids) ? implode(',', $this->feed_ids) : null,
             'schedule' => $this->savedSchedule,

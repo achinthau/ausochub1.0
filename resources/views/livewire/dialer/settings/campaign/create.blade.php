@@ -10,6 +10,14 @@
             @endforeach
         </x-select>
 
+        <!-- Service Selection -->
+        <x-select label="Select Service Type" placeholder="Choose a Service Type" wire:model="service_type">
+            {{-- @foreach($campaignTypes as $type) --}}
+                <x-select.option label="Job Cancellation" value="job_cancellation" />
+                <x-select.option label="Survey" value="survey" />
+            {{-- @endforeach --}}
+        </x-select>
+
         <!-- Company Selection -->
         <x-select label="Select Company" placeholder="Choose a company" wire:model="company_id">
             @foreach($companies as $company)

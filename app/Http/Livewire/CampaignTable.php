@@ -32,6 +32,7 @@ class CampaignTable extends DataTableComponent
         return [
             Column::make("Id", "id")
                 ->sortable(),
+            
             Column::make("Name", "name")
                 ->sortable()
                 ->format(fn($value) => ucwords(preg_replace('/([a-z])([A-Z])/', '$1 $2', $value))),
@@ -50,6 +51,9 @@ class CampaignTable extends DataTableComponent
                     ];
                     return $statusMap[$value] ?? 'Unknown';
                 }),
+
+                Column::make("Service type", "service_type")
+                ->sortable(),
 
             Column::make("Assigned Users", "assigned_users")
                 ->format(

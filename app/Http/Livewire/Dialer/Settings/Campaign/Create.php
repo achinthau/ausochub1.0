@@ -33,6 +33,7 @@ class Create extends Component
     public $feeds = [];
     public $users;
     public $status;
+    public $service_type;
 
     public $schedule = [
         'monday' => ['start' => '', 'end' => ''],
@@ -69,6 +70,7 @@ class Create extends Component
         $this->company_id = $campaign->company;
         $this->campaign_type_id = $campaign->type;
         $this->status = $campaign->status;
+        $this->service_type = $campaign->service_type;
         $this->user_ids = $campaign->assigned_users
             ? array_map('intval', array_filter(explode(',', trim($campaign->assigned_users))))
             : [];
@@ -229,6 +231,7 @@ class Create extends Component
             'name' => $this->name,
             'company' => $this->company_id,
             'type' => $this->campaign_type_id,
+            'service_type' => $this->service_type,
             'assigned_users' => !empty($this->user_ids) ? implode(',', $this->user_ids) : null,
             'assigned_feeds' => !empty($this->feed_ids) ? implode(',', $this->feed_ids) : null,
             'schedule' => $this->savedSchedule,

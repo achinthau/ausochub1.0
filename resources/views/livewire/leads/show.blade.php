@@ -360,7 +360,8 @@
                     @if($boundType == 'dialer')
                         <div class="bg-white p-4 space-y-3 text-xs">
 
-                            @if($feedContacts->isNotEmpty())
+                            @if(collect($feedContacts)->isNotEmpty() || collect($surveyContacts)->isNotEmpty())
+
                                 <div class="flex justify-between">
                                     <h2 class="font-bold text-sm mb-2">All Work Orders</h2>
                                     <div class="pr-4 space-x-4">
@@ -424,6 +425,142 @@
                                     </div>
                                 </div>
 
+                               @if ($service_type == 'survey' && $surveyContacts && $surveyContacts->count() > 0)
+    
+                               @foreach ($surveyContacts as $ticket)
+    <div class="border-2 border-gray-300 rounded-lg p-4 mb-6 shadow-lg bg-white">
+
+        <div class="text-sm">
+
+            {{-- Product Details --}}
+            <div class="border p-3 rounded-lg shadow-md">
+                <h1 class="p-1 pl-0 font-bold text-lg">Product Details</h1>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                    <div>
+                        <div class="py-2 flex gap-2">
+                            <label class="font-bold">Category:</label>
+                            <span>{{ $ticket->category }}</span>
+                        </div>
+                        <div class="py-2 flex gap-2">
+                            <label class="font-bold">Product:</label>
+                            <span>{{ $ticket->product }}</span>
+                        </div>
+                        <div class="py-2 flex gap-2">
+                            <label class="font-bold">Model:</label>
+                            <span>{{ $ticket->model }}</span>
+                        </div>
+                        <div class="py-2 flex gap-2">
+                            <label class="font-bold">Work Order No:</label>
+                            <span>{{ $ticket->work_order_no }}</span>
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="py-2 flex gap-2">
+                            <label class="font-bold">Service Center:</label>
+                            <span>{{ $ticket->service_center }}</span>
+                        </div>
+                        <div class="py-2 flex gap-2">
+                            <label class="font-bold">Warranty Status:</label>
+                            <span>{{ $ticket->warranty_status }}</span>
+                        </div>
+                        <div class="py-2 flex gap-2">
+                            <label class="font-bold">Sold Date:</label>
+                            <span>{{ $ticket->sold_date }}</span>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            {{-- Customer Details --}}
+            <div class="border p-3 rounded-lg shadow-md mt-4">
+                <h1 class="p-1 pl-0 font-bold text-lg">Customer Details</h1>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="py-2 flex gap-2">
+                            <label class="font-bold">Customer Name:</label>
+                            <span>{{ $ticket->customer_name }}</span>
+                        </div>
+                        <div class="py-2 flex gap-2">
+                            <label class="font-bold">Customer Address:</label>
+                            <span>{{ $ticket->customer_address }}</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="py-2 flex gap-2">
+                            <label class="font-bold">Customer Contact 01:</label>
+                            <span>{{ $ticket->customer_contact_01 }}</span>
+                        </div>
+                        <div class="py-2 flex gap-2">
+                            <label class="font-bold">Customer Contact 02:</label>
+                            <span>{{ $ticket->customer_contact_02 }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- Show skipped reasons --}}
+            @if($ticket->status == "Skip")
+                <div class="border p-3 rounded-lg shadow-md mt-4">
+                    <h1 class="p-1 pl-0 font-bold text-lg">Skipped Reasons</h1>
+                    <ul class="list-disc ml-4">
+                        @foreach(explode(',', $ticket->skipped_reasons) as $reason)
+                            <li>{{ trim($reason) }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            {{-- Buttons --}}
+            <div class="flex pt-4 space-x-3">
+
+                <a href="#"
+                    wire:click.prevent="$emitTo('cx-tickets.survey.rating-panel','showCxTicketRatingModal', {{ $ticket->id }}, false)"
+                    class="p-2 bg-teal-500 hover:bg-teal-600 text-black rounded-md">
+                    Rate
+                </a>
+
+                <a href="#"
+                    wire:click.prevent="$emitTo('cx-tickets.survey.rating-panel','showCxTicketRatingModal', {{ $ticket->id }}, true)"
+                    class="p-2 bg-red-400 hover:bg-red-500 text-black rounded-md">
+                    Cancel
+                </a>
+
+                <a href="#"
+                    wire:click.prevent="$emitTo('cx-tickets.survey.reopen-panel','showReOpenPanel', {{ $ticket->id }}, 'reopen')"
+                    class="p-2 bg-orange-400 hover:bg-orange-500 text-black rounded-md">
+                    ReOpen
+                </a>
+
+                <a href="#"
+                    wire:click.prevent="$emitTo('cx-tickets.survey.reopen-panel','showReOpenPanel', {{ $ticket->id }}, 'skip')"
+                    class="p-2 bg-yellow-400 hover:bg-yellow-500 text-black rounded-md">
+                    Skip
+                </a>
+
+                <a href="#"
+                    wire:click.prevent="$emitTo('cx-tickets.survey.reopen-panel','showReOpenPanel', {{ $ticket->id }}, 'remind')"
+                    class="p-2 bg-blue-400 hover:bg-blue-500 text-black rounded-md">
+                    Remind
+                </a>
+
+            </div>
+        </div>
+
+    </div>
+@endforeach
+
+
+
+
+
+
+
+
+                                   
+                               @else 
 
                                 @foreach($feedContacts as $contact)
                                                         @php
@@ -514,7 +651,7 @@
 
                                                         </details>
                                 @endforeach
-
+                            @endif
 
 
 
@@ -546,4 +683,8 @@
     @livewire('orders.create', ['leadId' => $lead->id])
     @livewire('leads.partials.skip-modal', ['leadId' => $lead->contact_number])
     @livewire('leads.partials.submit-call-status')
+
+
+    @livewire('cx-tickets.survey.rating-panel')
+    @livewire('cx-tickets.survey.reopen-panel')
 @endpush

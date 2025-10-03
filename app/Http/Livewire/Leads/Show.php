@@ -45,7 +45,7 @@ class Show extends Component
     public $phone2;
     public $feed_id;
     public $boundType = '';
-    public $campaign ;
+    public $campaign;
     public $service_type;
     public $surveyContacts;
 
@@ -224,8 +224,7 @@ class Show extends Component
 
 
 
-        if ($boundType && $boundType == 'dialer' && $this->service_type == 'survey')
-        {
+        if ($boundType && $boundType == 'dialer' && $this->service_type == 'survey') {
             $phone = $this->lead->contact_number;
             $this->selectedContact = $phone;
 
@@ -235,7 +234,7 @@ class Show extends Component
             })
                 ->get();
 
-                if ($this->surveyContacts->isNotEmpty()) {
+            if ($this->surveyContacts->isNotEmpty()) {
                 $foundContact = $this->surveyContacts->first();
                 if ($foundContact->customer_contact_01 === $phone) {
                     $this->phone2 = $foundContact->customer_contact_02;
@@ -333,6 +332,18 @@ class Show extends Component
 
     public function makeCall($phone)
     {
+        $user = Auth::user()->load([
+            'agent',
+            'agent.extensionDetails',
+            'currentQueues'
+        ]);
+
+        $currentSkills = $user->currentQueues()->active()->pluck('skill')->unique();
+
+        // Get the only skill if there's exactly one
+        $campaignName = $currentSkills->count() === 1 ? $currentSkills->first() : null;
+        $campHotline = Campaign::where('name', $campaignName)->value('hotline');
+
         $extension = Auth::user()->extension;
         $tenant_context = Auth::user()->tenant_context;
         $url = env('CALL_SERVER_API_URL') . '/dialscripts/dial.php';
@@ -343,7 +354,8 @@ class Show extends Component
             'num' => $phone,
             'tenant' => $tenant_context,
             'uid' => 22,
-            'dialer'=> $this->campaign,
+            'dialer' => $this->campaign,
+            'cmphotline' => $campHotline,
         ]);
 
         if ($response->successful()) {

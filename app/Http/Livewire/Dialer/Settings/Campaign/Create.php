@@ -201,7 +201,7 @@ class Create extends Component
     public function save()
     {
         $validated = $this->validate([
-            'name' => 'required|string|max:255',
+            'name' => 'required|string|max:255|unique:campaigns,name',
             //     'company_id' => 'required|exists:companies,id',
             //     'user_ids' => 'array|exists:users,id',
             //     'feed_ids' => 'array|exists:feeds,id',

@@ -48,6 +48,7 @@ class Show extends Component
     public $campaign;
     public $service_type;
     public $surveyContacts;
+    public $feedContactId;
 
     protected $listeners = ['refreshCard' => 'refreshCard', 'FeedCompleted' => '$refresh'];
 
@@ -192,7 +193,7 @@ class Show extends Component
         $userId = Auth::user()->id;
         $boundType = Redis::get("user:{$userId}:bound_type");
         $this->boundType = $boundType;
-        if ($boundType && $boundType == 'dialer' && $this->service_type != 'survey') {
+        if ($boundType && $boundType == 'dialer' && $this->service_type != 'satisfaction') {
             $phone = $this->lead->contact_number;
             $this->selectedContact = $phone;
             // $this->feedContacts = FeedContactValid::where('contact_no_01', $phone)->orWhere('contact_no_02', $phone)->get();
@@ -228,10 +229,22 @@ class Show extends Component
             $phone = $this->lead->contact_number;
             $this->selectedContact = $phone;
 
+            $feedId = $this->feed_id;
+            $this->feedContactId = FeedContactValid::where(function ($query) use ($phone) {
+                $query->where('contact_no_01', $phone)
+                    ->orWhere('contact_no_02', $phone);
+            })
+                ->when($feedId, function ($query, $feedId) {
+                    $query->where('feed_id', $feedId); // filter by feed_id if present
+                })
+                ->value('id');;
+                // dd($this->feedContactId);
+
             $this->surveyContacts = CxTicket::where(function ($query) use ($phone) {
                 $query->where('customer_contact_01', $phone)
                     ->orWhere('customer_contact_02', $phone);
             })
+            ->where('status','Open')
                 ->get();
 
             if ($this->surveyContacts->isNotEmpty()) {

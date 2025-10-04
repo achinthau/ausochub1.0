@@ -506,6 +506,33 @@
                     </div>
                 </div>
 
+                {{-- Technician Details --}}
+    <div class="border p-2 rounded-lg shadow-md mt-4">
+        <h1 class="p-1 pl-0 font-bold text-lg">Technician Details</h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+                <div class="py-2 flex gap-2">
+                    <label class="font-bold">Technician Name:</label>
+                    <span>{{ $ticket->technician_name }}</span>
+                </div>
+                <div class="py-2 flex gap-2">
+                    <label class="font-bold">Technician Contact:</label>
+                    <span>{{ $ticket->technician_contact }}</span>
+                </div>
+            </div>
+            <div>
+                <div class="py-2 flex gap-2">
+                    <label class="font-bold">Supervisor Name:</label>
+                    <span>{{ $ticket->supervisor_name }}</span>
+                </div>
+                <div class="py-2 flex gap-2">
+                    <label class="font-bold">Supervisor Contact:</label>
+                    <span>{{ $ticket->supervisor_contact }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
                 {{-- Skipped Reasons --}}
                 @if($isSkipped)
                     <div class="border p-3 rounded-lg shadow-md mt-4">

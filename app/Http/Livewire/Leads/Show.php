@@ -244,7 +244,7 @@ class Show extends Component
                 $query->where('customer_contact_01', $phone)
                     ->orWhere('customer_contact_02', $phone);
             })
-            ->where('status','Open')
+            ->where('status','Closed')
                 ->get();
 
             if ($this->surveyContacts->isNotEmpty()) {

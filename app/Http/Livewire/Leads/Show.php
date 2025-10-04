@@ -224,7 +224,7 @@ class Show extends Component
 
 
 
-        if ($boundType && $boundType == 'dialer' && $this->service_type == 'survey') {
+        if ($boundType && $boundType == 'dialer' && $this->service_type == 'satisfaction') {
             $phone = $this->lead->contact_number;
             $this->selectedContact = $phone;
 

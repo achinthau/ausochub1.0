@@ -436,7 +436,7 @@
             
             {{-- COLLAPSIBLE HEADER WITH WORK ORDER NO --}}
             <summary class="flex justify-between items-center cursor-pointer px-2 py-2 text-lg font-semibold rounded-t-lg bg-gray-100 hover:bg-gray-200">
-                <span>Work Order No: {{ $ticket->work_order_no }}</span>
+                <span>{{ $ticket->work_order_no }}</span>
             </summary>
 
             <div class="text-sm mt-4">

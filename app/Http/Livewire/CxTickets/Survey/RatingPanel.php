@@ -5,6 +5,7 @@ namespace App\Http\Livewire\CxTickets\Survey;
 use App\Models\CxDisSatisReason;
 use App\Models\CxSatisReason;
 use App\Models\CxTicket;
+use App\Models\FeedContactValid;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
@@ -22,6 +23,7 @@ class RatingPanel extends Component
 
     public $ticket_id;
     public $ticket;
+    public $feed = null;
 
     public array $satisfactionReasons = [];
     public array $dissatisfactionReasons = [];
@@ -88,15 +90,27 @@ class RatingPanel extends Component
                 'surveyed_by' => Auth::user()->name,
             ]);
         }
+
+        if($this->feed)
+        {
+            $this->feed->status = 1;
+        $this->feed->save();
+        }
+
         $this->emit('cxTicketSurveyUpdated');
         $this->cxTicketRatingModal = false;
     }
 
 
-    public function showCxTicketRating($id, $isCancel)
+    public function showCxTicketRating($id, $isCancel, $validContact=null)
     {
         $this->ticket_id = $id;
         $this->cxTicketRatingModal = true;
+        // dd($validContact);
+        if($validContact)
+        {
+            $this->feed = FeedContactValid::find($validContact);
+        }
 
         $this->isCancel = $isCancel;
 
@@ -154,6 +168,8 @@ class RatingPanel extends Component
             default:
                 $this->ratingLabel = 'Neutral !!!'; // Default case
         }
+
+        
     }
 
     public function setHoverRating($rating)
@@ -190,6 +206,12 @@ class RatingPanel extends Component
                 'status' => "Rated",
                 'surveyed_by' => Auth::user()->name,
             ]);
+
+            if($this->feed)
+        {
+            $this->feed->status = 1;
+            $this->feed->save();
+        }
 
             $this->cxTicketRatingModal = false;
             $this->emit('cxTicketSurveyUpdated');

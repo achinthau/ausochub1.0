@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\CxTickets\Survey;
 
 use App\Models\CallbackCustomer;
+use App\Models\FeedContactValid;
 use Livewire\Component;
 use App\Models\CxTicket;
 use Carbon\Carbon;
@@ -22,7 +23,7 @@ class ReopenPanel extends Component
     public array $skipReasons = [];
     public array $selectedReasons = [];
     public $selectedSkippingReason = null;
-
+    public $feed;
     protected $listeners = ['showReOpenPanel' => 'showReOpenModal'];
 
     protected $rules = [
@@ -64,12 +65,16 @@ class ReopenPanel extends Component
         $this->selectedReasons = array_filter($this->selectedReasons, fn($r) => $r !== $reason);
     }
 
-    public function showReOpenModal($id, $value)
+    public function showReOpenModal($id, $value, $validContact=null)
     {
         $this->ticket_id = $id;
         $this->isReOpen = $value;        // value: 'reopen', 'skip', 'remind'
         $this->cxTicketReOpenModal = true;
         $this->callBack = $value === 'remind';
+        if($validContact)
+        {
+            $this->feed = FeedContactValid::find($validContact);
+        }
     }
 
     public function reOpenTicket()
@@ -82,6 +87,12 @@ class ReopenPanel extends Component
                 $ticket->status = 'ReOpened';
                 $ticket->reopened_reasons = $this->comment;
                 $ticket->reopened_by = Auth::user()->name;
+
+                if($this->feed)
+        {
+            $this->feed->status = 1;
+            $this->feed->save();
+        }
             }
             elseif ($this->isReOpen === 'skip') {
                 $allReasons = array_filter(array_merge($this->selectedReasons, [$this->comment]));

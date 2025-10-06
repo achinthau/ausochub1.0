@@ -98,6 +98,7 @@ class RatingPanel extends Component
         }
 
         $this->emit('cxTicketSurveyUpdated');
+        $this->emit('FeedCompleted');
         $this->cxTicketRatingModal = false;
     }
 
@@ -215,6 +216,7 @@ class RatingPanel extends Component
 
             $this->cxTicketRatingModal = false;
             $this->emit('cxTicketSurveyUpdated');
+            $this->emit('FeedCompleted');
         }
     }
 

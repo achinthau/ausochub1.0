@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Leads\Partials;
 
+use App\Models\CxTicket;
 use App\Models\DialerCallStatusOption;
 use App\Models\FeedContactAttempt;
 use App\Models\FeedContactValid;
@@ -22,15 +23,16 @@ class SubmitCallStatus extends Component
     public $applyToAll = false;
     public $feedCount = 0;
     public $paymentDate;
+    public $cxTicketId;
 
     protected $listeners = ['openCallStatusModal' => 'openModal'];
 
-    public function openModal($id, $status, $feedCount)
+    public function openModal($id, $status, $feedCount, $ticketId = null)
     {
         $this->CallStatusModal = true;
         $this->feedCount = $feedCount;
         $this->feed = FeedContactValid::find($id);
-        // dd($this->feed);
+        // dd($this->feedCount);
         $this->status = $status;
         $this->options = DialerCallStatusOption::where('type', $status === 'answered' ? 1 : 2)
             ->pluck('option', 'id')
@@ -38,6 +40,7 @@ class SubmitCallStatus extends Component
 
         $this->selectedOption = null;
         $this->comment = '';
+        $this->cxTicketId = $ticketId;
     }
 
     // protected $rules = [
@@ -105,6 +108,8 @@ class SubmitCallStatus extends Component
 
                     // Set next date each time for status 2-based
                     $feed->next_available_at = now()->addDay();
+
+                    
                 }
 
                 $feed->save();
@@ -116,7 +121,36 @@ class SubmitCallStatus extends Component
                     'updated_by' => Auth::id(),
                 ]);
             }
-        } else {
+
+            if($this->cxTicketId)
+                {
+                    $tickets = CxTicket::where(function ($query) use ($phone) {
+                $query->where('customer_contact_01', $phone)
+                    ->orWhere('customer_contact_02', $phone);
+            })
+            ->where('status', 'Closed')
+                ->get();
+
+                    foreach($tickets as $ticket)
+                    {
+                        if($ticket)
+                    {
+                        $ticket->status = 'Skip';
+                        if($this->selectedOption)
+                        {
+                            $optionName = DialerCallStatusOption::where('id', $this->selectedOption)->value('option');
+                            $ticket->skipped_reasons = $optionName .' ' . $this->comment;
+                        }
+                
+                        $ticket->skipped_by = Auth::user()->name;
+                    }
+                    $ticket->save();
+                    }
+                }
+
+
+        } 
+        else {
             // ✅ Update only the current feed
             if ($this->status == 'answered') {
                 $this->feed->status = 1; // Answered
@@ -134,6 +168,23 @@ class SubmitCallStatus extends Component
 
                 // Set next date each time for status 2-based
                 $this->feed->next_available_at = now()->addDay();
+
+                if($this->cxTicketId)
+                {
+                    $ticket = CxTicket::find($this->cxTicketId);
+                    if($ticket)
+                    {
+                        $ticket->status = 'Skip';
+                        if($this->selectedOption)
+                        {
+                            $optionName = DialerCallStatusOption::where('id', $this->selectedOption)->value('option');
+                            $ticket->skipped_reasons = $optionName .' ' . $this->comment;
+                        }
+                
+                        $ticket->skipped_by = Auth::user()->name;
+                    }
+                    $ticket->save();
+                }
             }
             $this->feed->save();
 

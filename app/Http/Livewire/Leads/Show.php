@@ -49,6 +49,7 @@ class Show extends Component
     public $service_type;
     public $surveyContacts;
     public $feedContactId;
+    public $feedContactIdStatus;
 
     protected $listeners = ['refreshCard' => 'refreshCard', 'FeedCompleted' => '$refresh'];
 
@@ -230,21 +231,33 @@ class Show extends Component
             $this->selectedContact = $phone;
 
             $feedId = $this->feed_id;
-            $this->feedContactId = FeedContactValid::where(function ($query) use ($phone) {
+            // $this->feedContactId = FeedContactValid::where(function ($query) use ($phone) {
+            //     $query->where('contact_no_01', $phone)
+            //         ->orWhere('contact_no_02', $phone);
+            // })
+            //     ->when($feedId, function ($query, $feedId) {
+            //         $query->where('feed_id', $feedId); // filter by feed_id if present
+            //     })
+            //     ->value('id');
+            // dd($this->feedContactId);
+
+            $query = FeedContactValid::where(function ($query) use ($phone) {
                 $query->where('contact_no_01', $phone)
                     ->orWhere('contact_no_02', $phone);
             })
                 ->when($feedId, function ($query, $feedId) {
-                    $query->where('feed_id', $feedId); // filter by feed_id if present
+                    $query->where('feed_id', $feedId); 
                 })
-                ->value('id');;
-                // dd($this->feedContactId);
+                ->first(); 
+
+            $this->feedContactId = $query ? $query->id : null; 
+            $this->feedContactIdStatus = $query ? $query->status : null; 
 
             $this->surveyContacts = CxTicket::where(function ($query) use ($phone) {
                 $query->where('customer_contact_01', $phone)
                     ->orWhere('customer_contact_02', $phone);
             })
-            ->where('status','Closed')
+                ->whereIn('status', ['Closed', 'Skip', 'Rated'])
                 ->get();
 
             if ($this->surveyContacts->isNotEmpty()) {
@@ -358,7 +371,7 @@ class Show extends Component
         $campHotline = $campaignName
             ? Campaign::where('name', $campaignName)->value('hotline')
             : null;
-//         dd([
+        //         dd([
 //     'currentSkills' => $currentSkills,
 //     'campaignName' => $campaignName,
 //     'campHotline' => $campHotline,

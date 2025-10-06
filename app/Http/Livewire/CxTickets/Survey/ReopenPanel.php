@@ -92,6 +92,7 @@ class ReopenPanel extends Component
         {
             $this->feed->status = 1;
             $this->feed->save();
+            $this->emit('FeedCompleted');
         }
             }
             elseif ($this->isReOpen === 'skip') {
@@ -106,8 +107,10 @@ class ReopenPanel extends Component
         $this->selectedReasons = [];
 
         $this->emit('cxTicketSurveyUpdated');
+        $this->emit('FeedCompleted');
         $this->cxTicketReOpenModal = false;
         $this->reset(['comment', 'ticket_id', 'isReOpen', 'callBack']);
+        
     }
 
     public function saveCallback()

@@ -10,4 +10,9 @@ class Index extends Component
     {
         return view('livewire.settings.users.index');
     }
+
+    public function exportManual()
+{
+    $this->emitTo('tables.settings.user-table', 'exportManual'); 
+}
 }

@@ -10,10 +10,17 @@ use Mediconesystems\LivewireDatatables\DateColumn;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 use Illuminate\Support\Facades\DB;
 
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Concerns\FromCollection;
+use Maatwebsite\Excel\Concerns\WithHeadings;
+use Maatwebsite\Excel\Concerns\WithMapping;
+
 class UserTable extends LivewireDatatable
 {
+
+    protected $listeners = ['exportManual' => 'exportManual'];
     public $hideable = 'select';
-    public $exportable = true;
+    // public $exportable = true;
     
     // public function builder()
     // {
@@ -38,24 +45,6 @@ class UserTable extends LivewireDatatable
     //     ];
     // }
 
-//     public function builder()
-// {
-
-//     $companyIds = array_filter(array_map('intval', explode(',', auth()->user()->tenant_context)));
-
-//     $user = new User();
-//     $userType = new UserType();
-
-//     $userTable = $user->getTable();       
-//     $userTypeTable = $userType->getTable(); 
-//     $companyTable = 'companies';          
-
-//     return User::leftJoin($userTypeTable, "$userTypeTable.id", "$userTable.user_type_id")
-//             //    ->leftJoin($companyTable, "$companyTable.id", "$userTable.tenant_context")
-//                ->whereIn('tenant_context', $companyIds);
-//             //    ->select("$userTable.*", "$userTypeTable.title as user_type_title", "$companyTable.name as company_name");
-// }
-
 
   public function builder()
 {
@@ -76,7 +65,6 @@ class UserTable extends LivewireDatatable
             'companies.name as company_name'
         );
 
-    // ✅ Apply Date Filters if Active
     if (!empty($this->activeDateFilters)) {
         foreach ($this->activeDateFilters as $filter) {
             if (!empty($filter['start'])) {
@@ -90,29 +78,6 @@ class UserTable extends LivewireDatatable
 
     return $query;
 }
-
-
-
-
-// public function builder()
-// {
-//     $contexts = explode(',', auth()->user()->tenant_context);
-//     $contexts = array_map('trim', $contexts); // ['internal', 'Hutch']
-
-//     return User::query()
-//         ->leftJoin('user_types', 'user_types.id', 'users.user_type_id')
-//         ->leftJoin('companies', 'companies.id', '=', 'users.tenant_context')
-//         ->where(function ($query) use ($contexts) {
-//             foreach ($contexts as $context) {
-//                 $query->orWhere('users.tenant_context', 'LIKE', '%' . $context . '%');
-//             }
-//         })
-//         ->select(
-//             'users.*',
-//             'user_types.title as user_type_title',
-//             'companies.name as company_name'
-//         );
-// }
 
 
 
@@ -167,6 +132,54 @@ public function doDatetimeFilterEnd($index, $end)
     $this->page = 1;
     $this->setSessionStoredFilters();
 }
+
+
+public function exportManual()
+    {
+        $data = $this->builder()->get(); // Get filtered data
+
+        return Excel::download(new class($data) implements FromCollection, WithHeadings, WithMapping {
+            private $data;
+
+            public function __construct($data)
+            {
+                $this->data = $data;
+            }
+
+            public function collection()
+            {
+                return $this->data;
+            }
+
+            public function headings(): array
+            {
+                return [
+                    'ID',
+                    'Name',
+                    'Email',
+                    'Username',
+                    'User Type',
+                    'Extension',
+                    'Tenant Context',
+                    'Created At',
+                ];
+            }
+
+            public function map($row): array
+            {
+                return [
+                    $row->id,
+                    $row->name,
+                    $row->email,
+                    $row->user_name,
+                    $row->user_type_title,
+                    $row->extension,
+                    $row->tenant_context,
+                    $row->created_at,
+                ];
+            }
+        }, 'users_export_' . now()->format('Ymd_His') . '.xlsx');
+    }
 
 
 

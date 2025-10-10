@@ -57,13 +57,12 @@ class UserTable extends LivewireDatatable
 // }
 
 
-
-public function builder()
+  public function builder()
 {
     $contexts = explode(',', auth()->user()->tenant_context);
-    $contexts = array_map('trim', $contexts); // ['internal', 'Hutch']
+    $contexts = array_map('trim', $contexts);
 
-    return User::query()
+    $query = User::query()
         ->leftJoin('user_types', 'user_types.id', 'users.user_type_id')
         ->leftJoin('companies', 'companies.id', '=', 'users.tenant_context')
         ->where(function ($query) use ($contexts) {
@@ -76,7 +75,44 @@ public function builder()
             'user_types.title as user_type_title',
             'companies.name as company_name'
         );
+
+    // ✅ Apply Date Filters if Active
+    if (!empty($this->activeDateFilters)) {
+        foreach ($this->activeDateFilters as $filter) {
+            if (!empty($filter['start'])) {
+                $query->where('users.created_at', '>=', $filter['start']);
+            }
+            if (!empty($filter['end'])) {
+                $query->where('users.created_at', '<=', $filter['end']);
+            }
+        }
+    }
+
+    return $query;
 }
+
+
+
+
+// public function builder()
+// {
+//     $contexts = explode(',', auth()->user()->tenant_context);
+//     $contexts = array_map('trim', $contexts); // ['internal', 'Hutch']
+
+//     return User::query()
+//         ->leftJoin('user_types', 'user_types.id', 'users.user_type_id')
+//         ->leftJoin('companies', 'companies.id', '=', 'users.tenant_context')
+//         ->where(function ($query) use ($contexts) {
+//             foreach ($contexts as $context) {
+//                 $query->orWhere('users.tenant_context', 'LIKE', '%' . $context . '%');
+//             }
+//         })
+//         ->select(
+//             'users.*',
+//             'user_types.title as user_type_title',
+//             'companies.name as company_name'
+//         );
+// }
 
 
 
@@ -107,6 +143,31 @@ public function columns()
         })->unsortable()->excludeFromExport()
     ];
 }
+
+public function doDatetimeFilterStart($index, $start)
+{
+    if ($start != "") {
+        $start = str_replace('T', ' ', $start); // Fix format
+        $start = date('Y-m-d H:i:s', strtotime($start)); // Normalize
+    }
+
+    $this->activeDateFilters[$index]['start'] = $start;
+    $this->page = 1;
+    $this->setSessionStoredFilters();
+}
+
+public function doDatetimeFilterEnd($index, $end)
+{
+    if ($end != "") {
+        $end = str_replace('T', ' ', $end);
+        $end = date('Y-m-d H:i:s', strtotime($end));
+    }
+
+    $this->activeDateFilters[$index]['end'] = $end;
+    $this->page = 1;
+    $this->setSessionStoredFilters();
+}
+
 
 
     

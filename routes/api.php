@@ -88,7 +88,8 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
     Cache::add('current-call-count', 0, 99999999);
     if ($skill) {
         Cache::add($request['queuename'] . "-current-call-count", 0, 99999999);
-        Redis::forever('agent_on_call-' . $agent->id . '-' . $request['queuename'] , 1);
+        // Redis::forever('agent_on_call-' . $agent->id . '-' . $request['queuename'] , 1);
+        Redis::set('agent_on_call-' . $agent->id . '-' . $request['queuename'], 1);
     }
 
     Cache::increment('current-call-count');

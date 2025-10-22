@@ -65,6 +65,7 @@ class CallPanel extends Component
             ->get();
 
         // dd($campaigns);
+        //status and name index 
 
 
 
@@ -87,6 +88,8 @@ class CallPanel extends Component
                     ->orWhere('assigned_to', $userId); // or already assigned to this user
             })
             ->first();
+
+            // indexes for feed_id, status
 
         if ($record) {
             $userId = Auth::id();

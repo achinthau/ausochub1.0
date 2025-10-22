@@ -27,9 +27,16 @@ class FileUpload extends Component
     public $name = '';
     public $description = '';
     public $file;
+    public $feed_type ;
 
     protected $listeners = ['showFeedUploadModal' => 'showFeedUploadModal'];
 
+    protected $rules = [
+    'name' => 'required|string',
+    // 'description' => 'nullable|string',
+    'feed_type' => 'required',
+    // 'file' => 'required|file|mimes:xlsx,csv',
+];
     public function showFeedUploadModal($id)
     {
         // dd($id);
@@ -45,6 +52,8 @@ class FileUpload extends Component
 
     public function save()
     {
+        $this->validate();
+
         $originalName = pathinfo($this->file->getClientOriginalName(), PATHINFO_FILENAME);
         $timestampedName = $originalName . '_' . now()->format('YmdHis') . '.' . $this->file->getClientOriginalExtension();
 
@@ -62,10 +71,10 @@ class FileUpload extends Component
         }
 
 
-        $filePath = storage_path("app/public/feeds/{$feed->file_name}");
-ProcessFeedFile::dispatch($feed->id, $filePath)
-    ->onConnection('database')
-    ->onQueue('feeds');
+//         $filePath = storage_path("app/public/feeds/{$feed->file_name}");
+// ProcessFeedFile::dispatch($feed->id, $filePath)
+//     ->onConnection('database')
+//     ->onQueue('feeds');
 
 
 
@@ -150,7 +159,7 @@ ProcessFeedFile::dispatch($feed->id, $filePath)
     // Validate contacts
 
 
-    ProcessFeedFile::dispatch($feed->id)
+    ProcessFeedFile::dispatch($feed->id, $this->feed_type)
     ->onConnection('database')
     ->onQueue('feeds');
 

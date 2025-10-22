@@ -10,17 +10,43 @@
 
     <div id="messagesContainer" class=" h-[55vh] overflow-y-auto pb-0 pt-2 mt-2">
         {{-- @if (isset($receiver) && $receiver)
-    @livewire('chat.messages')
-@endif --}}
+        @livewire('chat.messages')
+        @endif --}}
 
         @if ($receiver)
 
-        <span class="block text-center cursor-pointer font-italic" wire:click="getOlderMessages({{ auth()->id() }}, {{ $receiver }})">older</span>
+            <span class="block text-center cursor-pointer font-italic"
+                wire:click="getOlderMessages({{ auth()->id() }}, {{ $receiver }})">older</span>
 
             @if (!empty($messages) && is_array($messages))
+                @php
+                    $lastDate = null;
+                @endphp
+
                 @foreach ($messages as $message)
                     @if (isset($message['sender'], $message['text']))
-                        <!-- Ensure valid message -->
+
+                        @php
+                            $currentDate = \Carbon\Carbon::createFromTimestamp($message['timestamp'])->format('Y-m-d');
+                        @endphp
+
+                        {{-- Show date only when it changes --}}
+                        @if ($lastDate !== $currentDate)
+                            <div class="text-center my-2 text-gray-500 text-xs font-semibold">
+                                {{ \Carbon\Carbon::parse($currentDate)->isToday()
+                                            ? 'Today'
+                                            : (\Carbon\Carbon::parse($currentDate)->isYesterday()
+                                                ? 'Yesterday'
+                                                : \Carbon\Carbon::parse($currentDate)->format('M d, Y')
+                                            )
+                                    }}
+                            </div>
+                            @php
+                                $lastDate = $currentDate;
+                            @endphp
+                        @endif
+
+                        <!-- Existing Message Display -->
                         <div class="mb-2">
                             @if ($message['sender'] == auth()->id())
                                 <div class="text-right">
@@ -31,22 +57,21 @@
                                         </span>
                                     </span>
                                 </div>
-                            @endif
-                            @if ($message['receiver'] == auth()->id())
+                            @else
                                 <div class="text-left">
                                     <span class="bg-gray-200 text-black px-3 py-1 rounded-lg">
-
                                         <span class="pb-2">{{ $message['text'] }}</span>
                                         <span class="text-[9px] pl-4 italic">
                                             {{ \Carbon\Carbon::createFromTimestamp($message['timestamp'])->format('h:i A') }}
                                         </span>
-
                                     </span>
                                 </div>
                             @endif
                         </div>
+
                     @endif
                 @endforeach
+
             @else
                 <p>No messages yet.</p>
             @endif
@@ -55,10 +80,10 @@
 
         {{-- <div class="pt-4 flex justify-end"> --}}
 
-        {{-- <div id="messages" class="min-h-[10px] p-0 m-0" style="height: 5%"></div> --}}
+            {{-- <div id="messages" class="min-h-[10px] p-0 m-0" style="height: 5%"></div> --}}
 
 
-        {{-- </div> --}}
+            {{-- </div> --}}
 
     </div>
 
@@ -71,8 +96,8 @@
         </div>
         <div class="pt-5 pr-8">
             {{-- <button class="pl-8 pr-8" onclick="sendMessage()">Send</button> --}}
-            <svg class="w-8 h-8 cursor-pointer" onclick="sendMessage()" xmlns="http://www.w3.org/2000/svg"
-                width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+            <svg class="w-8 h-8 cursor-pointer" onclick="sendMessage()" xmlns="http://www.w3.org/2000/svg" width="16"
+                height="16" fill="currentColor" viewBox="0 0 16 16">
                 <path
                     d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z">
                 </path>
@@ -82,13 +107,13 @@
     {{-- @endif --}}
 
     {{-- only for data save in redis --}}
-    <livewire:chat.messages /> 
+    <livewire:chat.messages />
 
 
 
     {{-- send message from enter press --}}
     <script>
-        document.getElementById("messageInput").addEventListener("keydown", function(event) {
+        document.getElementById("messageInput").addEventListener("keydown", function (event) {
             if (event.key === "Enter" && !event.shiftKey) { // Prevent shift+enter from submitting
                 event.preventDefault(); // Prevent new line in textarea
                 sendMessage(); // Call the function to send the message
@@ -109,7 +134,7 @@
     {{-- scrololl to latest message --}}
 
     <script>
-        document.addEventListener('scrollToBottom', function() {
+        document.addEventListener('scrollToBottom', function () {
             let container = document.getElementById('messagesContainer');
             if (container) {
                 container.scrollTop = container.scrollHeight; // Scroll to bottom
@@ -123,13 +148,13 @@
     <script>
         // const socket = io('http://localhost:3000');
         const socket = io({
-        path: "/socket.io",
-        transports: ['websocket'],
-    });
+            path: "/socket.io",
+            transports: ['websocket'],
+        });
         const loggedInUserId = "{{ auth()->id() }}";
 
         // Listen for incoming messages
-        document.addEventListener("DOMContentLoaded", function() {
+        document.addEventListener("DOMContentLoaded", function () {
             if (!window.socketInitialized) {
                 window.socketInitialized = true; // Prevent duplicate bindings
 
@@ -164,53 +189,53 @@
 
             // Fetch user details from the database
             try {
-                
-                    const messageWrapper = document.createElement("div"); // Create a wrapper div
-                    messageWrapper.style.marginBottom = "4px"; // Adds spacing between messages
 
-                    // Create the message element
-                    const messageElement = document.createElement("span");
-                    if (type == "received") {
-                        messageWrapper.classList.add("text-left")
+                const messageWrapper = document.createElement("div"); // Create a wrapper div
+                messageWrapper.style.marginBottom = "4px"; // Adds spacing between messages
+
+                // Create the message element
+                const messageElement = document.createElement("span");
+                if (type == "received") {
+                    messageWrapper.classList.add("text-left")
                     messageElement.classList.add("bg-gray-200", "text-black", "px-3", "py-1", "rounded-lg");
-                    }
+                }
 
-                    if (type == "sent") {
-                        messageWrapper.classList.add("text-right")
+                if (type == "sent") {
+                    messageWrapper.classList.add("text-right")
                     messageElement.classList.add("bg-blue-100", "text-black", "px-3", "py-1", "rounded-lg");
-                    }
+                }
 
-                    messageElement.style.display = "inline-block";
+                messageElement.style.display = "inline-block";
 
-                    // Create the message text span
-                    const messageText = document.createElement("span");
-                    messageText.innerText = text;
-                    messageText.style.paddingBottom = "2px";
+                // Create the message text span
+                const messageText = document.createElement("span");
+                messageText.innerText = text;
+                messageText.style.paddingBottom = "2px";
 
-                    // Create the timestamp span
-                    const timestampElement = document.createElement("span");
-                    timestampElement.classList.add("text-[9px]", "pl-4", "italic");
+                // Create the timestamp span
+                const timestampElement = document.createElement("span");
+                timestampElement.classList.add("text-[9px]", "pl-4", "italic");
 
-                    // Format timestamp to "h:i A" (12-hour format)
-                    const formattedTime = new Date().toLocaleTimeString("en-US", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                        hour12: true
-                    });
+                // Format timestamp to "h:i A" (12-hour format)
+                const formattedTime = new Date().toLocaleTimeString("en-US", {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: true
+                });
 
-                    timestampElement.innerText = formattedTime;
+                timestampElement.innerText = formattedTime;
 
-                    // Append elements
-                    messageElement.appendChild(messageText);
-                    messageElement.appendChild(timestampElement);
-                    messageWrapper.appendChild(messageElement);
+                // Append elements
+                messageElement.appendChild(messageText);
+                messageElement.appendChild(timestampElement);
+                messageWrapper.appendChild(messageElement);
 
-                    // Append to container
-                    document.getElementById("messagesContainer").appendChild(messageWrapper);
+                // Append to container
+                document.getElementById("messagesContainer").appendChild(messageWrapper);
 
-                    // Auto-scroll to the latest message
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                
+                // Auto-scroll to the latest message
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
 
             } catch (error) {
                 console.error('Error fetching user details:', error);
@@ -241,7 +266,7 @@
             displayMessage_1("Me", text, "sent"); // Show message instantly for sender
             // Livewire.emitTo("chat.messages-panel", "saveData", username, receiver, text);
             Livewire.emitTo("chat.messages", "saveData", username, receiver, text);
-            
+
             messageInput.value = '';
 
 

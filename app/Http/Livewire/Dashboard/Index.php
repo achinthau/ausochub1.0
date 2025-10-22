@@ -28,11 +28,15 @@ class Index extends Component
     public $messagesCount;
     public $boundType;
     public $dialerCallCounts;
+    public $validCampaignTypes;
 
     protected $listeners = ['hideBreak' => 'hideBreak', 'showBreak' => 'showBreak', 'setOutbound' => 'setOutbound', 'setInbound' => 'setInbound'];
 
     public function mount()
     {
+        \Log::info('Mount started');
+        \Log::info('Loading user with agent relationships');
+
         $this->user = User::where('id', Auth::id())->with([
             'agent' => function ($q) {
                 $q->miscallStatus();
@@ -42,46 +46,78 @@ class Index extends Component
             }
         ])->first();
 
+        \Log::info('User loaded', ['user_id' => $this->user?->id]);
+
         $userId = Auth::user()->id;
+
+        \Log::info('Loading bound type from Redis', ['user_id' => $userId]);
+
         $this->boundType = Redis::get("user:{$userId}:bound_type");
         if (!$this->boundType) {
             $this->boundType = 'inbound';
             Redis::set("user:{$userId}:bound_type", $this->boundType);
         }
 
+        \Log::info('Bound type set', ['boundType' => $this->boundType]);
+
+
+        \Log::info('Loading skills based on boundType', ['boundType' => $this->boundType]);
 
         if ($this->boundType == "dialer") {
             // $this->skills = Auth::user()->skills ? Auth::user()->skills->dialer_skill_ids : [];
             $skills = Auth::user()->skills ? Auth::user()->skills->dialer_skill_ids : [];
+            // dd($skills);
+            // dd(Auth::user()->skills->dialer_skill_ids);
 
             $validCampaigns = Campaign::whereIn('status', [1])
-                ->pluck('name')
+                ->pluck('type','name')
                 ->toArray();
+            
+                $this->validCampaignTypes = $validCampaigns;
+            
+            \Log::info('Valid campaigns fetched', ['campaigns' => $validCampaigns]);
 
             $this->skills = collect($skills)
-                ->filter(fn($skillName) => in_array($skillName, $validCampaigns))
-                ->toArray();
+    ->filter(fn($skillName) => array_key_exists($skillName, $validCampaigns))
+    ->toArray();
+
+
+            // dd($this->skills);
+            // dd($validCampaigns);
+
+            \Log::info('Filtered dialer skills', ['final_skills' => $this->skills]);
         } else {
             $this->skills = Auth::user()->skills ? Auth::user()->skills->skill_ids : [];
+
+            \Log::info('Inbound skills loaded', ['skills' => $this->skills]);
         }
         // $this->setBound();
 
         // $this->totalBreakTime = AgentBreakSummary::whereBetween('breaktime', [Carbon::now()->startOfDay(), Carbon::now()->endOfDay()])->where('agentid', Auth::user()->agent_id)->selectRaw('SEC_TO_TIME(SUM(TIMESTAMPDIFF(SECOND, breaktime, unbreaktime))) AS today_total_break')->first()->today_total_break;
+        
+        \Log::info('Loading selected skills from current queues');
+
         $currentSkills = Auth::user()->currentQueues()->active()->get();
 
         foreach ($currentSkills as $key => $value) {
             $this->selectedSkills[$value["skill"]] = $value["skill"];
         }
 
+        \Log::info('Selected skills loaded', ['selectedSkills' => $this->selectedSkills]);
+
         $userId = Auth::id();
+
+        \Log::info('Loading campaigns assigned to user', ['user_id' => $userId]);
 
         $this->campaigns = CampaignMetric::with('types')
             ->whereRaw('FIND_IN_SET(?, assigned_users)', [$userId])
             ->get();
 
+        \Log::info('Campaigns loaded', ['campaigns_count' => $this->campaigns->count()]);
+        \Log::info('Mount completed');
+
 
     }
-
 
     public function hideBreak()
     {
@@ -152,7 +188,7 @@ class Index extends Component
         return view('livewire.dashboard.index');
     }
 
-    public function updatedSelectedSkills($value, $name)
+    public function updatedSelectedSkills($type, $value)
     {
         // $user = Auth::user()->load([
         //     'agent',
@@ -164,10 +200,12 @@ class Index extends Component
 
         // dd($value,$name);
         // dd($currentSkills);
+        // dd($value,$type);
 
 
         $userId = Auth::user()->id;
-        $boundType = Redis::get("user:{$userId}:bound_type");
+        // $boundType = Redis::get("user:{$userId}:bound_type");
+        $boundType = $this->boundType;
         if ($boundType && $boundType == 'dialer') {
             $user = Auth::user()->load([
                 'agent',
@@ -207,7 +245,7 @@ class Index extends Component
                 ],
                 [
                     'name' => 'queue',
-                    'contents' => $name
+                    'contents' => $value
                 ],
                 [
                     'name' => 'action',
@@ -246,7 +284,7 @@ class Index extends Component
                 ],
                 [
                     'name' => 'queue',
-                    'contents' => $name
+                    'contents' => $value
                 ],
                 [
                     'name' => 'action',

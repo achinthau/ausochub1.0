@@ -74,7 +74,7 @@ class MessagesPanel extends Component
         $messages2 = $redis->lrange($chatKey2, -50, -1);
 
         if (empty($messages1) && empty($messages2)) {
-            // 🔹 If Redis is empty, fetch from MySQL
+            //If Redis is empty, fetch from MySQL
             $messagesFromDB = ChatMessage::where(function ($query) use ($sender, $receiver) {
                 $query->where('sender', $sender)->where('receiver', $receiver);
             })

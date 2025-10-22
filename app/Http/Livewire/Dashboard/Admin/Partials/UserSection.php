@@ -15,11 +15,15 @@ class UserSection extends Component
 {
 
     public $dialerCallCount = [];
-    public $boundType ;
+    public $boundType;
 
     public function render()
     {
+        \Log::info('Render started: Fetching agents with relations');
+
         $users = Agent::with(['currentActiveQueues', 'extensionDetails', 'user'])->get();
+        \Log::info('Agents loaded', ['agent_count' => $users->count()]);
+
         $raisedHands = [];
 
         $loggedUserIds = DB::table('sessions')
@@ -28,64 +32,62 @@ class UserSection extends Component
             ->unique()
             ->toArray();
 
+        \Log::info('Logged-in users fetched', ['ids' => $loggedUserIds]);
+
         $inboundUsers = [];
         $dialerUsers = [];
-        $dialerCallCounts = []; 
-
+        $dialerCallCounts = [];
 
         foreach ($users as $agent) {
             $userId = optional($agent->user)->id;
+
             if ($userId) {
-                // Redis::select(0);
                 $key = "hand_raised:{$userId}";
                 if (Redis::get($key)) {
                     $raisedHands[$userId] = true;
+                    \Log::info('Hand raised detected', ['user_id' => $userId]);
                 }
             }
 
             if (in_array($userId, $loggedUserIds)) {
-                // Redis::select(0);
                 $key = "user:{$userId}:bound_type";
                 $callDirection = Redis::get($key);
 
+                \Log::info('User bound type found', ['user_id' => $userId, 'bound_type' => $callDirection]);
 
                 if ($callDirection == 'inbound') {
-                    $inboundUsers[] = $agent->user->id;
-                    // dd('inbound');
+                    $inboundUsers[] = $userId;
                 } elseif ($callDirection == 'dialer') {
-                    $dialerUsers[] = $agent->user->id;
-                    // dd('dialer');
+                    $dialerUsers[] = $userId;
                 }
-
-
             }
 
             $extension = optional($agent->user)->extension;
 
-        if ($extension) {
-            $dialerCallCounts[$userId] = DB::connection('mysql-old')
-                ->table('callcount')
-                ->whereNotNull('app')
-                ->where('callcount', $extension)
-                ->count();
-        } else {
-            $dialerCallCounts[$userId] = 0;
+            if ($extension) {
+                $count = DB::connection('mysql-old')
+                    ->table('callcount')
+                    ->whereNotNull('app')
+                    ->where('callcount', $extension)
+                    ->count();
+
+                $dialerCallCounts[$userId] = $count;
+                \Log::info('Dialer call count fetched', ['user_id' => $userId, 'extension' => $extension, 'count' => $count]);
+            } else {
+                $dialerCallCounts[$userId] = 0;
+                \Log::info('No extension found, setting dialer count to 0', ['user_id' => $userId]);
+            }
         }
-    }
 
-    $this->dialerCallCounts = $dialerCallCounts;
+        $this->dialerCallCounts = $dialerCallCounts;
 
-            
-            // $this->dialerCallCount = DB::connection('mysql-old')
-            // ->table('callcount')
-            // ->whereNotNull('app')
-            // ->where('callcount', Agent::->extension)
-            // ->count();
-            // dd($this->dialerCallCount);
+        \Log::info('Final data prepared', [
+            'inbound_users' => $inboundUsers,
+            'dialer_users' => $dialerUsers,
+            'raised_hands' => $raisedHands,
+        ]);
 
-
-        // }
-        // dd($inboundUsers);
+        \Log::info('Render completed, returning view');
 
         return view(
             'livewire.dashboard.admin.partials.user-section',
@@ -98,6 +100,7 @@ class UserSection extends Component
             ]
         );
     }
+
 
 
     public function listenCall($extension, $extenType, $action)

@@ -23,6 +23,21 @@
             accept=".xlsx,.csv"
         />
 
+         <!-- Type Dropdown -->
+        <x-select
+            label="Type"
+            placeholder="Select Type"
+            wire:model.defer="feed_type"
+            :options="[
+                ['name' => 'Satisfaction', 'id' => 'satisfaction'],
+                ['name' => 'Confirmation', 'id' => 'confirmation'],
+                ['name' => 'Follow up', 'id' => 'follow-up'],
+            ]"
+            
+    option-value="id"
+    option-label="name"
+        />
+
     </div>
  
     <x-slot name="footer">

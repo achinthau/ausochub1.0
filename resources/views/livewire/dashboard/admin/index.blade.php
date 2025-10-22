@@ -84,7 +84,9 @@
                                             @php
                                                 // $queueOngoing = Cache::get($data->queuename . '-current-call-count') ?? 0;
                                                 
-                                                $keys = Cache::keys("agent-on-call-*-{$data->queuename}");
+                                                use Illuminate\Support\Facades\Redis;
+
+                                                $keys = Redis::keys("agent-on-call-*-{$data->queuename}");
 
                                                 // Count them
                                                 $queueOngoing = count($keys);

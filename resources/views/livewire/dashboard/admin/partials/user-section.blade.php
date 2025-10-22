@@ -174,10 +174,15 @@
                                                     $user->extensionDetails->exten_type . '/' . $user->extension,
                                                 );
                                             } else {
-                                                $inCall = Cache::get('agent-in-call-' . $user->id);
+                                                // $inCall = Cache::get('agent-in-call-' . $user->id);
+
+                                                $inCall = Cache::get("agent-on-call-{$user->id}-*");
+
                                             }
                                         } else {
-                                            $inCall = Cache::get('agent-in-call-' . $user->id);
+                                            // $inCall = Cache::get('agent-in-call-' . $user->id);
+
+                                            $inCall = Cache::get("agent-on-call-{$user->id}-*");
                                         }
                                         //  $inCall = true;
                                          

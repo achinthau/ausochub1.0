@@ -23,7 +23,12 @@
                     <div class=" grid grid-cols-3 gap-4 ">
                         @php
                             $subText = '(In ' . $total_inbound_call_count . ' | Out ' . $total_outbound_call_count . ')';
-                            $_on_going = Cache('current-call-count') ?? 0;
+                            // $_on_going = Cache('current-call-count') ?? 0;
+
+                            $keys = Cache::keys('agent-on-call-*');
+
+                            // Count them
+                            $_on_going = count($keys);
 
                         @endphp
 
@@ -36,7 +41,7 @@
                             name='answered' iconColor="text-sky-400" />
                         <x-dashboard.box title="Abandoned" :value="$abandoned_queue_count" iconBackground="bg-red-100"
                             name='abandoned' iconColor="text-red-400" />
-                        <x-dashboard.box title="Onging" :value="$_on_going" iconBackground="bg-green-100"
+                        <x-dashboard.box title="Ongoing" :value="$_on_going" iconBackground="bg-green-100"
                             name='phone-answer' iconColor="text-green-400" />
                         <x-dashboard.box title="Wating" :value="$queue_wating_count" iconBackground="bg-orange-100"
                             name='waiting' iconColor="text-orange-400" />
@@ -77,7 +82,14 @@
                                         {{-- {{ $data->agent_conntected_count - $data->queue_wating_count < 0 ? 0 : $data->
                                             agent_conntected_count - $data->queue_wating_count }} --}}
                                             @php
-                                                $queueOngoing = Cache::get($data->queuename . '-current-call-count') ?? 0;
+                                                // $queueOngoing = Cache::get($data->queuename . '-current-call-count') ?? 0;
+                                                
+                                                $keys = Cache::keys("agent-on-call-*-{$data->queuename}");
+
+                                                // Count them
+                                                $queueOngoing = count($keys);
+
+                                                
                                             @endphp
                                             {{$queueOngoing}}
                                     </div>

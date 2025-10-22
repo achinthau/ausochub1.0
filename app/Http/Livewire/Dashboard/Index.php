@@ -249,7 +249,7 @@ class Index extends Component
                 ],
                 [
                     'name' => 'action',
-                    'contents' => $value ? 'add' : 'remove'
+                    'contents' => $type ? 'add' : 'remove'
                 ],
                 [
                     'name' => 'agentid',
@@ -257,7 +257,7 @@ class Index extends Component
                 ],
                 [
                     'name' => 'crm_token',
-                    'contents' => $value ? session()->getId() : null
+                    'contents' => $type ? session()->getId() : null
                 ],
 
                 [
@@ -288,7 +288,7 @@ class Index extends Component
                 ],
                 [
                     'name' => 'action',
-                    'contents' => $value ? 'add' : 'remove'
+                    'contents' => $type ? 'add' : 'remove'
                 ],
                 [
                     'name' => 'agentid',
@@ -296,7 +296,7 @@ class Index extends Component
                 ],
                 [
                     'name' => 'crm_token',
-                    'contents' => $value ? session()->getId() : null
+                    'contents' => $type ? session()->getId() : null
                 ],
                 [
                     'name' => 'dialer',

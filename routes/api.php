@@ -80,7 +80,7 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
 
 
 
-    Cache::forever('agent-at-call-' . $agent->id, 1);
+    Cache::forever('agent-in-call-' . $agent->id, 1);
     
     Cache::forever('call-' . $request['unique_id'], $agent->id);
 
@@ -263,7 +263,7 @@ Route::post('/call-dialed', function (StoreAnsweredCall $request) {
     $socketPort = env('SOCKET_SERVER_PORT', '3000');
     $fullSocketUrl = "http://127.0.0.1:{$socketPort}/emit";
 
-    Cache::forever('agent-in-call-' . $agent->id, 1);
+    Cache::forever('agent-at-call-' . $agent->id, 1);
 
     Cache::forever('call-' . $request['unique_id'], $agent->id);
     Cache::add('current-call-count', 0, 99999999);

@@ -80,7 +80,7 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
 
 
 
-    Cache::forever('agent-in-call-' . $agent->id, 1);
+    Cache::forever('agent-at-call-' . $agent->id, 1);
     
     Cache::forever('call-' . $request['unique_id'], $agent->id);
 
@@ -94,7 +94,7 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
     Cache::increment('current-call-count');
     Cache::increment($request['queuename'] . "-current-call-count");
     // Cache::forever('agent-on-call-' . $agent->id . '-' . $request['queuename'] , 1);
-    Cache::forever('agent-on-call-' . 'English' , 1);
+    // Cache::forever('agent-on-call-' . 'English' , 1);
 
 
 

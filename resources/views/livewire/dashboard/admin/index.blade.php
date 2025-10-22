@@ -25,6 +25,7 @@
                             $subText = '(In ' . $total_inbound_call_count . ' | Out ' . $total_outbound_call_count . ')';
                             // $_on_going = Cache('current-call-count') ?? 0;
 
+                            use Illuminate\Support\Facades\Redis;
                             $keys = Redis::keys('agent-on-call-*');
 
                             // Count them

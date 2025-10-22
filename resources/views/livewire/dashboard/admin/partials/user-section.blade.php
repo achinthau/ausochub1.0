@@ -1,6 +1,9 @@
 <div class="flex flex-col container max-w-md  mx-auto w-full items-center justify-center bg-white dark:bg-gray-800 rounded-lg shadow"
     wire:poll.2000ms>
     <ul class="flex flex-col divide-y w-full">
+        @php
+            use Illuminate\Support\Facades\Redis;
+        @endphp
 
         @foreach ($users as $user)
             @php
@@ -176,13 +179,15 @@
                                             } else {
                                                 // $inCall = Cache::get('agent-in-call-' . $user->id);
 
-                                                $inCall = Cache::get("agent_on_call-{$user->id}-*");
+                                                $keys = Redis::keys("agent_on_call-{$user->id}-*");
+                                                $inCall = count($keys);
 
                                             }
                                         } else {
                                             // $inCall = Cache::get('agent-in-call-' . $user->id);
 
-                                            $inCall = Cache::get("agent_on_call-{$user->id}-*");
+                                            $keys = Redis::keys("agent_on_call-{$user->id}-*");
+                                                $inCall = count($keys);
                                         }
                                         //  $inCall = true;
                                          

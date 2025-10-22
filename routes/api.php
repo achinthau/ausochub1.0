@@ -12,7 +12,6 @@ use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AsteriskEventController;
 use GuzzleHttp\Client;
@@ -88,8 +87,13 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
     Cache::add('current-call-count', 0, 99999999);
     if ($skill) {
         Cache::add($request['queuename'] . "-current-call-count", 0, 99999999);
-        // Redis::forever('agent_on_call-' . $agent->id . '-' . $request['queuename'] , 1);
-        Redis::set('agent_on_call-' . $agent->id . '-' . $request['queuename'], 1);
+
+        Cache::forever('agent_on_call-' . $agent->id . '-' . $request['queuename'], 1);
+
+        // $redis = Redis::connection()->client();
+        // $redis->select(1);
+        // $redis->set('agent_on_call-' . $agent->id . '-' . $request['queuename'], 1);
+
     }
 
     Cache::increment('current-call-count');

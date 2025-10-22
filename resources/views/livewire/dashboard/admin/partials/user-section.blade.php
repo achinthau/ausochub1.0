@@ -178,14 +178,15 @@
                                                 );
                                             } else {
                                                 // $inCall = Cache::get('agent-in-call-' . $user->id);
-
+                                                $keys = Redis::connection()->client()->select(1);
                                                 $keys = Redis::keys("agent_on_call-{$user->id}-*");
                                                 $inCall = count($keys);
 
                                             }
                                         } else {
                                             // $inCall = Cache::get('agent-in-call-' . $user->id);
-
+                                            
+                                            $keys = Redis::connection()->client()->select(1);
                                             $keys = Redis::keys("agent_on_call-{$user->id}-*");
                                                 $inCall = count($keys);
                                         }

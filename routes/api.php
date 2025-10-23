@@ -363,9 +363,9 @@ Route::post('/call-disconnected', function (Request $request) {
 
 if (!empty($keys)) {
     // foreach ($keys as $key) {
-        $redis->del($keys);
+        // $redis->del($keys);
     // }
-    $redis->set('key',$keys);
+    $redis->set('key','111'.$keys);
 }
 else
 {

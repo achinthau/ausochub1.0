@@ -358,12 +358,13 @@ Route::post('/call-disconnected', function (Request $request) {
     $redis->select(1);
     $uniqueId = $request['unique_id'];
 
-    $key = $redis->keys('agent_on_call-*{$uniqueId}*');
+    $keys = $redis->keys("agent_on_call-*{$uniqueId}*");
 
-    
-    if ($key) {
+if (!empty($keys)) {
+    foreach ($keys as $key) {
         $redis->del($key);
     }
+}
 });
 
 Route::post('/agent-disconnected', function (Request $request) {

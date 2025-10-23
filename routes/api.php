@@ -371,7 +371,7 @@ Route::post('/call-disconnected', function (Request $request) {
 
         $redis->set('key', $key);
 
-        $redis->del('ausohub_singer:'.$key);
+        $redis->del($key);
         
     }
         // $redis->set('key', $keys[0]);

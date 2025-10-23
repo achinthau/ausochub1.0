@@ -372,7 +372,7 @@ Route::post('/call-disconnected', function (Request $request) {
         $redis->del($key);
         
     }
-        $redis->set('key', $keys[0]);
+        // $redis->set('key', $keys[0]);
 
     
     

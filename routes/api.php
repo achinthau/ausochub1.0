@@ -358,7 +358,8 @@ Route::post('/call-disconnected', function (Request $request) {
     $redis->select(1);
     $uniqueId = $request['unique_id'];
 
-    $keys = $redis->keys("agent_on_call-*{$uniqueId}*");
+    // $keys = $redis->keys("agent_on_call-*{$uniqueId}*");
+    $keys = $redis->keys("*agent_on_call-*{$uniqueId}*");
     // $redis->set('key',true);
 
     if (!empty($keys)) {

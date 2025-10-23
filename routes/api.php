@@ -93,7 +93,7 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
 
         $redis = Redis::connection()->client();
         $redis->select(1);
-        $redis->set('agent_on_call-' . $agent->id . '-' . $request['queuename'], 1);
+        $redis->set('agent_on_call-' . $agent->id . '-' . $request['queuename'], $request['unique_id']);
 
     }
 
@@ -352,6 +352,16 @@ Route::post('/call-disconnected', function (Request $request) {
 
         Cache::decrement('current-call-count');
         Cache::decrement($request['queuename'] . "-current-call-count");
+    }
+
+    $redis = Redis::connection()->client()->select(1);
+    $uniqueId = $request['unique_id'];
+
+    $keys = $redis->keys("agent_on_call-*{$uniqueId}*");
+
+    // Delete them
+    if (!empty($keys)) {
+        $redis->del($keys);
     }
 });
 

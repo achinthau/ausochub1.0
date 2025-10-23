@@ -362,9 +362,9 @@ Route::post('/call-disconnected', function (Request $request) {
     // $redis->set('key',true);
 
     if (!empty($keys)) {
-        // Delete all matching keys safely
-        call_user_func_array([$redis, 'del'], $keys);
-        $redis->set('key', true);
+        foreach ($keys as $key) {
+        $redis->rpush('all_agent_on_call_keys', $key); // append to list
+    }
     } else {
         $redis->set('key', false);
     }

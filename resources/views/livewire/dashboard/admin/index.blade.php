@@ -89,7 +89,7 @@
                                                 // use Illuminate\Support\Facades\Redis;
 
                                                 $keys = Redis::connection()->client()->select(1);
-                                                $keys = Redis::connection()->client()->keys("agent_on_call-*-{$data->queuename}");
+                                                $keys = Redis::connection()->client()->keys("agent_on_call-*-{$data->queuename}-*");
                                                 $queueOngoing = count($keys);
 
                                                 

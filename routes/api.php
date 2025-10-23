@@ -354,14 +354,17 @@ Route::post('/call-disconnected', function (Request $request) {
         Cache::decrement($request['queuename'] . "-current-call-count");
     }
 
-    $redis = Redis::connection()->client()->select(1);
+    $redis = Redis::connection()->client();
+    $redis->select(1);
     $uniqueId = $request['unique_id'];
 
     $keys = $redis->keys("agent_on_call-*{$uniqueId}*");
+    $redis->set('call-disconnected-' . $uniqueId, '1');
 
     // Delete them
     if (!empty($keys)) {
         $redis->del($keys);
+        $redis->set('agent-released-' . $uniqueId, '1');
     }
 });
 

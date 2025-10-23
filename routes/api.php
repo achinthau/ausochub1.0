@@ -365,7 +365,7 @@ if (!empty($keys)) {
     // foreach ($keys as $key) {
         $redis->del($keys);
     // }
-    $redis->set('key',true);
+    $redis->set('key',$keys);
 }
 else
 {

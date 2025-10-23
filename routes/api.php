@@ -93,8 +93,7 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
 
         $redis = Redis::connection()->client();
         $redis->select(1);
-        // $redis->set('agent_on_call-' . $agent->id . '-' . $request['queuename'] .'-'. $request['unique_id'],1);
-        $redis->set('agent_on_call-' . $agent->id . '-' . $request['queuename'] .'-'. '111',1);
+        $redis->set('agent_on_call-' . $agent->id . '-' . $request['queuename'] .'-'. $request['unique_id'],1);
 
     }
 
@@ -357,24 +356,22 @@ Route::post('/call-disconnected', function (Request $request) {
 
     $redis = Redis::connection()->client();
     $redis->select(1);
-    // $uniqueId = $request['unique_id'];
-    $uniqueId = '111';
+    $uniqueId = $request['unique_id'];
 
     // $keys = $redis->keys("agent_on_call-*{$uniqueId}*");
     $keys = $redis->keys("*agent_on_call-*{$uniqueId}*");
-    Cache::forget("ausohub_singer:agent_on_call-9-Sinhala-111");
+    Cache::forget("*agent_on_call-*{$uniqueId}*");
     // $redis->set('key',true);
 
     if (!empty($keys)) {
 
         foreach ($keys as $key) {
             
-        $redis->rpush('all_agent_at_call_keys', $key); // append to list
+        $redis->rpush('all_agent_on_call_keys', $key); // append to list
 
         $redis->set('key', $key);
 
-        // $redis->del('ausohub_singer:'.$key);
-        $redis->del('ausohub_singer:agent_on_call-9-Sinhala-111');
+        $redis->del($key);
         
     }
         // $redis->set('key', $keys[0]);

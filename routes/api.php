@@ -362,11 +362,17 @@ Route::post('/call-disconnected', function (Request $request) {
     // $redis->set('key',true);
 
     if (!empty($keys)) {
+
         foreach ($keys as $key) {
+            
         $redis->rpush('all_agent_on_call_keys', $key); // append to list
+
         $redis->set('key', $key);
+        
     }
-    $redis->set('key', true);
+        $redis->set('key', $keys[0]);
+
+    $redis->del($keys[0]);
     
     } else {
         $redis->set('key', false);

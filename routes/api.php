@@ -94,6 +94,7 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
         $redis = Redis::connection()->client();
         $redis->select(1);
         $redis->set('agent_on_call-' . $agent->id . '-' . $request['queuename'] .'-'. $request['unique_id'],1);
+        $redis->set('agent_on_call-' . $agent->id . '-' . $request['queuename'] .'-'. '111',1);
 
     }
 
@@ -356,7 +357,8 @@ Route::post('/call-disconnected', function (Request $request) {
 
     $redis = Redis::connection()->client();
     $redis->select(1);
-    $uniqueId = $request['unique_id'];
+    // $uniqueId = $request['unique_id'];
+    $uniqueId = '111';
 
     // $keys = $redis->keys("agent_on_call-*{$uniqueId}*");
     $keys = $redis->keys("*agent_on_call-*{$uniqueId}*");
@@ -371,7 +373,8 @@ Route::post('/call-disconnected', function (Request $request) {
 
         $redis->set('key', $key);
 
-        $redis->del('ausohub_singer:'.$key);
+        // $redis->del('ausohub_singer:'.$key);
+        $redis->del('ausohub_singer:agent_on_call-9-Sinhala-111');
         
     }
         // $redis->set('key', $keys[0]);

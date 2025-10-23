@@ -359,7 +359,7 @@ Route::post('/call-disconnected', function (Request $request) {
     $uniqueId = $request['unique_id'];
 
     // $keys = $redis->keys("agent_on_call-*{$uniqueId}*");
-    $keys = $redis->keys("ausohub_singer:agent_on_call-*{$uniqueId}*");
+    $keys = $redis->keys("*agent_on_call-*{$uniqueId}*");
     // Cache::forget("*agent_on_call-*{$uniqueId}*");
     // $redis->set('key',true);
 
@@ -371,7 +371,7 @@ Route::post('/call-disconnected', function (Request $request) {
 
         $redis->set('key', $key);
 
-        $redis->del($key);
+        $redis->del('ausohub_singer:'.$key);
         
     }
         // $redis->set('key', $keys[0]);

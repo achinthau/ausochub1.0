@@ -359,24 +359,28 @@ Route::post('/call-disconnected', function (Request $request) {
     $uniqueId = $request['unique_id'];
 
     // $keys = $redis->keys("agent_on_call-*{$uniqueId}*");
-    $keys = $redis->keys("*agent_on_call-*{$uniqueId}");
+    $keys = $redis->keys("*agent_on_call-*{$uniqueId}*");
+    Cache::forget("*agent_on_call-*{$uniqueId}*");
+    // $redis->set('key',true);
 
-if (!empty($keys)) {
-    foreach ($keys as $key) {
-        // Optional: log the key before deleting
-        $redis->rpush('all_agent_on_call_keys', $key);
+    if (!empty($keys)) {
 
-        // Delete the key
+        foreach ($keys as $key) {
+            
+        $redis->rpush('all_agent_on_call_keys', $key); // append to list
+
+        $redis->set('key', $key);
+
         $redis->del($key);
+        
     }
+        // $redis->set('key', $keys[0]);
 
-    // Optionally mark that deletion happened
-    $redis->set('key_deletion_status', 'true');
-} else {
-    // Mark that no keys were found
-    $redis->set('key_deletion_status', 'false');
-}
-
+    
+    
+    } else {
+        $redis->set('key', false);
+    }
 });
 
 Route::post('/agent-disconnected', function (Request $request) {

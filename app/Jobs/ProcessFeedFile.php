@@ -116,8 +116,8 @@ class ProcessFeedFile implements ShouldQueue
                             $soldDate = $this->excelDateToYmd($rawSoldDate);
                             $customerName = $json['customer_name'] ?? null;
                             $customerAddress = $json['customer_address'] ?? '';
-                            $contact01 = $contact->contact_no_01 ?? null;
-                            $contact02 = $contact->contact_no_02 ?? null;
+                            $contact01 = $cleanPhone ?? null;
+                            $contact02 = $cleanPhone2 ?? null;
                             $technicianName = $json['technician_name'] ?? '';
                             $technicianContact = $json['technician_contact'] ?? '';
 

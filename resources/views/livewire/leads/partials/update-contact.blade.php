@@ -24,7 +24,7 @@
         <x-button flat label="Cancel" x-on:click="close" />
 
         
-            <x-button primary label="Update Contact" wire:click="skipContact" />
+            <x-button primary label="Submit" wire:click="skipContact" />
 
     </div>
 </x-slot>

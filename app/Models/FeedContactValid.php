@@ -26,4 +26,11 @@ class FeedContactValid extends Model
     {
         return $this->belongsTo(User::class, 'assigned_to');
     }
+
+    //status
+    //['1'=>'answered'] rated,cancel,reopen
+    //['2'=>'no answered']
+    //['22'=>' 2 no answered']
+    //['222'=>'3 no answered']
+    //['4'=>'3 no answered'] removed 
 }

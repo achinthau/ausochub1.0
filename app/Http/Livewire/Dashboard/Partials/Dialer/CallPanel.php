@@ -77,7 +77,7 @@ class CallPanel extends Component
         $record = FeedContactValid::whereIn('feed_id', $feedIds)
             ->where(function ($query) {
                 $query->whereNull('status') // Fresh ones
-                    ->orWhereIn('status', [2, 22, 222]); // No Answer retries
+                    ->orWhereIn('status', [2, 22]); // No Answer retries
             })
             ->where(function ($query) {
                 $query->whereNull('next_available_at')

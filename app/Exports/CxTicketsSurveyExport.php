@@ -31,7 +31,7 @@ class CxTicketsSurveyExport implements FromCollection, WithHeadings, WithMapping
             'Customer Name', 'Customer Address', 'Customer Contact 01', 
             'Customer Contact 02', 'Technician Name', 'Technician Contact', 
             'Supervisor Name', 'Supervisor Contact', 'Ticket Creator', 
-            'Status', 'Created At', 'Updated At'
+            'Status','Updated_Contacts', 'Created At', 'Updated At'
         ];
     }
 
@@ -59,6 +59,7 @@ class CxTicketsSurveyExport implements FromCollection, WithHeadings, WithMapping
             $row->supervisor_contact,
             $row->creator,
             $row->status,
+            $row->updated_actual_contacts,
             $row->created_at,
             $row->updated_at,
         ];

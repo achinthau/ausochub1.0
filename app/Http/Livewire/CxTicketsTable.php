@@ -194,11 +194,13 @@ public function builder(): Builder
             // Column::make("Satisfaction Reasons", "satisfaction_reasons")->sortable()->searchable(),
             // Column::make("Dis_satisfaction Reasons", "dis_satisfaction_reasons")->sortable()->searchable(),
             // Column::make("Cancelling Reasons", "cancelling_reasons")->sortable()->searchable(),
+            // Column::make("Cancelling Reasons", "cancelling_comment")->sortable()->searchable(),
             // Column::make("Created at", "created_at")->sortable(),
             Column::make("Closed_BY", "closed_by")->sortable(),
             Column::make("Reopened_BY", "reopened_by")->sortable(),
             Column::make("Reopened_REASON", "reopened_reasons")->sortable(),
             Column::make("Company", "company")->sortable(),
+            Column::make("Updated_Contacts", "updated_actual_contacts")->sortable()->searchable(),            
             Column::make("Surveyed By", "surveyed_by")->sortable(),
             Column::make("Updated at", "updated_at")->sortable(),
             Column::make("Actions")

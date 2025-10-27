@@ -393,6 +393,12 @@
                                             Skip
                                         </button>
 
+                                        <button type="button"
+                                            wire:click="$emit('openUpdateContactModal', '{{ $lead->contact_number }}', '{{ $feed_id }}', '{{ $service_type }}')"
+                                            class="w-32 bg-orange-300 font-bold hover:bg-orange-400 p-2 rounded-md shadow-md">
+                                            Update Contact
+                                        </button>
+
                                     </div>
 
                                 </div>
@@ -585,7 +591,7 @@
             </div>
 
             {{-- Skipped Reasons --}}
-            @if($isNotAnswered)
+            @if($isNotAnswered == 'Skip')
                 <div class="border p-3 rounded-lg shadow-md mt-4">
                     <h1 class="p-1 pl-0 font-bold text-lg">Skipped Reasons</h1>
                     <ul class="list-disc ml-4">
@@ -767,6 +773,7 @@
     @livewire('tickets.create', ['leadId' => $lead->id])
     @livewire('orders.create', ['leadId' => $lead->id])
     @livewire('leads.partials.skip-modal', ['leadId' => $lead->contact_number])
+    @livewire('leads.partials.update-contact', ['leadId' => $lead->contact_number])
     @livewire('leads.partials.submit-call-status')
 
 

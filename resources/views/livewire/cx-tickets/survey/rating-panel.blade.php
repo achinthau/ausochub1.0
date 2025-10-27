@@ -107,6 +107,11 @@
                         </span>
                     @endforeach
                 </div>
+
+                <div>
+                <label class="pb-4 text-lg font-bold">Add comment for cancelling</label>
+                <textarea cols="60" rows="5" wire:model.defer="CancelComment" class="pt-2 w-full border rounded"></textarea>
+                </div>
         </div>
 
         @endif

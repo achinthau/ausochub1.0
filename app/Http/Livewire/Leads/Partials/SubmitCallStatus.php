@@ -100,9 +100,11 @@ class SubmitCallStatus extends Component
                         $feed->status = 22; // Second time
                     } elseif ($feed->status == 22) {
                         $feed->status = 222; // Third time
-                    } elseif ($feed->status == 222) {
-                        $feed->status = 4; // Third time
-                    } else {
+                    } 
+                    // elseif ($feed->status == 222) {
+                    //     $feed->status = 4; // Third time
+                    // } 
+                    else {
                         $feed->status = 2; // First time "no answer"
                     }
 
@@ -160,9 +162,11 @@ class SubmitCallStatus extends Component
                     $this->feed->status = 22; // Second time
                 } elseif ($this->feed->status == 22) {
                     $this->feed->status = 222; // Third time
-                } elseif ($this->feed->status == 222) {
-                    $this->feed->status = 4; // Third time
-                } else {
+                } 
+                // elseif ($this->feed->status == 222) {
+                //     $this->feed->status = 4; // Third time
+                // }
+                 else {
                     $this->feed->status = 2; // First time "no answer"
                 }
 

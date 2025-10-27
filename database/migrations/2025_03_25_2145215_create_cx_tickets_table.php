@@ -41,6 +41,7 @@ return new class extends Migration
             $table->string('satisfaction_reasons')->nullable();
             $table->string('dis_satisfaction_reasons')->nullable();
             $table->string('cancelling_reasons')->nullable();
+            $table->string('cancelling_comment')->nullable();
             $table->string('reopened_reasons')->nullable();
 
             $table->string('reopened_by')->nullable();
@@ -49,6 +50,8 @@ return new class extends Migration
             
             $table->string('skipped_reasons')->nullable();
             $table->string('skipped_by')->nullable();
+
+            $table->string('updated_actual_contacts')->nullable();
 
             $table->timestamps();
         });

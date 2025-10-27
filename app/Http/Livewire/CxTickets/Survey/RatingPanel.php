@@ -35,6 +35,7 @@ class RatingPanel extends Component
     public $selectedCancellingReason = null;
 
     public $isCancel = false;
+    public $CancelComment = '' ;
 
     public function mount()
     {
@@ -88,6 +89,7 @@ class RatingPanel extends Component
                 'status' => "Canceled",
                 'cancelling_reasons' => implode(',', $cancelReasons),
                 'surveyed_by' => Auth::user()->name,
+                'cancelling_comment' => $this->CancelComment,
             ]);
         }
 

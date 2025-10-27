@@ -15,6 +15,7 @@ class CxTicket extends Model
         'technician_name', 'technician_contact', 'supervisor_name', 'supervisor_contact', 'status', 'creator',
         'satisfaction_rate','satisfaction_reasons','dis_satisfaction_reasons','cancelling_reasons',
         'closed_by', 'surveyed_by', 'company', 'reopened_by', 'reopened_reasons', 'skipped_reasons','skipped_by',
+        'cancelling_comment','updated_actual_contacts',
     ];
     
 }

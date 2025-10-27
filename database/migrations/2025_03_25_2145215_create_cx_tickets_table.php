@@ -51,7 +51,7 @@ return new class extends Migration
             $table->string('skipped_reasons')->nullable();
             $table->string('skipped_by')->nullable();
 
-            $table->string('updated_actual_contacts')->nullable();
+            $table->string('change_request')->nullable();
 
             $table->timestamps();
         });

@@ -200,7 +200,7 @@ public function builder(): Builder
             Column::make("Reopened_BY", "reopened_by")->sortable(),
             Column::make("Reopened_REASON", "reopened_reasons")->sortable(),
             Column::make("Company", "company")->sortable(),
-            Column::make("Updated_Contacts", "updated_actual_contacts")->sortable()->searchable(),            
+            Column::make("Change Request", "change_request")->sortable()->searchable(),            
             Column::make("Surveyed By", "surveyed_by")->sortable(),
             Column::make("Updated at", "updated_at")->sortable(),
             Column::make("Actions")

@@ -1,5 +1,5 @@
 <x-modal.card
-    title="Update Contact"
+    title="Change Request"
     blur
     align="center"
     wire:model="UpdateContactModal"
@@ -9,7 +9,7 @@
     <div class="px-6">
     {{-- Comment Field --}}
     
-        <label class="pb-4">Add new contacts</label>
+        <label class="pb-4">Submit change request</label>
    
 
     <textarea cols="60" rows="5" wire:model.defer="comment" class="pt-2 w-full border rounded"></textarea>

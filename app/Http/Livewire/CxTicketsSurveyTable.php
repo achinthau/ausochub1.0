@@ -125,7 +125,7 @@ public function builder(): Builder
                 ->sortable(),
             Column::make("Creator", "creator")
                 ->sortable(),
-            Column::make("Updated_Contacts", "updated_actual_contacts")->sortable()->searchable(), 
+            Column::make("Change Request", "change_request")->sortable()->searchable(), 
             Column::make("Created at", "created_at")
                 ->sortable(),
             Column::make("Updated at", "updated_at")

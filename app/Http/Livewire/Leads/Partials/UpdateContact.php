@@ -44,7 +44,7 @@ class UpdateContact extends Component
 
             foreach ($surveyTickets as $surveyTicket) {
                 // $surveyTicket->status = 'Skip';
-                $surveyTicket->updated_actual_contacts = $this->comment;
+                $surveyTicket->change_request = $this->comment;
                 $surveyTicket->surveyed_by = Auth::user()->name;
                 $surveyTicket->save();
             }

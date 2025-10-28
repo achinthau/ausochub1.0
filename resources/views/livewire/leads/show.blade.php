@@ -445,8 +445,9 @@
         $notAnswered = $ticket->status == 'Skip' || $ticket->status == 'ReOpened' || $ticket->status == 'Canceled';
 
         // Check if Not Answered was submitted today
-        $lastUpdated = \Carbon\Carbon::parse($ticket->updated_at); 
-        $hideNotAnsweredButtons = $notAnswered && $lastUpdated->isToday();
+        $lastUpdated = \Carbon\Carbon::parse($ticket->next_available_at); 
+        // $hideNotAnsweredButtons = $notAnswered && $lastUpdated->isToday();
+        $hideNotAnsweredButtons = $notAnswered && $lastUpdated->lessThan(now()->startOfDay());
         $notAnsweredCount = strlen( $feedContactIdStatus);
     @endphp
 

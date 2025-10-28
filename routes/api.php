@@ -613,53 +613,47 @@ Route::post('/get-answered-number', function (Request $request) {
 
 Route::post('/get-missed-call-number', function (Request $request) {
 
-    Log::error('Called the api: ');
-    $validator = Validator::make($request->all(), [
+    Log::info('Called the API: ', $request->all());
+
+    $validated = $request->validate([
         'customer' => 'required',
         'dstnumber' => 'required'
     ]);
-    $phone = $request->input('customer');
-    $dst = $request->input('dstnumber');
 
-    if($validator->fails()){
-        return response()->json([
-        'success'=> false,
-        'message'=> 'Validation Error',
-        'error'=> $validator->errors(),
-        ],422);
-    }
-    else{
-        $campaigns = Campaign::where('status', 1)
-            ->get();
-        
+    $phone = $validated['customer'];
+    $dst = $validated['dstnumber'];
+
+    $campaigns = Campaign::where('status', 1)
+        ->where('hotline', $dst)
+        ->get();
+
+    $feedIds = [];
+
+    if ($campaigns->isNotEmpty()) {
         $feedIds = $campaigns->flatMap->feed_ids->unique()->toArray();
+    }
 
+    $record = null;
 
+    if (!empty($feedIds)) {
         $record = FeedContactValid::whereIn('feed_id', $feedIds)
             ->where(function ($query) {
-                $query->whereNull('status') // Fresh ones
-                    ->orWhereIn('status', [2, 22, 222]); // No Answer retries
+                $query->whereNull('status')
+                    ->orWhereIn('status', [2, 22, 222]);
             })
-            // ->where(function ($query) {
-            //     $query->whereNull('next_available_at');
-            //         ->orWhere('next_available_at', '<=', now());
-            // })
             ->where(function ($query) use ($phone) {
                 $query->where('contact_no_01', $phone)
-                    ->orWhere('contact_no_02', $phone);
+                      ->orWhere('contact_no_02', $phone);
             })
             ->first();
+    }
 
-        if($record->status == 222)
-        {
+    if ($record) {
+        $record->next_available_at = now()->subDay();
+        if ($record->status == 222) {
             $record->status = 22;
-            $record->next_available_at = now()->subDay();
-            $record->save();
         }
-        else{
-            $record->next_available_at = now()->subDay();
-            $record->save();
-        }
+        $record->save();
     }
 
     return response()->json([
@@ -669,7 +663,8 @@ Route::post('/get-missed-call-number', function (Request $request) {
             'phone_number' => $phone,
             'hotline' => $dst,
         ],
-    ], 200); 
+    ]);
 });
+
 
 

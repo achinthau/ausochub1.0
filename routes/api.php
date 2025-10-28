@@ -19,6 +19,7 @@ use GuzzleHttp\Client;
 use Illuminate\Support\Facades\DB;
 use App\Repositories\ApiManager;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Campaign;
 
 
 
@@ -608,6 +609,55 @@ Route::post('/get-answered-number', function (Request $request) {
             'extention' => $exten,
         ],
     ], 200); // HTTP 200 OK
+});
+
+Route::post('/get-missed-call-number', function (Request $request) {
+    $validator = Validator::make($request->all(), [
+        'customer' => 'required',
+        'dstnumber' => 'required'
+    ]);
+    $phone = $request->input('customer');
+
+    if($validator->fails()){
+        return response()->json([
+        'success'=> false,
+        'message'=> 'Validation Error',
+        'error'=> $validator->errors(),
+        ],422);
+    }
+    else{
+        $campaigns = Campaign::where('status', 1)
+            ->get();
+        
+        $feedIds = $campaigns->flatMap->feed_ids->unique()->toArray();
+
+
+        $record = FeedContactValid::whereIn('feed_id', $feedIds)
+            ->where(function ($query) {
+                $query->whereNull('status') // Fresh ones
+                    ->orWhereIn('status', [2, 22, 222]); // No Answer retries
+            })
+            ->where(function ($query) {
+                $query->whereNull('next_available_at')
+                    ->orWhere('next_available_at', '<=', now());
+            })
+            ->where(function ($query) use ($phone) {
+                $query->where('contact_no_01', $phone)
+                    ->orWhere('contact_no_02', $phone);
+            })
+            ->first();
+
+        if($record->status == 222)
+        {
+            $record->status = 22;
+            $record->next_available_at = now()->subDay();
+            $record->save();
+        }
+        else{
+            $record->next_available_at = now()->subDay();
+            $record->save();
+        }
+    }
 });
 
 

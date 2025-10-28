@@ -617,6 +617,7 @@ Route::post('/get-missed-call-number', function (Request $request) {
         'dstnumber' => 'required'
     ]);
     $phone = $request->input('customer');
+    $dst = $request->input('dstnumber');
 
     if($validator->fails()){
         return response()->json([
@@ -658,6 +659,15 @@ Route::post('/get-missed-call-number', function (Request $request) {
             $record->save();
         }
     }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Phone number received successfully.',
+        'data' => [
+            'phone_number' => $phone,
+            'hotline' => $dst,
+        ],
+    ], 200); 
 });
 
 

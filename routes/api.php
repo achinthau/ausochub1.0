@@ -612,6 +612,8 @@ Route::post('/get-answered-number', function (Request $request) {
 });
 
 Route::post('/get-missed-call-number', function (Request $request) {
+
+    Log::error('Called the api: ');
     $validator = Validator::make($request->all(), [
         'customer' => 'required',
         'dstnumber' => 'required'
@@ -638,10 +640,10 @@ Route::post('/get-missed-call-number', function (Request $request) {
                 $query->whereNull('status') // Fresh ones
                     ->orWhereIn('status', [2, 22, 222]); // No Answer retries
             })
-            ->where(function ($query) {
-                $query->whereNull('next_available_at')
-                    ->orWhere('next_available_at', '<=', now());
-            })
+            // ->where(function ($query) {
+            //     $query->whereNull('next_available_at');
+            //         ->orWhere('next_available_at', '<=', now());
+            // })
             ->where(function ($query) use ($phone) {
                 $query->where('contact_no_01', $phone)
                     ->orWhere('contact_no_02', $phone);

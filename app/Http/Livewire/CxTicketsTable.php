@@ -196,6 +196,7 @@ public function builder(): Builder
             Column::make("Skipped By", "skipped_by")->sortable()->searchable(),
             Column::make("Cancelling Reasons", "cancelling_reasons")->sortable()->searchable(),
             Column::make("Cancelling Comment", "cancelling_comment")->sortable()->searchable(),
+            Column::make("Dis Satisfaction Reasons", "dis_satisfaction_reasons")->sortable()->searchable(),
             // Column::make("Created at", "created_at")->sortable(),
             Column::make("Closed_BY", "closed_by")->sortable(),
             Column::make("Reopened_BY", "reopened_by")->sortable(),

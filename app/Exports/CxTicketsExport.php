@@ -33,7 +33,7 @@ class CxTicketsExport implements FromCollection, WithHeadings, WithMapping
             'Supervisor Name', 'Supervisor Contact', 'Ticket Creator', 
             'Status',
             'Satisfaction Rate','Satisfaction Reasons','Dis_satisfaction Reasons','Cancelling Reasons',
-            'Change Request',
+            'Cancelling Comment','Skipped Reasons','Skipped By','Change Request',
             'Closed by', 'Surveyed by',
             'Created At', 'Updated At',
         ];
@@ -67,6 +67,9 @@ class CxTicketsExport implements FromCollection, WithHeadings, WithMapping
             $row->satisfaction_reasons,
             $row->dis_satisfaction_reasons,
             $row->cancelling_reasons,
+            $row->cancelling_comment,
+            $row->skipped_reasons,
+            $row->skipped_by,
             $row->change_request,
             $row->closed_by,
             $row->surveyed_by,

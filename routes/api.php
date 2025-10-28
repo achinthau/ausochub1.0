@@ -623,14 +623,19 @@ Route::post('/get-missed-call-number', function (Request $request) {
     $phone = $validated['customer'];
     $dst = $validated['dstnumber'];
 
+    // return $dst;
+
     $campaigns = Campaign::where('status', 1)
         ->where('hotline', $dst)
         ->get();
+
+    Log::info('Found campaign: ', ['data' => $campaigns->toArray()]);
 
     $feedIds = [];
 
     if ($campaigns->isNotEmpty()) {
         $feedIds = $campaigns->flatMap->feed_ids->unique()->toArray();
+        Log::info('Found feedIds: ', ['data' => $feedIds]);
     }
 
     $record = null;
@@ -646,6 +651,8 @@ Route::post('/get-missed-call-number', function (Request $request) {
                       ->orWhere('contact_no_02', $phone);
             })
             ->first();
+
+        Log::info('Found record: ', ['data' => $record ? $record->toArray() : null]);
     }
 
     if ($record) {
@@ -654,6 +661,8 @@ Route::post('/get-missed-call-number', function (Request $request) {
             $record->status = 22;
         }
         $record->save();
+
+        Log::info('Record saved: ', ['data' => $record->toArray()]);
     }
 
     return response()->json([
@@ -665,6 +674,7 @@ Route::post('/get-missed-call-number', function (Request $request) {
         ],
     ]);
 });
+
 
 
 

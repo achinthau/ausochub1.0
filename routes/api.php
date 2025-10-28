@@ -648,8 +648,8 @@ Route::post('/get-missed-call-number', function (Request $request) {
                     ->orWhereIn('status', [2, 22, 222]);
             })
             ->where(function ($query) use ($phone) {
-                $query->where('contact_no_01', $phone)
-                      ->orWhere('contact_no_02', $phone);
+                $query->where('contact_no_01','LIKE', '%' . $phone)
+                      ->orWhere('contact_no_02','LIKE', '%' . $phone);
             })
             ->first();
 

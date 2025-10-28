@@ -626,8 +626,9 @@ Route::post('/get-missed-call-number', function (Request $request) {
     // return $dst;
 
     $campaigns = Campaign::where('status', 1)
-        ->where('hotline', $dst)
-        ->get();
+    // ->whereRaw('RIGHT(hotline, 9) = ?', [substr($dst, -9)])
+    ->where('hotline', 'LIKE', '%' . $dst)
+    ->get();
 
     Log::info('Found campaign: ', ['data' => $campaigns->toArray()]);
 

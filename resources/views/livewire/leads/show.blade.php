@@ -393,11 +393,13 @@
                                             Skip
                                         </button>
 
+                                        @if ($service_type != 'satisfaction')
                                         <button type="button"
                                             wire:click="$emit('openUpdateContactModal', '{{ $lead->contact_number }}', '{{ $feed_id }}', '{{ $service_type }}')"
                                             class="w-32 bg-orange-300 font-bold hover:bg-orange-400 p-2 rounded-md shadow-md">
                                             Change Request
                                         </button>
+                                        @endif
 
                                     </div>
 

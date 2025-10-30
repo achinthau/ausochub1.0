@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Leads\Partials;
 
+use App\Models\Campaign;
 use App\Models\CxTicket;
 use App\Models\DialerCallStatusOption;
 use App\Models\FeedContactAttempt;
@@ -24,6 +25,7 @@ class SubmitCallStatus extends Component
     public $feedCount = 0;
     public $paymentDate;
     public $cxTicketId;
+    public $campaign;
 
     protected $listeners = ['openCallStatusModal' => 'openModal'];
 
@@ -33,6 +35,9 @@ class SubmitCallStatus extends Component
         $this->feedCount = $feedCount;
         $this->feed = FeedContactValid::find($id);
         // dd($this->feedCount);
+        $this->campaign = Campaign::whereIn('assigned_feeds', [$this->feed->feed_id])->get();
+        $this->campaign = $this->campaign->first()->id;
+        // dd($this->campaign);
         $this->status = $status;
         $this->options = DialerCallStatusOption::where('type', $status === 'answered' ? 1 : 2)
             ->pluck('option', 'id')
@@ -120,6 +125,7 @@ class SubmitCallStatus extends Component
                     'feed_contact_valid_id' => $feed->id,
                     'call_status_option_id' => $this->selectedOption,
                     'comments' => $this->comment,
+                    'campaign_id' => $this->campaign,
                     'updated_by' => Auth::id(),
                 ]);
             }
@@ -196,6 +202,7 @@ class SubmitCallStatus extends Component
                 'feed_contact_valid_id' => $this->feed->id,
                 'call_status_option_id' => $this->selectedOption,
                 'comments' => $this->comment,
+                'campaign_id' => $this->campaign,
                 'updated_by' => Auth::id(),
             ]);
         }

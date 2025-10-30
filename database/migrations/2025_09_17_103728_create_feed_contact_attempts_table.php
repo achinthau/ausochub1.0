@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('feed_contact_valid_id')->nullable();
             $table->unsignedBigInteger('call_status_option_id')->nullable();
             $table->string('comments')->nullable();
+            $table->bigInteger('campaign_id')->nullable();
             $table->unsignedBigInteger('updated_by')->nullable();
             $table->timestamps();
         });

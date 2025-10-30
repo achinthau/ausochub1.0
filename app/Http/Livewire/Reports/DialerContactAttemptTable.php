@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Reports;
 
 use App\Models\Campaign;
+use App\Models\Company;
 use App\Models\DialerCallStatusOption;
 use App\Models\User;
 use Illuminate\Support\Carbon;
@@ -19,15 +20,38 @@ class DialerContactAttemptTable extends DataTableComponent
 {
     protected $model = FeedContactAttempt::class;
 
+    public $selectedCampaign = null;
+    protected $listeners = ['dialerCampUpdated' => 'setCampaign', 'refreshTable' => '$refresh'];
+
     public function configure(): void
     {
         $this->setPrimaryKey('id');
     }
+
+    public function setCampaign($cpmId)
+    {
+        $this->selectedCampaign = $cpmId;
+        // $this->resetPage();
+        $this->emitSelf('refreshTable');
+    }
     public function builder(): Builder
     {
-        return FeedContactAttempt::query()
-            ->with(['feed', 'status', 'agent'])->orderByDesc('id');
+        if ($this->selectedCampaign) {
+            return FeedContactAttempt::query()
+                ->with(['feed', 'status', 'agent', 'campaign'])->orderByDesc('id')
+                ->where('campaign_id', $this->selectedCampaign);
+        } else {
+            $user = auth()->user();
+            $userTenants = array_map('trim', explode(',', $user->tenant_context));
+            $tenantIds = Company::whereIn('name', $userTenants)->pluck('id');
+            $campaignIds = Campaign::whereIn('company', $tenantIds)->pluck('id');
+            return FeedContactAttempt::query()
+                ->with(['feed', 'status', 'agent', 'campaign'])->orderByDesc('id')
+                ->whereIn('campaign_id', $campaignIds);
+        }
     }
+
+
 
 
     public function columns(): array
@@ -82,6 +106,15 @@ class DialerContactAttemptTable extends DataTableComponent
             Column::make("Comments", "comments")
                 ->sortable()
                 ->searchable(),
+            Column::make("Campaign", "campaign_id")
+                ->format(fn($value, $row) => optional($row->campaign)->name ?? '—')
+                ->sortable()
+                ->searchable(function ($builder, $term) {
+                    return $builder->orWhereHas('campaign', function ($query) use ($term) {
+                        $query->where('name', 'like', '%' . $term . '%');
+                    });
+                }),
+
             Column::make("Updated by", "updated_by")
                 ->format(function ($value, $row) {
                     $user = $row->agent;
@@ -184,6 +217,7 @@ class DialerContactAttemptTable extends DataTableComponent
             'Contact No 02',
             'Call Status Option',
             'Comments',
+            'Campaign',
             'Updated By',
             'Updated At',
         ];
@@ -201,6 +235,7 @@ class DialerContactAttemptTable extends DataTableComponent
                 optional($record->feed)->contact_no_02 ?? 'N/A',
                 optional($record->status)->option ?? 'N/A',
                 $record->comments ?? 'N/A',
+                optional($record->campaign)->name ?? 'N/A',
                 optional($record->agent)->name ?? 'N/A',
                 $record->updated_at ? $record->updated_at->toDateTimeString() : 'N/A',
             ];

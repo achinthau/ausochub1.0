@@ -275,6 +275,10 @@ Route::post('/call-dialed', function (StoreAnsweredCall $request) {
     Cache::add('current-call-count', 0, 99999999);
     if ($skill) {
         Cache::add($request['queuename'] . "-current-call-count", 0, 99999999);
+
+        $redis = Redis::connection()->client();
+        $redis->select(1);
+        $redis->set('agent_on_call-' . $agent->id . '-' . $request['queuename'] .'-'. $request['unique_id'],1);
     }
 
     Cache::increment('current-call-count');

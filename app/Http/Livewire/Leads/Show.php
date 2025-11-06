@@ -257,7 +257,7 @@ class Show extends Component
                 $query->where('customer_contact_01', $phone)
                     ->orWhere('customer_contact_02', $phone);
             })
-                ->whereIn('status', ['Closed', 'Skip', 'Rated'])
+                ->whereIn('status', ['Closed', 'Skip'])
                 ->get();
 
             if ($this->surveyContacts->isNotEmpty()) {

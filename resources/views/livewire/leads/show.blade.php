@@ -454,7 +454,7 @@
         $notAnsweredCount = strlen( $feedContactIdStatus);
     @endphp
 
-    <details class="border rounded-lg shadow-sm p-1
+    <details class="border rounded-lg shadow-sm p-2
         @if($isAnswered)
             bg-green-50 border-green-300
         @elseif($isNotAnswered == 'Skip' || $isNotAnswered == 'ReOpened' || $isNotAnswered == 'Canceled')

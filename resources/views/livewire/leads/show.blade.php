@@ -450,7 +450,7 @@
         $lastUpdated = \Carbon\Carbon::parse($ticket->updated_at); 
         // $hideNotAnsweredButtons = $notAnswered && $lastUpdated->isToday();
         // $hideNotAnsweredButtons = $notAnswered && $lastUpdated->greaterThan(now()->startOfDay());
-        $hideNotAnsweredButtons = $ticket->status == 'ReOpened' || $ticket->status == 'Canceled' ;
+        $hideNotAnsweredButtons = ($ticket->status == 'ReOpened') || ($ticket->status == 'Canceled') || ($ticket->status == 'Skip' && $lastUpdated->greaterThan(\Carbon\Carbon::now()->subMinutes(2)));
         $notAnsweredCount = strlen( $feedContactIdStatus);
     @endphp
 

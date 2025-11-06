@@ -46,7 +46,7 @@ return new class extends Migration
                      FROM ac_feed_contact_valids fcv
                      WHERE FIND_IN_SET(CAST(fcv.feed_id AS CHAR CHARACTER SET utf8mb3),
                                        CAST(c.assigned_feeds AS CHAR CHARACTER SET utf8mb3))
-                       AND fcv.status = 'answered'
+                       AND fcv.status = '1'
                     ), 0
                 ) AS answered_count,
                 COALESCE(

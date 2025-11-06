@@ -152,7 +152,6 @@ class SubmitCallStatus extends Component
                 
                         $ticket->skipped_by = Auth::user()->name;
                     }
-                    $ticket->updated_at = now();
                     $ticket->save();
                     }
                 }

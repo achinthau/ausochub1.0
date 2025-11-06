@@ -3,7 +3,7 @@
         @livewire('dashboard.index')
     @endcan
 
-    @can('is-admin')
+    @canany(['is-admin','client-admin'])
     @livewire('dashboard.admin.index')
-    @endcan
+    @endcanany
 </x-app-layout>

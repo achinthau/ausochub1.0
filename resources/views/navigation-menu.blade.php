@@ -11,7 +11,7 @@
                         <x-general.logo navigation="1" />
                     </a>
                 </div>
-                @can('can-view-leads')
+                @can('can-view-dashboard')
                     <!-- Navigation Links -->
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                         <x-jet-nav-link href="{{ route('dashboard.index') }}" :active="request()->routeIs('dashboard.index')">
@@ -130,7 +130,7 @@
                     @endif
 
                         @endcan
-                @canany(['can-view-reports', 'can-view-cdr-reports'])
+                @canany(['can-view-reports', 'can-view-cdr-reports', 'can-view-dialer-reports'])
 
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                         <x-jet-nav-link href="{{ route('reports.index') }}" :active="request()->routeIs('reports.index')">
@@ -139,7 +139,7 @@
                     </div>
                 @endcanany
 
-                @can('is-admin')
+                @canany(['is-admin','client-admin'])
                     <!-- Navigation Links -->
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                         <x-jet-nav-link href="{{ route('settings.index') }}" :active="request()->routeIs('settings.index')">
@@ -156,7 +156,7 @@
                             {{ __('Dialer') }}
                         </x-jet-nav-link> --}}
                     </div>
-                    @endcan
+                    @endcanany
             </div>
 
             <div class="hidden sm:flex sm:items-center sm:ml-6">

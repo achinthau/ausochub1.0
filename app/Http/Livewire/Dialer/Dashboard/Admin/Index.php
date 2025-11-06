@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Dialer\Dashboard\Admin;
 
 use App\Models\Campaign;
 use App\Models\CampaignMetric;
+use App\Models\Company;
 use App\Models\FeedContactValid;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -37,13 +38,16 @@ class Index extends Component
     public function mount()
     {
         // Load data for cards
-        $this->totalCampaigns = Campaign::count();
-        $this->activeCampaigns = Campaign::where('status', '1')->count();
-        $this->inactiveCampaigns = Campaign::where('status', '0')->count();
-        $this->completedCampaigns = Campaign::where('status', '3')->count();
-        $this->totalUsers = User::count();
-        $this->recentCampaigns = Campaign::orderBy('created_at', 'desc')->take(3)->get(['id', 'name', 'created_at']);
-        $this->agents = User::whereNotNull('tenant_context')->orderBy('name')->take(5)->get(['id', 'name']);
+        $companyNames = array_filter(array_map('trim', explode(',', auth()->user()->tenant_context)));
+        $contextIds = Company::whereIn('name',$companyNames)->pluck('id');
+
+        $this->totalCampaigns = Campaign::whereIn('company', $contextIds)->count();
+        $this->activeCampaigns = Campaign::whereIn('company', $contextIds)->where('status', '1')->count();
+        $this->inactiveCampaigns = Campaign::whereIn('company', $contextIds)->where('status', '0')->count();
+        $this->completedCampaigns = Campaign::whereIn('company', $contextIds)->where('status', '3')->count();
+        // $this->totalUsers = User::count();
+        $this->recentCampaigns = Campaign::whereIn('company', $contextIds)->orderBy('created_at', 'desc')->take(3)->get(['id', 'name', 'created_at']);
+        // $this->agents = User::whereNotNull('tenant_context')->orderBy('name')->take(5)->get(['id', 'name']);
         
     //    $this->campaigns = Campaign::with('types')->where('status', 'inactive')->get();
 
@@ -80,7 +84,8 @@ class Index extends Component
     //     });
 
     $this->campaigns = CampaignMetric::with('types')
-            ->whereNotIn('status', [3, 4])
+            ->whereIn('company_id', $contextIds)
+            // ->whereNotIn('status', [3, 4])
             ->get();
     }
     public function render()

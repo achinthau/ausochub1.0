@@ -97,7 +97,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     Route::prefix('reports')->group(function () {
         Route::get('/', ReportsIndex::class)->name('reports.index');
         // Route::get('/call-detail-report', CallDetail::class)->name('reports.call-detail')->can('is-admin');
-        Route::get('/cdr-detail-report', CdrDetail::class)->name('reports.cdr-detail')->middleware('can:can-view-cdr-reports');;
+        Route::get('/cdr-detail-report', CdrDetail::class)->name('reports.cdr-detail')->middleware('can:can-view-cdr-reports');
         Route::get('/cdr-listen-calls-report', CdrListen::class)->name('reports.cdr-listen-calls')->can('is-admin');
         Route::get('/ivr-detail-report', IvrDetail::class)->name('reports.ivr-detail')->can('is-admin');
         Route::get('/agent-missed-call-summary', AgentMissedCallSummary::class)->name('reports.agent-missed-call-summary')->can('is-admin');
@@ -111,18 +111,18 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/agent-login-logout-report', AgentLoginLogoutReport::class)->name('reports.agent-login-logout-report')->can('is-admin');
         Route::get('/nuisance-customers-report', NuisanceCustomers::class)->name('reports.nuisance-customers-report')->can('is-admin');
         Route::get('/unsatisfied-customers-report', UnsatisfiedCustomers::class)->name('reports.unsatisfied-customers-report')->can('is-admin');
-        Route::get('/dialer-contact-attempt-report', DialerContactAttemptReport::class)->name('reports.dialer-contact-attempt-report')->can('is-admin');
+        Route::get('/dialer-contact-attempt-report', DialerContactAttemptReport::class)->name('reports.dialer-contact-attempt-report')->middleware('can:can-view-cdr-reports');
         // Route::get('/call-queue-report', CallQueue::class)->name('reports.call-queue-report')->can('is-admin');
     });
 
     Route::prefix('settings')->group(function () {
-        Route::get('/', SettingsIndex::class)->name('settings.index')->can('is-admin');
-        Route::get('/users/', UsersIndex::class)->name('settings.users.index')->can('is-admin');
-        Route::get('/extensions/', ExtensionsIndex::class)->name('settings.extensions.index')->can('is-admin');
-        Route::get('/moh/', MohIndex::class)->name('settings.moh.index')->can('is-admin');
-        Route::get('/skills/', SkillsIndex::class)->name('settings.skills.index')->can('is-admin');
-        Route::get('/ticketdep/', TicketDepartmentsIndex::class)->name('settings.tickets.departments.index')->can('is-admin');
-        Route::get('/service-center/', ServCenterIndex::class)->name('settings.tickets.serv-center.index')->can('is-admin');
+        Route::get('/', SettingsIndex::class)->name('settings.index')->middleware('can:can-view-cdr-reports');
+        Route::get('/users/', UsersIndex::class)->name('settings.users.index')->middleware('can:can-view-cdr-reports');
+        Route::get('/extensions/', ExtensionsIndex::class)->name('settings.extensions.index')->middleware('can:can-view-cdr-reports');
+        Route::get('/moh/', MohIndex::class)->name('settings.moh.index')->middleware('can:can-view-cdr-reports');
+        Route::get('/skills/', SkillsIndex::class)->name('settings.skills.index')->middleware('can:can-view-cdr-reports');
+        Route::get('/ticketdep/', TicketDepartmentsIndex::class)->name('settings.tickets.departments.index')->middleware('can:can-view-cdr-reports');
+        Route::get('/service-center/', ServCenterIndex::class)->name('settings.tickets.serv-center.index')->middleware('can:can-view-cdr-reports');
     });
 
 

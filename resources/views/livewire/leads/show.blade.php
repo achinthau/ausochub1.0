@@ -442,12 +442,12 @@
         // Status classifications
         $isAnswered = $ticket->status == 'Rated'; 
         // $isNotAnswered = $ticket->status == 'Skip' || $ticket->status == 'ReOpened' || $ticket->status == 'Canceled';
-        $isNotAnswered = $ticket->status ? $ticket->status: false; // adjust as per your logic 
+        $isNotAnswered = $ticket->status ? $ticket->status: false;  
         $isNew = $ticket->status == 'Closed'; 
         $notAnswered = $ticket->status == 'Skip' || $ticket->status == 'ReOpened' || $ticket->status == 'Canceled';
 
         // Check if Not Answered was submitted today
-        $lastUpdated = \Carbon\Carbon::parse($ticket->next_available_at); 
+        $lastUpdated = \Carbon\Carbon::parse($ticket->updated_at); 
         // $hideNotAnsweredButtons = $notAnswered && $lastUpdated->isToday();
         $hideNotAnsweredButtons = $notAnswered && $lastUpdated->greaterThan(now()->startOfDay());
         $notAnsweredCount = strlen( $feedContactIdStatus);

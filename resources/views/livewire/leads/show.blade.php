@@ -608,7 +608,7 @@
 
             {{-- Buttons --}}
             @if(!$isAnswered && !$hideNotAnsweredButtons)
-            <div class="flex pt-4 space-x-3 p-1">
+            <div class="flex pt-4 space-x-3 pb-2">
                 <div class="group relative inline-flex">
                     <a href="#"
                        wire:click.prevent="$emitTo('cx-tickets.survey.rating-panel','showCxTicketRatingModal', {{ $ticket->id }}, false, '{{ $feedContactId }}')"

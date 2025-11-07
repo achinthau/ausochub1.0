@@ -90,10 +90,10 @@ class SubmitCallStatus extends Component
                     ->orWhere('contact_no_01', $phone2)
                     ->orWhere('contact_no_02', $phone2);
             })
-                ->where(function ($query) {
-                    $query->whereNull('status') // Fresh ones
-                        ->orWhereIn('status', [2, 22, 222]); // No Answer retries
-                })
+                // ->where(function ($query) {
+                //     $query->whereNull('status') // Fresh ones
+                //         ->orWhereIn('status', [2, 22, 222]); // No Answer retries
+                // })
                 ->when($this->feed->feed_id, function ($query, $feedId) {
                     $query->where('feed_id', $feedId);
                 })
@@ -141,7 +141,7 @@ class SubmitCallStatus extends Component
                     ->orWhere('customer_contact_01', $phone2)
                     ->orWhere('customer_contact_02', $phone2);
             })
-            ->where('status', 'Closed')
+            // ->where('status', 'Closed')
                 ->get();
 
                     foreach($tickets as $ticket)

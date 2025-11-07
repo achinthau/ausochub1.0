@@ -663,7 +663,8 @@
 
                                                             // Status classifications
                                                             $isAnswered = $contact->status == 1;
-                                                            $isNotAnswered = in_array($contact->status, [2, 22, 222]); // adjust as per your logic
+                                                            // $isNotAnswered = in_array($contact->status, [2, 22, 222]); 
+                                                            $isNotAnswered = str_starts_with((string)$feed->status, '2');
                                                             $isNew = is_null($contact->status);
 
                                                             // Check if Not Answered was submitted today

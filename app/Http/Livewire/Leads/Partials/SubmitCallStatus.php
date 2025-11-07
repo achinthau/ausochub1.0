@@ -90,10 +90,10 @@ class SubmitCallStatus extends Component
                     ->orWhere('contact_no_01', $phone2)
                     ->orWhere('contact_no_02', $phone2);
             })
-                // ->where(function ($query) {
-                //     $query->whereNull('status') // Fresh ones
-                //         ->orWhereIn('status', [2, 22, 222]); // No Answer retries
-                // })
+                ->where(function ($query) {
+                    $query->whereNull('status') // Fresh ones
+                        ->orWhereIn('status', [2, 22, 222,3]); // No Answer retries
+                })
                 ->when($this->feed->feed_id, function ($query, $feedId) {
                     $query->where('feed_id', $feedId);
                 })
@@ -104,17 +104,21 @@ class SubmitCallStatus extends Component
                     $feed->status = 1; // Answered
                 } else {
                     // If first time (null or not 2-based)
-                    if ($feed->status == 2) {
-                        $feed->status = 22; // Second time
-                    } elseif ($feed->status == 22) {
-                        $feed->status = 222; // Third time
-                    } 
-                    // elseif ($feed->status == 222) {
-                    //     $feed->status = 4; // Third time
+                    // if ($feed->status == 2) {
+                    //     $feed->status = 22; // Second time
+                    // } elseif ($feed->status == 22) {
+                    //     $feed->status = 222; // Third time
                     // } 
-                    else {
-                        $feed->status = 2; // First time "no answer"
-                    }
+                    // // elseif ($feed->status == 222) {
+                    // //     $feed->status = 4; // Third time
+                    // // } 
+                    // else {
+                    //     $feed->status = 2; // First time "no answer"
+                    // }
+                    if (str_starts_with((string)$feed->status, '2')) {
+                     $feed->status = (int) ($feed->status . '2');
+                     }
+
 
                     // Set next date each time for status 2-based
                     $feed->next_available_at = now()->addDay();
@@ -141,7 +145,8 @@ class SubmitCallStatus extends Component
                     ->orWhere('customer_contact_01', $phone2)
                     ->orWhere('customer_contact_02', $phone2);
             })
-            // ->where('status', 'Closed')
+            ->where('status', 'Closed')
+            ->orWhere('status','Skip')
                 ->get();
 
                     foreach($tickets as $ticket)

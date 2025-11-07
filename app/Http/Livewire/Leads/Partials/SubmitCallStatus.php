@@ -174,17 +174,21 @@ class SubmitCallStatus extends Component
                 $this->feed->status = 1; // Answered
             } else {
                 // If first time (null or not 2-based)
-                if ($this->feed->status == 2) {
-                    $this->feed->status = 22; // Second time
-                } elseif ($this->feed->status == 22) {
-                    $this->feed->status = 222; // Third time
-                } 
-                // elseif ($this->feed->status == 222) {
-                //     $this->feed->status = 4; // Third time
+                // if ($this->feed->status == 2) {
+                //     $this->feed->status = 22; // Second time
+                // } elseif ($this->feed->status == 22) {
+                //     $this->feed->status = 222; // Third time
+                // } 
+                // // elseif ($this->feed->status == 222) {
+                // //     $this->feed->status = 4; // Third time
+                // // }
+                //  else {
+                //     $this->feed->status = 2; // First time "no answer"
                 // }
-                 else {
-                    $this->feed->status = 2; // First time "no answer"
-                }
+
+                if (str_starts_with((string)$this->feed->status, '2')) {
+                     $this->feed->status = (int) ($this->feed->status . '2');
+                     }
 
                 // Set next date each time for status 2-based
                 $this->feed->next_available_at = now()->addDay();

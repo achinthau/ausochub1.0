@@ -80,12 +80,15 @@ class SubmitCallStatus extends Component
 
         if ($this->applyToAll) {
             // Get the contact number
-            $phone = $this->feed->contact_no_01 ?? $this->feed->contact_no_02;
+            $phone = $this->feed->contact_no_01;
+            $phone2 = $this->feed->contact_no_02;
 
             // Fetch only feeds with same number AND not updated before
-            $feeds = FeedContactValid::where(function ($query) use ($phone) {
+            $feeds = FeedContactValid::where(function ($query) use ($phone,$phone2) {
                 $query->where('contact_no_01', $phone)
-                    ->orWhere('contact_no_02', $phone);
+                    ->orWhere('contact_no_02', $phone)
+                    ->orWhere('contact_no_01', $phone2)
+                    ->orWhere('contact_no_02', $phone2);
             })
                 ->where(function ($query) {
                     $query->whereNull('status') // Fresh ones
@@ -132,9 +135,11 @@ class SubmitCallStatus extends Component
 
             if($this->cxTicketId)
                 {
-                    $tickets = CxTicket::where(function ($query) use ($phone) {
+                    $tickets = CxTicket::where(function ($query) use ($phone,$phone2) {
                 $query->where('customer_contact_01', $phone)
-                    ->orWhere('customer_contact_02', $phone);
+                    ->orWhere('customer_contact_02', $phone)
+                    ->orWhere('customer_contact_01', $phone2)
+                    ->orWhere('customer_contact_02', $phone2);
             })
             ->where('status', 'Closed')
                 ->get();

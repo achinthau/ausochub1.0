@@ -18,11 +18,12 @@ class SkipModal extends Component
 
     protected $listeners = ['openSkipContactModal' => 'openModal'];
 
-    public function openModal($phone, $feed_id, $service)
+    public function openModal($phone,$phone2, $feed_id, $service)
     {
         $this->serviceType = $service;
         $this->SkipContactModal = true;
         $this->phone = $phone;
+        $this->phone2 = $phone2;
         $this->feedId = $feed_id;
     }
 
@@ -33,11 +34,14 @@ class SkipModal extends Component
     {
         $this->validate();
         $phone = $this->phone;
+        $phone2 = $this->phone2;
 
         if ($this->serviceType == 'satisfaction') {
-            $surveyTickets = CxTicket::where(function ($query) use ($phone) {
+            $surveyTickets = CxTicket::where(function ($query) use ($phone,$phone2) {
                 $query->where('customer_contact_01', $phone)
-                    ->orWhere('customer_contact_02', $phone);
+                    ->orWhere('customer_contact_02', $phone)
+                    ->orWhere('customer_contact_01', $phone2)
+                    ->orWhere('customer_contact_02', $phone2);
             })
                 ->where('status', 'Closed')
                 ->get();
@@ -53,7 +57,9 @@ class SkipModal extends Component
             $feeds = FeedContactValid::where('feed_id', $this->feedId)
                 ->where(function ($q) {
                     $q->where('contact_no_01', $this->phone)
-                        ->orWhere('contact_no_02', $this->phone);
+                        ->orWhere('contact_no_02', $this->phone)
+                    ->orWhere('contact_no_01', $this->phone2)
+                    ->orWhere('contact_no_02', $this->phone2);
                 })
                 ->get();
 

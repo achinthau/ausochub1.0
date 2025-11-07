@@ -18,11 +18,12 @@ class UpdateContact extends Component
 
     protected $listeners = ['openUpdateContactModal' => 'openModal'];
 
-    public function openModal($phone, $feed_id, $service)
+    public function openModal($phone,$phone2, $feed_id, $service)
     {
         $this->serviceType = $service;
         $this->UpdateContactModal = true;
         $this->phone = $phone;
+        $this->phone2 = $phone2;
         $this->feedId = $feed_id;
     }
 
@@ -33,11 +34,14 @@ class UpdateContact extends Component
     {
         $this->validate();
         $phone = $this->phone;
+        $phone2 = $this->phone2;
 
         if ($this->serviceType == 'satisfaction') {
-            $surveyTickets = CxTicket::where(function ($query) use ($phone) {
+            $surveyTickets = CxTicket::where(function ($query) use ($phone,$phone2) {
                 $query->where('customer_contact_01', $phone)
-                    ->orWhere('customer_contact_02', $phone);
+                    ->orWhere('customer_contact_02', $phone)
+                    ->orWhere('customer_contact_01', $this->phone2)
+                    ->orWhere('customer_contact_02', $this->phone2);
             })
                 ->where('status', 'Closed')
                 ->get();

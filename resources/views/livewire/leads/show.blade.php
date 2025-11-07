@@ -388,14 +388,14 @@
                                             class="w-24 bg-green-300 font-bold hover:bg-green-400 p-2 rounded-md shadow-md ">
                                             Make a call</button> --}}
                                         <button type="button"
-                                            wire:click="$emit('openSkipContactModal', '{{ $lead->contact_number }}', '{{ $feed_id }}', '{{ $service_type }}')"
+                                            wire:click="$emit('openSkipContactModal', '{{ $lead->contact_number }}','{{ $lead->contact_number_2 }}', '{{ $feed_id }}', '{{ $service_type }}')"
                                             class="w-24 bg-orange-300 font-bold hover:bg-orange-400 p-2 rounded-md shadow-md">
                                             Skip
                                         </button>
 
                                         @if ($service_type == 'satisfaction')
                                         <button type="button"
-                                            wire:click="$emit('openUpdateContactModal', '{{ $lead->contact_number }}', '{{ $feed_id }}', '{{ $service_type }}')"
+                                            wire:click="$emit('openUpdateContactModal', '{{ $lead->contact_number }}','{{ $lead->contact_number_2 }}', '{{ $feed_id }}', '{{ $service_type }}')"
                                             class="w-32 bg-orange-300 font-bold hover:bg-orange-400 p-2 rounded-md shadow-md">
                                             Change Request
                                         </button>

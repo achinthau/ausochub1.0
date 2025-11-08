@@ -7,6 +7,7 @@ use App\Models\CxTicket;
 use App\Models\DialerCallStatusOption;
 use App\Models\FeedContactAttempt;
 use App\Models\FeedContactValid;
+use Hamcrest\Type\IsInteger;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -31,10 +32,17 @@ class SubmitCallStatus extends Component
 
     public function openModal($id, $status, $feedCount, $ticketId = null)
     {
-        // dd($id);
+        // dd(is_numeric($id));
         $this->CallStatusModal = true;
         $this->feedCount = $feedCount;
-        $this->feed = FeedContactValid::find($id);
+        // $this->feed = FeedContactValid::find($id);
+        if(is_numeric($id))
+        {
+            $this->feed = FeedContactValid::find($id);
+        }
+        else{
+            $this->feed = FeedContactValid::where('priority_field',$id)->first();
+        }
         // dd($this->feedCount);
         // dd($this->feed->id);
         // $this->campaign = Campaign::whereIn('assigned_feeds', [$this->feed->feed_id])->get();

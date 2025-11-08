@@ -112,7 +112,9 @@ class RatingPanel extends Component
         // dd($validContact);
         if($validContact)
         {
-            $this->feed = FeedContactValid::find($validContact);
+            // $this->feed = FeedContactValid::find($validContact);
+            $this->feed = FeedContactValid::where('priority_field',$validContact)->first();
+            // dd($this->feed);
         }
 
         $this->isCancel = $isCancel;

@@ -73,7 +73,8 @@ class ReopenPanel extends Component
         $this->callBack = $value === 'remind';
         if($validContact)
         {
-            $this->feed = FeedContactValid::find($validContact);
+            // $this->feed = FeedContactValid::find($validContact);
+            $this->feed = FeedContactValid::where('priority_field',$validContact)->first();
         }
     }
 

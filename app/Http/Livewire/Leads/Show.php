@@ -244,6 +244,11 @@ class Show extends Component
             $query = FeedContactValid::where(function ($query) use ($phone) {
                 $query->where('contact_no_01', $phone)
                     ->orWhere('contact_no_02', $phone);
+
+                    if ($this->phone2) {
+                        $query->orWhere('contact_no_01', $this->phone2)
+                              ->orWhere('contact_no_02', $this->phone2);
+        }
             })
                 ->when($feedId, function ($query, $feedId) {
                     $query->where('feed_id', $feedId); 
@@ -256,6 +261,11 @@ class Show extends Component
             $this->surveyContacts = CxTicket::where(function ($query) use ($phone) {
                 $query->where('customer_contact_01', $phone)
                     ->orWhere('customer_contact_02', $phone);
+
+                    if ($this->phone2) {
+                        $query->orWhere('customer_contact_01', $this->phone2)
+                              ->orWhere('customer_contact_02', $this->phone2);
+        }
             })
                 ->whereIn('status', ['Closed', 'Skip'])
                 ->get();

@@ -196,6 +196,7 @@ class Show extends Component
         $this->boundType = $boundType;
         if ($boundType && $boundType == 'dialer' && $this->service_type != 'satisfaction') {
             $phone = $this->lead->contact_number;
+            $phone2 = $this->lead->contact_number_2;
             $this->selectedContact = $phone;
             // $this->feedContacts = FeedContactValid::where('contact_no_01', $phone)->orWhere('contact_no_02', $phone)->get();
             $feedId = $this->feed_id;
@@ -228,6 +229,7 @@ class Show extends Component
 
         if ($boundType && $boundType == 'dialer' && $this->service_type == 'satisfaction') {
             $phone = $this->lead->contact_number;
+            $phone2 = $this->lead->contact_number_2;
             $this->selectedContact = $phone;
 
             $feedId = $this->feed_id;
@@ -244,11 +246,6 @@ class Show extends Component
             $query = FeedContactValid::where(function ($query) use ($phone) {
                 $query->where('contact_no_01', $phone)
                     ->orWhere('contact_no_02', $phone);
-
-                    if ($this->phone2) {
-                        $query->orWhere('contact_no_01', $this->phone2)
-                              ->orWhere('contact_no_02', $this->phone2);
-        }
             })
                 ->when($feedId, function ($query, $feedId) {
                     $query->where('feed_id', $feedId); 
@@ -257,20 +254,15 @@ class Show extends Component
 
             $this->feedContactId = $query ? $query->id : null; 
             $this->feedContactIdStatus = $query ? $query->status : null; 
-            $phone2 = $this->phone2;
 
-$this->surveyContacts = CxTicket::where(function ($query) use ($phone, $phone2) {
-        $query->where('customer_contact_01', $phone)
-              ->orWhere('customer_contact_02', $phone);
-
-        if (!empty($phone2)) {
-            $query->orWhere('customer_contact_01', $phone2)
-                  ->orWhere('customer_contact_02', $phone2);
-        }
-    })
-    ->whereIn('status', ['Closed', 'Skip'])
-    ->get();
-
+            $this->surveyContacts = CxTicket::where(function ($query) use ($phone, $phone2) {
+                $query->where('customer_contact_01', $phone)
+                    ->orWhere('customer_contact_02', $phone)
+                    ->orWhere('customer_contact_01', $phone2)
+                    ->orWhere('customer_contact_02', $phone2);
+            })
+                ->whereIn('status', ['Closed', 'Skip'])
+                ->get();
 
             if ($this->surveyContacts->isNotEmpty()) {
                 $foundContact = $this->surveyContacts->first();

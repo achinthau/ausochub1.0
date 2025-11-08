@@ -257,18 +257,20 @@ class Show extends Component
 
             $this->feedContactId = $query ? $query->id : null; 
             $this->feedContactIdStatus = $query ? $query->status : null; 
+            $phone2 = $this->phone2;
 
-            $this->surveyContacts = CxTicket::where(function ($query) use ($phone) {
-                $query->where('customer_contact_01', $phone)
-                    ->orWhere('customer_contact_02', $phone);
+$this->surveyContacts = CxTicket::where(function ($query) use ($phone, $phone2) {
+        $query->where('customer_contact_01', $phone)
+              ->orWhere('customer_contact_02', $phone);
 
-                    if ($this->phone2) {
-                        $query->orWhere('customer_contact_01', $this->phone2)
-                              ->orWhere('customer_contact_02', $this->phone2);
+        if (!empty($phone2)) {
+            $query->orWhere('customer_contact_01', $phone2)
+                  ->orWhere('customer_contact_02', $phone2);
         }
-            })
-                ->whereIn('status', ['Closed', 'Skip'])
-                ->get();
+    })
+    ->whereIn('status', ['Closed', 'Skip'])
+    ->get();
+
 
             if ($this->surveyContacts->isNotEmpty()) {
                 $foundContact = $this->surveyContacts->first();

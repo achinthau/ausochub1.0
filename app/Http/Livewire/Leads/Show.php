@@ -213,8 +213,10 @@ class Show extends Component
                 $foundContact = $this->feedContacts->first();
                 if ($foundContact->contact_no_01 === $phone) {
                     $this->phone2 = $foundContact->contact_no_02;
+                    $this->phone1 = $foundContact->contact_no_01;
                 } else {
                     $this->phone2 = $foundContact->contact_no_01;
+                    $this->phone1 = $foundContact->contact_no_02;
                 }
             } else {
                 $this->phone2 = null;
@@ -227,7 +229,7 @@ class Show extends Component
 
 
         if ($boundType && $boundType == 'dialer' && $this->service_type == 'satisfaction') {
-            $phone = $this->lead->contact_number;
+            $phone = $this->phone2;
             $this->selectedContact = $phone;
 
             $feedId = $this->feed_id;

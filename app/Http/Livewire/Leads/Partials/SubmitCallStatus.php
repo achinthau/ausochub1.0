@@ -36,7 +36,7 @@ class SubmitCallStatus extends Component
         $this->feedCount = $feedCount;
         $this->feed = FeedContactValid::find($id);
         // dd($this->feedCount);
-        // dd($this->feed->feed_id);
+        // dd($this->feed->id);
         // $this->campaign = Campaign::whereIn('assigned_feeds', [$this->feed->feed_id])->get();
         $feedId = $this->feed->feed_id;
         $this->campaign = Campaign::whereRaw('FIND_IN_SET(?, assigned_feeds)', [$feedId])->get();
@@ -103,7 +103,8 @@ class SubmitCallStatus extends Component
             })
                 ->where(function ($query) {
                     $query->whereNull('status') // Fresh ones
-                        ->orWhereIn('status', [2, 22, 222, 3]); // No Answer retries
+                        ->orWhere('status',3)
+                        ->orWhere('status',"LIKE", '2%'); // No Answer retries
                 })
                 ->when($this->feed->feed_id, function ($query, $feedId) {
                     $query->where('feed_id', $feedId);

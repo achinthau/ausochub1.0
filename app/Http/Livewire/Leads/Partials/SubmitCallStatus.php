@@ -31,11 +31,17 @@ class SubmitCallStatus extends Component
 
     public function openModal($id, $status, $feedCount, $ticketId = null)
     {
+        // dd($id);
         $this->CallStatusModal = true;
         $this->feedCount = $feedCount;
         $this->feed = FeedContactValid::find($id);
         // dd($this->feedCount);
-        $this->campaign = Campaign::whereIn('assigned_feeds', [$this->feed->feed_id])->get();
+        // dd($this->feed->feed_id);
+        // $this->campaign = Campaign::whereIn('assigned_feeds', [$this->feed->feed_id])->get();
+        $feedId = $this->feed->feed_id;
+        $this->campaign = Campaign::whereRaw('FIND_IN_SET(?, assigned_feeds)', [$feedId])->get();
+
+        // dd($this->campaign);
         $this->campaign = $this->campaign->first()->id;
         // dd($this->campaign);
         $this->status = $status;
@@ -85,14 +91,15 @@ class SubmitCallStatus extends Component
 
             // Fetch only feeds with same number AND not updated before
             $feeds = FeedContactValid::where(function ($query) use ($phone, $phone2) {
-                if ($phone) {
+                // if ($phone) {
                     $query->where('contact_no_01', $phone)
-                        ->orWhere('contact_no_02', $phone);
-                }
-                if ($phone2) {
-                    $query->orWhere('contact_no_01', $phone2)
+                        ->orWhere('contact_no_02', $phone)
+                // }
+                // if ($phone2) {
+                    // $query->orWhere('contact_no_01', $phone2)
+                    ->orWhere('contact_no_01', $phone2)
                         ->orWhere('contact_no_02', $phone2);
-                }
+                // }
             })
                 ->where(function ($query) {
                     $query->whereNull('status') // Fresh ones
@@ -121,6 +128,9 @@ class SubmitCallStatus extends Component
                     // }
                     if (str_starts_with((string) $feed->status, '2')) {
                         $feed->status = (int) ($feed->status . '2');
+                    }
+                    else {
+                        $feed->status = 2; // First time "no answer"
                     }
 
 
@@ -187,6 +197,9 @@ class SubmitCallStatus extends Component
 
                 if (str_starts_with((string) $this->feed->status, '2')) {
                     $this->feed->status = (int) ($this->feed->status . '2');
+                }
+                else {
+                    $this->feed->status = 2; // First time "no answer"
                 }
 
                 // Set next date each time for status 2-based

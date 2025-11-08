@@ -84,15 +84,19 @@ class SubmitCallStatus extends Component
             $phone2 = $this->feed->contact_no_02;
 
             // Fetch only feeds with same number AND not updated before
-            $feeds = FeedContactValid::where(function ($query) use ($phone,$phone2) {
-                $query->where('contact_no_01', $phone)
-                    ->orWhere('contact_no_02', $phone)
-                    ->orWhere('contact_no_01', $phone2)
-                    ->orWhere('contact_no_02', $phone2);
+            $feeds = FeedContactValid::where(function ($query) use ($phone, $phone2) {
+                if ($phone) {
+                    $query->where('contact_no_01', $phone)
+                        ->orWhere('contact_no_02', $phone);
+                }
+                if ($phone2) {
+                    $query->orWhere('contact_no_01', $phone2)
+                        ->orWhere('contact_no_02', $phone2);
+                }
             })
                 ->where(function ($query) {
                     $query->whereNull('status') // Fresh ones
-                        ->orWhereIn('status', [2, 22, 222,3]); // No Answer retries
+                        ->orWhereIn('status', [2, 22, 222, 3]); // No Answer retries
                 })
                 ->when($this->feed->feed_id, function ($query, $feedId) {
                     $query->where('feed_id', $feedId);
@@ -115,15 +119,15 @@ class SubmitCallStatus extends Component
                     // else {
                     //     $feed->status = 2; // First time "no answer"
                     // }
-                    if (str_starts_with((string)$feed->status, '2')) {
-                     $feed->status = (int) ($feed->status . '2');
-                     }
+                    if (str_starts_with((string) $feed->status, '2')) {
+                        $feed->status = (int) ($feed->status . '2');
+                    }
 
 
                     // Set next date each time for status 2-based
                     $feed->next_available_at = now()->addDay();
 
-                    
+
                 }
 
                 $feed->save();
@@ -137,38 +141,33 @@ class SubmitCallStatus extends Component
                 ]);
             }
 
-            if($this->cxTicketId)
-                {
-                    $tickets = CxTicket::where(function ($query) use ($phone,$phone2) {
-                $query->where('customer_contact_01', $phone)
-                    ->orWhere('customer_contact_02', $phone)
-                    ->orWhere('customer_contact_01', $phone2)
-                    ->orWhere('customer_contact_02', $phone2);
-            })
-            ->where('status', 'Closed')
-            ->orWhere('status','Skip')
-                ->get();
+            if ($this->cxTicketId) {
+                $tickets = CxTicket::where(function ($query) use ($phone, $phone2) {
+                    $query->where('customer_contact_01', $phone)
+                        ->orWhere('customer_contact_02', $phone)
+                        ->orWhere('customer_contact_01', $phone2)
+                        ->orWhere('customer_contact_02', $phone2);
+                })
+                    ->where('status', 'Closed')
+                    ->orWhere('status', 'Skip')
+                    ->get();
 
-                    foreach($tickets as $ticket)
-                    {
-                        if($ticket)
-                    {
+                foreach ($tickets as $ticket) {
+                    if ($ticket) {
                         $ticket->status = 'Skip';
-                        if($this->selectedOption)
-                        {
+                        if ($this->selectedOption) {
                             $optionName = DialerCallStatusOption::where('id', $this->selectedOption)->value('option');
-                            $ticket->skipped_reasons = $optionName .' ' . $this->comment;
+                            $ticket->skipped_reasons = $optionName . ' ' . $this->comment;
                         }
-                
+
                         $ticket->skipped_by = Auth::user()->name;
                     }
                     $ticket->save();
-                    }
                 }
+            }
 
 
-        } 
-        else {
+        } else {
             // ✅ Update only the current feed
             if ($this->status == 'answered') {
                 $this->feed->status = 1; // Answered
@@ -186,25 +185,22 @@ class SubmitCallStatus extends Component
                 //     $this->feed->status = 2; // First time "no answer"
                 // }
 
-                if (str_starts_with((string)$this->feed->status, '2')) {
-                     $this->feed->status = (int) ($this->feed->status . '2');
-                     }
+                if (str_starts_with((string) $this->feed->status, '2')) {
+                    $this->feed->status = (int) ($this->feed->status . '2');
+                }
 
                 // Set next date each time for status 2-based
                 $this->feed->next_available_at = now()->addDay();
 
-                if($this->cxTicketId)
-                {
+                if ($this->cxTicketId) {
                     $ticket = CxTicket::find($this->cxTicketId);
-                    if($ticket)
-                    {
+                    if ($ticket) {
                         $ticket->status = 'Skip';
-                        if($this->selectedOption)
-                        {
+                        if ($this->selectedOption) {
                             $optionName = DialerCallStatusOption::where('id', $this->selectedOption)->value('option');
-                            $ticket->skipped_reasons = $optionName .' ' . $this->comment;
+                            $ticket->skipped_reasons = $optionName . ' ' . $this->comment;
                         }
-                
+
                         $ticket->skipped_by = Auth::user()->name;
                     }
                     $ticket->save();

@@ -244,34 +244,44 @@ class Show extends Component
             // dd($this->feedContactId);
 
             $query = FeedContactValid::where(function ($query) use ($phone) {
-                $query->where('contact_no_01', $phone)
-                    ->orWhere('contact_no_02', $phone);
 
-                    if ($this->phone2) {
-                        $query->orWhere('contact_no_01', $this->phone2)
-                              ->orWhere('contact_no_02', $this->phone2);
+        if (!empty($phone)) {
+            $query->where('contact_no_01', $phone)
+                  ->orWhere('contact_no_02', $phone);
         }
-            })
-                ->when($feedId, function ($query, $feedId) {
-                    $query->where('feed_id', $feedId); 
-                })
-                ->first(); 
+
+        if (!empty($this->phone2)) {
+            $query->orWhere('contact_no_01', $this->phone2)
+                  ->orWhere('contact_no_02', $this->phone2);
+        }
+
+    })
+    ->when($feedId, function ($query, $feedId) {
+        $query->where('feed_id', $feedId);
+    })
+    ->first();
+
 
             $this->feedContactId = $query ? $query->id : null; 
             $this->feedContactIdStatus = $query ? $query->status : null; 
             $phone2 = $this->phone2;
 
 $this->surveyContacts = CxTicket::where(function ($query) use ($phone, $phone2) {
-        $query->where('customer_contact_01', $phone)
-              ->orWhere('customer_contact_02', $phone);
+
+        if (!empty($phone)) {
+            $query->where('customer_contact_01', $phone)
+                  ->orWhere('customer_contact_02', $phone);
+        }
 
         if (!empty($phone2)) {
             $query->orWhere('customer_contact_01', $phone2)
                   ->orWhere('customer_contact_02', $phone2);
         }
+
     })
     ->whereIn('status', ['Closed', 'Skip'])
     ->get();
+
 
 
             if ($this->surveyContacts->isNotEmpty()) {

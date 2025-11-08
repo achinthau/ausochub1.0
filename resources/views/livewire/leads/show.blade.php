@@ -410,7 +410,7 @@
                                     <h2 class="text-sm font-semibold text-gray-700">Select Contact</h2>
 
                                     <div class="space-y-2  text-lg">
-                                        <label class="flex items-center space-x-2 cursor-pointer">
+                                        {{-- <label class="flex items-center space-x-2 cursor-pointer">
                                             <input type="radio" wire:model="selectedContact" value="{{ $lead->contact_number }}"
                                                 class="text-green-500">
                                             <span class="text-gray-700">{{ $lead->contact_number }}</span>
@@ -422,7 +422,17 @@
                                                     class="text-green-500">
                                                 <span class="text-gray-700">{{ $phone2 }}</span>
                                             </label>
-                                        @endif
+                                        @endif --}}
+                                        @foreach($phone_numbers as $phone)
+                                            @if(strlen($phone) > 8)
+                                                <label class="flex items-center space-x-2 cursor-pointer">
+                                                    <input type="radio" wire:model="selectedContact" value="{{ $phone }}"
+                                                        class="text-green-500">
+                                                    <span class="text-gray-700">{{ $phone }}</span>
+                                                </label>
+                                            @endif
+                                        @endforeach
+
                                     </div>
 
                                     <div>

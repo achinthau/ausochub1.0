@@ -50,6 +50,7 @@ class Show extends Component
     public $surveyContacts;
     public $feedContactId;
     public $feedContactIdStatus;
+    public $phone_numbers = [];
 
     protected $listeners = ['refreshCard' => 'refreshCard', 'FeedCompleted' => '$refresh'];
 
@@ -209,18 +210,51 @@ class Show extends Component
                 ->get();
 
 
+            // if ($this->feedContacts->isNotEmpty()) {
+            //     $foundContact = $this->feedContacts->first();
+            //     if ($foundContact->contact_no_01 === $phone) {
+            //         $this->phone2 = $foundContact->contact_no_02;
+            //     } else {
+            //         $this->phone2 = $foundContact->contact_no_01;
+            //     }
+            // } else {
+            //     $this->phone2 = null;
+            // }
+
+            // Initialize array with the main lead phone
+            $this->phone_numbers = [$phone];
+
+            // Collect all contact numbers from feedContacts
             if ($this->feedContacts->isNotEmpty()) {
-                $foundContact = $this->feedContacts->first();
-                if ($foundContact->contact_no_01 === $phone) {
-                    $this->phone2 = $foundContact->contact_no_02;
-                    $this->phone1 = $foundContact->contact_no_01;
-                } else {
-                    $this->phone2 = $foundContact->contact_no_01;
-                    $this->phone1 = $foundContact->contact_no_02;
+                $allContacts = $this->feedContacts->flatMap(function ($contact) {
+                    return [$contact->contact_no_01, $contact->contact_no_02];
+                });
+
+                // Normalize numbers: remove spaces, remove leading 0 if 10 digits
+                $normalized = $allContacts->map(function ($p) {
+                    $p = preg_replace('/\s+/', '', $p); // remove spaces
+                    if (strlen($p) === 10 && str_starts_with($p, '0')) {
+                        return substr($p, 1); // remove leading 0
+                    }
+                    return $p;
+                });
+
+                // Normalize main phone
+                $mainPhoneNormalized = preg_replace('/\s+/', '', $phone);
+                if (strlen($mainPhoneNormalized) === 10 && str_starts_with($mainPhoneNormalized, '0')) {
+                    $mainPhoneNormalized = substr($mainPhoneNormalized, 1);
                 }
+
+                // Merge main phone with feedContacts numbers and remove duplicates
+                $this->phone_numbers = $normalized->push($mainPhoneNormalized)
+                    ->unique()
+                    ->values()
+                    ->all();
             } else {
-                $this->phone2 = null;
+                // Only main phone is available
+                $this->phone_numbers = [$phone];
             }
+
 
             // dd($phone);
         }
@@ -229,7 +263,7 @@ class Show extends Component
 
 
         if ($boundType && $boundType == 'dialer' && $this->service_type == 'satisfaction') {
-            $phone = $this->phone2;
+            $phone = $this->lead->contact_number;
             $this->selectedContact = $phone;
 
             $feedId = $this->feed_id;
@@ -244,56 +278,70 @@ class Show extends Component
             // dd($this->feedContactId);
 
             $query = FeedContactValid::where(function ($query) use ($phone) {
+                $query->where('contact_no_01', $phone)
+                    ->orWhere('contact_no_02', $phone);
 
-        if (!empty($phone)) {
-            $query->where('contact_no_01', $phone)
-                  ->orWhere('contact_no_02', $phone);
-        }
+                if ($this->phone2) {
+                    $query->orWhere('contact_no_01', $this->phone2)
+                        ->orWhere('contact_no_02', $this->phone2);
+                }
+            })
+                ->when($feedId, function ($query, $feedId) {
+                    $query->where('feed_id', $feedId);
+                })
+                ->first();
 
-        if (!empty($this->phone2)) {
-            $query->orWhere('contact_no_01', $this->phone2)
-                  ->orWhere('contact_no_02', $this->phone2);
-        }
+            $this->feedContactId = $query ? $query->id : null;
+            $this->feedContactIdStatus = $query ? $query->status : null;
 
-    })
-    ->when($feedId, function ($query, $feedId) {
-        $query->where('feed_id', $feedId);
-    })
-    ->first();
+            $this->surveyContacts = CxTicket::where(function ($query) use ($phone) {
+                $query->where('customer_contact_01', $phone)
+                    ->orWhere('customer_contact_02', $phone);
+            })
+                ->whereIn('status', ['Closed', 'Skip'])
+                ->get();
 
+            // if ($this->surveyContacts->isNotEmpty()) {
+            //     $foundContact = $this->surveyContacts->first();
+            //     if ($foundContact->customer_contact_01 === $phone) {
+            //         $this->phone2 = $foundContact->customer_contact_02;
+            //     } else {
+            //         $this->phone2 = $foundContact->customer_contact_01;
+            //     }
+            // } else {
+            //     $this->phone2 = null;
+            // }
 
-            $this->feedContactId = $query ? $query->id : null; 
-            $this->feedContactIdStatus = $query ? $query->status : null; 
-            $phone2 = $this->phone2;
-
-$this->surveyContacts = CxTicket::where(function ($query) use ($phone, $phone2) {
-
-        if (!empty($phone)) {
-            $query->where('customer_contact_01', $phone)
-                  ->orWhere('customer_contact_02', $phone);
-        }
-
-        if (!empty($phone2)) {
-            $query->orWhere('customer_contact_01', $phone2)
-                  ->orWhere('customer_contact_02', $phone2);
-        }
-
-    })
-    ->whereIn('status', ['Closed', 'Skip'])
-    ->get();
-
-
+            // Initialize array with main lead contact
+            $this->phone_numbers = [$this->lead->contact_number];
 
             if ($this->surveyContacts->isNotEmpty()) {
-                $foundContact = $this->surveyContacts->first();
-                if ($foundContact->customer_contact_01 === $phone) {
-                    $this->phone2 = $foundContact->customer_contact_02;
-                } else {
-                    $this->phone2 = $foundContact->customer_contact_01;
+                // Collect all customer_contact_01 and customer_contact_02 values
+                $allContacts = $this->surveyContacts->flatMap(function ($contact) {
+                    return [$contact->customer_contact_01, $contact->customer_contact_02];
+                });
+
+                // Normalize numbers: remove spaces, remove leading 0 if 10 digits
+                $normalized = $allContacts->map(function ($p) {
+                    $p = preg_replace('/\s+/', '', $p); // remove spaces
+                    if (strlen($p) === 10 && str_starts_with($p, '0')) {
+                        return substr($p, 1); // remove leading 0
+                    }
+                    return $p;
+                });
+
+                // Merge with lead contact and remove duplicates
+                $leadPhoneNormalized = preg_replace('/\s+/', '', $this->lead->contact_number);
+                if (strlen($leadPhoneNormalized) === 10 && str_starts_with($leadPhoneNormalized, '0')) {
+                    $leadPhoneNormalized = substr($leadPhoneNormalized, 1);
                 }
-            } else {
-                $this->phone2 = null;
+
+                $this->phone_numbers = $normalized->push($leadPhoneNormalized)
+                    ->unique()
+                    ->values()
+                    ->all(); // final array of unique phone numbers
             }
+
         }
     }
 

@@ -95,12 +95,15 @@ class CallPanel extends Component
         if ($record) {
             $userId = Auth::id();
             $phone = $record->contact_no_01 ?? $record->contact_no_02;
+            $phone2 = $record->contact_no_02 ?? $record->contact_no_01;
             $feedId = $record->feed_id;
 
             // 1. Find all rows with this number across all feeds
-            $relatedContacts = FeedContactValid::where(function ($query) use ($phone) {
+            $relatedContacts = FeedContactValid::where(function ($query) use ($phone,$phone2) {
                 $query->where('contact_no_01', $phone)
-                    ->orWhere('contact_no_02', $phone);
+                    ->orWhere('contact_no_02', $phone)
+                    ->orWhere('contact_no_01', $phone2)
+                    ->orWhere('contact_no_02', $phone2);
             })
                 ->whereNull('status');
             // ->where('feed_id',$feedId); 

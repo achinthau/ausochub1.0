@@ -148,10 +148,19 @@ class CallPanel extends Component
 
         // Try to find lead
         // $lead = Lead::where('contact_number', $number)->first();
-        $lead = Lead::where('contact_number', 'LIKE', "%{$number}%")
-        ->orWhere('contact_number_2', 'LIKE', "%{$number}%")->first()
-        ->orWhere('contact_number', 'LIKE', "%{$number2}%")
-        ->orWhere('contact_number_2', 'LIKE', "%{$number2}%")->first();
+        // $lead = Lead::where('contact_number', 'LIKE', "%{$number}%")->first();
+        $lead = Lead::where(function ($query) use ($number, $number2) {
+        if (!empty($number)) {
+            $query->where('contact_number', 'LIKE', "%{$number}%")
+                  ->orWhere('contact_number_2', 'LIKE', "%{$number}%");
+        }
+
+        if (!empty($number2)) {
+            $query->orWhere('contact_number', 'LIKE', "%{$number2}%")
+                  ->orWhere('contact_number_2', 'LIKE', "%{$number2}%");
+        }
+    })->first();
+
 
         if (!$lead) {
             // If not found, create new one

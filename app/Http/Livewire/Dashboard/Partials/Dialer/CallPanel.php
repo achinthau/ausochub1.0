@@ -11,6 +11,7 @@ use Livewire\Component;
 class CallPanel extends Component
 {
     public $phone;
+    public $phone2;
     public $customerName;
     public $addressLine1;
     public $addressLine2;
@@ -108,6 +109,7 @@ class CallPanel extends Component
             $relatedContacts->update(['assigned_to' => $userId]);
             $this->contact = $record;
             $this->phone = $record->contact_no_01 ?? $record->contact_no_02;
+            $this->phone2 = $record->contact_no_02 ?? $record->contact_no_01;
             $this->feed_id = $record->feed_id;
 
             $data = json_decode($record->data, true);
@@ -130,11 +132,12 @@ class CallPanel extends Component
         }
     }
 
-    public function openProfile($phone)
+    public function openProfile($phone, $phone2)
     {
         // dd($this->feed_id);
         // dd($this->campaignName);
         $number = $phone;
+        $number2 = $phone2;
 
         // dd($this->addressLine2);
 
@@ -146,7 +149,9 @@ class CallPanel extends Component
         // Try to find lead
         // $lead = Lead::where('contact_number', $number)->first();
         $lead = Lead::where('contact_number', 'LIKE', "%{$number}%")
-        ->orWhere('contact_number_2', 'LIKE', "%{$number}%")->first();
+        ->orWhere('contact_number_2', 'LIKE', "%{$number}%")->first()
+        ->orWhere('contact_number', 'LIKE', "%{$number2}%")
+        ->orWhere('contact_number_2', 'LIKE', "%{$number2}%")->first();
 
         if (!$lead) {
             // If not found, create new one

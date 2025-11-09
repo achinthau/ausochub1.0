@@ -1,5 +1,5 @@
 <div wire:poll.1s="loadContact"
-    @if($phone) wire:click="openProfile('{{ $phone }}')" class="bg-white p-4 space-y-2 cursor-pointer" 
+    @if($phone) wire:click="openProfile('{{ $phone }}','{{ $phone2 }}')" class="bg-white p-4 space-y-2 cursor-pointer" 
     @else class="bg-white p-4 space-y-2" 
     @endif
 >

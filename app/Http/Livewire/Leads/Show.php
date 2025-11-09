@@ -197,42 +197,46 @@ class Show extends Component
         $this->boundType = $boundType;
 
         $phone = $this->lead->contact_number;
-            $this->selectedContact = $phone;
-            // $this->feedContacts = FeedContactValid::where('contact_no_01', $phone)->orWhere('contact_no_02', $phone)->get();
-            $feedId = $this->feed_id;
-            $this->feedContacts = FeedContactValid::where(function ($query) use ($phone) {
-                $query->where('contact_no_01', $phone)
-                    ->orWhere('contact_no_02', $phone);
+        $this->selectedContact = $phone;
+        // $this->feedContacts = FeedContactValid::where('contact_no_01', $phone)->orWhere('contact_no_02', $phone)->get();
+        $feedId = $this->feed_id;
+        $this->feedContacts = FeedContactValid::where(function ($query) use ($phone) {
+            $query->where('contact_no_01', $phone)
+                ->orWhere('contact_no_02', $phone);
+        })
+            ->when($feedId, function ($query, $feedId) {
+                $query->where('feed_id', $feedId); // filter by feed_id if present
             })
-                ->when($feedId, function ($query, $feedId) {
-                    $query->where('feed_id', $feedId); // filter by feed_id if present
-                })
-                ->get();
+            ->get();
 
 
-            if ($this->feedContacts->isNotEmpty()) {
-                $foundContact = $this->feedContacts->first();
-                if ($foundContact->contact_no_01 === $phone) {
-                    $this->phone2 = $foundContact->contact_no_02;
-                } else {
-                    $this->phone2 = $foundContact->contact_no_01;
-                }
+        if ($this->feedContacts->isNotEmpty()) {
+            $foundContact = $this->feedContacts->first();
+            if ($foundContact->contact_no_01 === $phone) {
+                $this->phone2 = $foundContact->contact_no_02;
             } else {
-                $this->phone2 = null;
+                $this->phone2 = $foundContact->contact_no_01;
             }
+        } else {
+            $this->phone2 = null;
+        }
 
         if ($boundType && $boundType == 'dialer' && $this->service_type != 'satisfaction') {
             $phone = $this->lead->contact_number;
+            $phone2 = $this->phone2;
             $this->selectedContact = $phone;
             // $this->feedContacts = FeedContactValid::where('contact_no_01', $phone)->orWhere('contact_no_02', $phone)->get();
             $feedId = $this->feed_id;
-            $this->feedContacts = FeedContactValid::where(function ($query) use ($phone) {
+            $this->feedContacts = FeedContactValid::where(function ($query) use ($phone, $phone2) {
                 $query->where('contact_no_01', $phone)
                     ->orWhere('contact_no_02', $phone);
+
+                if (!empty($phone2)) {
+                    $query->orWhere('contact_no_01', $phone2)
+                        ->orWhere('contact_no_02', $phone2);
+                }
             })
-                ->when($feedId, function ($query, $feedId) {
-                    $query->where('feed_id', $feedId); // filter by feed_id if present
-                })
+                ->when($feedId, fn($query) => $query->where('feed_id', $feedId))
                 ->get();
 
 

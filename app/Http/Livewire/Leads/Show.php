@@ -310,11 +310,17 @@ class Show extends Component
             //     ->get();
 
             $this->surveyContacts = CxTicket::where(function ($query) {
-                $query->whereIn('customer_contact_01', $this->phone_numbers)
-                    ->orWhereIn('customer_contact_02', $this->phone_numbers);
-            })
-                ->whereIn('status', ['Closed', 'Skip'])
-                ->get();
+    foreach ($this->phone_numbers as $num) {
+        $num = trim($num);
+        if (!empty($num)) {
+            $query->orWhere('customer_contact_01', 'LIKE', "%{$num}%")
+                  ->orWhere('customer_contact_02', 'LIKE', "%{$num}%");
+        }
+    }
+})
+->whereIn('status', ['Closed', 'Skip'])
+->get();
+
 
 
             // if ($this->surveyContacts->isNotEmpty()) {

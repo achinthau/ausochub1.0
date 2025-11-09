@@ -221,37 +221,37 @@ class Show extends Component
             //     $this->phone2 = null;
             // }
 
-            // Initialize array with the main lead phone
+            
             $this->phone_numbers = [$phone];
 
-            // Collect all contact numbers from feedContacts
+            
             if ($this->feedContacts->isNotEmpty()) {
                 $allContacts = $this->feedContacts->flatMap(function ($contact) {
                     return [$contact->contact_no_01, $contact->contact_no_02];
                 });
 
-                // Normalize numbers: remove spaces, remove leading 0 if 10 digits
+                
                 $normalized = $allContacts->map(function ($p) {
-                    $p = preg_replace('/\s+/', '', $p); // remove spaces
+                    $p = preg_replace('/\s+/', '', $p); 
                     if (strlen($p) === 10 && str_starts_with($p, '0')) {
-                        return substr($p, 1); // remove leading 0
+                        return substr($p, 1); 
                     }
                     return $p;
                 });
 
-                // Normalize main phone
+                
                 $mainPhoneNormalized = preg_replace('/\s+/', '', $phone);
                 if (strlen($mainPhoneNormalized) === 10 && str_starts_with($mainPhoneNormalized, '0')) {
                     $mainPhoneNormalized = substr($mainPhoneNormalized, 1);
                 }
 
-                // Merge main phone with feedContacts numbers and remove duplicates
+                
                 $this->phone_numbers = $normalized->push($mainPhoneNormalized)
                     ->unique()
                     ->values()
                     ->all();
             } else {
-                // Only main phone is available
+                
                 $this->phone_numbers = [$phone];
             }
 
@@ -294,12 +294,21 @@ class Show extends Component
             $this->feedContactId = $query ? $query->id : null;
             $this->feedContactIdStatus = $query ? $query->status : null;
 
-            $this->surveyContacts = CxTicket::where(function ($query) use ($phone) {
+            $phone2 = $this->phone2;
+
+            $this->surveyContacts = CxTicket::where(function ($query) use ($phone, $phone2) {
+                
                 $query->where('customer_contact_01', $phone)
                     ->orWhere('customer_contact_02', $phone);
+
+                if (!empty($phone2)) {
+                    $query->orWhere('customer_contact_01', $phone2)
+                        ->orWhere('customer_contact_02', $phone2);
+                }
             })
                 ->whereIn('status', ['Closed', 'Skip'])
                 ->get();
+
 
             // if ($this->surveyContacts->isNotEmpty()) {
             //     $foundContact = $this->surveyContacts->first();

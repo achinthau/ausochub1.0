@@ -16,7 +16,7 @@
                 <span class="text-red-500 text-sm">{{ $reason }}</span>
             @endif
              @else 
-            <span class="text-red-500 text-sm">First Start a campaign</span>
+            <span class="text-red-500 text-sm">Please Login to a campaign</span>
             @endif 
         </div>
         <div>

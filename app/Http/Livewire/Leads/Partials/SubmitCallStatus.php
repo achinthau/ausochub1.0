@@ -36,12 +36,10 @@ class SubmitCallStatus extends Component
         $this->CallStatusModal = true;
         $this->feedCount = $feedCount;
         // $this->feed = FeedContactValid::find($id);
-        if(is_numeric($id))
-        {
+        if (is_numeric($id)) {
             $this->feed = FeedContactValid::find($id);
-        }
-        else{
-            $this->feed = FeedContactValid::where('priority_field',$id)->first();
+        } else {
+            $this->feed = FeedContactValid::where('priority_field', $id)->first();
         }
         // dd($this->feedCount);
         // dd($this->feed->id);
@@ -53,9 +51,11 @@ class SubmitCallStatus extends Component
         $this->campaign = $this->campaign->first()->id;
         // dd($this->campaign);
         $this->status = $status;
+        // $this->options = DialerCallStatusOption::where('type', $status === 'answered' ? 1 : 2)
+        //     ->pluck('option', 'id')
+        //     ->toArray();
         $this->options = DialerCallStatusOption::where('type', $status === 'answered' ? 1 : 2)
-            ->pluck('option', 'id')
-            ->toArray();
+            ->get();
 
         $this->selectedOption = null;
         $this->comment = '';
@@ -77,18 +77,26 @@ class SubmitCallStatus extends Component
 
     public function submit()
     {
-        $option = DialerCallStatusOption::find($this->selectedOption);
+        if (empty($this->selectedOption)) {
+            $this->addError('selectedOption', 'Please select an option.');
+            return;
+        }
 
-        // Validation
-        if ($option && $option->option === 'Promised to pay') {
+        // Decode the JSON from the dropdown
+        $option = json_decode($this->selectedOption, true);
+
+        // Validation based on the option value
+        if ($option['value'] === 'Promised to pay') {
             $this->validate([
                 'paymentDate' => 'required|date|after_or_equal:today',
-                'selectedOption' => 'required|exists:dialer_call_status_options,id',
+                'selectedOption' => 'required',
             ]);
+
+            // Append payment date to comment
             $this->comment = $this->comment . ' Payment Date: ' . $this->paymentDate;
         } else {
             $this->validate([
-                'selectedOption' => 'required|exists:dialer_call_status_options,id',
+                'selectedOption' => 'required',
             ]);
         }
 
@@ -100,19 +108,19 @@ class SubmitCallStatus extends Component
             // Fetch only feeds with same number AND not updated before
             $feeds = FeedContactValid::where(function ($query) use ($phone, $phone2) {
                 // if ($phone) {
-                    $query->where('contact_no_01', $phone)
-                        ->orWhere('contact_no_02', $phone)
-                // }
-                // if ($phone2) {
+                $query->where('contact_no_01', $phone)
+                    ->orWhere('contact_no_02', $phone)
+                    // }
+                    // if ($phone2) {
                     // $query->orWhere('contact_no_01', $phone2)
                     ->orWhere('contact_no_01', $phone2)
-                        ->orWhere('contact_no_02', $phone2);
+                    ->orWhere('contact_no_02', $phone2);
                 // }
             })
                 ->where(function ($query) {
                     $query->whereNull('status') // Fresh ones
-                        ->orWhere('status',3)
-                        ->orWhere('status',"LIKE", '2%'); // No Answer retries
+                        ->orWhere('status', 3)
+                        ->orWhere('status', "LIKE", '2%'); // No Answer retries
                 })
                 ->when($this->feed->feed_id, function ($query, $feedId) {
                     $query->where('feed_id', $feedId);
@@ -137,8 +145,7 @@ class SubmitCallStatus extends Component
                     // }
                     if (str_starts_with((string) $feed->status, '2')) {
                         $feed->status = (int) ($feed->status . '2');
-                    }
-                    else {
+                    } else {
                         $feed->status = 2; // First time "no answer"
                     }
 
@@ -153,10 +160,11 @@ class SubmitCallStatus extends Component
 
                 FeedContactAttempt::create([
                     'feed_contact_valid_id' => $feed->id,
-                    'call_status_option_id' => $this->selectedOption,
+                    'call_status_option_id' => $option['id'],
                     'comments' => $this->comment,
                     'campaign_id' => $this->campaign,
                     'updated_by' => Auth::id(),
+                    'call_status_option_type' =>$option['type']
                 ]);
             }
 
@@ -206,8 +214,7 @@ class SubmitCallStatus extends Component
 
                 if (str_starts_with((string) $this->feed->status, '2')) {
                     $this->feed->status = (int) ($this->feed->status . '2');
-                }
-                else {
+                } else {
                     $this->feed->status = 2; // First time "no answer"
                 }
 
@@ -232,10 +239,11 @@ class SubmitCallStatus extends Component
 
             FeedContactAttempt::create([
                 'feed_contact_valid_id' => $this->feed->id,
-                'call_status_option_id' => $this->selectedOption,
+                'call_status_option_id' => $option['id'],
                 'comments' => $this->comment,
                 'campaign_id' => $this->campaign,
                 'updated_by' => Auth::id(),
+                'call_status_option_type' =>$option['type'],
             ]);
         }
 

@@ -10,7 +10,7 @@ class FeedContactAttempt extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['feed_contact_valid_id','call_status_option_id', 'comments','campaign_id', 'updated_by'];
+    protected $fillable = ['feed_contact_valid_id','call_status_option_id', 'comments','campaign_id', 'updated_by','call_status_option_type'];
 
     public function feed(): BelongsTo
     {

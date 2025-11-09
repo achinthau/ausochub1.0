@@ -103,6 +103,34 @@ class DialerContactAttemptTable extends DataTableComponent
                         $query->where('option', 'like', '%' . $term . '%');
                     });
                 }),
+            Column::make("Call status", "call_status_option_type")
+                ->format(function ($value, $row) {
+                    $typeMap = [
+                        1 => 'Answered',
+                        2 => 'NotAnswered',
+                        3 => 'Skipped',
+                    ];
+
+                    $type = $row->status->type ?? null;
+                    return $typeMap[$type] ?? 'N/A';
+                })
+                ->sortable()
+                ->searchable(function ($builder, $term) {
+                    $typeMap = [
+                        1 => 'Answered',
+                        2 => 'NotAnswered',
+                        3 => 'Skipped',
+                    ];
+
+                    return $builder->orWhereHas('status', function ($query) use ($term, $typeMap) {
+                        foreach ($typeMap as $key => $label) {
+                            if (stripos($label, $term) !== false) {
+                                $query->orWhere('type', $key);
+                            }
+                        }
+                    });
+                }),
+
             Column::make("Comments", "comments")
                 ->sortable()
                 ->searchable(),
@@ -137,6 +165,23 @@ class DialerContactAttemptTable extends DataTableComponent
     public function filters(): array
     {
         return [
+
+            SelectFilter::make('Call Status Type')
+    ->options([
+        '' => 'All',      // default option
+        1  => 'Answered',
+        2  => 'NotAnswered',
+        3  => 'Skipped',
+    ])
+    ->filter(function ($builder, $value) {
+        if ($value !== '') {
+            $builder->whereHas('status', function ($query) use ($value) {
+                $query->where('type', $value);
+            });
+        }
+    }),
+
+            
             // ✅ Call Status Option (Dynamic)
             SelectFilter::make('Call Status Option')
                 ->options(

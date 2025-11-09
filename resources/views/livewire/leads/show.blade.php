@@ -678,8 +678,8 @@
                                                             $isNew = is_null($contact->status);
 
                                                             // Check if Not Answered was submitted today
-                                                            $lastUpdated = \Carbon\Carbon::parse($contact->next_available_at);
-                                                            $hideNotAnsweredButtons = $isNotAnswered && $lastUpdated->greaterThan(now()->startOfDay());
+                                                            $lastUpdated = \Carbon\Carbon::parse($contact->updated_at);
+                                                            $hideNotAnsweredButtons = $isNotAnswered && $lastUpdated->greaterThan(\Carbon\Carbon::now()->subMinutes(1));
                                                             $notAnsweredCount = strlen((string) $contact->status);
                                                         @endphp
 

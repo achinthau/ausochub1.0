@@ -665,7 +665,7 @@
 
 
     
-    @else 
+    @elseif($service_type == 'follow-up' && $feedContacts && $feedContacts->count() > 0)
 
                                 @foreach($feedContacts as $contact)
                                                         @php
@@ -757,6 +757,8 @@
 
                                                         </details>
                                 @endforeach
+                                @else
+                                <p class="text-gray-500 text-sm">No work order found.</p>
                             @endif
 
 

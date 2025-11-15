@@ -215,6 +215,7 @@ class RatingPanel extends Component
             if($this->feed)
         {
             $this->feed->status = 1;
+            $this->feed->next_available_at = NULL;
             $this->feed->save();
         }
 

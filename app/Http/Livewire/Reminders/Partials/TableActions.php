@@ -17,6 +17,7 @@ class TableActions extends Component
     public $isEdit = false;
     public $users;
     public $showDropdown = false;
+    public $visible = true;
     public $selectedUser;
 
     public function mount($id)
@@ -26,6 +27,13 @@ class TableActions extends Component
         $this->selectedUser = $this->callback->agent_id;
         // $this->users = User::where('tenant_context',auth()->user()->tenant_context)->get();
         $tenantContexts = explode(',', auth()->user()->tenant_context);
+
+        $campaign = $this->callback->campaign;
+        $currentSkills = Auth::user()->currentQueues()->active()->pluck('skill')->unique();
+        // dd($currentSkills);
+        if($campaign && $campaign != 'inbound' && !$currentSkills->contains($campaign)){
+            $this->visible = false;
+        }
 
         $this->users = User::where(function ($query) use ($tenantContexts) {
             foreach ($tenantContexts as $context) {

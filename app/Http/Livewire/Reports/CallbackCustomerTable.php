@@ -38,7 +38,7 @@ public function builder()
     $query = CallbackCustomer::query()
         ->select('callback_customers.*')
         ->with('users')
-        ->whereDate('callback_at', Carbon::today())
+        // ->whereDate('callback_at', Carbon::today())
         ->where('closing_reason',Null)
         ->orderBy('callback_at', 'desc');
 
@@ -81,6 +81,7 @@ public function builder()
             
 
             Column::name('comment')->label('Comment')->truncate(30)->searchable(),
+            Column::name('campaign')->label('Campaign')->truncate(30)->searchable(),
 
             // DateColumn::name('called_at')
             //     ->label('Called At')

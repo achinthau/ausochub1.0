@@ -29,6 +29,9 @@
                 <div wire:click="$emit('filterTicketsByStatus', 'Canceled')"  class="flex-1">
                 @livewire('cx-tickets.counts.canceled')
                 </div>
+                <div wire:click="$emit('filterTicketsByStatus', 'Skip')"  class="flex-1">
+                @livewire('cx-tickets.counts.skipped')
+                </div>
 
                 </div>
                 <div class="flex justify-between pb-4 gap-4">
@@ -47,6 +50,10 @@
                 <div wire:click="$emit('filterTicketsByStatus', 'Passive')" class="flex-1">
                 
                 @livewire('cx-tickets.counts.passive')
+                </div>
+                <div wire:click="$emit('filterTicketsByStatus', 'Remind')" class="flex-1">
+                
+                @livewire('cx-tickets.counts.remind')
                 </div>
             </div>
             <livewire:cx-tickets-table />

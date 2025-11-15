@@ -504,6 +504,14 @@ class Show extends Component
             'callbackComment' => 'nullable|string',
         ]);
 
+        $cmpName = '';
+        if ($this->boundType && $this->boundType == 'dialer'){
+            $cmpName = $this->campaign;
+        }
+        else{
+            $cmpName = 'inbound';
+        }
+
         CallbackCustomer::create([
             'agent_id' => auth()->id(),
             'lead_id' => $this->lead->id,
@@ -512,6 +520,7 @@ class Show extends Component
             'src' => 'lead',
             'callback_at' => Carbon::parse("{$this->callbackDate} {$this->callbackTime}"),
             'comment' => $this->callbackComment,
+            'campaign' => $cmpName
         ]);
 
         session()->flash('messagedialog', 'Callback saved successfully.');

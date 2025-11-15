@@ -26,6 +26,7 @@ class CallbackCustomer extends Model
         "called_at",
         "closed_by",
         "closing_reason",
+        "campaign"
     ];
 
     public function users()

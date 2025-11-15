@@ -26,6 +26,7 @@ return new class extends Migration
             $table->text('comment')->nullable();
             $table->text('closing_reason')->nullable();
             $table->text('closed_by')->nullable();
+            $table->text('campaign')->nullable();
             $table->timestamps();
         });
     }

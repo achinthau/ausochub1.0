@@ -155,6 +155,19 @@ Route::prefix('dialer')->group(function () {
     });
 
 
+Route::get('/redis/check', function () {
+    $userId = Auth::id();
+    return response()->json([
+        'registered' => Redis::get("softphone_registered:$userId") ? true : false
+    ]);
+});
+
+Route::post('/redis/set', function () {
+    $userId = Auth::id();
+    Redis::set("softphone_registered:$userId", 1);
+    return response()->json(['status' => 'ok']);
+});
+
 });
 
 

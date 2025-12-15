@@ -9,4 +9,6 @@ return [
     'auto_logout_mins' => env('AUTO_LOGOUT_MINS', 1),
     'ticket_sla_enabled' => env('TICKET_SLA_ENABLED', true),
     'external_extension_url' => env('EXTERNAL_EXTENSION_URL',false ),
+    'phone_type' => env('PHONE_TYPE', 'microsip'),
+
 ];

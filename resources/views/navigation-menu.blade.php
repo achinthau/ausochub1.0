@@ -298,14 +298,26 @@
                                     <div class="border-t border-gray-100"></div>
 
                                     <!-- Authentication -->
-                                    <form method="POST" action="{{ route('logout') }}" x-data>
+                                    {{-- <form method="POST" action="{{ route('logout') }}" x-data>
                                         @csrf
 
                                         <x-jet-dropdown-link href="{{ route('logout') }}"
                                             @click.prevent="$root.submit();">
                                             {{ __('Log Out') }}
                                         </x-jet-dropdown-link>
-                                    </form>
+                                    </form> --}}
+
+                                    <form method="POST" action="{{ route('logout') }}" x-data="logoutHandler()">
+    @csrf
+
+    <x-jet-dropdown-link
+        href="{{ route('logout') }}"
+        @click.prevent="logout"
+    >
+        {{ __('Log Out') }}
+    </x-jet-dropdown-link>
+</form>
+
                                 </x-slot>
 
                             </x-jet-dropdown>
@@ -370,13 +382,81 @@
                     @endif
 
                     <!-- Authentication -->
-                    <form method="POST" action="{{ route('logout') }}" x-data>
+                    {{-- <form method="POST" action="{{ route('logout') }}" x-data>
                         @csrf
 
                         <x-jet-responsive-nav-link href="{{ route('logout') }}" @click.prevent="$root.submit();">
                             {{ __('Log Out') }}
                         </x-jet-responsive-nav-link>
-                    </form>
+                    </form> --}}
+
+                    <form method="POST" action="{{ route('logout') }}" x-data="logoutHandler()">
+    @csrf
+
+    <x-jet-dropdown-link
+        href="{{ route('logout') }}"
+        @click.prevent="logout"
+    >
+        {{ __('Log Out') }}
+    </x-jet-dropdown-link>
+</form>
+
+
+
+                    <script>
+function logoutHandler() {
+    return {
+        logout() {
+            try {
+                const phoneType = "{{ strtolower(config('auso.phone_type')) }}";
+                const exten = "{{ auth()->user()->extensionData }}";
+
+                let url = null;
+
+                if (phoneType.includes('microsip')) {
+                    url = "http://127.0.0.1:5001/remove/microsip";
+                } else if (phoneType.includes('zoiper')) {
+                    url = "http://127.0.0.1:5001/remove/zoiper5";
+                }
+
+                if (url) {
+                    const data = {
+                        exten: exten.extension,
+                        server: "123.231.74.22",
+                        password: phoneType.includes('microsip')
+                            ? "@u5051p"
+                            : "vCkSoFyUNjxbVy7bm6TJdA==\n",
+                        aa: "1",
+                        autoanswerdelay: "3",
+                        protocol: exten.exten_type
+                    };
+
+                    const payload = new Blob(
+                        [JSON.stringify(data)],
+                        { type: 'application/json' }
+                    );
+
+                    // navigator.sendBeacon(url, payload);
+                    fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+    credentials: 'omit',  // Explicitly no credentials → no need for Allow-Credentials: true
+    keepalive: true       //  allows it to send reliably on page unload
+})
+                }
+            } catch (e) {
+                console.warn('Softphone disconnect failed', e);
+            }
+
+            this.$root.submit();
+        }
+    }
+}
+</script>
+
+
+
 
                     <!-- Team Management -->
                     @if (Laravel\Jetstream\Jetstream::hasTeamFeatures())

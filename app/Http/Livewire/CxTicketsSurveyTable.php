@@ -3,11 +3,14 @@
 namespace App\Http\Livewire;
 
 use App\Exports\CxTicketsSurveyExport;
+use App\Models\CxTicketCategory;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
 use App\Models\CxTicket;
 use Illuminate\Database\Eloquent\Builder;
 use Maatwebsite\Excel\Facades\Excel;
+use Rappasoft\LaravelLivewireTables\Views\Filters\DateFilter;
+use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
 
 class CxTicketsSurveyTable extends DataTableComponent
 {
@@ -133,6 +136,95 @@ public function builder(): Builder
             Column::make("Actions")
                 ->label(fn($row) => view('livewire.cx-tickets.survey.rating-button', ['ticket' => $row]))
                 ->html(),
+        ];
+    }
+
+    public function filters(): array
+    {
+        $categories = CxTicketCategory::pluck('name', 'name')->toArray();
+
+        $options = ['' => 'All'] + $categories;
+
+
+        return [
+
+            SelectFilter::make('Category')
+                ->options($options)
+                ->filter(function ($query, $value) {
+                    if ($value !== '') {
+                        $query->where('category', $value);
+                    }
+                }),
+
+            SelectFilter::make('Change Request')
+                ->options([
+                    '' => 'All',
+                    'has' => 'Has Change Request',
+                    'null' => 'No Change Request',
+                ])
+                ->filter(function (Builder $query, string $value) {
+                    if ($value === 'has') {
+                        $query->whereNotNull('change_request')
+                            ->where('change_request', '!=', '');
+                    }
+
+                    if ($value === 'null') {
+                        $query->where(function ($q) {
+                            $q->whereNull('change_request')
+                                ->orWhere('change_request', '');
+                        });
+                    }
+                }),
+
+
+
+
+
+            SelectFilter::make('Status')
+                ->options([
+                    '' => 'All',
+                    'Open' => 'Pending',
+                    'Closed' => 'Completed',
+                    'Rated' => 'Rated',
+                    'Canceled' => 'Canceled',
+                    'ReOpened' => 'ReOpened',
+                    'Satisfied' => 'Satisfied',
+                    'Unsatisfied' => 'Unsatisfied',
+                    // 'Neutral' => 'Neutral', 
+                    'Passive' => 'Passive',
+                ])
+                ->filter(function ($query, $value) {
+                    if ($value === 'Satisfied') {
+                        $query->where('status', 'Rated')
+                            ->where('satisfaction_rate', '>', 3);
+                    } elseif ($value === 'Unsatisfied') {
+                        $query->where(function ($q) {
+                            $q->where('status', 'Rated')
+                                ->where('satisfaction_rate', '<', 3);
+                        });
+                    } elseif ($value === 'Passive') {
+                        $query->where(function ($q) {
+                            $q->where('status', 'Rated')
+                                ->where('satisfaction_rate', 3);
+                        });
+                    } elseif ($value !== '') {
+                        $query->where('status', $value);
+                    }
+                }),
+
+
+            DateFilter::make('Due From')
+                ->config([
+                    // 'min' => '2020-01-01',
+                    // 'max' => '2021-12-31',
+                ])
+                ->filter(function (Builder $builder, string $value) {
+                    $builder->where('updated_at', '>=', $value);
+                }),
+            DateFilter::make('Due To')
+                ->filter(function (Builder $builder, string $value) {
+                    $builder->where('updated_at', '<=', $value);
+                })
         ];
     }
 }

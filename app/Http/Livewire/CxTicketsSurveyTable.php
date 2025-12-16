@@ -39,12 +39,12 @@ class CxTicketsSurveyTable extends DataTableComponent
     }
 
     public function export()
-{
-    $selectedIds = $this->getSelected();
+    {
+        $selectedIds = $this->getSelected();
 
-    $tickets = CxTicket::whereIn('id', $selectedIds)->get();
-    return Excel::download(new CxTicketsSurveyExport($tickets), 'cx_tickets_completed.xlsx');
-}
+        $tickets = CxTicket::whereIn('id', $selectedIds)->get();
+        return Excel::download(new CxTicketsSurveyExport($tickets), 'cx_tickets_completed.xlsx');
+    }
 
 
     public function configure(): void
@@ -58,32 +58,32 @@ class CxTicketsSurveyTable extends DataTableComponent
     }
 
 
-//     public function builder(): Builder
+    //     public function builder(): Builder
 // {
 //     $companyNames = array_filter(array_map('trim', explode(',', auth()->user()->tenant_context)));
 
-//     return CxTicket::query()
+    //     return CxTicket::query()
 //     ->where('status', 'Closed')
 //         ->whereIn('company', $companyNames)
 //         ->orderBy('updated_at', 'asc');
 // }
 
-public function builder(): Builder
-{
-    $companyNames = array_filter(array_map('trim', explode(',', auth()->user()->tenant_context)));
+    public function builder(): Builder
+    {
+        $companyNames = array_filter(array_map('trim', explode(',', auth()->user()->tenant_context)));
 
-    return CxTicket::query()
-        ->whereIn('company', $companyNames)
-        ->where(function ($q) {
-            $q->where('status', 'Closed')
-        ->orWhere('status', 'Remind')
-              ->orWhere(function ($q2) {
-                  $q2->where('status', 'Skip')
-                     ->whereDate('updated_at', '!=', now()->toDateString());
-              });
-        })
-        ->orderBy('updated_at', 'asc');
-}
+        return CxTicket::query()
+            ->whereIn('company', $companyNames)
+            ->where(function ($q) {
+                $q->where('status', 'Closed')
+                    ->orWhere('status', 'Remind')
+                    ->orWhere(function ($q2) {
+                        $q2->where('status', 'Skip')
+                            ->whereDate('updated_at', '!=', now()->toDateString());
+                    });
+            })
+            ->orderBy('updated_at', 'asc');
+    }
 
 
     public function columns(): array
@@ -128,7 +128,7 @@ public function builder(): Builder
                 ->sortable(),
             Column::make("Creator", "creator")
                 ->sortable(),
-            Column::make("Change Request", "change_request")->sortable()->searchable(), 
+            Column::make("Change Request", "change_request")->sortable()->searchable(),
             Column::make("Created at", "created_at")
                 ->sortable(),
             Column::make("Updated at", "updated_at")
@@ -158,17 +158,22 @@ public function builder(): Builder
 
             SelectFilter::make('Change Request')
                 ->options([
-                    '' => 'All',
+                    'all' => 'All',
                     'has' => 'Yes',
-                    'null' => 'No',
+                    'no' => 'No',
                 ])
                 ->filter(function (Builder $query, string $value) {
+
+                    if ($value === 'all') {
+                        return;
+                    }
+
                     if ($value === 'has') {
                         $query->whereNotNull('change_request')
                             ->where('change_request', '!=', '');
                     }
 
-                    if ($value === 'null') {
+                    if ($value === 'no') {
                         $query->where(function ($q) {
                             $q->whereNull('change_request')
                                 ->orWhere('change_request', '');

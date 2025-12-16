@@ -71,23 +71,29 @@ class CxTicketsTable extends DataTableComponent
 
             SelectFilter::make('Change Request')
                 ->options([
-                    '' => 'All',
+                    'all' => 'All',
                     'has' => 'Yes',
-                    'null' => 'No',
+                    'no' => 'No',
                 ])
                 ->filter(function (Builder $query, string $value) {
+
+                    if ($value === 'all') {
+                        return;
+                    }
+
                     if ($value === 'has') {
                         $query->whereNotNull('change_request')
                             ->where('change_request', '!=', '');
                     }
 
-                    if ($value === 'null') {
+                    if ($value === 'no') {
                         $query->where(function ($q) {
                             $q->whereNull('change_request')
                                 ->orWhere('change_request', '');
                         });
                     }
                 }),
+
 
 
 
@@ -140,6 +146,8 @@ class CxTicketsTable extends DataTableComponent
                 })
         ];
     }
+
+
 
 
     public function builder(): Builder

@@ -159,8 +159,8 @@ public function builder(): Builder
             SelectFilter::make('Change Request')
                 ->options([
                     '' => 'All',
-                    'has' => 'Has Change Request',
-                    'null' => 'No Change Request',
+                    'has' => 'Yes',
+                    'null' => 'No',
                 ])
                 ->filter(function (Builder $query, string $value) {
                     if ($value === 'has') {

@@ -8,6 +8,8 @@
     @endcanany
 
 
+    @if (config('auso.phone_auto_register') && auth()->check()
+    && !empty(auth()->user()->extension))
     <!-- Softphone Registration Modal -->
     <div id="softphoneModal" class="fixed inset-0 bg-gray-900 bg-opacity-60 hidden items-center justify-center">
 
@@ -164,5 +166,6 @@
 
         });
     </script>
+    @endif
 
 </x-app-layout>

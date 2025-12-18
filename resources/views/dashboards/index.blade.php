@@ -121,7 +121,7 @@
 
                 let url = softphone === "microsip"
                     ? "http://127.0.0.1:5001/update/microsip"
-                    : "http://127.0.0.1:5001/update/zoiper5";
+                    : "http://127.0.0.1:5001/update/zoiper3";
 
                 let data = {
                     exten: exten,

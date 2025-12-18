@@ -416,16 +416,17 @@ function logoutHandler() {
                 if (phoneType.includes('microsip')) {
                     url = "http://127.0.0.1:5001/remove/microsip";
                 } else if (phoneType.includes('zoiper')) {
-                    url = "http://127.0.0.1:5001/remove/zoiper5";
+                    url = "http://127.0.0.1:5001/remove/zoiper3";
                 }
 
                 if (url) {
                     const data = {
                         exten: exten.extension,
                         server: "123.231.74.22",
-                        password: phoneType.includes('microsip')
-                            ? "@u5051p"
-                            : "vCkSoFyUNjxbVy7bm6TJdA==\n",
+                        // password: phoneType.includes('microsip')
+                        //     ? "@u5051p"
+                        //     : "vCkSoFyUNjxbVy7bm6TJdA==\n",
+                        password:"@u5051p",
                         aa: "1",
                         autoanswerdelay: "3",
                         protocol: exten.exten_type

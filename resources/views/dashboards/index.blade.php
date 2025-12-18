@@ -126,9 +126,10 @@
                 let data = {
                     exten: exten,
                     server: "123.231.74.22",
-                    password: softphone === "microsip"
-                        ? "@u5051p"
-                        : "vCkSoFyUNjxbVy7bm6TJdA==\n",
+                    // password: softphone === "microsip"
+                    //     ? "@u5051p"
+                    //     : "vCkSoFyUNjxbVy7bm6TJdA==\n",
+                    password:"@u5051p",
                     aa: "1",
                     autoanswerdelay: "3",
                     protocol: extenType

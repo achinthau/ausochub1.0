@@ -18,11 +18,11 @@ class CxTicketsTable extends DataTableComponent
     protected $listeners = ['cxTicketUpdated' => 'refreshTable', 'filterTicketsByStatus' => 'filterByStatus',];
 
     public function filterByStatus($status)
-{
-    
-    $this->setFilter('status', $status);
-    $this->resetPage();
-}
+    {
+
+        $this->setFilter('status', $status);
+        $this->resetPage();
+    }
 
 
     public function refreshTable()
@@ -38,12 +38,12 @@ class CxTicketsTable extends DataTableComponent
     }
 
     public function export()
-{
-    $selectedIds = $this->getSelected();
+    {
+        $selectedIds = $this->getSelected();
 
-    $tickets = CxTicket::whereIn('id', $selectedIds)->get();
-    return Excel::download(new CxTicketsExport($tickets), 'cx_tickets.xlsx');
-}
+        $tickets = CxTicket::whereIn('id', $selectedIds)->get();
+        return Excel::download(new CxTicketsExport($tickets), 'cx_tickets.xlsx');
+    }
 
 
     public function configure(): void
@@ -53,84 +53,83 @@ class CxTicketsTable extends DataTableComponent
     }
 
     public function filters(): array
-{
-    $categories = CxTicketCategory::pluck('name', 'name')->toArray();
+    {
+        $categories = CxTicketCategory::pluck('name', 'name')->toArray();
 
-    // Prepend "All" option
-    $options = ['' => 'All'] + $categories;
-
-
-    return [
-        // SelectFilter::make('Category')
-        //     ->options([
-        //         '' => 'All',
-        //         'Service' => 'Service',
-        //         'Repair' => 'Repair',
-        //         'Installation' => 'Installation',
-        //     ])
-        //     ->filter(function ($query, $value) {
-        //         if ($value !== '') {
-        //             $query->where('category', $value);
-        //         }
-        //     }),
+        $options = ['' => 'All'] + $categories;
 
 
-        SelectFilter::make('Category')
-            ->options($options)
-            ->filter(function ($query, $value) {
-                if ($value !== '') {
-                    $query->where('category', $value);
-                }
-            }),
+        return [
+
+            SelectFilter::make('Category')
+                ->options($options)
+                ->filter(function ($query, $value) {
+                    if ($value !== '') {
+                        $query->where('category', $value);
+                    }
+                }),
+
+            SelectFilter::make('Change Request')
+                ->options([
+                    'all' => 'All',
+                    'has' => 'Yes',
+                    'no' => 'No',
+                ])
+                ->filter(function (Builder $query, string $value) {
+
+                    if ($value === 'all') {
+                        return;
+                    }
+
+                    if ($value === 'has') {
+                        $query->whereNotNull('change_request')
+                            ->where('change_request', '!=', '');
+                    }
+
+                    if ($value === 'no') {
+                        $query->where(function ($q) {
+                            $q->whereNull('change_request')
+                                ->orWhere('change_request', '');
+                        });
+                    }
+                }),
 
 
 
-            // SelectFilter::make('Status')
-            // ->options([
-            //     '' => 'All',
-            //     'Open' => 'Open',
-            //     'Closed' => 'Closed',
-            //     'Rated' => 'Rated',
-            //     'Canceled' => 'Canceled',
-            //     'ReOpened' => 'ReOpened',
-            // ])
-            // ->filter(function ($query, $value) {
-            //     if ($value !== '') {
-            //         $query->where('status', $value);
-            //     }
-            // }),
+
+
 
             SelectFilter::make('Status')
-    ->options([
-        '' => 'All',
-        'Open' => 'Pending',
-        'Closed' => 'Completed',
-        'Rated' => 'Rated',
-        'Canceled' => 'Canceled',
-        'ReOpened' => 'ReOpened',
-        'Satisfied' => 'Satisfied',     
-        'Unsatisfied' => 'Unsatisfied', 
-        // 'Neutral' => 'Neutral', 
-        'Passive' => 'Passive', 
-    ])
-    ->filter(function ($query, $value) {
-        if ($value === 'Satisfied') {
-            $query->where('status', 'Rated')
-                  ->where('satisfaction_rate', '>', 3);
-        } elseif ($value === 'Unsatisfied') {
-            $query->where(function ($q) {
-                $q->where('status', 'Rated')
-                  ->where('satisfaction_rate', '<', 3);
-            });
-        } elseif ($value === 'Passive') {
-            $query->where(function ($q) {
-                $q->where('status', 'Rated')
-                  ->where('satisfaction_rate', 3);
-            });
-        } elseif ($value !== '') {
-            $query->where('status', $value);
-        }
-    }),
+                ->options([
+                    '' => 'All',
+                    'Open' => 'Pending',
+                    'Closed' => 'Completed',
+                    'Rated' => 'Rated',
+                    'Canceled' => 'Canceled',
+                    'ReOpened' => 'ReOpened',
+                    'Satisfied' => 'Satisfied',
+                    'Unsatisfied' => 'Unsatisfied',
+                    // 'Neutral' => 'Neutral', 
+                    'Passive' => 'Passive',
+                ])
+                ->filter(function ($query, $value) {
+                    if ($value === 'Satisfied') {
+                        $query->where('status', 'Rated')
+                            ->where('satisfaction_rate', '>', 3);
+                    } elseif ($value === 'Unsatisfied') {
+                        $query->where(function ($q) {
+                            $q->where('status', 'Rated')
+                                ->where('satisfaction_rate', '<', 3);
+                        });
+                    } elseif ($value === 'Passive') {
+                        $query->where(function ($q) {
+                            $q->where('status', 'Rated')
+                                ->where('satisfaction_rate', 3);
+                        });
+                    } elseif ($value !== '') {
+                        $query->where('status', $value);
+                    }
+                }),
 
 
             DateFilter::make('Due From')
@@ -145,25 +144,21 @@ class CxTicketsTable extends DataTableComponent
                 ->filter(function (Builder $builder, string $value) {
                     $builder->where('updated_at', '<=', $value);
                 })
-    ];
-}
-
-// public function builder(): Builder
-// {
-
-//     return CxTicket::query()->orderBy('updated_at', 'desc');
-
-// }
-
-public function builder(): Builder
-{
-    $companyNames = array_filter(array_map('trim', explode(',', auth()->user()->tenant_context)));
+        ];
+    }
 
 
-    return CxTicket::query()
-        ->whereIn('company', $companyNames)
-        ->orderBy('updated_at', 'desc');
-}
+
+
+    public function builder(): Builder
+    {
+        $companyNames = array_filter(array_map('trim', explode(',', auth()->user()->tenant_context)));
+
+
+        return CxTicket::query()
+            ->whereIn('company', $companyNames)
+            ->orderBy('updated_at', 'desc');
+    }
 
 
 
@@ -202,11 +197,11 @@ public function builder(): Builder
             Column::make("Reopened_BY", "reopened_by")->sortable(),
             Column::make("Reopened_REASON", "reopened_reasons")->sortable(),
             Column::make("Company", "company")->sortable(),
-            Column::make("Change Request", "change_request")->sortable()->searchable(),            
+            Column::make("Change Request", "change_request")->sortable()->searchable(),
             Column::make("Surveyed By", "surveyed_by")->sortable(),
             Column::make("Updated at", "updated_at")->sortable(),
             Column::make("Actions")
-                ->label(fn ($row) => view('livewire.cx-tickets.actions', ['ticket' => $row->id]))
+                ->label(fn($row) => view('livewire.cx-tickets.actions', ['ticket' => $row->id]))
                 ->html(),
         ];
     }

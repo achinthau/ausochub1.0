@@ -184,4 +184,9 @@ public function company()
     return $this->belongsToMany(Company::class);
 }
 
+public function extensionData()
+    {
+        return $this->belongsTo(Extension::class, 'extension', 'extension');
+    }
+
 }

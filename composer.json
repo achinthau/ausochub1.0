@@ -13,7 +13,6 @@
         "davidhsianturi/blade-bootstrap-icons": "^1.5",
         "doctrine/dbal": "^3.5",
         "filament/filament": "^2.0",
-        "flowframe/laravel-trend": "^0.4.0",
         "guzzlehttp/guzzle": "^7.2",
         "laravel/framework": "^9.19",
         "laravel/jetstream": "^2.8",

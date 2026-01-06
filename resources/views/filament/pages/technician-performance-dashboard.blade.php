@@ -51,7 +51,7 @@
                         min="{{ $minDate }}" 
                         max="{{ $maxDate }}"
                         class="border-gray-200 rounded-lg shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-900 text-sm py-2 px-3" 
-                        onchange="this.form.submit()">
+                        onchange="adjustDates('startDate')">
                 </div>
 
                 <div class="flex flex-col">
@@ -61,22 +61,38 @@
                         min="{{ $minDate }}" 
                         max="{{ $maxDate }}"
                         class="border-gray-200 rounded-lg shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-900 text-sm py-2 px-3" 
-                        onchange="this.form.submit()">
+                        onchange="adjustDates('endDate')">
                 </div>
 
                 <div class="flex items-center pt-1 mt-4">
                     <span class="text-[10px] text-gray-400 font-medium bg-gray-50 px-2 py-1 rounded-full border border-gray-100 whitespace-nowrap">
-                        Restricted to last 30 days
+                        Fixed 30-day window
                     </span>
                 </div>
+
+                <script>
+                    function adjustDates(changedField) {
+                        const startInput = document.getElementById('startDate');
+                        const endInput = document.getElementById('endDate');
+                        const gap = 30;
+
+                        if (changedField === 'startDate') {
+                            const date = new Date(startInput.value);
+                            date.setDate(date.getDate() + gap);
+                            endInput.value = date.toISOString().split('T')[0];
+                        } else {
+                            const date = new Date(endInput.value);
+                            date.setDate(date.getDate() - gap);
+                            startInput.value = date.toISOString().split('T')[0];
+                        }
+                        startInput.form.submit();
+                    }
+                </script>
                 
                 <div class="flex items-center pt-6 ml-auto">
-                    <a href="{{ route('filament.pages.technician-performance-dashboard') }}" text-lg
+                    <a href="{{ route('filament.pages.technician-performance-dashboard') }}" 
                         class="filament-button filament-button-size-sm inline-flex items-center justify-center py-1 gap-1 font-medium rounded-lg border transition-colors focus:outline-none focus:ring-offset-2 focus:ring-2 focus:ring-inset dark:focus:ring-offset-0 min-h-[2rem] px-3 text-xs text-gray-800 bg-white border-gray-300 hover:bg-gray-50 focus:ring-primary-600 focus:text-primary-600 focus:bg-primary-50 focus:border-primary-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:focus:text-primary-400 dark:focus:border-primary-400 whitespace-nowrap">
-                        <svg class="w-5 h-5 mr-1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                        </svg>
-                        All Users
+                        Reset Dashboard
                     </a>
                 </div>
             </form>

@@ -31,18 +31,10 @@
         }
     </style>
     
-    <div class="grid grid-cols-1 gap-4">
+    <div class="grid grid-cols-1 gap-8">
         
-
         <div class="col-span-full">
-            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">IVR Performance</h2>
-        </div>
-
-        {{-- Comparison Chart --}}
-        <div class="col-span-full flex justify-center">
-            <div class="w-full max-w-4xl">
-                @livewire(\App\Filament\Widgets\IvrComparisonChart::class, ['startDate' => $startDate, 'endDate' => $endDate])
-            </div>
+            <h2 class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-4">IVR Performance Breakdown</h2>
         </div>
 
         <div class="col-span-full mb-6">
@@ -54,7 +46,7 @@
                         min="{{ $minDate }}" 
                         max="{{ $maxDate }}"
                         class="border-gray-200 dark:border-gray-700 bg-transparent rounded-lg shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-900 dark:text-gray-100 text-sm py-2 px-3" 
-                        onchange="this.form.submit()">
+                        onchange="adjustDates('startDate')">
                 </div>
 
                 <div class="flex flex-col">
@@ -64,27 +56,69 @@
                         min="{{ $minDate }}" 
                         max="{{ $maxDate }}"
                         class="border-gray-200 dark:border-gray-700 bg-transparent rounded-lg shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-900 dark:text-gray-100 text-sm py-2 px-3" 
-                        onchange="this.form.submit()">
+                        onchange="adjustDates('endDate')">
                 </div>
 
                 <div class="flex items-center pt-1 mt-4">
                     <span class="text-[10px] text-gray-400 font-medium bg-gray-50 dark:bg-gray-800 px-2 py-1 rounded-full border border-gray-100 dark:border-gray-700 whitespace-nowrap">
-                        Restricted to last 30 days
+                        Fixed 30-day window
                     </span>
                 </div>
+
+                <script>
+                    function adjustDates(changedField) {
+                        const startInput = document.getElementById('startDate');
+                        const endInput = document.getElementById('endDate');
+                        const gap = 30;
+
+                        if (changedField === 'startDate') {
+                            const date = new Date(startInput.value);
+                            date.setDate(date.getDate() + gap);
+                            endInput.value = date.toISOString().split('T')[0];
+                        } else {
+                            const date = new Date(endInput.value);
+                            date.setDate(date.getDate() - gap);
+                            startInput.value = date.toISOString().split('T')[0];
+                        }
+                        startInput.form.submit();
+                    }
+                </script>
                 
                 <div class="flex items-center pt-6 ml-auto">
                     <a href="{{ route('filament.pages.ivr-performance-dashboard') }}" 
                         class="filament-button filament-button-size-sm inline-flex items-center justify-center py-1 gap-1 font-medium rounded-lg border transition-colors focus:outline-none focus:ring-offset-2 focus:ring-2 focus:ring-inset dark:focus:ring-offset-0 min-h-[2rem] px-3 text-xs text-gray-800 bg-white border-gray-300 hover:bg-gray-50 focus:ring-primary-600 focus:text-primary-600 focus:bg-primary-50 focus:border-primary-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:focus:text-primary-400 dark:focus:border-primary-400 whitespace-nowrap">
-                        Clear Filters
+                        Reset Dashboard
                     </a>
                 </div>
             </form>
         </div>
 
-        {{-- Table Widget --}}
-        <div class="col-span-full">
-            @livewire(\App\Filament\Widgets\IvrComparisonTable::class, ['startDate' => $startDate, 'endDate' => $endDate])
-        </div>
+        {{-- Sections per DNIS --}}
+        @foreach($dnisList as $dnis)
+            <div class="col-span-full grid grid-cols-1 gap-4 p-6 bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-2 h-8 bg-primary-500 rounded-full"></div>
+                    <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">DNIS: {{ $dnis }}</h3>
+                </div>
+
+                {{-- Chart per DNIS --}}
+                <div class="w-full">
+                    @livewire(\App\Filament\Widgets\IvrComparisonChart::class, [
+                        'startDate' => $startDate, 
+                        'endDate' => $endDate,
+                        'dnis' => $dnis
+                    ], key('chart-'.$dnis))
+                </div>
+
+                {{-- Table per DNIS --}}
+                <!-- <div class="w-full mt-4">
+                    @livewire(\App\Filament\Widgets\IvrComparisonTable::class, [
+                        'startDate' => $startDate, 
+                        'endDate' => $endDate,
+                        'dnis' => $dnis
+                    ], key('table-'.$dnis))
+                </div> -->
+            </div>
+        @endforeach
     </div>
 </x-filament::page>

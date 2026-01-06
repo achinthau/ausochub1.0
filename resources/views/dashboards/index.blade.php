@@ -4,6 +4,11 @@
     @endcan
 
     @canany(['is-admin', 'client-admin'])
+        <div class="flex justify-end px-6 py-2 space-x-2">
+            <!-- <a href="/admin/performance-dashboard" class="bg-blue-600 text-white px-4 py-2 rounded shadow hover:bg-blue-700 transition">
+                Performance Dashboard
+            </a> -->
+        </div>
         @livewire('dashboard.admin.index')
     @endcanany
 

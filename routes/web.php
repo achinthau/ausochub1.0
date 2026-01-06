@@ -168,6 +168,11 @@ Route::post('/redis/set', function () {
     return response()->json(['status' => 'ok']);
 });
 
+//for disabled filament login
+Route::redirect('/admin/login', '/login')
+    ->name('filament.auth.login');
+
+
 });
 
 

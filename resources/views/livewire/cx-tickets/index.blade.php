@@ -10,7 +10,7 @@
                 <!-- <x-button icon="chart-bar" class="bg-blue-500 hover:bg-blue-600" label="Analytics" onclick="window.open('/admin/technician-performance-dashboard', '_blank')" /> -->
                 <x-button
     class="relative group flex items-center"
-    onclick="window.open('/admin/technician-performance-dashboard', '_blank')"
+    href="{{ route('filament.pages.technician-performance-dashboard') }}"
 >
     <svg
         class="w-6 h-6 text-blue-500"

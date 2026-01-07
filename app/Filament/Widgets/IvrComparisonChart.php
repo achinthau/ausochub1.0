@@ -8,8 +8,7 @@ use Illuminate\Support\Facades\DB;
 
 class IvrComparisonChart extends LineChartWidget
 {
-    // protected static ?string $heading = 'DNIS Comparison (Total vs Answered vs Missed)';
-    protected int | string | array $columnSpan = 'full';
+    protected static ?string $maxHeight = '300px';
     
     public $startDate;
     public $endDate;
@@ -17,10 +16,10 @@ class IvrComparisonChart extends LineChartWidget
 
     protected static ?string $pollingInterval = null;
 
-    protected function getHeading(): string|null
-    {
-        return "Performance for DNIS: " . ($this->dnis ?? 'All');
-    }
+    // protected function getHeading(): string|null
+    // {
+    //     return "Performance for " . ($this->dnis ?? 'All');
+    // }
 
     protected function getData(): array
     {

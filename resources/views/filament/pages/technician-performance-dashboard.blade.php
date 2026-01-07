@@ -25,15 +25,13 @@
         }
     </style>
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        @if($technicianName)
-            <div class="col-span-full mb-4">
+        <div class="col-span-full mb-4">
+            @if($technicianName)
                 <h2 class="text-xl font-bold">Performance Metrics for: {{ $technicianName }}</h2>
-            </div>
-        @else
-            <div class="mb-4 text-gray-700">
-                <h2 class="text-xl font-bold">All Technicians Performance</h2>
-            </div>
-        @endif
+            @else
+                <h2 class="text-xl font-bold text-gray-700">All Technicians Performance</h2>
+            @endif
+        </div>
 
         <div class="col-span-full mb-6">
             <form method="GET" class="flex flex-wrap gap-4 items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">

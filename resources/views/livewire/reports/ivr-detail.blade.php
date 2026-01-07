@@ -5,10 +5,12 @@
                 {{ __('IVR Detail Report')  }}
             </h2>
 
-            <x-button
+            
+<x-button
+    href="{{ route('filament.pages.ivr-performance-dashboard') }}"
     class="relative group flex items-center"
-    onclick="window.open('{{ route('filament.pages.ivr-performance-dashboard') }}')"
 >
+
     <svg
         class="w-6 h-6 text-blue-500"
         fill="currentColor"

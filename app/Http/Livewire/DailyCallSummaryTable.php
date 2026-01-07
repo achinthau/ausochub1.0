@@ -15,6 +15,9 @@ class DailyCallSummaryTable extends DataTableComponent
 {
     protected $model = DailyCallSummary::class;
 
+    public $startDate;
+    public $endDate;
+
     public function configure(): void
     {
         $this->setPrimaryKey('id')
@@ -98,7 +101,13 @@ public function export()
 
     public function builder(): \Illuminate\Database\Eloquent\Builder
 {
-    return DailyCallSummary::query();
+    $query = DailyCallSummary::query();
+
+    if ($this->startDate && $this->endDate) {
+        $query->whereBetween('date', [$this->startDate, $this->endDate]);
+    }
+
+    return $query;
 }
 
 }

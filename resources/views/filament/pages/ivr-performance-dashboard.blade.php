@@ -94,31 +94,26 @@
         </div>
 
         {{-- Sections per DNIS --}}
-        @foreach($dnisList as $dnis)
-            <div class="col-span-full grid grid-cols-1 gap-4 p-6 bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
-                <div class="flex items-center gap-2 mb-2">
-                    <div class="w-2 h-8 bg-primary-500 rounded-full"></div>
-                    <h3 class="text-lg font-bold text-gray-800 dark:text-gray-100">DNIS: {{ $dnis }}</h3>
-                </div>
+        <div class="col-span-full grid grid-cols-1 md:grid-cols-2 gap-6 pb-12">
+            @foreach($dnisList as $dnis)
+                <div class="flex flex-col bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden transition-all hover:shadow-md">
+                    <div class="bg-gray-50/50 dark:bg-gray-800/50 px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <div class="w-1.5 h-6 bg-primary-500 rounded-full"></div>
+                            <h3 class="font-bold text-gray-800 dark:text-gray-100">{{ $dnis }}</h3>
+                        </div>
+                        <!-- <span class="text-[10px] font-bold text-primary-600 bg-primary-50 dark:bg-primary-900/30 px-2 py-0.5 rounded-full uppercase tracking-tight">Active</span> -->
+                    </div>
 
-                {{-- Chart per DNIS --}}
-                <div class="w-full">
-                    @livewire(\App\Filament\Widgets\IvrComparisonChart::class, [
-                        'startDate' => $startDate, 
-                        'endDate' => $endDate,
-                        'dnis' => $dnis
-                    ], key('chart-'.$dnis))
+                    <div class="p-4 flex-1">
+                        @livewire(\App\Filament\Widgets\IvrComparisonChart::class, [
+                            'startDate' => $startDate, 
+                            'endDate' => $endDate,
+                            'dnis' => $dnis
+                        ], key('chart-'.$dnis))
+                    </div>
                 </div>
-
-                {{-- Table per DNIS --}}
-                <!-- <div class="w-full mt-4">
-                    @livewire(\App\Filament\Widgets\IvrComparisonTable::class, [
-                        'startDate' => $startDate, 
-                        'endDate' => $endDate,
-                        'dnis' => $dnis
-                    ], key('table-'.$dnis))
-                </div> -->
-            </div>
-        @endforeach
+            @endforeach
+        </div>
     </div>
 </x-filament::page>

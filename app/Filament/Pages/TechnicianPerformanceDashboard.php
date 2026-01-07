@@ -21,7 +21,7 @@ class TechnicianPerformanceDashboard extends Page implements HasForms
     protected static string $view = 'filament.pages.technician-performance-dashboard';
 
     public $technician_id;
-    public $technicianName;
+    public $technician;
     public $startDate;
     public $endDate;
     public $minDate;
@@ -30,16 +30,18 @@ class TechnicianPerformanceDashboard extends Page implements HasForms
     protected $queryString = [
         'startDate',
         'endDate',
+        'technician',
+        'technician_id',
     ];
 
     public function mount()
     {
-        $this->technicianName = request()->query('technician');
+        $this->technician = request()->query('technician');
         $this->technician_id = request()->query('technician_id');
 
-        if (!$this->technicianName && $this->technician_id) {
+        if (!$this->technician && $this->technician_id) {
              $user = User::find($this->technician_id);
-             $this->technicianName = $user?->name;
+             $this->technician = $user?->name;
         }
 
         // Setup max date as today, and min date as 2 years ago

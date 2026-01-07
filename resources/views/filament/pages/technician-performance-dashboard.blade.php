@@ -26,8 +26,8 @@
     </style>
     <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <div class="col-span-full mb-4">
-            @if($technicianName)
-                <h2 class="text-xl font-bold">Performance Metrics for: {{ $technicianName }}</h2>
+            @if($technician)
+                <h2 class="text-xl font-bold">Performance Metrics for: {{ $technician }}</h2>
             @else
                 <h2 class="text-xl font-bold text-gray-700">All Technicians Performance</h2>
             @endif

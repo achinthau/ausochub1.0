@@ -129,9 +129,12 @@ class TechnicianComparisonTable extends BaseWidget
             Tables\Actions\Action::make('view_details')
                 ->label('View Details')
                 ->icon('heroicon-s-eye')
-                ->action(function (User $record) {
-                    return redirect()->route('filament.pages.technician-performance-dashboard', ['technician' => $record->name, 'technician_id' => $record->id]);
-                }),
+                ->url(fn (User $record) => route('filament.pages.technician-performance-dashboard', [
+                    'technician' => $record->name, 
+                    'technician_id' => $record->id,
+                    'startDate' => request()->query('startDate', now()->subDays(30)->toDateString()),
+                    'endDate' => request()->query('endDate', now()->toDateString()),
+                ])),
         ];
     }
 }

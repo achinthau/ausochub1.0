@@ -34,24 +34,28 @@ class DailyQueueSummaryChart extends LineChartWidget
                     'data' => $data->pluck('calls')->toArray(),
                     'borderColor' => '#3b82f6', // blue
                     'fill' => false,
+                    'tension' => 0.4,
                 ],
                 [
                     'label' => 'Answered',
                     'data' => $data->pluck('answered')->toArray(),
                     'borderColor' => '#10b981', // green
                     'fill' => false,
+                    'tension' => 0.4,
                 ],
                 [
                     'label' => 'Abandoned',
                     'data' => $data->pluck('abandoned')->toArray(),
                     'borderColor' => '#ef4444', // red
                     'fill' => false,
+                    'tension' => 0.4,
                 ],
                 [
                     'label' => 'Agents',
                     'data' => $data->pluck('agents')->toArray(),
                     'borderColor' => '#8b5cf6', // purple
                     'fill' => false,
+                    'tension' => 0.4,
                 ],
             ],
             'labels' => $data->pluck('date')->map(fn($date) => Carbon::parse($date)->format('M d'))->toArray(),

@@ -30,30 +30,35 @@ class DailyCallSummaryChart extends LineChartWidget
                     'data' => $data->pluck('inbound')->toArray(),
                     'borderColor' => '#3b82f6', // blue
                     'fill' => false,
+                    'tension' => 0.4,
                 ],
                 [
                     'label' => 'Outbound',
                     'data' => $data->pluck('outbound')->toArray(),
                     'borderColor' => '#10b981', // green
                     'fill' => false,
+                    'tension' => 0.4,
                 ],
                 [
                     'label' => 'Queued',
                     'data' => $data->pluck('queued')->toArray(),
                     'borderColor' => '#f59e0b', // amber
                     'fill' => false,
+                    'tension' => 0.4,
                 ],
                 [
                     'label' => 'Abandoned',
                     'data' => $data->pluck('abandent')->toArray(),
                     'borderColor' => '#ef4444', // red
                     'fill' => false,
+                    'tension' => 0.4,
                 ],
                 [
                     'label' => 'Answered',
                     'data' => $data->pluck('answered')->toArray(),
                     'borderColor' => '#8b5cf6', // purple
                     'fill' => false,
+                    'tension' => 0.4,
                 ],
             ],
             'labels' => $data->pluck('date')->map(fn($date) => Carbon::parse($date)->format('M d'))->toArray(),

@@ -78,7 +78,7 @@
                 @livewire(\App\Filament\Widgets\DailyCallSummaryChart::class, [
                     'startDate' => $startDate,
                     'endDate' => $endDate,
-                ])
+                ], key($startDate . $endDate))
             </div>
         </div>
     </div>
@@ -100,9 +100,9 @@
                         end = max;
                         start = new Date(end);
                         start.setDate(end.getDate() - 30);
-                        startDateInput.value = start.toISOString().split('T')[0];
                     }
-                    endDateInput.value = end.toISOString().split('T')[0];
+                    @this.set('startDate', start.toISOString().split('T')[0]);
+                    @this.set('endDate', end.toISOString().split('T')[0]);
                 } else {
                     let end = new Date(endDateInput.value);
                     if (isNaN(end)) return;
@@ -114,9 +114,9 @@
                         start = min;
                         end = new Date(start);
                         end.setDate(start.getDate() + 30);
-                        endDateInput.value = end.toISOString().split('T')[0];
                     }
-                    startDateInput.value = start.toISOString().split('T')[0];
+                    @this.set('startDate', start.toISOString().split('T')[0]);
+                    @this.set('endDate', end.toISOString().split('T')[0]);
                 }
             }
 

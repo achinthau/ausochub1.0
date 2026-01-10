@@ -4,9 +4,11 @@ namespace App\Http\Livewire\Reports;
 
 // use Livewire\Component;
 use App\Models\Cdr;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\DateColumn;
+use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 use Mediconesystems\LivewireDatatables\NumberColumn;
 
@@ -18,7 +20,7 @@ class IvrDetailTable extends LivewireDatatable
     public function builder()
     {
         return Cdr::query()
-        ->whereIn('lastapp', ['AGI']);
+            ->whereIn('lastapp', ['AGI']);
     }
 
     public function columns()
@@ -73,5 +75,16 @@ class IvrDetailTable extends LivewireDatatable
         $this->activeDateFilters[$index]['end'] = $end == "" ? $end : $end . " 23:59:59";;
         $this->page = 1;
         $this->setSessionStoredFilters();
+    }
+
+
+    public function export(string $filename = 'DatatableExport.xlsx')
+    {
+        $this->forgetComputed();
+
+        $export = new DatatableExport($this->getExportResultsSet());
+        $export->setFilename('ivr_detail_report_' . Carbon::now()->format('Ymdhis') . '.csv');
+
+        return $export->download();
     }
 }

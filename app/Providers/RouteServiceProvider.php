@@ -5,6 +5,7 @@ namespace App\Providers;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Route;
 
@@ -35,6 +36,22 @@ class RouteServiceProvider extends ServiceProvider
 
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
+        });
+
+        // to route to tickets dashboard when loged in a crm user 
+        app()->singleton(\Laravel\Fortify\Contracts\LoginResponse::class, function () {
+            return new class implements \Laravel\Fortify\Contracts\LoginResponse {
+                public function toResponse($request)
+                {
+                    $user = Auth::user();
+    
+                    if ($user->user_type_id == 9) {
+                        return redirect('/tickets');
+                    }
+    
+                    return redirect(RouteServiceProvider::HOME);
+                }
+            };
         });
     }
 

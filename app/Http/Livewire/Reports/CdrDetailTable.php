@@ -3,12 +3,15 @@
 namespace App\Http\Livewire\Reports;
 
 use App\Models\Cdr;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Mediconesystems\LivewireDatatables\Column;
 use Mediconesystems\LivewireDatatables\DateColumn;
+use Mediconesystems\LivewireDatatables\Exports\DatatableExport;
 use Mediconesystems\LivewireDatatables\Http\Livewire\LivewireDatatable;
 use Mediconesystems\LivewireDatatables\NumberColumn;
 use Mediconesystems\LivewireDatatables\TimeColumn;
+use Illuminate\Support\Facades\DB;
 
 class CdrDetailTable extends LivewireDatatable
 {
@@ -16,13 +19,35 @@ class CdrDetailTable extends LivewireDatatable
     public $hideable = 'select';
     public $exportable = true;
     public function builder()
-    {
+    {            
+
+        $companyNames = array_filter(array_map('trim', explode(',', auth()->user()->tenant_context)));
+        // dd($companyNames);
+
+
+
+
+
         return Cdr::query()
-        ->leftJoin('queuecount', function($join) {
-            $join->on('cdr.uniqueid', '=', 'queuecount.uniqueid')
-                 ->where('queuecount.status', '=', 2);
-        })
-        ->whereIn('lastapp', ['Dial', 'Queue']);
+            // only for get extention
+            // ->leftJoin('au_queuecount_report', function ($join) {
+            //     $join->on('cdr.uniqueid', '=', 'au_queuecount_report.uniqueid')
+            //         ->where('au_queuecount_report.status', '=', 2);
+            // })
+
+
+
+            // to filter
+            // ->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
+            // ->where('dcontext', $companyName)->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '');
+            ->whereIn('dcontext', $companyNames)->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src', '<>', '')
+            ->where(function ($query) {
+                $query->where('lastapp', '<>', 'Dial')
+                    ->orWhereRaw('CHAR_LENGTH(src) <> 9');
+            });
+
+
+
     }
 
     public function columns()
@@ -46,15 +71,67 @@ class CdrDetailTable extends LivewireDatatable
             NumberColumn::name('billsec')->label('Bill Sec')->filterable()->hide(),
             Column::raw('SEC_TO_TIME(billsec)')->label('Bill Sec Duration')->filterable(),
             Column::name('disposition')->label('Disposition')->filterable($this->dispositions),
-            Column::name('queuecount.agent')->label('Extension')->filterable(),
-            Column::callback(['lastapp'], function ($lastapp) {
-                return $lastapp == 'Dial' ? 'Out' : 'In';
-            })->label('Direction')->filterable(['Dial' => 'Out','Queue' => 'In']),
+            Column::name('dcontext')->label('Company')->filterable(),
+            // Column::name('au_queuecount_report.agent')->label('Extension')->filterable(),
+            Column::callback(['lastapp', 'channel', 'dstchannel', 'lastdata'], function ($lastapp, $channel, $dstchannel, $lastdata) {
+                $raw = null;
+
+                if ($lastapp === 'Queue') {
+                    $raw = $dstchannel;
+
+                } elseif ($lastapp === 'Dial') {
+                    if (strpos($lastdata, '@') !== false) {
+                        $raw = $channel;
+                    }
+                }
+
+                if ($raw && preg_match('/\/(\d+)-/', $raw, $matches)) {
+                    return $matches[1]; 
+                }
+
+                return null;
+            })->label('Extension')->searchable(),
+            // ->filterable('filterByExtension'),
+
+
+            // Column::callback(['lastapp'], function ($lastapp) {
+            //     return $lastapp == 'Dial' ? 'Out' : 'In';
+            // })->label('Direction')->filterable(['Dial' => 'Out', 'Queue' => 'In']),
+            Column::raw("CASE 
+                        WHEN LENGTH(src) = 9 THEN 'Out' 
+                        ELSE 'In' 
+                    END")
+                ->label('Direction')
+                ->filterable(['In', 'Out']),
             Column::callback(['id', 'uniqueid'], function ($id, $uniqueid) {
                 return view('table-actions-v2', ['id' => $id, 'uniqueid' => $uniqueid]);
+            })->unsortable()->excludeFromExport(),
+            Column::callback(['src', 'dst'], function ($src, $dst) {
+                return view('table-actions-cdr', ['src' => $src, 'dst' => $dst]);
             })->unsortable()->excludeFromExport()
         ];
     }
+
+
+    //     public function scopeFilterByExtension($query, $value)
+// {
+//     return $query->where(function ($q) use ($value) {
+//         // Case 1: Dial + lastdata contains "@"
+//         $q->where(function ($q2) use ($value) {
+//             $q2->where('lastapp', 'Dial')
+//                 ->where('lastdata', 'like', '%@%')
+//                 ->where('channel', 'like', "%/{$value}-%");
+//         })
+//         // Case 2: Queue or CallQueue
+//         ->orWhere(function ($q2) use ($value) {
+//             $q2->where('lastapp', 'like', '%Queue')
+//                 ->where('dstchannel', 'like', "%/{$value}-%");
+//         });
+//     });
+// }
+
+
+
 
     public function getDispositionsProperty()
     {
@@ -82,8 +159,19 @@ class CdrDetailTable extends LivewireDatatable
 
     public function doDatetimeFilterEnd($index, $end)
     {
-        $this->activeDateFilters[$index]['end'] = $end == "" ? $end : $end . " 23:59:59";;
+        $this->activeDateFilters[$index]['end'] = $end == "" ? $end : $end . " 23:59:59";
+        ;
         $this->page = 1;
         $this->setSessionStoredFilters();
+    }
+
+    public function export(string $filename = 'DatatableExport.xlsx')
+    {
+        $this->forgetComputed();
+
+        $export = new DatatableExport($this->getExportResultsSet());
+        $export->setFilename('cdr_detail_report_' . Carbon::now()->format('Ymdhis') . '.csv');
+
+        return $export->download();
     }
 }

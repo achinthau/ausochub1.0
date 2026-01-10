@@ -1,0 +1,30 @@
+<div>
+    <x-slot name="header">
+        <div class="flex">
+            <h2 class="flex-1 font-semibold text-xl text-gray-800 leading-tight ">
+                {{-- {{ __('Chatter ')  }} --}}
+            </h2>
+            <div class="flex space-x-2">
+                
+               
+            </div>
+        </div>
+    </x-slot>
+    
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 flex justify-between pt-4 w-full ">
+        
+        <div class="w-1/4 ">
+            @livewire('chat.users-panel')
+        </div>
+
+        <div class="border-l-4 border-gray-300 mx-4 rounded ml-4"></div>
+
+        <div class="flex-1">
+            @livewire('chat.messages-panel')
+        </div>
+    </div>
+    
+
+
+
+</div>

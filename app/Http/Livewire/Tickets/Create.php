@@ -2,11 +2,13 @@
 
 namespace App\Http\Livewire\Tickets;
 
+use App\Models\CrmDepartment;
 use App\Models\Item;
 use App\Models\Outlet;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
 use App\Models\TicketItem;
+use App\Models\User;
 use Livewire\Component;
 use WireUi\Traits\Actions;
 
@@ -26,6 +28,10 @@ class Create extends Component
     public $outlets;
     public $tags;
     public $creatingTicket = false;
+    
+    public $departments;
+    public $users;
+    public $departmentUsers;
 
     protected $listeners = ['showCreatingTicket' => 'showCreatingTicket'];
 
@@ -44,6 +50,9 @@ class Create extends Component
         //'ticketItems.*.item_id' => 'required_if:ticket.ticket_category_id,3',
         //'ticketItems.*.size_id' => 'required_if:ticket.crm,true',
         //'ticketItems.*.size_id' => 'required_if:ticket.ticket_category_id,3',
+
+        'ticket.department_id' => 'nullable',
+        'ticket.assigned_user_id' => 'nullable',
     ];
 
     protected $validationAttributes = [
@@ -82,6 +91,9 @@ class Create extends Component
         ];
 
         $this->addItem();
+
+        $this->departments = CrmDepartment::select('id','name')->get()->toArray();
+        $this->users = User::select('id', 'name', 'department_id')->get()->toArray();
     }
 
     public function render()
@@ -127,9 +139,7 @@ class Create extends Component
         $this->resetForm();
     }
 
-    public function updatedTicketCrm($value)
-    {
-    }
+    public function updatedTicketCrm($value) {}
 
 
     public function addItem()
@@ -150,7 +160,7 @@ class Create extends Component
     public function save()
     {
         $this->validate();
-        if ($this->ticket->ticket_category_id==3 && $this->ticket->crm) {
+        if ($this->ticket->ticket_category_id == 3 && $this->ticket->crm) {
             $this->validate([
                 'ticketItems.*.item_id' => 'required',
                 'ticketItems.*.size_id' => 'required',
@@ -158,10 +168,13 @@ class Create extends Component
         }
 
         $this->ticket->topic = $this->ticket->ticket_category_id == 3 ? "Order" : $this->ticket->topic;
+        
         $this->ticket->save();
+        
 
         $this->ticket->logActivity('Ticket created');
 
+        //Test
         if ($this->ticket->ticket_category_id == 3 && $this->ticket->crm) {
             foreach ($this->ticketItems as $key => $_ticketItem) {
                 $ticketItem = TicketItem::updateOrCreate(
@@ -176,6 +189,13 @@ class Create extends Component
                     ]
                 );
             }
+        }   
+
+        // $this->ticket->refresh();
+        // dd($this->ticket->subCategory);
+        if (config('auso.ticket_sla_enabled') && $this->ticket->subCategory->due_in_hours) {
+            $this->ticket->due_at = $this->ticket->created_at->addSeconds($this->ticket->subCategory->due_in_hours * 60 * 60);
+            $this->ticket->save();
         }
 
         $this->creatingTicket = false;
@@ -203,5 +223,16 @@ class Create extends Component
 
         $this->resetErrorBag();
         $this->resetValidation();
+        // $this->emit('refreshDatatable');
+        redirect(route('tickets.index'));
     }
+
+
+    public function updatedTicketDepartmentId($value)
+{
+    $this->departmentUsers = User::where('department_id', $value)
+                                 ->select('id', 'name')
+                                 ->get()
+                                 ->toArray();
+}
 }

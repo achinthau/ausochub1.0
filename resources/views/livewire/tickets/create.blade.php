@@ -41,6 +41,32 @@
                     </x-native-select>
 
                 </div>
+
+                <div class="px-2 mt-2">
+                    <x-native-select
+            label="Department"
+            placeholder="Select department"
+            :options="$departments"
+            wire:model="ticket.department_id"
+            option-label="name"
+            option-value="id"
+        />
+
+                </div>
+
+                @if(!empty($departmentUsers))
+    <div class="px-2 mt-2">
+        <x-native-select
+            label="Users"
+            placeholder="Select a user"
+            :options="$departmentUsers"
+            wire:model="ticket.assigned_user_id"
+            option-label="name"
+            option-value="id"
+        />
+    </div>
+@endif
+
             </div>
            
             @if ($ticket->ticket_category_id == 3)

@@ -1,0 +1,14 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+
+class CxTicketServCenter extends Model
+{
+    use HasFactory;
+
+    protected $table = "cx_ticket_serv_centers";
+    protected $fillable = ['name'];
+}

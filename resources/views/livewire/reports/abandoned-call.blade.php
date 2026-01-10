@@ -10,7 +10,8 @@
 
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
-            @livewire('tables.abandoned-call-table')
+            {{-- @livewire('tables.abandoned-call-table') --}}
+            @livewire('abandoned-table-new')
         </div>
     </div>
 </div>

@@ -8,4 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class UserType extends Model
 {
     use HasFactory;
+
+    // protected $table = "ac_user_types";
 }

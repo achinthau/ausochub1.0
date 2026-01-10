@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire\Leads;
 
+use App\Models\CustomersProvince;
 use App\Models\Lead;
 use App\Models\QueueCount;
 use App\Models\Ticket;
@@ -15,10 +16,14 @@ class Create extends Component
     public Lead $lead;
     public  $tickets;
     public  $callLogs;
+    public  $buttonText = "Complete Lead";
+
+    // public $province;
+    public $provinces = [];
 
     public $showTicketEditModal = false;
 
-
+    protected $listeners = ['openCreateLeadModal' => 'openCreateLeadModal'];
 
     protected $rules = [
         'lead.contact_number' => 'required',
@@ -29,8 +34,12 @@ class Create extends Component
         'lead.address_line_1' => 'nullable',
         'lead.address_line_2' => 'nullable',
         'lead.city' => 'nullable',
+        'lead.whatsapp' => 'nullable',
         'lead.contact_number_2' => 'nullable',
         'lead.email' => 'nullable|email',
+        'lead.email' => 'nullable|email',
+        'lead.customers_province_id' => 'nullable',
+        'lead.behaviour' => 'nullable',
         //'lead.priority_level_id'=>'required',
         //'lead.satisfaction_level_id'=>'required',
 
@@ -40,7 +49,8 @@ class Create extends Component
     {
         $this->lead = $lead;
         $this->showTicketEditModal = $lead->status_id == 1;
-       
+
+        $this->provinces=CustomersProvince::select('id', 'name as title')->get()->toArray();
     }
 
     public function render()
@@ -49,10 +59,22 @@ class Create extends Component
     }
 
 
+    public function openCreateLeadModal()
+    {
+        $this->buttonText = "Update Lead";
+        $this->showTicketEditModal = true;
+    }
+
 
     public function save()
     {
         $this->validate();
+
+        if (!empty($this->lead->contact_number) && strlen($this->lead->contact_number) === 9) {
+        // $this->lead->contact_number = substr($this->lead->contact_number, 1);
+        $this->lead->contact_number = '0' . $this->lead->contact_number;
+    }
+
         $this->lead->status_id = 2;
         $this->lead->save();
 

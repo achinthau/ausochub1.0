@@ -2,7 +2,8 @@
     <x-slot name="header">
         <div class="flex">
             <h2 class="flex-1 font-semibold text-xl text-gray-800 leading-tight ">
-                {{ __('Leads ')  }}
+                {{-- {{ __('Leads ')  }} --}}
+                {{ __('Customers ')  }}
             </h2>
             <div class="flex space-x-2">
                 <a href="#" onclick="$openModal('showCreateLeadModal')" class="flex gap-1 items-center text-gray-500 font-semibold text-sm hover:text-indigo-500 border  px-2 py-1 hover:border-indigo-500">

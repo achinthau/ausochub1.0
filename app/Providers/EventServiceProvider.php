@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Listeners\AutoLoginAgentQueue;
 use App\Listeners\LougoutAgentQueue;
+use App\Listeners\RecordLoginTime;
+use App\Listeners\RecordLogoutTime;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Events\Logout;
 use Illuminate\Auth\Events\Registered;
@@ -23,10 +25,12 @@ class EventServiceProvider extends ServiceProvider
             SendEmailVerificationNotification::class,
         ],
         Logout::class=>[
-            LougoutAgentQueue::class
+            LougoutAgentQueue::class,
+            RecordLogoutTime::class,
         ],
          Login::class=>[
-            AutoLoginAgentQueue::class
+            AutoLoginAgentQueue::class,
+            RecordLoginTime::class,
         ]
     ];
 

@@ -312,4 +312,22 @@ class Ticket extends Model
     {
         Auth::user()->can('outlet-user') ? $query->where('outlet_id', Auth::user()->outlet_id) : $query;
     }
+
+    public function assignedUser()
+{
+    return $this->belongsTo(User::class, 'assigned_user_id');
+}
+
+public function department()
+{
+    return $this->belongsTo(CrmDepartment::class, 'department_id');
+}
+
+// public function scopeByDepartment($query, $departmentId)
+// {
+//     if ($departmentId) {
+//         return $query->where('department_id', $departmentId);
+//     }
+//     return $query;
+// }
 }

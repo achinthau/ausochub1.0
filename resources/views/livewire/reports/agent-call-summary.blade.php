@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex">
             <h2 class="flex-1 font-semibold text-xl text-gray-800 leading-tight ">
-                {{ __('Agent Call Summary Report')  }}
+                {{ __('Agent Queue Summary Report')  }}
             </h2>
 
         </div>

@@ -13,13 +13,14 @@ class QueueCount extends Model
 
     protected $connection = "mysql-old";
     protected $table = "queuecount";
+    public $timestamps = false;
     // protected $appends = ['duration'];
 
     protected $casts=[
         'date'=>'datetime'
     ];
 
-    protected $fillable = ['date', 'queuename', 'uniqueid', 'ani', 'status', 'agent'];
+    protected $fillable = ['date', 'queuename', 'uniqueid', 'ani', 'status', 'agent', 'customer_reaction'];
 
     public function agentInfo()
     {

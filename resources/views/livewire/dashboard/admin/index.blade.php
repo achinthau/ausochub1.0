@@ -87,3 +87,8 @@
         </div>
     </div>
 </div>
+
+@push('modals')
+
+    @livewire('dashboard.partials.agent-info')
+@endpush

@@ -37,4 +37,14 @@ class Cdr extends Model
         return $this->belongsTo(Agent::class, 'extension', 'extension');
     }
 
+     public function callCounts()
+    {
+        return $this->hasMany(CallCount::class, 'uniqueid', 'uniqueid');
+    }
+
+    public function queCouts()
+    {
+        return $this->hasMany(QueueCount::class, 'uniqueid', 'uniqueid');
+    }
+
 }

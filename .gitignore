@@ -17,3 +17,6 @@ app/Http/Livewire/Reports/CdrDetailTable.php.bak
 composer.lock
 storage/debugbar/*.json
 composer.lock
+/.wwebjs_auth
+/.wwebjs_auth_bak
+/.wwebjs_cache

@@ -51,6 +51,8 @@ class Show extends Component
     public $feedContactId;
     public $feedContactIdStatus;
     public $phone_numbers = [];
+    public $whatsappModal = false;
+    public $whatsappMessage = '';
 
     protected $listeners = ['refreshCard' => 'refreshCard', 'FeedCompleted' => '$refresh'];
 
@@ -184,6 +186,7 @@ class Show extends Component
 
     public function mount($lead)
     {
+        \Log::info('Show Lead component mounting', ['lead_id' => $lead->id]);
         $this->lead = $lead->load('tickets', 'tickets.category', 'tickets.status', 'tickets.outlet', 'orders', 'orders.items');
         $this->isIncomming = filter_var(request()->query('isIncomming'), FILTER_VALIDATE_BOOLEAN);
         $this->feed_id = request()->query('feed');
@@ -437,6 +440,11 @@ class Show extends Component
         }
     }
 
+    public function updated($propertyName)
+    {
+        \Log::info('Property updated', ['property' => $propertyName, 'value' => $this->$propertyName]);
+    }
+
     public function render()
     {
         return view('livewire.leads.show');
@@ -469,6 +477,7 @@ class Show extends Component
         );
     }
 
+    
     public function openWhatsApp()
     {
 
@@ -488,6 +497,83 @@ class Show extends Component
 
 
         $this->emit('whatsappOpened', $url);
+    }
+
+
+    public function showWhatsAppModal()
+    {
+        \Log::info('showWhatsAppModal called');
+        $this->whatsappMessage = '';
+        $this->whatsappModal = true;
+    }
+
+    public function sendWhatsAppMessage()
+    {
+        \Log::info('sendWhatsAppMessage called', ['message' => $this->whatsappMessage]);
+        $this->validate([
+            'whatsappMessage' => 'required|string',
+        ]);
+
+        $number = preg_replace('/\s+/', '', $this->lead->whatsapp);
+        \Log::info('WhatsApp Number from lead', ['number' => $number]);
+
+        if (empty($number)) {
+            $this->notification()->error('WhatsApp number is missing for this lead.');
+            return;
+        }
+
+        if (str_starts_with($number, '94')) {
+            $internationalNumber = $number;
+        } elseif (str_starts_with($number, '0')) {
+            $internationalNumber = '94' . substr($number, 1);
+        } else {
+            $internationalNumber = '94' . $number;
+        }
+
+        \Log::info('International Number', ['number' => $internationalNumber]);
+
+        $mode = config('services.whatsapp.mode', 'api');
+        \Log::info('WhatsApp Mode', ['mode' => $mode]);
+
+        if ($mode === 'webjs') {
+            $url = config('services.whatsapp.webjs_url') . '/send-message';
+            \Log::info('Sending to WebJS', ['url' => $url]);
+            try {
+                $response = Http::timeout(30)->post($url, [
+                    'to' => $internationalNumber,
+                    'message' => $this->whatsappMessage,
+                ]);
+                \Log::info('Response status', ['status' => $response->status(), 'body' => $response->body()]);
+            } catch (\Exception $e) {
+                \Log::error('HTTP Exception', ['message' => $e->getMessage()]);
+                $this->notification()->error('Failed to connect to WhatsApp server: ' . $e->getMessage());
+                return;
+            }
+        } else {
+            // ... (keep existing code for else branch if it exists, but I'll add the rest)
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . config('services.whatsapp.token'),
+                'Content-Type' => 'application/json',
+            ])->post('https://graph.facebook.com/v22.0/' . config('services.whatsapp.phone_id') . '/messages', [
+                'messaging_product' => 'whatsapp',
+                'to' => $internationalNumber,
+                'type' => 'template',
+                'template' => [
+                    'name' => 'hello_world',
+                    'language' => [
+                        'code' => 'en_US',
+                    ],
+                ],
+            ]);
+        }
+
+        if ($response && $response->successful()) {
+            $this->notification()->success('WhatsApp message sent successfully!');
+            $this->whatsappModal = false;
+        } else {
+            $errorMsg = $response ? $response->body() : 'No response from server';
+            $this->notification()->error('Failed to send WhatsApp message: ' . $errorMsg);
+        }
     }
 
 

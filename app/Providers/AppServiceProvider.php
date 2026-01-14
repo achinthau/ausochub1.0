@@ -26,6 +26,46 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->registerQueryBuilderMacros();
+
+        \Filament\Facades\Filament::registerRenderHook(
+            'body.start',
+            fn (): string => $this->renderDashboardBackButton(),
+        );
+    }
+
+    protected function renderDashboardBackButton(): string
+    {
+        $routeName = request()->route()?->getName();
+        
+        if ($routeName === 'filament.pages.ivr-performance-dashboard') {
+            return view('filament.components.back-button', [
+                'url' => route('reports.ivr-detail'),
+                'label' => 'Back'
+            ])->render();
+        }
+
+        if ($routeName === 'filament.pages.technician-performance-dashboard') {
+            return view('filament.components.back-button', [
+                'url' => route('cx-tickets.index'),
+                'label' => 'Back'
+            ])->render();
+        }
+
+        if ($routeName === 'filament.pages.daily-call-summary-dashboard') {
+            return view('filament.components.back-button', [
+                'url' => route('reports.daily-calls-summary-report'),
+                'label' => 'Back'
+            ])->render();
+        }
+
+        if ($routeName === 'filament.pages.daily-queue-summary-dashboard') {
+            return view('filament.components.back-button', [
+                'url' => route('reports.daily-queue-summary-report'),
+                'label' => 'Back'
+            ])->render();
+        }
+
+        return '';
     }
 
 

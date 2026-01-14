@@ -15,6 +15,10 @@ class DailyQueueSummaryTable extends DataTableComponent
 {
     protected $model = DailyQueueSummary::class;
 
+    public $queue;
+    public $startDate;
+    public $endDate;
+
     public function configure(): void
     {
         $this->setPrimaryKey('id')
@@ -91,7 +95,17 @@ public function export()
 
     public function builder(): \Illuminate\Database\Eloquent\Builder
 {
-    return DailyQueueSummary::query();
+    $query = DailyQueueSummary::query();
+
+    if ($this->queue) {
+        $query->where('queue', $this->queue);
+    }
+
+    if ($this->startDate && $this->endDate) {
+        $query->whereBetween('date', [$this->startDate, $this->endDate]);
+    }
+
+    return $query;
 }
 
 

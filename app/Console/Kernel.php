@@ -21,6 +21,13 @@ class Kernel extends ConsoleKernel
 
         // for callback notifications
         $schedule->command('callbacks:check')->everyMinute();
+
+        //logout users
+        $schedule->command('users:auto-logout')
+        ->everyMinute()
+        ->withoutOverlapping()
+        // ->onOneServer()
+        ->appendOutputTo(storage_path('logs/auto-logout.log'));
     }
 
     /**

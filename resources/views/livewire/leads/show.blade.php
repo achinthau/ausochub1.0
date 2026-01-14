@@ -94,7 +94,7 @@
                                 <div class="w-1/2 flex items-center space-x-2">
                                     <span>{{ $lead->whatsapp ?? '--' }}</span>
                                     @if($lead->whatsapp)
-                                        <svg wire:click="openWhatsApp" class="w-5 h-5 text-green-600" fill="currentColor"
+                                        <svg wire:click="openWhatsApp" class="w-5 h-5 text-green-600 cursor-pointer" fill="currentColor"
                                             xmlns="http://www.w3.org/2000/svg"
                                             viewBox="0 0 448 512"><!--! Font Awesome Free 6.1.1 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2022 Fonticons, Inc. -->
                                             <path
@@ -105,13 +105,13 @@
                                 </div>
                             </div>
 
-                            <script>
-                                document.addEventListener('DOMContentLoaded', function () {
-                                    Livewire.on('whatsappOpened', function (url) {
-                                        window.open(url, '_blank');
-                                    });
-                                });
-                            </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            window.livewire.on('whatsappOpened', url => {
+                window.open(url, '_blank');
+            });
+        });
+    </script>
 
 
 
@@ -142,6 +142,15 @@
                                 <div class="w-1/2">{{ $lead->skill ? $lead->skill->skillname : '--' }}</div>
                             </div>
                         </div>
+                        <!-- <hr class="pt-1">
+                        <div class="flex justify-end space-x-2 pb-1 w-full">
+                            <div wire:click="showWhatsAppModal" class="flex items-center space-x-2 border-2 border-gray-200 p-1 pt-0 cursor-pointer rounded-md">
+                                @if($lead->whatsapp || $lead->email || $lead->phone)
+                                    <span class="text-blue-600 font-semibold">Notify Customer</span>
+                                    <svg class="w-8 h-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="none" viewBox="0 0 24 24"><path d="M20 2H4c-1.103 0-2 .897-2 2v12c0 1.103.897 2 2 2h3v3.767L13.277 18H20c1.103 0 2-.897 2-2V4c0-1.103-.897-2-2-2zm0 14h-7.277L9 18.233V16H4V4h16v12z"></path><path d="m13.803 9.189-1.399-1.398-3.869 3.864v1.399h1.399zm.327-3.123 1.398 1.399-1.066 1.066-1.399-1.398z"></path></svg>
+                                @endif
+                            </div>
+                        </div> -->
 
                         <hr class="pb-3">
                         {{-- <div class="grid grid-cols-2">
@@ -214,6 +223,16 @@
                                     {{ session('message') }}
                                 </div>
                             @endif
+                        </div>
+
+                        <hr class="pt-1">
+                        <div class="flex justify-end space-x-2 pt-1 w-full">
+                            <div wire:click="showWhatsAppModal" class="flex items-center space-x-2 border-2 border-gray-200 p-1 cursor-pointer rounded-md hover:bg-gray-200 hover:border-gray-400">
+                                @if($lead->whatsapp || $lead->email || $lead->phone)
+                                    <span class="text-blue-600 font-semibold">Notify Customer</span>
+                                    <svg class="w-8 h-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="none" viewBox="0 0 24 24"><path d="M20 2H4c-1.103 0-2 .897-2 2v12c0 1.103.897 2 2 2h3v3.767L13.277 18H20c1.103 0 2-.897 2-2V4c0-1.103-.897-2-2-2zm0 14h-7.277L9 18.233V16H4V4h16v12z"></path><path d="m13.803 9.189-1.399-1.398-3.869 3.864v1.399h1.399zm.327-3.123 1.398 1.399-1.066 1.066-1.399-1.398z"></path></svg>
+                                @endif
+                            </div>
                         </div>
 
 
@@ -784,8 +803,21 @@
 
 
 
+    <x-modal.card blur wire:model="whatsappModal" title="Send WhatsApp Message">
+        <div class="space-y-4">
+            <x-input label="WhatsApp Number" value="{{ $lead->whatsapp }}" disabled />
+            <x-textarea label="Message" wire:model="whatsappMessage" placeholder="Type your message here..." rows="4" />
+        </div>
+        <x-slot name="footer">
+            <div class="flex justify-end gap-x-4">
+                <x-button flat label="Cancel" x-on:click="close" />
+                <x-button primary label="Send Message" wire:click="sendWhatsAppMessage" spinner="sendWhatsAppMessage" />
+            </div>
+        </x-slot>
+    </x-modal.card>
 </div>
 @push('modals')
+
     @livewire('leads.create', ['lead' => $lead])
     @livewire('tickets.create', ['leadId' => $lead->id])
     @livewire('orders.create', ['leadId' => $lead->id])

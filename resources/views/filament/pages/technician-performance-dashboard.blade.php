@@ -1,0 +1,102 @@
+<x-filament::page>
+    <style>
+        /* Hide the sidebar */
+        .filament-sidebar, 
+        aside.filament-sidebar {
+            display: none !important;
+        }
+
+        /* Remove the left padding/margin usually reserved for the sidebar on the main layout */
+        .filament-main,
+        main, 
+        .filament-app-layout {
+            margin-left: 0 !important;
+            padding-left: 0 !important;
+            width: 100% !important;
+            max-width: 100% !important;
+        }
+
+        /* Center the actual content container */
+        .filament-main-content, 
+        .filament-page {
+            width: 100%;
+            max-width: 1400px; /* Or 7xl equivalent */
+            margin: 0 auto !important;
+        }
+    </style>
+    <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div class="col-span-full mb-4">
+            @if($technician)
+                <h2 class="text-xl font-bold">Performance Metrics for: {{ $technician }}</h2>
+            @else
+                <h2 class="text-xl font-bold text-gray-700">All Technicians Performance</h2>
+            @endif
+        </div>
+
+        <div class="col-span-full mb-6">
+            <form method="GET" class="flex flex-wrap gap-4 items-center bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                @if(request()->has('technician'))
+                    <input type="hidden" name="technician" value="{{ request('technician') }}">
+                @endif
+                @if(request()->has('technician_id'))
+                    <input type="hidden" name="technician_id" value="{{ request('technician_id') }}">
+                @endif
+
+                <div class="flex flex-col">
+                    <label for="startDate" class="font-semibold text-gray-600 text-xs uppercase tracking-wider mb-1">Start Date</label>
+                    <input type="date" name="startDate" id="startDate" 
+                        value="{{ $startDate }}" 
+                        min="{{ $minDate }}" 
+                        max="{{ $maxDate }}"
+                        class="border-gray-200 rounded-lg shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-900 text-sm py-2 px-3" 
+                        onchange="adjustDates('startDate')">
+                </div>
+
+                <div class="flex flex-col">
+                    <label for="endDate" class="font-semibold text-gray-600 text-xs uppercase tracking-wider mb-1">End Date</label>
+                    <input type="date" name="endDate" id="endDate" 
+                        value="{{ $endDate }}" 
+                        min="{{ $minDate }}" 
+                        max="{{ $maxDate }}"
+                        class="border-gray-200 rounded-lg shadow-sm focus:border-primary-500 focus:ring-primary-500 text-gray-900 text-sm py-2 px-3" 
+                        onchange="adjustDates('endDate')">
+                </div>
+
+                <div class="flex items-center pt-1 mt-4">
+                    <span class="text-[10px] text-gray-400 font-medium bg-gray-50 px-2 py-1 rounded-full border border-gray-100 whitespace-nowrap">
+                        Fixed 30-day window
+                    </span>
+                </div>
+
+                <script>
+                    function adjustDates(changedField) {
+                        const startInput = document.getElementById('startDate');
+                        const endInput = document.getElementById('endDate');
+                        const gap = 30;
+
+                        if (changedField === 'startDate') {
+                            const date = new Date(startInput.value);
+                            date.setDate(date.getDate() + gap);
+                            endInput.value = date.toISOString().split('T')[0];
+                        } else {
+                            const date = new Date(endInput.value);
+                            date.setDate(date.getDate() - gap);
+                            startInput.value = date.toISOString().split('T')[0];
+                        }
+                        startInput.form.submit();
+                    }
+                </script>
+                
+                <div class="flex items-center pt-6 ml-auto">
+                    <a href="{{ route('filament.pages.technician-performance-dashboard') }}" 
+                        class="filament-button filament-button-size-sm inline-flex items-center justify-center py-1 gap-1 font-medium rounded-lg border transition-colors focus:outline-none focus:ring-offset-2 focus:ring-2 focus:ring-inset dark:focus:ring-offset-0 min-h-[2rem] px-3 text-xs text-gray-800 bg-white border-gray-300 hover:bg-gray-50 focus:ring-primary-600 focus:text-primary-600 focus:bg-primary-50 focus:border-primary-600 dark:bg-gray-800 dark:hover:bg-gray-700 dark:border-gray-600 dark:text-gray-200 dark:focus:text-primary-400 dark:focus:border-primary-400 whitespace-nowrap">
+                        Reset Dashboard
+                    </a>
+                </div>
+            </form>
+        </div>
+        @livewire(\App\Filament\Widgets\TechnicianComparisonTable::class)
+        
+        {{-- Widgets will be rendered here automatically by getHeaderWidgets --}}
+    </div>
+</x-filament::page>

@@ -31,4 +31,11 @@ return [
         'region' => env('AWS_DEFAULT_REGION', 'us-east-1'),
     ],
 
+    'whatsapp' => [
+        'mode' => env('WHATSAPP_MODE', 'api'),
+        'phone_id' => env('WHATSAPP_PHONE_ID'),
+        'token' => env('WHATSAPP_TOKEN'),
+        'webjs_url' => env('WHATSAPP_WEBJS_URL', 'http://localhost:3001'),
+    ],
+
 ];

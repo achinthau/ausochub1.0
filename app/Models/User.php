@@ -184,4 +184,13 @@ public function company()
     return $this->belongsToMany(Company::class);
 }
 
+public function extensionData()
+    {
+        return $this->belongsTo(Extension::class, 'extension', 'extension');
+    }
+
+    public function technicianTickets()
+    {
+        return $this->hasMany(CxTicket::class, 'technician_name', 'name');
+    }
 }

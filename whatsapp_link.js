@@ -24,7 +24,7 @@ const client = new Client({
     },
     webVersionCache: {
         type: 'remote',
-        remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/3.3011.0.html',
+        remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
     }
 });
 
@@ -74,7 +74,7 @@ app.post('/send-message', async (req, res) => {
         }
         
         console.log(`Sending message to ${chatId}: ${message}`);
-        await client.sendMessage(chatId, message);
+        await client.sendMessage(chatId, message, { sendSeen: false });
         
         res.json({ status: 'success' });
     } catch (error) {

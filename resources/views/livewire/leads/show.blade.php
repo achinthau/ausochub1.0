@@ -227,11 +227,14 @@
 
                         <hr class="pt-1">
                         <div class="flex justify-end space-x-2 pt-1 w-full">
-                            <div wire:click="showWhatsAppModal" class="flex items-center space-x-2 border-2 border-gray-200 p-1 cursor-pointer rounded-md hover:bg-gray-200 hover:border-gray-400">
+                            <div wire:click="showWhatsAppModal" class="flex items-center space-x-2 border-2 border-gray-300 p-1 cursor-pointer rounded-md bg-gray-200 hover:bg-gray-300 hover:border-gray-400">
                                 @if($lead->whatsapp || $lead->email || $lead->phone)
                                     <span class="text-blue-600 font-semibold">Notify Customer</span>
-                                    <svg class="w-8 h-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="none" viewBox="0 0 24 24"><path d="M20 2H4c-1.103 0-2 .897-2 2v12c0 1.103.897 2 2 2h3v3.767L13.277 18H20c1.103 0 2-.897 2-2V4c0-1.103-.897-2-2-2zm0 14h-7.277L9 18.233V16H4V4h16v12z"></path><path d="m13.803 9.189-1.399-1.398-3.869 3.864v1.399h1.399zm.327-3.123 1.398 1.399-1.066 1.066-1.399-1.398z"></path></svg>
-                                @endif
+                                    <!-- <svg class="w-8 h-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="none" viewBox="0 0 24 24"><path d="M20 2H4c-1.103 0-2 .897-2 2v12c0 1.103.897 2 2 2h3v3.767L13.277 18H20c1.103 0 2-.897 2-2V4c0-1.103-.897-2-2-2zm0 14h-7.277L9 18.233V16H4V4h16v12z"></path><path d="m13.803 9.189-1.399-1.398-3.869 3.864v1.399h1.399zm.327-3.123 1.398 1.399-1.066 1.066-1.399-1.398z"></path></svg> -->
+                                    <svg class="w-5 h-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+  <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471z"></path>
+</svg>
+                                    @endif
                             </div>
                         </div>
 
@@ -803,15 +806,61 @@
 
 
 
-    <x-modal.card blur wire:model="whatsappModal" title="Send WhatsApp Message">
-        <div class="space-y-4">
-            <x-input label="WhatsApp Number" value="{{ $lead->whatsapp }}" disabled />
-            <x-textarea label="Message" wire:model="whatsappMessage" placeholder="Type your message here..." rows="4" />
+    <x-modal.card blur wire:model="whatsappModal" title="Notify Customer">
+        <div class="space-y-6">
+            <div class="grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg">
+                <div class="flex flex-col items-center space-y-2">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full bg-green-100 {{ empty($lead->whatsapp) ? 'opacity-50' : '' }}">
+                        <svg class="w-6 h-6 text-green-600" fill="currentColor" viewBox="0 0 448 512">
+                            <path d="M380.9 97.1C339 55.1 283.2 32 223.9 32c-122.4 0-222 99.6-222 222 0 39.1 10.2 77.3 29.6 111L0 480l117.7-30.9c32.7 17.8 69.4 27.3 106.2 27.3h.1c122.3 0 224.1-99.6 224.1-222 0-59.3-25.2-115-67.1-157.3zm-157 341.6c-33.2 0-65.7-8.9-94-25.7l-6.7-4-69.8 18.3L72 359.2l-4.4-7c-18.5-29.4-28.2-63.3-28.2-98.2 0-101.7 82.8-184.5 184.6-184.5 49.3 0 95.6 19.2 130.4 54.1 34.8 34.9 56.2 81.2 56.1 130.5 0 101.8-84.9 184.6-186.6 184.6zm101.2-138.2c-5.5-2.8-32.8-16.2-37.9-18-5.1-1.9-8.8-2.8-12.5 2.8-3.7 5.6-14.3 18-17.6 21.8-3.2 3.7-6.5 4.2-12 1.4-5.5-2.8-23.2-8.5-44.2-27.1-16.4-14.6-27.4-32.7-30.6-38.2-3.2-5.6-.3-8.6 2.4-11.3 2.5-2.4 5.5-6.5 8.3-9.8 2.8-3.3 3.7-5.5 5.5-9.2 1.8-3.7.9-6.9-.5-9.7-1.4-2.8-12.5-30.1-17.1-41.2-4.5-10.8-9.1-9.3-12.5-9.5-3.2-.2-6.9-.2-10.6-.2-3.7 0-9.7 1.4-14.8 6.9-5.1 5.6-19.4 19-19.4 46.3 0 27.3 19.9 53.7 22.6 57.4 2.8 3.7 39.1 59.7 94.8 83.8 13.3 5.7 23.7 9.1 31.7 11.7 13.3 4.2 25.4 3.6 35 2.2 10.7-1.6 32.8-13.4 37.4-26.4 4.6-13 4.6-24.1 3.2-26.4-1.3-2.5-5-3.9-10.5-6.6z"/>
+                        </svg>
+                    </div>
+                    <!-- <span class="text-xs font-semibold text-gray-700">WhatsApp</span> -->
+                    <span class="text-xs font-semibold {{ empty($lead->whatsapp) ? 'text-gray-400' : 'text-gray-700' }}">{{ $lead->whatsapp ?? 'Not Available' }}</span>
+                    <x-toggle lg wire:model="notifyWhatsApp" :disabled="empty($lead->whatsapp)" />
+                </div>
+                <div class="flex flex-col items-center space-y-2 border-x border-gray-200">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 {{ empty($lead->email) ? 'opacity-50' : '' }}">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        </svg>
+                    </div>
+                    <!-- <span class="text-xs font-semibold text-gray-700">Email</span> -->
+                    <span class="text-xs font-semibold {{ empty($lead->email) ? 'text-gray-400' : 'text-gray-700' }}">{{ $lead->email ?? 'Not Available' }}</span>
+                    <x-toggle lg wire:model="notifyEmail" :disabled="empty($lead->email)" />
+                </div>
+                <div class="flex flex-col items-center space-y-2">
+                    <div class="flex items-center justify-center w-10 h-10 rounded-full bg-orange-100 {{ empty($lead->contact_number) ? 'opacity-50' : '' }}">
+                        <!-- <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                        </svg> -->
+                        <svg class="w-6 h-6 text-orange-400" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2024 Fonticons, Inc. --><path d="M256 448c141.4 0 256-93.1 256-208S397.4 32 256 32S0 125.1 0 240c0 45.1 17.7 86.8 47.7 120.9c-1.9 24.5-11.4 46.3-21.4 62.9c-5.5 9.2-11.1 16.6-15.2 21.6c-2.1 2.5-3.7 4.4-4.9 5.7c-.6 .6-1 1.1-1.3 1.4l-.3 .3c0 0 0 0 0 0c0 0 0 0 0 0s0 0 0 0s0 0 0 0c-4.6 4.6-5.9 11.4-3.4 17.4c2.5 6 8.3 9.9 14.8 9.9c28.7 0 57.6-8.9 81.6-19.3c22.9-10 42.4-21.9 54.3-30.6c31.8 11.5 67 17.9 104.1 17.9zM96 212.8c0-20.3 16.5-36.8 36.8-36.8l19.2 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-19.2 0c-2.7 0-4.8 2.2-4.8 4.8c0 1.6 .8 3.1 2.2 4l29.4 19.6c10.3 6.8 16.4 18.3 16.4 30.7c0 20.3-16.5 36.8-36.8 36.8L112 304c-8.8 0-16-7.2-16-16s7.2-16 16-16l27.2 0c2.7 0 4.8-2.2 4.8-4.8c0-1.6-.8-3.1-2.2-4l-29.4-19.6C102.2 236.7 96 225.2 96 212.8zM372.8 176l19.2 0c8.8 0 16 7.2 16 16s-7.2 16-16 16l-19.2 0c-2.7 0-4.8 2.2-4.8 4.8c0 1.6 .8 3.1 2.2 4l29.4 19.6c10.2 6.8 16.4 18.3 16.4 30.7c0 20.3-16.5 36.8-36.8 36.8L352 304c-8.8 0-16-7.2-16-16s7.2-16 16-16l27.2 0c2.7 0 4.8-2.2 4.8-4.8c0-1.6-.8-3.1-2.2-4l-29.4-19.6c-10.2-6.8-16.4-18.3-16.4-30.7c0-20.3 16.5-36.8 36.8-36.8zm-152 6.4L256 229.3l35.2-46.9c4.1-5.5 11.3-7.8 17.9-5.6s10.9 8.3 10.9 15.2l0 96c0 8.8-7.2 16-16 16s-16-7.2-16-16l0-48-19.2 25.6c-3 4-7.8 6.4-12.8 6.4s-9.8-2.4-12.8-6.4L224 240l0 48c0 8.8-7.2 16-16 16s-16-7.2-16-16l0-96c0-6.9 4.4-13 10.9-15.2s13.7 .1 17.9 5.6z"></path></svg>
+                    </div>
+                    <!-- <span class="text-xs font-semibold text-gray-700">Mobile SMS</span> -->
+                    <span class="text-xs font-semibold {{ empty($lead->contact_number) ? 'text-gray-400' : 'text-gray-700' }}">{{ $lead->contact_number ?? 'Not Available' }}</span>
+                    <x-toggle lg wire:model="notifyPhone" :disabled="empty($lead->contact_number)" />
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <x-textarea label="Message Content" wire:model="whatsappMessage" placeholder="Type your message here..." rows="4" />
+                <p class="text-[12px] text-gray-400">The message will be sent to the active channels selected above.</p>
+            </div>
         </div>
         <x-slot name="footer">
-            <div class="flex justify-end gap-x-4">
-                <x-button flat label="Cancel" x-on:click="close" />
-                <x-button primary label="Send Message" wire:click="sendWhatsAppMessage" spinner="sendWhatsAppMessage" />
+            <div class="flex justify-between items-center w-full">
+                <div class="text-xs text-gray-500">
+                    Name: <span class="font-medium">{{ $lead->full_name }}</span>
+                </div>
+                <div class="flex flex-col items-end gap-y-1">
+                    <div class="flex gap-x-3">
+                        <x-button flat label="Cancel" x-on:click="close" />
+                        <x-button secondary label="Send Message" wire:click="sendWhatsAppMessage" spinner="sendWhatsAppMessage" />
+                    </div>
+                    @if($channelError)
+                        <span class="text-[10px] text-red-500 font-medium">{{ $channelError }}</span>
+                    @endif
+                </div>
             </div>
         </x-slot>
     </x-modal.card>

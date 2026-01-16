@@ -1,10 +1,11 @@
-const { Client, LocalAuth } = require('whatsapp-web.js');
+const { Client, LocalAuth, MessageMedia } = require('whatsapp-web.js');
 const qrcode = require('qrcode-terminal');
 const express = require('express');
 require('dotenv').config();
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
 // Initialize WhatsApp client
 const client = new Client({
@@ -50,11 +51,11 @@ client.initialize();
 
 // API endpoint to send message
 app.post('/send-message', async (req, res) => {
-    const { to, message } = req.body;
+    const { to, message, attachment } = req.body;
     console.log(`Received request to send message to: ${to}`);
 
-    if (!to || !message) {
-        return res.status(400).json({ status: 'error', message: 'Missing "to" or "message" parameters' });
+    if (!to || (!message && !attachment)) {
+        return res.status(400).json({ status: 'error', message: 'Missing "to" or content parameters' });
     }
 
     try {
@@ -73,8 +74,14 @@ app.post('/send-message', async (req, res) => {
             }
         }
         
-        console.log(`Sending message to ${chatId}: ${message}`);
-        await client.sendMessage(chatId, message, { sendSeen: false });
+        console.log(`Sending message to ${chatId}: ${message || '[Media]'}`);
+        
+        if (attachment && attachment.base64) {
+            const media = new MessageMedia(attachment.mimetype, attachment.base64, attachment.filename);
+            await client.sendMessage(chatId, media, { caption: message, sendSeen: false });
+        } else {
+            await client.sendMessage(chatId, message, { sendSeen: false });
+        }
         
         res.json({ status: 'success' });
     } catch (error) {

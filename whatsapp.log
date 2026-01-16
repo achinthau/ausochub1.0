@@ -1,0 +1,24 @@
+nohup: ignoring input
+WhatsApp WebJS API server running on port 3001
+Authenticated successfully!
+WhatsApp WebJS Client is ready!
+Received request to send message to: 94786070240
+Sending message to 94786070240@c.us: 54
+Failed to send message: Error [TypeError]: Cannot read properties of undefined (reading 'markedUnread')
+I (https://static.whatsapp.net/rsrc.php/v4i4Xq4/yt/l/en_GB-j/cmH4AUm3ODG.js:1541:4171)
+    at window.WWebJS.sendSeen (evaluate at Binding.<anonymous> (/home/viraj/auso/ausochub1.0/node_modules/whatsapp-web.js/src/Client.js:265:36), <anonymous>:13:40)
+    at #evaluate (/home/viraj/auso/ausochub1.0/node_modules/puppeteer-core/lib/cjs/puppeteer/cdp/ExecutionContext.js:391:56)
+    at async ExecutionContext.evaluate (/home/viraj/auso/ausochub1.0/node_modules/puppeteer-core/lib/cjs/puppeteer/cdp/ExecutionContext.js:277:16)
+    at async IsolatedWorld.evaluate (/home/viraj/auso/ausochub1.0/node_modules/puppeteer-core/lib/cjs/puppeteer/cdp/IsolatedWorld.js:100:16)
+    at async CdpFrame.evaluate (/home/viraj/auso/ausochub1.0/node_modules/puppeteer-core/lib/cjs/puppeteer/api/Frame.js:362:20)
+    at async CdpPage.evaluate (/home/viraj/auso/ausochub1.0/node_modules/puppeteer-core/lib/cjs/puppeteer/api/Page.js:826:20)
+    at async Client.sendMessage (/home/viraj/auso/ausochub1.0/node_modules/whatsapp-web.js/src/Client.js:1076:25)
+    at async /home/viraj/auso/ausochub1.0/whatsapp_link.js:81:13
+    at v (https://static.whatsapp.net/rsrc.php/v4i4Xq4/yt/l/en_GB-j/cmH4AUm3ODG.js:1540:1311)
+    at S (https://static.whatsapp.net/rsrc.php/v4i4Xq4/yt/l/en_GB-j/cmH4AUm3ODG.js:1540:2044)
+    at <anonymous> (https://static.whatsapp.net/rsrc.php/v4/yE/r/8_Dgf5nZjzc.js:106:276)
+    at <anonymous> (https://static.whatsapp.net/rsrc.php/v4/yE/r/8_Dgf5nZjzc.js:106:407)
+    at i (https://static.whatsapp.net/rsrc.php/v4/yE/r/8_Dgf5nZjzc.js:106:348)
+    at l (https://static.whatsapp.net/rsrc.php/v4/yE/r/8_Dgf5nZjzc.js:106:124)
+    at <anonymous> (https://static.whatsapp.net/rsrc.php/v4i4Xq4/yt/l/en_GB-j/cmH4AUm3ODG.js:1540:1750)
+    at I (https://static.whatsapp.net/rsrc.php/v4i4Xq4/yt/l/en_GB-j/cmH4AUm3ODG.js:1540:4170)

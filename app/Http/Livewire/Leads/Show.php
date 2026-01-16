@@ -15,11 +15,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Redis;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 use WireUi\Traits\Actions;
 
 class Show extends Component
 {
-    use Actions;
+    use Actions, WithFileUploads;
 
     public Lead $lead;
     public $tickets;
@@ -57,6 +58,8 @@ class Show extends Component
     public $notifyEmail = false;
     public $notifyPhone = false;
     public $channelError = '';
+    public $attachment;
+    public $attachmentResetKey = 0;
 
     protected $listeners = ['refreshCard' => 'refreshCard', 'FeedCompleted' => '$refresh'];
 
@@ -447,6 +450,10 @@ class Show extends Component
     public function updated($propertyName)
     {
         \Log::info('Property updated', ['property' => $propertyName, 'value' => $this->$propertyName]);
+
+        if ($propertyName === 'attachment' && $this->attachment) {
+            $this->notifyPhone = false;
+        }
     }
 
     public function render()
@@ -514,6 +521,8 @@ class Show extends Component
         $this->notifyEmail = !empty($this->lead->email);
         $this->notifyPhone = !empty($this->lead->contact_number);
         $this->whatsappModal = true;
+        $this->attachment = null;
+        $this->attachmentResetKey++;
     }
 
     public function sendWhatsAppMessage()
@@ -556,11 +565,23 @@ class Show extends Component
             if ($mode === 'webjs') {
                 $url = config('services.whatsapp.webjs_url') . '/send-message';
                 \Log::info('Sending to WebJS', ['url' => $url]);
+
+                $postData = [
+                    'to' => $internationalNumber,
+                    'message' => $this->whatsappMessage,
+                ];
+
+                if ($this->attachment) {
+                    $path = $this->attachment->getRealPath();
+                    $postData['attachment'] = [
+                        'base64' => base64_encode(file_get_contents($path)),
+                        'mimetype' => $this->attachment->getMimeType(),
+                        'filename' => $this->attachment->getClientOriginalName(),
+                    ];
+                }
+
                 try {
-                    $response = Http::timeout(30)->post($url, [
-                        'to' => $internationalNumber,
-                        'message' => $this->whatsappMessage,
-                    ]);
+                    $response = Http::timeout(30)->post($url, $postData);
                     \Log::info('Response status', ['status' => $response->status(), 'body' => $response->body()]);
                 } catch (\Exception $e) {
                     \Log::error('HTTP Exception', ['message' => $e->getMessage()]);

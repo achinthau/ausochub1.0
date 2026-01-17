@@ -807,7 +807,7 @@
 
 
 
-    <x-modal.card blur wire:model="whatsappModal" title="Notify Customer">
+    <x-modal.card blur wire:model="whatsappModal" title="Send Message to Customer">
         <div class="space-y-6">
             <div class="grid grid-cols-3 gap-4 bg-gray-50 p-4 rounded-lg">
                 <div class="flex flex-col items-center space-y-2">

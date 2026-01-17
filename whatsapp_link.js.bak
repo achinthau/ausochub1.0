@@ -13,7 +13,7 @@ const axios = require('axios');
 const client = new Client({
     authStrategy: new LocalAuth(),
     puppeteer: {
-        headless: 'shell',
+        headless: true,
         args: [
             '--no-sandbox',
             '--disable-setuid-sandbox',
@@ -21,11 +21,14 @@ const client = new Client({
             '--disable-accelerated-2d-canvas',
             '--no-first-run',
             '--no-zygote',
-            '--disable-gpu',
-            '--disable-features=IsolateOrigins,site-per-process'
+            '--disable-gpu'
         ],
         userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
     },
+    webVersionCache: {
+        type: 'remote',
+        remotePath: 'https://raw.githubusercontent.com/wppconnect-team/wa-version/main/html/2.2412.54.html',
+    }
 });
 
 // Display QR code for login
@@ -118,12 +121,10 @@ app.post('/send-message', async (req, res) => {
                 attachment.base64,
                 attachment.filename || 'attachment'
             );
-            // Added sendSeen: false to avoid markedUnread error
             sentMsg = await client.sendMessage(chatId, media, { caption: message, sendSeen: false });
         } else {
             console.log(`- Sending text message: "${message.substring(0, 50)}..."`);
-            // Added sendSeen: false to avoid markedUnread error
-            sentMsg = await client.sendMessage(chatId, message, { sendSeen: false });
+            sentMsg = await client.sendMessage(chatId, message);
         }
         
         console.log('Message sent successfully');
@@ -142,39 +143,28 @@ app.get('/chats', async (req, res) => {
         // Limit to 50 most recent chats to ensure performance
         const chats = allChats.slice(0, 50);
         
-        const chatData = await Promise.all(chats.map(async (chat) => {
+        const chatData = [];
+        for (const chat of chats) {
             try {
-                // Safely attempt to get contact details
-                let name = chat.name;
-                let number = '';
-                let contact = null;
+                // Determine contact name and number
+                const contact = await chat.getContact();
                 
-                try {
-                    contact = await chat.getContact();
-                    name = name || contact.name || contact.pushname;
-                    number = contact.number;
-                } catch (contactError) {
-                    console.warn(`Failed to get contact for chat ${chat.id._serialized}: ${contactError.message}`);
-                    number = chat.id.user;
-                }
-                
-                // Fetch profile pic with timeout to prevent blocking
+                // Attempt to fetch profile pic with a timeout
                 let profilePicUrl = null;
-                if (contact) {
-                    try {
-                        profilePicUrl = await Promise.race([
-                            contact.getProfilePicUrl(),
-                            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000))
-                        ]);
-                    } catch (e) {
-                        // Ignore DP errors
-                    }
+                try {
+                    // We don't want to wait forever for a DP
+                    profilePicUrl = await Promise.race([
+                        contact.getProfilePicUrl(),
+                        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 2000))
+                    ]);
+                } catch (e) {
+                    // Ignore DP errors/timeouts
                 }
-
-                return {
+                
+                chatData.push({
                     id: chat.id._serialized,
-                    name: name,
-                    number: number,
+                    name: chat.name,
+                    number: contact.number,
                     unreadCount: chat.unreadCount,
                     timestamp: chat.timestamp,
                     lastMessage: chat.lastMessage ? {
@@ -183,19 +173,15 @@ app.get('/chats', async (req, res) => {
                         fromMe: chat.lastMessage.fromMe
                     } : null,
                     profilePicUrl: profilePicUrl
-                };
+                });
             } catch (innerError) {
                 console.error(`Error processing chat ${chat.id._serialized}:`, innerError.message);
-                return null;
             }
-        }));
-        
-        const validChatData = chatData.filter(chat => chat !== null);
-        console.log(`Returning ${validChatData.length} chats`);
-        res.json(validChatData);
+        }
+        console.log(`Returning ${chatData.length} chats`);
+        res.json(chatData);
     } catch (error) {
         console.error('Failed to get chats:', error);
-        // Return structured error instead of failing request effectively
         res.status(500).json({ status: 'error', message: error.message });
     }
 });
@@ -239,63 +225,6 @@ app.get('/profile-pic/:userId', async (req, res) => {
         const url = await contact.getProfilePicUrl();
         res.json({ url });
     } catch (error) {
-        res.status(500).json({ status: 'error', message: error.message });
-    }
-});
-
-// Get media for a message
-app.get('/message/media', async (req, res) => {
-    const { msgId } = req.query;
-    if (!msgId) {
-        return res.status(400).json({ status: 'error', message: 'Missing msgId parameter' });
-    }
-
-    try {
-        console.log(`Fetching media for message: ${msgId}`);
-        let msg;
-        try {
-            if (client.getMessageById) {
-                 msg = await client.getMessageById(msgId);
-            }
-        } catch (e) {}
-
-        if (!msg) {
-            // Fallback: Parse chat ID from msg ID
-            // ID format: fromMe_remote_id
-            const parts = msgId.split('_');
-            if (parts.length >= 2) {
-                const chatId = parts[1];
-                try {
-                    const chat = await client.getChatById(chatId);
-                    const messages = await chat.fetchMessages({ limit: 50 }); 
-                    msg = messages.find(m => m.id._serialized === msgId);
-                } catch (e) {
-                   console.warn('Failed to fetch chat or messages for media:', e.message);
-                }
-            }
-        }
-
-        if (!msg) {
-            return res.status(404).json({ status: 'error', message: 'Message not found' });
-        }
-
-        if (!msg.hasMedia) {
-            return res.status(400).json({ status: 'error', message: 'Message has no media' });
-        }
-
-        const media = await msg.downloadMedia();
-        if (!media) {
-            return res.status(404).json({ status: 'error', message: 'Failed to download media' });
-        }
-
-        res.json({
-            mimetype: media.mimetype,
-            data: media.data,
-            filename: media.filename
-        });
-
-    } catch (error) {
-        console.error('Failed to download media:', error);
         res.status(500).json({ status: 'error', message: error.message });
     }
 });

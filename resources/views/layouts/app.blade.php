@@ -38,6 +38,30 @@
         presenceSocket.emit("user_connected", {{ auth()->id() ?? 'null' }});
         console.log("Presence connected for user:", {{ auth()->id() ?? 'null' }});
     });
+
+    presenceSocket.on("whatsapp.message", (data) => {
+        console.log("Global WhatsApp message received:", data);
+        // Ignore messages sent by me
+        if (data.lead.fromMe) return;
+
+        /*
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 5000,
+            timerProgressBar: true,
+            icon: 'info',
+            title: `New WhatsApp from ${data.lead.contact.name || data.lead.contact.number}`,
+            text: data.lead.body,
+            didOpen: (toast) => {
+                toast.addEventListener('click', () => {
+                    window.location.href = "{{ route('whatsapp.chat') }}";
+                })
+            }
+        });
+        */
+    });
 </script>
 
 

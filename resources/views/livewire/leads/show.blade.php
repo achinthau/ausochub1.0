@@ -227,11 +227,12 @@
 
                         <hr class="pt-1">
                         <div class="flex justify-end space-x-2 pt-1 w-full">
-                            <div wire:click="showWhatsAppModal" class="flex items-center space-x-2 border-2 border-gray-300 p-1 cursor-pointer rounded-md bg-gray-200 hover:bg-gray-300 hover:border-gray-400">
+                            <div wire:click="showWhatsAppModal" class="flex items-center space-x-2 border-2 border-green-600 p-1 cursor-pointer rounded-md bg-green-500 hover:bg-green-600 hover:border-gray-400">
                                 @if($lead->whatsapp || $lead->email || $lead->phone)
-                                    <span class="text-blue-600 font-semibold">Notify Customer</span>
+                                <!-- Notify Customer -->
+                                    <span class="text-white font-semibold">Send Message</span>
                                     <!-- <svg class="w-8 h-8 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="none" viewBox="0 0 24 24"><path d="M20 2H4c-1.103 0-2 .897-2 2v12c0 1.103.897 2 2 2h3v3.767L13.277 18H20c1.103 0 2-.897 2-2V4c0-1.103-.897-2-2-2zm0 14h-7.277L9 18.233V16H4V4h16v12z"></path><path d="m13.803 9.189-1.399-1.398-3.869 3.864v1.399h1.399zm.327-3.123 1.398 1.399-1.066 1.066-1.399-1.398z"></path></svg> -->
-                                    <svg class="w-5 h-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                                    <svg class="w-5 h-5 text-white" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
   <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471z"></path>
 </svg>
                                     @endif
@@ -842,9 +843,31 @@
                 </div>
             </div>
 
-            <div class="space-y-2">
+            <div class="space-y-4">
                 <x-textarea label="Message Content" wire:model="whatsappMessage" placeholder="Type your message here..." rows="4" />
-                <p class="text-[12px] text-gray-400">The message will be sent to the active channels selected above.</p>
+                
+                <div class="space-y-1">
+                    <label class="block text-sm font-medium text-gray-700">Attachment (Optional)</label>
+                    <div class="flex items-center space-x-3">
+                        <input type="file" wire:model="attachment" wire:key="attachment-input-{{ $attachmentResetKey }}" class="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
+                        <div wire:loading wire:target="attachment" class="text-xs text-blue-600 animate-pulse">Uploading...</div>
+                    </div>
+                    @if($attachment)
+                        <div class="flex items-center space-x-2 mt-2 p-2 bg-gray-100 rounded-md">
+                            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                            </svg>
+                            <span class="text-xs text-gray-600 truncate max-w-[200px]">{{ $attachment->getClientOriginalName() }}</span>
+                            <button wire:click="$set('attachment', null)" class="text-red-500 hover:text-red-700">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    @endif
+                </div>
+                
+                <p class="text-[12px] text-gray-400">The message will be sent to the active channels selected above. If an attachment is selected, SMS will be disabled.</p>
             </div>
         </div>
         <x-slot name="footer">
@@ -855,7 +878,7 @@
                 <div class="flex flex-col items-end gap-y-1">
                     <div class="flex gap-x-3">
                         <x-button flat label="Cancel" x-on:click="close" />
-                        <x-button secondary label="Send Message" wire:click="sendWhatsAppMessage" spinner="sendWhatsAppMessage" />
+                        <x-button secondary label="Send" wire:click="sendWhatsAppMessage" spinner="sendWhatsAppMessage" />
                     </div>
                     @if($channelError)
                         <span class="text-[10px] text-red-500 font-medium">{{ $channelError }}</span>

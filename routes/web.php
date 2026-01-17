@@ -55,6 +55,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Redis;
+use App\Http\Livewire\Whatsapp\Chat as WhatsappChat;
 
 /*
 |--------------------------------------------------------------------------
@@ -131,6 +132,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     });
 
     Route::get('/chat', ChatIndex::class)->name('chat.index');
+    Route::get('/whatsapp/chat', WhatsappChat::class)->name('whatsapp.chat');
 
     Route::get('/cx-tickets', CxTicketsIndex::class)->name('cx-tickets.index');
     Route::get('/cx-tickets/survey', SurveyIndex::class)->name('cx-tickets-survey.index');

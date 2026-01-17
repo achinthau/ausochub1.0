@@ -13,6 +13,7 @@ use App\Models\Ticket;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redis;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -538,86 +539,159 @@ class Show extends Component
             'whatsappMessage' => 'required|string',
         ]);
 
-        $response = null;
+        $waSuccess = false;
+        $emailSuccess = false;
+        $waAttempted = false;
+        $emailAttempted = false;
 
+        // --- WhatsApp Logic ---
         if ($this->notifyWhatsApp) {
+            $waAttempted = true;
             $number = preg_replace('/\s+/', '', $this->lead->whatsapp);
             \Log::info('WhatsApp Number from lead', ['number' => $number]);
 
             if (empty($number)) {
                 $this->notification()->error('WhatsApp number is missing for this lead.');
-                return;
-            }
-
-            if (str_starts_with($number, '94')) {
-                $internationalNumber = $number;
-            } elseif (str_starts_with($number, '0')) {
-                $internationalNumber = '94' . substr($number, 1);
             } else {
-                $internationalNumber = '94' . $number;
-            }
+                if (str_starts_with($number, '94')) {
+                    $internationalNumber = $number;
+                } elseif (str_starts_with($number, '0')) {
+                    $internationalNumber = '94' . substr($number, 1);
+                } else {
+                    $internationalNumber = '94' . $number;
+                }
 
-            \Log::info('International Number', ['number' => $internationalNumber]);
+                \Log::info('International Number', ['number' => $internationalNumber]);
+                $mode = config('services.whatsapp.mode', 'api');
+                $response = null;
 
-            $mode = config('services.whatsapp.mode', 'api');
-            \Log::info('WhatsApp Mode', ['mode' => $mode]);
-
-            if ($mode === 'webjs') {
-                $url = config('services.whatsapp.webjs_url') . '/send-message';
-                \Log::info('Sending to WebJS', ['url' => $url]);
-
-                $postData = [
-                    'to' => $internationalNumber,
-                    'message' => $this->whatsappMessage,
-                ];
-
-                if ($this->attachment) {
-                    $path = $this->attachment->getRealPath();
-                    $postData['attachment'] = [
-                        'base64' => base64_encode(file_get_contents($path)),
-                        'mimetype' => $this->attachment->getMimeType(),
-                        'filename' => $this->attachment->getClientOriginalName(),
+                if ($mode === 'webjs') {
+                    $url = config('services.whatsapp.webjs_url') . '/send-message';
+                    $postData = [
+                        'to' => $internationalNumber,
+                        'message' => $this->whatsappMessage,
                     ];
+
+                    if ($this->attachment) {
+                        try {
+                            $path = $this->attachment->getRealPath();
+                            $postData['attachment'] = [
+                                'base64' => base64_encode(file_get_contents($path)),
+                                'mimetype' => $this->attachment->getMimeType(),
+                                'filename' => $this->attachment->getClientOriginalName(),
+                            ];
+                        } catch (\Exception $e) {
+                            \Log::error('File attachment error', ['error' => $e->getMessage()]);
+                        }
+                    }
+
+                    try {
+                        $response = Http::timeout(30)->post($url, $postData);
+                    } catch (\Exception $e) {
+                        \Log::error('HTTP Exception', ['message' => $e->getMessage()]);
+                        $this->notification()->error('Failed to connect to WhatsApp server: ' . $e->getMessage());
+                    }
+                } else {
+                    // API Mode (Facebook Graph API)
+                    // Note: Attachments not currently implemented for API mode in this block, 
+                    // only text messages as per original code.
+                    $response = Http::withHeaders([
+                        'Authorization' => 'Bearer ' . config('services.whatsapp.token'),
+                        'Content-Type' => 'application/json',
+                    ])->post('https://graph.facebook.com/v22.0/' . config('services.whatsapp.phone_id') . '/messages', [
+                        'messaging_product' => 'whatsapp',
+                        'to' => $internationalNumber,
+                        'type' => 'template',
+                        'template' => [
+                            'name' => 'hello_world',
+                            'language' => ['code' => 'en_US'],
+                        ],
+                    ]);
                 }
 
-                try {
-                    $response = Http::timeout(30)->post($url, $postData);
-                    \Log::info('Response status', ['status' => $response->status(), 'body' => $response->body()]);
-                } catch (\Exception $e) {
-                    \Log::error('HTTP Exception', ['message' => $e->getMessage()]);
-                    $this->notification()->error('Failed to connect to WhatsApp server: ' . $e->getMessage());
-                    return;
+                if ($response && $response->successful()) {
+                    $waSuccess = true;
+                } else {
+                    $errorMsg = $response ? $response->body() : 'No response from server';
+                    $this->notification()->error('Failed to send WhatsApp message: ' . $errorMsg);
                 }
-            } else {
-                $response = Http::withHeaders([
-                    'Authorization' => 'Bearer ' . config('services.whatsapp.token'),
-                    'Content-Type' => 'application/json',
-                ])->post('https://graph.facebook.com/v22.0/' . config('services.whatsapp.phone_id') . '/messages', [
-                    'messaging_product' => 'whatsapp',
-                    'to' => $internationalNumber,
-                    'type' => 'template',
-                    'template' => [
-                        'name' => 'hello_world',
-                        'language' => [
-                            'code' => 'en_US',
-                        ],
-                    ],
-                ]);
             }
-        } else {
-            // If WhatsApp is NOT selected, we just simulate success for now if Email or Phone is selected
-            // (since the user will develop the backend for those later)
-            $this->notification()->success('Notification process initiated for selected channels!');
-            $this->whatsappModal = false;
-            return;
         }
 
-        if ($response && $response->successful()) {
-            $this->notification()->success('Notification sent successfully!');
+        // --- Email Logic ---
+        if ($this->notifyEmail) {
+            $emailAttempted = true;
+            if (empty($this->lead->email)) {
+                $this->notification()->error('Email address is missing for this lead.');
+            } else {
+                try {
+                    $attachment = $this->attachment;
+                    $messageContent = $this->whatsappMessage;
+                    $toEmail = $this->lead->email;
+
+                    Mail::raw($messageContent, function ($message) use ($toEmail, $attachment) {
+                        $message->to($toEmail)
+                            ->from('auso.info@gmail.com', 'Auso CallHUB')
+                            // ->bcc('auso.info@gmail.com')
+                            ->subject('Auso CallHUB Mail');
+
+                        if ($attachment) {
+                            $message->attach($attachment->getRealPath(), [
+                                'as' => $attachment->getClientOriginalName(),
+                                'mime' => $attachment->getMimeType(),
+                            ]);
+                        }
+                    });
+
+                    $emailSuccess = true;
+                } catch (\Exception $e) {
+                    \Log::error('Email sending failed', ['error' => $e->getMessage()]);
+                    $this->notification()->error('Failed to send Email: ' . $e->getMessage());
+                }
+            }
+        }
+
+        // --- Phone Logic (Placeholder) ---
+        if ($this->notifyPhone) {
+            // Placeholder: Assume success for now as per original code
+            $number = preg_replace('/\s+/', '', $this->lead->contact_number);
+            \Log::info('WhatsApp Number from lead', ['number' => $number]);
+
+            if (empty($number)) {
+                $this->notification()->error('WhatsApp number is missing for this lead.');
+            } else {
+                if (str_starts_with($number, '94')) {
+                    $internationalNumber = $number;
+                } elseif (str_starts_with($number, '0')) {
+                    $internationalNumber = '94' . substr($number, 1);
+                } else {
+                    $internationalNumber = '94' . $number;
+                }
+            }
+
+            $response = Http::withHeaders([
+                        'Authorization' => 'Basic ' . config('services.mobile.token'),
+                        'Content-Type' => 'application/json',
+                        'Accept' => '*',
+                        'X-API-VERSION' => 'v1',
+                    ])->post(config('services.mobile.url'), [
+                        'to' => $internationalNumber,
+                        'text' => $this->whatsappMessage
+                    ]);
+
+            // $this->notification()->success('Phone notification initiated (simulated).');
+        }
+
+        // --- Final Result Handling ---
+        $completed = true;
+        if ($waAttempted && !$waSuccess) $completed = false;
+        if ($emailAttempted && !$emailSuccess) $completed = false;
+
+        if ($completed) {
+            $this->notification()->success('Selected notifications sent successfully!');
             $this->whatsappModal = false;
-        } else {
-            $errorMsg = $response ? $response->body() : 'No response from server';
-            $this->notification()->error('Failed to send WhatsApp message: ' . $errorMsg);
+            $this->whatsappMessage = '';
+            $this->attachment = null;
         }
     }
 

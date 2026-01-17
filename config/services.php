@@ -43,4 +43,10 @@ return [
         'url' => env('MOBILE_TEXTIT_BIT_URL'),
     ],
 
+    'email' => [
+        'address' => env('MAIL_FROM_ADDRESS'),
+        'subject' => env('MAIL_MESSAGE_SUBJECT'),
+        'name' => env('MAIL_MESSAGE_NAME'),
+    ]
+
 ];

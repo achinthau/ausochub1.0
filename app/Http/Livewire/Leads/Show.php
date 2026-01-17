@@ -631,9 +631,9 @@ class Show extends Component
 
                     Mail::raw($messageContent, function ($message) use ($toEmail, $attachment) {
                         $message->to($toEmail)
-                            ->from('auso.info@gmail.com', 'Auso CallHUB')
+                            ->from(config('services.email.address'), config('services.email.name'))
                             // ->bcc('auso.info@gmail.com')
-                            ->subject('Auso CallHUB Mail');
+                            ->subject(config('services.email.subject')."_".Date('Y-m-d'));
 
                         if ($attachment) {
                             $message->attach($attachment->getRealPath(), [

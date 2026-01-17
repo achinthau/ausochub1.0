@@ -61,6 +61,10 @@
                         </x-jet-nav-link>
                     </div>
                 @endcan
+
+                @can('can-view-leads')
+                    @livewire('whatsapp.whatsapp-nav-button')
+                @endcan
                 @can('can-view-tickets')
                     <!-- Navigation Links -->
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">

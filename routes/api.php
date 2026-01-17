@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\DB;
 use App\Repositories\ApiManager;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Campaign;
+use App\Http\Controllers\Api\WhatsappWebhookController;
 
 
 
@@ -679,6 +680,9 @@ Route::post('/get-missed-call-number', function (Request $request) {
         ],
     ]);
 });
+
+Route::post('/whatsapp/webhook', [\App\Http\Controllers\Api\WhatsappWebhookController::class, 'handle']);
+
 
 
 

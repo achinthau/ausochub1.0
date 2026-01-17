@@ -1792,3 +1792,1370 @@ A user connected: dsqrD2ksQDfBkHakAADL
 User 1 connected via socket dsqrD2ksQDfBkHakAADL
 A user connected: BbhdzPodIdAZa5nWAADN
 User 1 reconnected before timeout, no logout triggered.
+User 1 disconnected.
+Disconnected socket without user info: BbhdzPodIdAZa5nWAADN
+A user connected: s_fTTNmDh-WgkOXKAADP
+User 1 connected via socket s_fTTNmDh-WgkOXKAADP
+A user connected: 41Tdp7RXkPl7MadTAADR
+User 1 reconnected before timeout, no logout triggered.
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768635147,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'Eran', number: '94779014325' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+User 1 disconnected.
+Disconnected socket without user info: 41Tdp7RXkPl7MadTAADR
+A user connected: ULWaCZB84N8hvzWwAADT
+User 1 connected via socket ULWaCZB84N8hvzWwAADT
+A user connected: ySWKI3fKL2gCtSydAADV
+User 1 reconnected before timeout, no logout triggered.
+User 1 disconnected.
+Disconnected socket without user info: ySWKI3fKL2gCtSydAADV
+A user connected: 7xH3DArdiDXNobJcAADX
+User 1 connected via socket 7xH3DArdiDXNobJcAADX
+A user connected: uMl804rzECrbAC1MAADZ
+User 1 reconnected before timeout, no logout triggered.
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'Kastiya kohedoo',
+  timestamp: 1768635264,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Angelo Kannangara', number: '94741762872' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768635265,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'Angelo Kannangara', number: '94741762872' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363423694237368@g.us',
+  to: '94704017188@c.us',
+  body: '🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨 \n' +
+    'අද පැවැත්වෙන IT & AI Bootcamp එකෙහි පළමු දවස ( අද ) සම්පූර්ණයෙන්ම නොමිලේ පැවැත්වෙන අතර මාස දෙකක් පවතින මෙම සහතිකපත් IT & AI පාඨමාලාවට සහභාගී වී මුල සිට ඉගන ගනිමින් ඒ තුලින් අදායමක් ලබා ගන්න තැනට යන තෙක්ම ඉගන ගැනීමට මෙහිදී ඔබට හැක්කියාව ලැබේ. මේ සදහා පළමු දින නොමිලේ සහභාගී වීමට පහත Form එක පුවරන්න. Zoom ආසන සීමිත නිසා මෙය පුරවන අයට පමනක් අවස්තාව ලැබෙන බව කරුණෑවෙන් සළකන්න.  රාත්‍රි 8ට හරියටම පළමු දවස ආරම්භ වන අතර එක ඔබට 7:30ට Zoom Link එක මෙම සමූහය තුළ Update වේ.\n' +
+    '\n' +
+    'https://forms.gle/i75Qdsa9X6k8QpKb7',
+  timestamp: 1768635336,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Mawa', number: '94718918830' },
+  chat: {
+    id: '120363423694237368@g.us',
+    name: 'Learn & Earn in 90 Days – Free Webinar ( Year End )',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768635508,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'Pasindu Kanchana', number: '94769913382' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768635515,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'Pasindu Kanchana', number: '94769913382' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'Lab 8',
+  timestamp: 1768635522,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Pasindu Kanchana', number: '94769913382' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+User 1 disconnected.
+Disconnected socket without user info: uMl804rzECrbAC1MAADZ
+User 1 reconnected before timeout, no logout triggered.
+User 1 disconnected.
+User 1 logout recorded in Laravel
+A user connected: BdjRstH3Rstq7oL5AADb
+User 1 connected via socket BdjRstH3Rstq7oL5AADb
+A user connected: K0Wp0kePwm_b3vMMAADd
+User 1 disconnected.
+Disconnected socket without user info: K0Wp0kePwm_b3vMMAADd
+A user connected: vlZE9FMOfkldoJWhAADf
+User 1 connected via socket vlZE9FMOfkldoJWhAADf
+A user connected: ors0h0AXGLePXkqMAADh
+User 1 reconnected before timeout, no logout triggered.
+User 1 disconnected.
+Disconnected socket without user info: ors0h0AXGLePXkqMAADh
+A user connected: WssumZhYvJ_LP35RAADj
+User 1 connected via socket WssumZhYvJ_LP35RAADj
+A user connected: vz-VEILLvO28oEiGAADl
+User 1 reconnected before timeout, no logout triggered.
+Disconnected socket without user info: vz-VEILLvO28oEiGAADl
+User 1 disconnected.
+User 1 logout recorded in Laravel
+A user connected: Ux4-_PzDo67HToTYAADn
+User 1 connected via socket Ux4-_PzDo67HToTYAADn
+A user connected: qbz9HzMVg1XsTmFRAADp
+User 1 disconnected.
+Disconnected socket without user info: qbz9HzMVg1XsTmFRAADp
+A user connected: bWEm6dAVRfZk5J6-AADr
+User 1 connected via socket bWEm6dAVRfZk5J6-AADr
+A user connected: 7EEpqnT_eM-e6T6nAADt
+User 1 reconnected before timeout, no logout triggered.
+User 1 disconnected.
+Disconnected socket without user info: 7EEpqnT_eM-e6T6nAADt
+A user connected: dlDJIbKrR5K-j4L7AADv
+User 1 connected via socket dlDJIbKrR5K-j4L7AADv
+A user connected: FLIce8b_ek5AviosAADx
+User 1 reconnected before timeout, no logout triggered.
+Disconnected socket without user info: FLIce8b_ek5AviosAADx
+User 1 disconnected.
+User 1 logout recorded in Laravel
+A user connected: GdkqQv7FhO-p8b9HAADz
+User 1 connected via socket GdkqQv7FhO-p8b9HAADz
+A user connected: sS0HK8nb4O99QzcbAAD1
+User 1 disconnected.
+Disconnected socket without user info: sS0HK8nb4O99QzcbAAD1
+A user connected: saVxmiGM1IIzRWHVAAD3
+User 1 connected via socket saVxmiGM1IIzRWHVAAD3
+A user connected: kdpwNV-sssEowynaAAD5
+User 1 reconnected before timeout, no logout triggered.
+User 1 disconnected.
+Disconnected socket without user info: kdpwNV-sssEowynaAAD5
+A user connected: pAgK2b9qw23FQRnlAAD7
+User 1 connected via socket pAgK2b9qw23FQRnlAAD7
+A user connected: p6sNf82qGcMlVB2fAAD9
+User 1 reconnected before timeout, no logout triggered.
+post request received
+Event emitted: whatsapp.message {
+  from: '120363214770424172@g.us',
+  to: '94704017188@c.us',
+  body: 'Cuban Watch with Necklace And Bracelet 💎\n' +
+    'Available now 🥳\n' +
+    'Order now 🥳\n' +
+    'Rs. 5,500/- 🎁\n' +
+    'Free delivery 🚚\n' +
+    'Cash on delivery 📦 \n' +
+    '\n' +
+    'For Order\n' +
+    'Name\n' +
+    'Address \n' +
+    'Phone number',
+  timestamp: 1768635987,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'Dahami Peiris', number: '94702412149' },
+  chat: {
+    id: '120363214770424172@g.us',
+    name: '💎 DN Accessories online store 🏪',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: 'status@broadcast',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768636125,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'HNDIT Samod Aiya', number: '94702019784' },
+  chat: { id: 'status@broadcast', name: null, isGroup: true }
+}
+User 1 disconnected.
+Disconnected socket without user info: p6sNf82qGcMlVB2fAAD9
+A user connected: Fbg8_fMWT4yCnxadAAD_
+User 1 connected via socket Fbg8_fMWT4yCnxadAAD_
+A user connected: GLkluX6XAT8tZp10AAEB
+User 1 reconnected before timeout, no logout triggered.
+User 1 disconnected.
+Disconnected socket without user info: GLkluX6XAT8tZp10AAEB
+User 1 logout recorded in Laravel
+post request received
+Event emitted: whatsapp.message {
+  from: '180526736519272@lid',
+  to: '256834917126252:45@lid',
+  body: null,
+  timestamp: 1768638620,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Achintha Sir Ausoworld', number: '94716857582' },
+  chat: {
+    id: '180526736519272@lid',
+    name: 'Achintha Sir Ausoworld',
+    isGroup: false
+  }
+}
+A user connected: U8cEGzsAt32UiIYhAAED
+A user connected: nf29gRpLRSFTvZCpAAEF
+User 1 connected via socket nf29gRpLRSFTvZCpAAEF
+Disconnected socket without user info: U8cEGzsAt32UiIYhAAED
+User 1 disconnected.
+User 1 logout recorded in Laravel
+A user connected: L-73YYh9jmydyMT0AAEH
+User 1 connected via socket L-73YYh9jmydyMT0AAEH
+A user connected: ZZaA62Z5ENcP3XNzAAEJ
+User 1 disconnected.
+Disconnected socket without user info: ZZaA62Z5ENcP3XNzAAEJ
+A user connected: bJryb36sZ-c_ydvnAAEL
+User 1 connected via socket bJryb36sZ-c_ydvnAAEL
+A user connected: wYz6uhmMQVqgfQ4UAAEN
+User 1 reconnected before timeout, no logout triggered.
+User 1 disconnected.
+Disconnected socket without user info: wYz6uhmMQVqgfQ4UAAEN
+A user connected: t4-4592tRrFvZaSEAAEP
+User 1 connected via socket t4-4592tRrFvZaSEAAEP
+A user connected: gko5k29kX3__4i8WAAER
+User 1 reconnected before timeout, no logout triggered.
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768638978,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'Angelo Kannangara', number: '94741762872' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'Api ynoo',
+  timestamp: 1768639017,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Pasindu Kanchana', number: '94769913382' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363179267402138@g.us',
+  to: '94704017188@c.us',
+  body: '🎓 Are you a university student?\n' +
+    'Then this is for you! 🚀\n' +
+    'Get LinkedIn Premium + Microsoft 365 Premium FREE for 12 months ✅✨\n' +
+    '\n' +
+    '✅ How to claim it (Step-by-step):\n' +
+    '1. Create / Sign in to your personal Microsoft account\n' +
+    '2. Choose the Microsoft 365 Student plan\n' +
+    '3. Verify your student status using your university email\n' +
+    '4. Activate your Microsoft 365 subscription\n' +
+    '5. After activation, you’ll get an option to activate LinkedIn Premium 🎯\n' +
+    '\n' +
+    '🔗 Get it here: https://lnkd.in/gPxY9NJr\n' +
+    '\n' +
+    '📌 Don’t miss this opportunity to learn, connect, and grow.\n' +
+    '\n' +
+    '#Microsoft365 #LinkedInPremium #Students #FreeForStudents #TechEducation #CareerBoost #MicrosoftStudentAmbassador',
+  timestamp: 1768639577,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: '🤍JUMAIL.WM🤍', number: '94760527243' },
+  chat: {
+    id: '120363179267402138@g.us',
+    name: 'HNDIT ISLAND WIDE 2021',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'Lost..',
+  timestamp: 1768639649,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'نور سلاني', number: '94773050115' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+User 1 disconnected.
+Disconnected socket without user info: gko5k29kX3__4i8WAAER
+A user connected: MA2OIL7LA19DFOn8AAET
+User 1 connected via socket MA2OIL7LA19DFOn8AAET
+A user connected: VKpNyTmqDYJ40_UFAAEV
+User 1 reconnected before timeout, no logout triggered.
+Disconnected socket without user info: VKpNyTmqDYJ40_UFAAEV
+User 1 disconnected.
+A user connected: 7qCEufi3vcgFr6EcAAEX
+User 1 connected via socket 7qCEufi3vcgFr6EcAAEX
+A user connected: v0owUXp2kmWPA5y9AAEZ
+User 1 reconnected before timeout, no logout triggered.
+User 1 disconnected.
+Disconnected socket without user info: v0owUXp2kmWPA5y9AAEZ
+Failed to notify Laravel: Request failed with status code 500
+A user connected: VBaGgrQOcnkrHxs-AAEb
+User 1 connected via socket VBaGgrQOcnkrHxs-AAEb
+A user connected: dY2Uomah1lY0pFrFAAEd
+post request received
+Event emitted: whatsapp.message {
+  from: 'status@broadcast',
+  to: '94704017188@c.us',
+  body: 'The Groom’s Choice 🤵\n' +
+    '\n' +
+    '✨ Groom’s Men’s Blazers & Trousers rent\n' +
+    '\n' +
+    '🔹 Groom’s Wear\n' +
+    '🔹 Party Wear\n' +
+    '🔹 Office Wear\n' +
+    '🔹 Casual Wear\n' +
+    '\n' +
+    'For more Details \n' +
+    '\n' +
+    '📞075 202 34 26\n' +
+    '\n' +
+    '📞076 360 36 11\n' +
+    '\n' +
+    ' #wedding #blazer #trousers #wariyapola #grooming',
+  timestamp: 1768640966,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'HNDIT Lahiru', number: '94786811063' },
+  chat: { id: 'status@broadcast', name: null, isGroup: true }
+}
+User 1 disconnected.
+Disconnected socket without user info: dY2Uomah1lY0pFrFAAEd
+User 1 logout recorded in Laravel
+A user connected: ljt5-0BN02nMyCi1AAEf
+User 1 connected via socket ljt5-0BN02nMyCi1AAEf
+A user connected: d1dRNBUwVKnKbqA3AAEh
+Disconnected socket without user info: d1dRNBUwVKnKbqA3AAEh
+User 1 disconnected.
+A user connected: EmDcLZ89Kyt9LDBwAAEj
+User 1 connected via socket EmDcLZ89Kyt9LDBwAAEj
+A user connected: KD78cbKDrgCNUV8kAAEl
+User 1 reconnected before timeout, no logout triggered.
+Disconnected socket without user info: KD78cbKDrgCNUV8kAAEl
+User 1 disconnected.
+A user connected: GhIkEVoHzzDHXhYpAAEn
+User 1 connected via socket GhIkEVoHzzDHXhYpAAEn
+A user connected: YNjxr-g5BEscAXdqAAEp
+User 1 reconnected before timeout, no logout triggered.
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'I saw him  i think he dicuss about the exam at canteen',
+  timestamp: 1768641366,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Azzu', number: '94783571765' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+User 1 disconnected.
+Disconnected socket without user info: YNjxr-g5BEscAXdqAAEp
+A user connected: 7mMmJsjnhh0XovzWAAEr
+User 1 connected via socket 7mMmJsjnhh0XovzWAAEr
+A user connected: 9TahWAMuX6j1evoRAAEt
+User 1 reconnected before timeout, no logout triggered.
+post request received
+Event emitted: whatsapp.message {
+  from: '94704017188@c.us',
+  to: '94772615908@c.us',
+  body: 'https://meet.google.com/kyh-isrb-quj',
+  timestamp: 1768641390,
+  hasMedia: false,
+  fromMe: true,
+  contact: { name: 'My', number: '94704017188' },
+  chat: {
+    id: '94772615908@c.us',
+    name: 'Achintha Sir ausoworld',
+    isGroup: false
+  }
+}
+User 1 disconnected.
+Disconnected socket without user info: 9TahWAMuX6j1evoRAAEt
+A user connected: sOvmlcCgnK_brydMAAEv
+User 1 connected via socket sOvmlcCgnK_brydMAAEv
+A user connected: EcqDUZ5eLBQZlrDOAAEx
+User 1 reconnected before timeout, no logout triggered.
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768641417,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'Dulina', number: '94724878282' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768641553,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'Mr.X😈', number: '94750584011' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '94772615908@c.us',
+  to: '94704017188@c.us',
+  body: 'Good afternoon\n' +
+    'Test account credentials \n' +
+    '\n' +
+    'User ID : 9420233378\n' +
+    'Password : 3745\n' +
+    '\n' +
+    'textit.biz > my account',
+  timestamp: 1768641622,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Achintha Sir ausoworld', number: '94772615908' },
+  chat: {
+    id: '94772615908@c.us',
+    name: 'Achintha Sir ausoworld',
+    isGroup: false
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768641702,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: '..', number: '94761329941' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+User 1 disconnected.
+Disconnected socket without user info: EcqDUZ5eLBQZlrDOAAEx
+A user connected: G5TUWpw2NTnX0mDIAAEz
+User 1 connected via socket G5TUWpw2NTnX0mDIAAEz
+A user connected: jJBIORAyTaOfmre4AAE1
+User 1 reconnected before timeout, no logout triggered.
+Disconnected socket without user info: jJBIORAyTaOfmre4AAE1
+User 1 disconnected.
+A user connected: AcTv-ylnpgLNNV7tAAE3
+User 1 connected via socket AcTv-ylnpgLNNV7tAAE3
+A user connected: yeXam_aVhjriykccAAE5
+User 1 reconnected before timeout, no logout triggered.
+User 1 disconnected.
+Disconnected socket without user info: yeXam_aVhjriykccAAE5
+A user connected: woPivwYtXCh_oXbMAAE7
+User 1 connected via socket woPivwYtXCh_oXbMAAE7
+A user connected: UnbO9IzbSCsiv2liAAE9
+User 1 reconnected before timeout, no logout triggered.
+User 1 disconnected.
+Disconnected socket without user info: UnbO9IzbSCsiv2liAAE9
+A user connected: l_Rgj7u58MVkPs7rAAE_
+User 1 connected via socket l_Rgj7u58MVkPs7rAAE_
+A user connected: bX5rWxPkEMAa60x3AAFB
+User 1 reconnected before timeout, no logout triggered.
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'Adow iwrai nedaa kattiya',
+  timestamp: 1768643042,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Mithila', number: '94716651593' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+Disconnected socket without user info: bX5rWxPkEMAa60x3AAFB
+User 1 disconnected.
+A user connected: hl-zTXiPnPoGVZ3eAAFD
+User 1 connected via socket hl-zTXiPnPoGVZ3eAAFD
+A user connected: FYFvZ6BRLXUE_VfXAAFF
+User 1 reconnected before timeout, no logout triggered.
+Disconnected socket without user info: FYFvZ6BRLXUE_VfXAAFF
+User 1 disconnected.
+A user connected: ktJQ_vQCpUROX17jAAFH
+User 1 connected via socket ktJQ_vQCpUROX17jAAFH
+A user connected: rFCdhedYWWYJ24BxAAFJ
+User 1 reconnected before timeout, no logout triggered.
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'Oo',
+  timestamp: 1768643214,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Angelo Kannangara', number: '94741762872' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768643217,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'Angelo Kannangara', number: '94741762872' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'Elaaaa',
+  timestamp: 1768643235,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Mithila', number: '94716651593' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768643240,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'Mithila', number: '94716651593' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'Ada examuth thibbd',
+  timestamp: 1768643532,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: '♕ Maleesha ♕', number: '94713765633' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768643534,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: '♕ Maleesha ♕', number: '94713765633' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'Tnx bro',
+  timestamp: 1768643651,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Mr.X😈', number: '94750584011' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768643652,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'Mr.X😈', number: '94750584011' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768643742,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'نور سلاني', number: '94773050115' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+User 1 disconnected.
+Disconnected socket without user info: rFCdhedYWWYJ24BxAAFJ
+User 1 logout recorded in Laravel
+A user connected: brjfDsi5r0EJVQivAAFL
+User 1 connected via socket brjfDsi5r0EJVQivAAFL
+A user connected: 59GqnL3yz4FtH8_BAAFN
+User 1 disconnected.
+Disconnected socket without user info: 59GqnL3yz4FtH8_BAAFN
+User 1 logout recorded in Laravel
+A user connected: pUddutfBx9WhmYsGAAFP
+User 1 connected via socket pUddutfBx9WhmYsGAAFP
+A user connected: bCV3qLBpl36AtyJMAAFR
+User 1 disconnected.
+Disconnected socket without user info: bCV3qLBpl36AtyJMAAFR
+A user connected: 0dQsI-GsgXKB09PSAAFT
+User 1 connected via socket 0dQsI-GsgXKB09PSAAFT
+A user connected: QmC-hLZcJmfybyy8AAFV
+User 1 reconnected before timeout, no logout triggered.
+Disconnected socket without user info: QmC-hLZcJmfybyy8AAFV
+User 1 disconnected.
+A user connected: -efLY3Hc4JqzIrYZAAFX
+User 1 connected via socket -efLY3Hc4JqzIrYZAAFX
+A user connected: mOcTmtqc414p1E7YAAFZ
+User 1 reconnected before timeout, no logout triggered.
+post request received
+Event emitted: whatsapp.message {
+  from: '94704017188@c.us',
+  to: '94704017188@c.us',
+  body: 'Tesy msg',
+  timestamp: 1768644109,
+  hasMedia: false,
+  fromMe: true,
+  contact: { name: 'My', number: '94704017188' },
+  chat: { id: '94704017188@c.us', name: 'My', isGroup: false }
+}
+User 1 disconnected.
+Disconnected socket without user info: mOcTmtqc414p1E7YAAFZ
+A user connected: V45W5IF26fEe2cKHAAFb
+User 1 connected via socket V45W5IF26fEe2cKHAAFb
+A user connected: MwagSoRG-GDGk_yGAAFd
+User 1 reconnected before timeout, no logout triggered.
+User 1 disconnected.
+Disconnected socket without user info: MwagSoRG-GDGk_yGAAFd
+A user connected: NpInAwI3IIVXZ86SAAFf
+User 1 connected via socket NpInAwI3IIVXZ86SAAFf
+A user connected: sRXWv3cWWCE8F4FzAAFh
+User 1 reconnected before timeout, no logout triggered.
+User 1 disconnected.
+Disconnected socket without user info: sRXWv3cWWCE8F4FzAAFh
+A user connected: DaMBRkCtcqMIqJ1WAAFj
+User 1 connected via socket DaMBRkCtcqMIqJ1WAAFj
+A user connected: xWLD38ffcWzjpDLvAAFl
+post request received
+Event emitted: whatsapp.message {
+  from: 'status@broadcast',
+  to: '94704017188@c.us',
+  body: '🩵',
+  timestamp: 1768644152,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'HNDIT Dulmini', number: '94742975739' },
+  chat: { id: 'status@broadcast', name: null, isGroup: true }
+}
+User 1 reconnected before timeout, no logout triggered.
+post request received
+Event emitted: whatsapp.message {
+  from: 'status@broadcast',
+  to: '94704017188@c.us',
+  body: 'කිසිදු දෙයක් කිසිදු විටෙක් එපා වූයේ නැත... \nඑපා කරවන පිරිසක් සිටියා පමණි.',
+  timestamp: 1768644256,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'HND Kaushalya Akka Repee', number: '94714182581' },
+  chat: { id: 'status@broadcast', name: null, isGroup: true }
+}
+User 1 disconnected.
+Disconnected socket without user info: xWLD38ffcWzjpDLvAAFl
+A user connected: ty9ARhwxYsPFnNmoAAFn
+User 1 connected via socket ty9ARhwxYsPFnNmoAAFn
+A user connected: crJ3QFgyyEmivT8RAAFp
+User 1 disconnected.
+Disconnected socket without user info: crJ3QFgyyEmivT8RAAFp
+A user connected: 9O8uKccdD07EJD30AAFr
+User 1 connected via socket 9O8uKccdD07EJD30AAFr
+A user connected: bpfXc4qYtNIywQIpAAFt
+User 1 reconnected before timeout, no logout triggered.
+User 1 reconnected before timeout, no logout triggered.
+post request received
+Event emitted: whatsapp.message {
+  from: '94704017188@c.us',
+  to: '94704017188@c.us',
+  body: 'Hi',
+  timestamp: 1768644416,
+  hasMedia: false,
+  fromMe: true,
+  contact: { name: 'My', number: '94704017188' },
+  chat: { id: '94704017188@c.us', name: 'My', isGroup: false }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '94772615908@c.us',
+  to: '94704017188@c.us',
+  body: '@u50Callhub',
+  timestamp: 1768645050,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Achintha Sir ausoworld', number: '94772615908' },
+  chat: {
+    id: '94772615908@c.us',
+    name: 'Achintha Sir ausoworld',
+    isGroup: false
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '94772615908@c.us',
+  to: '94704017188@c.us',
+  body: 'ausocallhub@gmail.com',
+  timestamp: 1768645247,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Achintha Sir ausoworld', number: '94772615908' },
+  chat: {
+    id: '94772615908@c.us',
+    name: 'Achintha Sir ausoworld',
+    isGroup: false
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: 'status@broadcast',
+  to: '94704017188@c.us',
+  body: 'සුපිරිම නන්ස්ටොප් | 2024 New Sinhala Live Show Trending Nonstop | Sinhala New Songs Collection\n' +
+    'https://youtu.be/dAHmxo5rxJ4',
+  timestamp: 1768645597,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Tube', number: '94764950302' },
+  chat: { id: 'status@broadcast', name: null, isGroup: true }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: 'status@broadcast',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768645740,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'Loku Malli', number: '94760846766' },
+  chat: { id: 'status@broadcast', name: null, isGroup: true }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '94772615908@c.us',
+  to: '94704017188@c.us',
+  body: 'jmoq kbvl ceua mzpe',
+  timestamp: 1768645793,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Achintha Sir ausoworld', number: '94772615908' },
+  chat: {
+    id: '94772615908@c.us',
+    name: 'Achintha Sir ausoworld',
+    isGroup: false
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '94772615908@c.us',
+  to: '94704017188@c.us',
+  body: "callhub'",
+  timestamp: 1768645806,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Achintha Sir ausoworld', number: '94772615908' },
+  chat: {
+    id: '94772615908@c.us',
+    name: 'Achintha Sir ausoworld',
+    isGroup: false
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '94772615908@c.us',
+  to: '94704017188@c.us',
+  body: 'CallHub',
+  timestamp: 1768645818,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Achintha Sir ausoworld', number: '94772615908' },
+  chat: {
+    id: '94772615908@c.us',
+    name: 'Achintha Sir ausoworld',
+    isGroup: false
+  }
+}
+User 1 disconnected.
+Disconnected socket without user info: bpfXc4qYtNIywQIpAAFt
+A user connected: D3O-PUWBBMVf8CySAAFv
+User 1 connected via socket D3O-PUWBBMVf8CySAAFv
+A user connected: xpll4e8bdbk9WqXjAAFx
+User 1 reconnected before timeout, no logout triggered.
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'දැන් ඉතින් හෙට ලැහැස්ති වෙන්න එපැයි',
+  timestamp: 1768646784,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: '☸️❣️📝Rusira Indrachapa 📈🥇🏆🇱🇰', number: '94761531070' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'Oyawa withari ada set une nathe',
+  timestamp: 1768646883,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Buddhika Madusanka', number: '94779686662' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'Khda htye',
+  timestamp: 1768646908,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Buddhika Madusanka', number: '94779686662' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'CSE අලුත් එකේ PITTABNIYA ගාව',
+  timestamp: 1768646949,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: '☸️❣️📝Rusira Indrachapa 📈🥇🏆🇱🇰', number: '94761531070' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'ඔයා',
+  timestamp: 1768646952,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: '☸️❣️📝Rusira Indrachapa 📈🥇🏆🇱🇰', number: '94761531070' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'හෙට වත් set වෙමු',
+  timestamp: 1768646958,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: '☸️❣️📝Rusira Indrachapa 📈🥇🏆🇱🇰', number: '94761531070' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'Canteen klinma tyna building eke',
+  timestamp: 1768646991,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Buddhika Madusanka', number: '94779686662' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: '@68148313243687 meyala ekka',
+  timestamp: 1768647002,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Buddhika Madusanka', number: '94779686662' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363423694237368@g.us',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768647012,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'Mawa', number: '94718918830' },
+  chat: {
+    id: '120363423694237368@g.us',
+    name: 'Learn & Earn in 90 Days – Free Webinar ( Year End )',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'Ow',
+  timestamp: 1768647040,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Angelo Kannangara', number: '94741762872' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'හෙට හම්බ වෙමු',
+  timestamp: 1768647115,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: '☸️❣️📝Rusira Indrachapa 📈🥇🏆🇱🇰', number: '94761531070' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768647149,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'Angelo Kannangara', number: '94741762872' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+User 1 disconnected.
+Disconnected socket without user info: xpll4e8bdbk9WqXjAAFx
+A user connected: RefPWFF-omie4ThDAAFz
+User 1 connected via socket RefPWFF-omie4ThDAAFz
+A user connected: 58A4wkY2_OzDU8sgAAF1
+User 1 reconnected before timeout, no logout triggered.
+Disconnected socket without user info: 58A4wkY2_OzDU8sgAAF1
+User 1 disconnected.
+A user connected: s0MN6fhELFLacsSzAAF3
+User 1 connected via socket s0MN6fhELFLacsSzAAF3
+A user connected: JoqMZoTdKobal5Y0AAF5
+User 1 reconnected before timeout, no logout triggered.
+User 1 disconnected.
+Disconnected socket without user info: JoqMZoTdKobal5Y0AAF5
+A user connected: aMjJBLgncL7MNfvDAAF7
+User 1 connected via socket aMjJBLgncL7MNfvDAAF7
+A user connected: p6kJxneTnSLfs-2TAAF9
+User 1 reconnected before timeout, no logout triggered.
+post request received
+Event emitted: whatsapp.message {
+  from: '94704017188@c.us',
+  to: '94704017188@c.us',
+  body: 'Test message 01',
+  timestamp: 1768648026,
+  hasMedia: false,
+  fromMe: true,
+  contact: { name: 'My', number: '94704017188' },
+  chat: { id: '94704017188@c.us', name: 'My', isGroup: false }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: 'status@broadcast',
+  to: '94704017188@c.us',
+  body: '😁',
+  timestamp: 1768648484,
+  hasMedia: true,
+  fromMe: false,
+  contact: {
+    name: 'Yasiru Sandaruwan Aiya HNDIT Senior',
+    number: '94769262641'
+  },
+  chat: { id: 'status@broadcast', name: null, isGroup: true }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: 'status@broadcast',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768648484,
+  hasMedia: false,
+  fromMe: false,
+  contact: {
+    name: 'Yasiru Sandaruwan Aiya HNDIT Senior',
+    number: '94769262641'
+  },
+  chat: { id: 'status@broadcast', name: null, isGroup: true }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: 'status@broadcast',
+  to: '94704017188@c.us',
+  body: '😁',
+  timestamp: 1768648509,
+  hasMedia: true,
+  fromMe: false,
+  contact: {
+    name: 'Yasiru Sandaruwan Aiya HNDIT Senior',
+    number: '94769262641'
+  },
+  chat: { id: 'status@broadcast', name: null, isGroup: true }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '94772615908@c.us',
+  to: '94704017188@c.us',
+  body: 'nipunacfernando@gmail.com',
+  timestamp: 1768648658,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Achintha Sir ausoworld', number: '94772615908' },
+  chat: {
+    id: '94772615908@c.us',
+    name: 'Achintha Sir ausoworld',
+    isGroup: false
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: 'status@broadcast',
+  to: '94704017188@c.us',
+  body: '😁',
+  timestamp: 1768648695,
+  hasMedia: true,
+  fromMe: false,
+  contact: {
+    name: 'Yasiru Sandaruwan Aiya HNDIT Senior',
+    number: '94769262641'
+  },
+  chat: { id: 'status@broadcast', name: null, isGroup: true }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: 'status@broadcast',
+  to: '94704017188@c.us',
+  body: '😁',
+  timestamp: 1768648783,
+  hasMedia: true,
+  fromMe: false,
+  contact: {
+    name: 'Yasiru Sandaruwan Aiya HNDIT Senior',
+    number: '94769262641'
+  },
+  chat: { id: 'status@broadcast', name: null, isGroup: true }
+}
+User 1 disconnected.
+Disconnected socket without user info: p6kJxneTnSLfs-2TAAF9
+A user connected: b7ASwJwVwJIUQM6ZAAF_
+User 1 connected via socket b7ASwJwVwJIUQM6ZAAF_
+A user connected: Fx_cD1dBXyVQ15d4AAGB
+User 1 reconnected before timeout, no logout triggered.
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: '@36460463935714 ubata mwa set unada',
+  timestamp: 1768649960,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Pravinda', number: '94775717025' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768649961,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'Pravinda', number: '94775717025' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'Angelo ekka iddi uba htiiyda',
+  timestamp: 1768649968,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Pravinda', number: '94775717025' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+User 1 disconnected.
+Disconnected socket without user info: Fx_cD1dBXyVQ15d4AAGB
+A user connected: WgahxY2iMHh8GwbJAAGD
+User 1 connected via socket WgahxY2iMHh8GwbJAAGD
+A user connected: 32P5M2NPFVcnqGbvAAGF
+User 1 reconnected before timeout, no logout triggered.
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'Na na 🥲',
+  timestamp: 1768650031,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Angelo Kannangara', number: '94741762872' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'Kttiyawa wena wenama hambune thn thn wala',
+  timestamp: 1768650034,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Angelo Kannangara', number: '94741762872' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: null,
+  timestamp: 1768650035,
+  hasMedia: true,
+  fromMe: false,
+  contact: { name: 'Angelo Kannangara', number: '94741762872' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+User 1 disconnected.
+Disconnected socket without user info: 32P5M2NPFVcnqGbvAAGF
+A user connected: PiuYb1K7y_prTCfaAAGH
+User 1 connected via socket PiuYb1K7y_prTCfaAAGH
+A user connected: ZlBkGVeinv4AkYmeAAGJ
+User 1 reconnected before timeout, no logout triggered.
+User 1 disconnected.
+Disconnected socket without user info: ZlBkGVeinv4AkYmeAAGJ
+A user connected: E7zOKfXoBzRx6qmMAAGL
+User 1 connected via socket E7zOKfXoBzRx6qmMAAGL
+A user connected: g3XaLNw35J07Xoa_AAGN
+User 1 reconnected before timeout, no logout triggered.
+Disconnected socket without user info: g3XaLNw35J07Xoa_AAGN
+User 1 disconnected.
+A user connected: xtyhXFV2AkAPGq_aAAGP
+User 1 connected via socket xtyhXFV2AkAPGq_aAAGP
+A user connected: 0phHDNtnNJtlkg-EAAGR
+User 1 reconnected before timeout, no logout triggered.
+User 1 disconnected.
+Disconnected socket without user info: 0phHDNtnNJtlkg-EAAGR
+A user connected: VcVDawekMSzU2sXiAAGT
+User 1 connected via socket VcVDawekMSzU2sXiAAGT
+A user connected: nl4bCew309_nGB2zAAGV
+User 1 reconnected before timeout, no logout triggered.
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'nane',
+  timestamp: 1768650186,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Buddhika Madusanka', number: '94779686662' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'oyawa set une na',
+  timestamp: 1768650190,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Buddhika Madusanka', number: '94779686662' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+post request received
+Event emitted: whatsapp.message {
+  from: '120363397205317359@g.us',
+  to: '94704017188@c.us',
+  body: 'oyawath miss una',
+  timestamp: 1768650236,
+  hasMedia: false,
+  fromMe: false,
+  contact: { name: 'Buddhika Madusanka', number: '94779686662' },
+  chat: {
+    id: '120363397205317359@g.us',
+    name: '🎓 BIT- UOM  - 2025 July Intake🎓',
+    isGroup: true
+  }
+}
+User 1 disconnected.
+Disconnected socket without user info: nl4bCew309_nGB2zAAGV
+A user connected: cTtQ1dJcrpmR6sl6AAGX
+User 1 connected via socket cTtQ1dJcrpmR6sl6AAGX
+A user connected: 1-R33K5-U1kXm5u7AAGZ
+User 1 reconnected before timeout, no logout triggered.

@@ -38,4 +38,15 @@ return [
         'webjs_url' => env('WHATSAPP_WEBJS_URL', 'http://localhost:3001'),
     ],
 
+    'mobile' => [
+        'token' => env('MOBILE_TEXTIT_BIT_TOKEN'),
+        'url' => env('MOBILE_TEXTIT_BIT_URL'),
+    ],
+
+    'email' => [
+        'address' => env('MAIL_FROM_ADDRESS'),
+        'subject' => env('MAIL_MESSAGE_SUBJECT'),
+        'name' => env('MAIL_MESSAGE_NAME'),
+    ]
+
 ];

@@ -69,6 +69,49 @@ class RecordLogoutTime
         // Redis::del("user:{$user->id}:bound_type");
         Redis::del("softphone_registered:$user->id");
 
+        // Remove all agent_on_call cache entries for this agent
+        // Keys may be created by external systems with different prefixes
+        if ($user->agent_id) {
+            $redis = Redis::connection()->client();
+            
+            // Temporarily disable Laravel's prefix to search all keys
+            $currentPrefix = $redis->getOption(\Redis::OPT_PREFIX);
+            $redis->setOption(\Redis::OPT_PREFIX, '');
+            
+            $redis->select(1); // Same database as used in api.php
+            
+            // Pattern to match (without any prefix)
+            $pattern = "*agent_on_call-{$user->agent_id}-*";
+            
+            // Lua script to find and delete keys matching the pattern
+            $luaScript = <<<'LUA'
+                local keys = redis.call('keys', ARGV[1])
+                local deleted = 0
+                if #keys > 0 then
+                    deleted = redis.call('del', unpack(keys))
+                end
+                return deleted
+LUA;
+            
+            try {
+                $deletedCount = $redis->eval($luaScript, [$pattern], 0);
+                Log::info('Logout - Deleted agent_on_call Redis keys:', [
+                    'user_id' => $user->id,
+                    'agent_id' => $user->agent_id,
+                    'deleted_count' => $deletedCount
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Logout - Failed to delete agent_on_call keys:', [
+                    'user_id' => $user->id,
+                    'agent_id' => $user->agent_id,
+                    'error' => $e->getMessage()
+                ]);
+            } finally {
+                // Restore Laravel's prefix
+                $redis->setOption(\Redis::OPT_PREFIX, $currentPrefix);
+            }
+        }
+
 
         Log::info("User {$user->id} logged out and softphone disconnected");
 

@@ -20,3 +20,7 @@ composer.lock
 /.wwebjs_auth
 /.wwebjs_auth_bak
 /.wwebjs_cache
+
+# Log files
+server.log
+whatsapp.log

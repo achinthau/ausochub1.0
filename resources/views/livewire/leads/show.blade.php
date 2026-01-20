@@ -227,7 +227,7 @@
 
                         <hr class="pt-1">
                         <div class="flex justify-end space-x-2 pt-1 w-full">
-                            @if(!empty($lead->whatsapp) || !empty($lead->email) || !empty($lead->phone))
+                            @if(!empty($lead->whatsapp) || !empty($lead->email) || !empty($lead->contact_number))
 
                             <div wire:click="showWhatsAppModal" class="flex items-center space-x-2 border-2 border-green-600 p-1 cursor-pointer rounded-md bg-green-500 hover:bg-green-600 hover:border-gray-400">
                                 <!-- Notify Customer -->

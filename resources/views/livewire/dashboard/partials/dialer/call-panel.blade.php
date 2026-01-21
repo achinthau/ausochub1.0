@@ -1,5 +1,5 @@
 <div wire:poll.1s="loadContact"
-    @if($phone) wire:click="openProfile('{{ $phone }}','{{ $phone2 }}')" class="bg-white p-4 space-y-2 cursor-pointer" 
+    @if($phone || $phone2) wire:click="openProfile('{{ $phone }}','{{ $phone2 }}')" class="bg-white p-4 space-y-2 cursor-pointer" 
     @else class="bg-white p-4 space-y-2" 
     @endif
 >
@@ -10,8 +10,10 @@
     <div class="flex">
         <div class="flex-1  text-xl font-bold text-secondary-700 dark:text-gray-400 mr-2">
             @if($displayNumber == true)
-            @if($phone)
-                {{ $phone }}
+            @if($phone || $phone2)
+                <!-- {{ $phone }} -->
+                  {{ !empty($phone) ? $phone : $phone2 }}
+
             @else
                 <span class="text-red-500 text-sm">{{ $reason }}</span>
             @endif

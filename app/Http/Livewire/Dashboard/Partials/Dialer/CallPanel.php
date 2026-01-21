@@ -111,8 +111,8 @@ class CallPanel extends Component
             // 2. Assign all of them to the current agent
             $relatedContacts->update(['assigned_to' => $userId]);
             $this->contact = $record;
-            $this->phone = $record->contact_no_01 ?? $record->contact_no_02;
-            $this->phone2 = $record->contact_no_02 ?? $record->contact_no_01;
+            $this->phone = !empty($record->contact_no_01) ? $record->contact_no_01 : $record->contact_no_02;
+            $this->phone2 = !empty($record->contact_no_02) ? $record->contact_no_02 : $record->contact_no_01;
             $this->feed_id = $record->feed_id;
 
             $data = json_decode($record->data, true);
@@ -139,8 +139,8 @@ class CallPanel extends Component
     {
         // dd($this->feed_id);
         // dd($this->campaignName);
-        $number = $phone;
-        $number2 = $phone2;
+        $number = !empty($phone) ? $phone : $phone2;
+        $number2 = !empty($phone) ? $phone2 : $phone;
 
         // dd($this->addressLine2);
 

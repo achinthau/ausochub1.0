@@ -135,7 +135,7 @@ class CdrDetailTable extends LivewireDatatable
                 return view('table-actions-v2', ['id' => $id, 'uniqueid' => $uniqueid]);
             })->unsortable()->excludeFromExport(),
 
-            Column::callback(['src', 'dst', 'lastapp', 'channel', 'dstchannel'], function ($src, $dst, $lastapp, $channel, $dstchannel) {
+            Column::callback(['src', 'dst', 'lastapp', 'channel', 'dstchannel', 'uniqueid'], function ($src, $dst, $lastapp, $channel, $dstchannel,$uniqueid) {
                 $extension = '';
                 if ($lastapp === 'Queue') {
                     if ($dstchannel && preg_match('/\/(\d+)-/', $dstchannel, $matches)) {
@@ -149,8 +149,9 @@ class CdrDetailTable extends LivewireDatatable
                     }
                 }
                 
-                return view('table-actions-cdr', ['src' => $src, 'dst' => $dst, 'lastapp' => $lastapp, 'extension' => $extension]);
-            })->unsortable()->excludeFromExport()
+                return view('table-actions-cdr', ['src' => $src, 'dst' => $dst, 'lastapp' => $lastapp, 'extension' => $extension, 'uniqueid' => $uniqueid]);
+            })->unsortable()->excludeFromExport(),
+
 
 
 

@@ -24,3 +24,5 @@ composer.lock
 # Log files
 server.log
 whatsapp.log
+
+storage/app/google-cloud-key.json

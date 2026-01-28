@@ -54,6 +54,22 @@
         </div>
     </div>
 
+    <div class="mt-4">
+    <strong class="block mb-2">Call Transcription:</strong>
+
+    <div
+        class="border rounded-lg p-3 bg-gray-50 text-sm
+               max-h-64 overflow-y-auto whitespace-pre-wrap"
+    >
+        @if($transcription)
+            {{ $transcription }}
+        @else
+            <span class="text-gray-500">No transcription available.</span>
+        @endif
+    </div>
+</div>
+
+
     <x-slot name="footer">
         <div class="flex justify-between gap-x-4">
             <div>

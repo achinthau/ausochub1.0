@@ -41,9 +41,10 @@ class CdrDetailsModal extends Component
 {
     // dd($src.$dst);
 
-    $this->showCdrDetailsModal = true;
-    $this->uniqueid = $uniqueid;
-    $this->getCallTranscription($uniqueid);
+        $this->showCdrDetailsModal = true;
+        $this->uniqueid = $uniqueid;
+        $this->transcription = null;
+        $this->isProcessing = true;
 
     // dd($direction);
     if($direction == 'Dial')
@@ -151,6 +152,7 @@ class CdrDetailsModal extends Component
         $dbRecord = CallRecordingTranscript::where('uniqueid', $uniqueid)->first();
         if($dbRecord){
             $this->transcription = $dbRecord->transcript;
+            $this->isProcessing = false;
             return;
         }
 
@@ -268,12 +270,17 @@ class CdrDetailsModal extends Component
         }
         
 
-        $this->callTranscription = 'No transcription available for this call.';
+        $this->transcription = 'No transcription available for this call.';
+        $this->isProcessing = false;
         return;
     }
+}
 
-    
+    public function loadTranscription()
+    {
+        if ($this->uniqueid) {
+            $this->getCallTranscription($this->uniqueid);
+        }
     }
-
 
 }

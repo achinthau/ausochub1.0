@@ -165,6 +165,12 @@ class CdrDetailsModal extends Component
             $this->isProcessing = true;
 
             try {
+                if (!Storage::disk('public')->exists($filepath)) {
+                    Storage::disk('public')->put(
+                        $filepath,
+                        Storage::disk('asterisk-media-server')->get($filename)
+                    );
+                }
             $path = Storage::disk('public')->path($filepath);
             $content = file_get_contents($path);
             $base64Audio = base64_encode($content);

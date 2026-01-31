@@ -168,7 +168,7 @@ class CdrDetailsModal extends Component
                 if (!Storage::disk('public')->exists($filepath)) {
                     Storage::disk('public')->put(
                         $filepath,
-                        Storage::disk('asterisk-media-server')->get($filename)
+                        Storage::disk('asterisk-media-server')->get($uniqueid . '.wav')
                     );
                 }
             $path = Storage::disk('public')->path($filepath);

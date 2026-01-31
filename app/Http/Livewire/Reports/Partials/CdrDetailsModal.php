@@ -175,6 +175,10 @@ class CdrDetailsModal extends Component
 
                 // Setup Credentials
                 $keyPath = config('services.google.cloud_key_path');
+                
+                if (empty($keyPath) || !file_exists($keyPath)) {
+                    throw new \Exception("Google Cloud key file not found or path not configured. Path: " . ($keyPath ?: 'EMPTY'));
+                }
 
                 $scopes = [
                     'https://www.googleapis.com/auth/cloud-platform',

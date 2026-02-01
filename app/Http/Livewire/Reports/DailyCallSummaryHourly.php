@@ -19,33 +19,53 @@ class DailyCallSummaryHourly extends Component
     {
         $date = $this->date;
 
-        $results = DB::connection('mysql-old')
+        $inbound = DB::connection('mysql-old')
+            ->table('callcount')
+            ->where('direction', 'in')
+            ->where('date', 'like', "$date%")
+            ->selectRaw('HOUR(date) as hour, COUNT(*) as count')
+            ->groupBy('hour')
+            ->pluck('count', 'hour');
+
+        $outbound = DB::connection('mysql-old')
+            ->table('callcount')
+            ->where('direction', 'out')
+            ->where('date', 'like', "$date%")
+            ->selectRaw('HOUR(date) as hour, COUNT(*) as count')
+            ->groupBy('hour')
+            ->pluck('count', 'hour');
+
+        $queued = DB::connection('mysql-old')
             ->table('queuecount')
-            ->leftJoin('callcount', 'queuecount.uniqueid', '=', 'callcount.uniqueid')
-            ->where('queuecount.date', 'like', "$date%")
-            ->select('queuename', DB::raw('HOUR(queuecount.date) as hour'))
-            ->selectRaw('SUM(CASE WHEN direction = \'in\' THEN 1 ELSE 0 END) as inbound')
-            ->selectRaw('SUM(CASE WHEN direction = \'out\' THEN 1 ELSE 0 END) as outbound')
-            ->selectRaw('SUM(CASE WHEN queuecount.status = 1 THEN 1 ELSE 0 END) as queued')
-            ->selectRaw('SUM(CASE WHEN queuecount.status = 2 THEN 1 ELSE 0 END) as answered')
-            ->selectRaw('COUNT(DISTINCT agent) as agents')
-            ->groupBy('queuename', 'hour')
-            ->orderBy('hour')
-            ->orderBy('queuename')
-            ->get();
+            ->where('status', '1')
+            ->where('date', 'like', "$date%")
+            ->selectRaw('HOUR(date) as hour, COUNT(*) as count')
+            ->groupBy('hour')
+            ->pluck('count', 'hour');
+
+        $answered = DB::connection('mysql-old')
+            ->table('queuecount')
+            ->where('status', '2')
+            ->where('date', 'like', "$date%")
+            ->selectRaw('HOUR(date) as hour, COUNT(*) as count')
+            ->groupBy('hour')
+            ->pluck('count', 'hour');
 
         $data = [];
-        foreach ($results as $row) {
-            $abd = $row->queued - $row->answered;
+        for ($i = 0; $i < 24; $i++) {
+            $in = $inbound->get($i, 0);
+            $out = $outbound->get($i, 0);
+            $q = $queued->get($i, 0);
+            $ans = $answered->get($i, 0);
+            $abd = $q - $ans;
+
             $data[] = [
-                'hour' => sprintf('%02d:00 - %02d:00', $row->hour, $row->hour + 1),
-                'queue' => $row->queuename,
-                'inbound' => $row->inbound,
-                'outbound' => $row->outbound,
-                'queued' => $row->queued,
-                'answered' => $row->answered,
+                'hour' => sprintf('%02d:00 - %02d:00', $i, $i + 1),
+                'inbound' => $in,
+                'outbound' => $out,
+                'queued' => $q,
+                'answered' => $ans,
                 'abandoned' => $abd < 0 ? 0 : $abd,
-                'agents' => $row->agents,
             ];
         }
 

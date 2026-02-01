@@ -20,7 +20,7 @@ class DailyCallSummaryHourly extends Component
         $date = $this->date;
 
         $inbound = DB::connection('mysql-old')
-            ->table('callcount')
+            ->table('au_callcount_report')
             ->where('direction', 'in')
             ->where('date', 'like', "$date%")
             ->selectRaw('HOUR(date) as hour, COUNT(*) as count')
@@ -28,7 +28,7 @@ class DailyCallSummaryHourly extends Component
             ->pluck('count', 'hour');
 
         $outbound = DB::connection('mysql-old')
-            ->table('callcount')
+            ->table('au_callcount_report')
             ->where('direction', 'out')
             ->where('date', 'like', "$date%")
             ->selectRaw('HOUR(date) as hour, COUNT(*) as count')
@@ -36,7 +36,7 @@ class DailyCallSummaryHourly extends Component
             ->pluck('count', 'hour');
 
         $queued = DB::connection('mysql-old')
-            ->table('queuecount')
+            ->table('au_queuecount_report')
             ->where('status', '1')
             ->where('date', 'like', "$date%")
             ->selectRaw('HOUR(date) as hour, COUNT(*) as count')
@@ -44,7 +44,7 @@ class DailyCallSummaryHourly extends Component
             ->pluck('count', 'hour');
 
         $answered = DB::connection('mysql-old')
-            ->table('queuecount')
+            ->table('au_queuecount_report')
             ->where('status', '2')
             ->where('date', 'like', "$date%")
             ->selectRaw('HOUR(date) as hour, COUNT(*) as count')

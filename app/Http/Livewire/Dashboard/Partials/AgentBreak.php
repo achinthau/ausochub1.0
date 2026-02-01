@@ -64,50 +64,6 @@ class AgentBreak extends Component
         $user->agent_break_type = $breakType->title;
         $user->save();
 
-        // Remove all agent_on_call cache entries for this agent
-        // Keys may be created by external systems with different prefixes (ausohub_singer:)
-        // or by this app (laravel_database_), so we need to handle both
-        
-        $redis = Redis::connection()->client();
-        
-        // Temporarily disable Laravel's prefix to search all keys
-        $currentPrefix = $redis->getOption(\Redis::OPT_PREFIX);
-        $redis->setOption(\Redis::OPT_PREFIX, '');
-        
-        $redis->select(1); // Same database as used in api.php
-        
-        // Pattern to match (without any prefix)
-        $pattern = "*agent_on_call-{$user->agent_id}-*";
-        
-        // Lua script to find and delete keys matching the pattern
-        $luaScript = <<<'LUA'
-            local keys = redis.call('keys', ARGV[1])
-            local deleted = 0
-            if #keys > 0 then
-                deleted = redis.call('del', unpack(keys))
-            end
-            return deleted
-LUA;
-        
-        try {
-            // eval(script, args, num_keys) - pattern goes in args array
-            $deletedCount = $redis->eval($luaScript, [$pattern], 0);
-            \Log::info('Agent Break - Deleted Redis keys:', [
-                'agent_id' => $user->agent_id,
-                'pattern' => $pattern,
-                'deleted_count' => $deletedCount
-            ]);
-        } catch (\Exception $e) {
-            \Log::error('Agent Break - Failed to delete keys:', [
-                'agent_id' => $user->agent_id,
-                'error' => $e->getMessage()
-            ]);
-        } finally {
-            // Restore Laravel's prefix
-            $redis->setOption(\Redis::OPT_PREFIX, $currentPrefix);
-        }
-
-
         $data = [
             [
                 'name' => 'extension',
@@ -142,6 +98,52 @@ LUA;
 
         ApiManager::startBreak($data);
         Cache::put('setBreak', 'true');
+
+        // Remove all agent_on_call cache entries for this agent
+        // Keys may be created by external systems with different prefixes (ausohub_singer:)
+        // or by this app (laravel_database_), so we need to handle both
+        // This is done AFTER the API call to ensure break functionality completes first
+        try {
+            $redis = Redis::connection()->client();
+            
+            // Temporarily disable Laravel's prefix to search all keys
+            $currentPrefix = $redis->getOption(\Redis::OPT_PREFIX);
+            $redis->setOption(\Redis::OPT_PREFIX, '');
+            
+            $redis->select(1); // Same database as used in api.php
+            
+            // Pattern to match (without any prefix)
+            $pattern = "*agent_on_call-{$user->agent_id}-*";
+            
+            // Lua script to find and delete keys matching the pattern
+            $luaScript = <<<'LUA'
+                local keys = redis.call('keys', ARGV[1])
+                local deleted = 0
+                if #keys > 0 then
+                    deleted = redis.call('del', unpack(keys))
+                end
+                return deleted
+LUA;
+            
+            // eval(script, args, num_keys) - pattern goes in args array
+            $deletedCount = $redis->eval($luaScript, [$pattern], 0);
+            \Log::info('Agent Break - Deleted Redis keys:', [
+                'agent_id' => $user->agent_id,
+                'pattern' => $pattern,
+                'deleted_count' => $deletedCount
+            ]);
+            
+            // Restore Laravel's prefix
+            $redis->setOption(\Redis::OPT_PREFIX, $currentPrefix);
+        } catch (\Throwable $e) {
+            // Log error but don't fail the break operation
+            \Log::error('Agent Break - Failed to delete Redis keys:', [
+                'agent_id' => $user->agent_id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+        }
+
         $this->createUserBreakModal = false;
         return redirect(route('dashboard.index'));
     }

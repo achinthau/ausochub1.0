@@ -9,7 +9,7 @@
                     </svg>
                 </a>
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    {{ __('Hourly Call Summary - ') . $date }}
+                    {{ __('Hourly Breakdown - ') . $date }}
                 </h2>
             </div>
 

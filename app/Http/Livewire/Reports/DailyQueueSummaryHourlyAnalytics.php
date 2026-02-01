@@ -23,7 +23,7 @@ class DailyQueueSummaryHourlyAnalytics extends Component
         $queue = $this->queue;
 
         $results = DB::connection('mysql-old')
-            ->table('queuecount')
+            ->table('au_queuecount_report')
             ->where('date', 'like', "$date%")
             ->where('queuename', $queue)
             ->selectRaw('HOUR(date) as hour')

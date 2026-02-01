@@ -109,6 +109,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/agent-call-summary-report', AgentCallSummary::class)->name('reports.agent-call-summary-report')->can('is-admin');
 
         Route::get('/daily-queue-summary-report', DailyQueueSummary::class)->name('reports.daily-queue-summary-report')->can('is-admin');
+        Route::get('/daily-queue-summary-hourly/{date}/{queue}', \App\Http\Livewire\Reports\DailyQueueSummaryHourly::class)->name('reports.daily-queue-summary-hourly')->can('is-admin');
+        Route::get('/daily-queue-summary-hourly-analytics/{date}/{queue}', \App\Http\Livewire\Reports\DailyQueueSummaryHourlyAnalytics::class)->name('reports.daily-queue-summary-hourly-analytics')->can('is-admin');
         Route::get('/daily-call-summary-report', ReportsDailyCallSummary::class)->name('reports.daily-calls-summary-report')->can('is-admin');
         Route::get('/daily-call-summary-hourly/{date}', DailyCallSummaryHourly::class)->name('reports.daily-calls-summary-hourly')->can('is-admin');
         Route::get('/daily-call-summary-hourly-analytics/{date}', \App\Http\Livewire\Reports\DailyCallSummaryHourlyAnalytics::class)->name('reports.daily-calls-summary-hourly-analytics')->can('is-admin');

@@ -65,10 +65,8 @@ public function export()
                 ->sortable()->searchable(),
             Column::make("Agents", "agents")
                 ->sortable()->searchable(),
-            // Column::make("Created at", "created_at")
-            //     ->sortable()->searchable(),
-            // Column::make("Updated at", "updated_at")
-            //     ->sortable()->searchable(),
+            Column::make("Actions")
+                ->label(fn($row) => view('livewire.reports.partials.daily-queue-summary-actions', ['row' => $row])),
         ];
     }
 

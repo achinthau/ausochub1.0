@@ -23,6 +23,7 @@ use App\Http\Livewire\Reports\IvrDetail;
 use App\Http\Livewire\Reports\AgentMissedCallSummary;
 use App\Http\Livewire\Reports\AsteriskEvents;
 use App\Http\Livewire\Reports\DailyCallSummary as ReportsDailyCallSummary;
+use App\Http\Livewire\Reports\DailyCallSummaryHourly;
 use App\Http\Livewire\Reports\DailyQueueSummary;
 // use App\Http\Livewire\Reports\CallQueue;
 use App\Http\Livewire\Reports\Index as ReportsIndex;
@@ -109,6 +110,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
         Route::get('/daily-queue-summary-report', DailyQueueSummary::class)->name('reports.daily-queue-summary-report')->can('is-admin');
         Route::get('/daily-call-summary-report', ReportsDailyCallSummary::class)->name('reports.daily-calls-summary-report')->can('is-admin');
+        Route::get('/daily-call-summary-hourly/{date}', DailyCallSummaryHourly::class)->name('reports.daily-calls-summary-hourly')->can('is-admin');
+        Route::get('/daily-call-summary-hourly-analytics/{date}', \App\Http\Livewire\Reports\DailyCallSummaryHourlyAnalytics::class)->name('reports.daily-calls-summary-hourly-analytics')->can('is-admin');
         Route::get('/agent-login-logout-report', AgentLoginLogoutReport::class)->name('reports.agent-login-logout-report')->can('is-admin');
         Route::get('/nuisance-customers-report', NuisanceCustomers::class)->name('reports.nuisance-customers-report')->can('is-admin');
         Route::get('/unsatisfied-customers-report', UnsatisfiedCustomers::class)->name('reports.unsatisfied-customers-report')->can('is-admin');

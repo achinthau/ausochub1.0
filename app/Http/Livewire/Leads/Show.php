@@ -543,6 +543,8 @@ class Show extends Component
         $emailSuccess = false;
         $waAttempted = false;
         $emailAttempted = false;
+        $user = Auth::user()->name;
+        $this->whatsappMessage = $this->whatsappMessage . "\n" . "<< " . $user . " >>" ;
 
         // --- WhatsApp Logic ---
         if ($this->notifyWhatsApp) {

@@ -7,6 +7,7 @@ use Livewire\WithFileUploads;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Auth;
 
 class Chat extends Component
 {
@@ -74,13 +75,14 @@ class Chat extends Component
 
     public function sendMessage()
     {
+        $user = Auth::user()->name;
         if (empty($this->newMessage) && !$this->attachment) return;
         if (!$this->selectedChatId) return;
 
         try {
             $postData = [
                 'to' => $this->selectedChatId,
-                'message' => $this->newMessage
+                'message' => $this->newMessage . "\n" . "<< " . $user . " >>"
             ];
 
             if ($this->attachment) {

@@ -15,6 +15,7 @@ class AgentPerformanceTable extends LivewireDatatable
 {
     public $hideable = 'select';
     public $exportable = true;
+    public $activeDatetimeFilters = [];
 
     public function builder()
     {
@@ -50,6 +51,22 @@ class AgentPerformanceTable extends LivewireDatatable
         ];
     }
 
+
+    public function doDatetimeFilterStart($index, $start)
+    {
+        $this->activeDatetimeFilters[$index]['start'] = $start;
+        $this->activeDateFilters[$index]['start'] = $start ? str_replace('T', ' ', $start) : null;
+        $this->page = 1;
+        $this->setSessionStoredFilters();
+    }
+
+    public function doDatetimeFilterEnd($index, $end)
+    {
+        $this->activeDatetimeFilters[$index]['end'] = $end;
+        $this->activeDateFilters[$index]['end'] = $end ? str_replace('T', ' ', $end) : null;
+        $this->page = 1;
+        $this->setSessionStoredFilters();
+    }
 
     public function export(string $filename = 'DatatableExport.xlsx')
     {

@@ -9,7 +9,7 @@
                     </svg>
                 </a>
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    {{ __('Agent Performance Analytics') }}
+                    {{ __('Call Center Performance Analytics') }}
                 </h2>
             </div>
         </div>

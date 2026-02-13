@@ -8,6 +8,7 @@ app.use(express.json({ limit: '100mb' }));
 app.use(express.urlencoded({ limit: '100mb', extended: true }));
 
 const axios = require('axios');
+const { generateReply } = require('./whatsapp_gemini');
 
 // Initialize WhatsApp client
 const client = new Client({
@@ -83,6 +84,30 @@ client.on('message_create', async (msg) => {
                 }
             }
         });
+
+        // Gemini Auto-Reply Integration
+        const isStatus = msg.from === 'status@broadcast';
+        const isNewsletter = msg.from.includes('@newsletter');
+        const EXCLUDED_NUMBERS = [
+    // '94786070240@c.us'
+    // Tip: Do NOT use just "919876543210" — always include @c.us
+];
+        const allowedGroupNames = ["LVA-develo", "🧍‍♂️ගමේ කොල්ලෝ🧍‍♂️"];
+        
+        if (process.env.WHATSAPP_AUTO_REPLY_ENABLED === 'true' && !msg.fromMe 
+             && !isStatus && !isNewsletter && !EXCLUDED_NUMBERS.includes(msg.from)
+            && (!chat.isGroup || allowedGroupNames.includes(chat.name?.trim() || ""))
+        ) {
+            console.log(`- Gemini Auto-Reply enabled. Generating reply for: ${msg.body.substring(0, 50)}...`);
+            const reply = await generateReply(msg.body);
+            if (reply) {
+                console.log(`- Sending Gemini auto-reply: ${reply.substring(0, 50)}...`);
+                // Use a small delay to feel more natural and avoid immediate bot detection if any
+                setTimeout(async () => {
+                    await client.sendMessage(msg.from, reply);
+                }, 2000);
+            }
+        }
     } catch (error) {
         console.error('Failed to send message webhook:', error.message);
     }
@@ -136,6 +161,9 @@ app.post('/send-message', async (req, res) => {
 
 // Get all chats
 app.get('/chats', async (req, res) => {
+    if (!client.info) {
+        return res.status(503).json({ status: 'error', message: 'WhatsApp client is not ready yet' });
+    }
     console.log('Fetching chats...');
     try {
         const allChats = await client.getChats();

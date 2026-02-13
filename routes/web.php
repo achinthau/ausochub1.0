@@ -120,6 +120,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/unsatisfied-customers-report', UnsatisfiedCustomers::class)->name('reports.unsatisfied-customers-report')->can('is-admin');
         Route::get('/dialer-contact-attempt-report', DialerContactAttemptReport::class)->name('reports.dialer-contact-attempt-report')->middleware('can:can-view-cdr-reports');
         Route::get('/agent-performance-report', AgentPerformanceReport::class)->name('reports.agent-performance-report')->middleware('can:can-view-cdr-reports');
+        Route::get('/agent-performance-report-analytics', \App\Http\Livewire\Reports\AgentPerformanceAnalytics::class)->name('reports.agent-performance-report-analytics')->middleware('can:can-view-cdr-reports');
         // Route::get('/call-queue-report', CallQueue::class)->name('reports.call-queue-report')->can('is-admin');
     });
 

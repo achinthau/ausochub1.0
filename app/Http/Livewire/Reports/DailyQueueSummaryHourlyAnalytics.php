@@ -61,20 +61,20 @@ class DailyQueueSummaryHourlyAnalytics extends Component
         return [
             'labels' => array_column($hourlyData, 'hour'),
             'datasets' => [
-                [
-                    'label' => 'Inbound',
-                    'data' => array_column($hourlyData, 'inbound'),
-                    'borderColor' => '#3b82f6',
-                    'backgroundColor' => 'rgba(59, 130, 246, 0.1)',
-                    'tension' => 0.4,
-                ],
-                [
-                    'label' => 'Outbound',
-                    'data' => array_column($hourlyData, 'outbound'),
-                    'borderColor' => '#10b981',
-                    'backgroundColor' => 'rgba(16, 185, 129, 0.1)',
-                    'tension' => 0.4,
-                ],
+                // [
+                //     'label' => 'Inbound',
+                //     'data' => array_column($hourlyData, 'inbound'),
+                //     'borderColor' => '#3b82f6',
+                //     'backgroundColor' => 'rgba(59, 130, 246, 0.1)',
+                //     'tension' => 0.4,
+                // ],
+                // [
+                //     'label' => 'Outbound',
+                //     'data' => array_column($hourlyData, 'outbound'),
+                //     'borderColor' => '#10b981',
+                //     'backgroundColor' => 'rgba(16, 185, 129, 0.1)',
+                //     'tension' => 0.4,
+                // ],
                 [
                     'label' => 'Queued',
                     'data' => array_column($hourlyData, 'calls'),

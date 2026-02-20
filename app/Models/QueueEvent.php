@@ -9,8 +9,8 @@ class QueueEvent extends Model
 {
     use HasFactory;
 
-    protected $connection = "mysql-old";
-    protected $table = "queue_events";
+    // protected $connection = "mysql-old";
+    protected $table = "ami_queue_events";
 
-    protected $primaryKey = 'id';
+    // protected $primaryKey = 'id';
 }

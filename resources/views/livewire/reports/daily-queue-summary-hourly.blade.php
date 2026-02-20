@@ -41,8 +41,8 @@
                         <thead class="bg-gray-50">
                             <tr>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hour</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inbound</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Outbound</th>
+                                {{-- <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inbound</th> --}}
+                                {{-- <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Outbound</th> --}}
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Queued</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Answered</th>
                                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Abandoned</th>
@@ -53,8 +53,8 @@
                             @foreach($hourlyData as $row)
                                 <tr class="hover:bg-gray-50 transition">
                                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ $row['hour'] }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $row['inbound'] }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $row['outbound'] }}</td>
+                                    {{-- <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $row['inbound'] }}</td> --}}
+                                    {{-- <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $row['outbound'] }}</td> --}}
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $row['calls'] }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $row['answered'] }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600 font-semibold">{{ $row['abandoned'] }}</td>

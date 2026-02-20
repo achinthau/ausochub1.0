@@ -28,10 +28,10 @@
         initCharts() {
             const donutData = this.donutData;
             
-            this.renderChart('talkTimeChart', 'Talk Time (Secs)', ['0-2', '2-5', '5+'], donutData.talkTime, ['#3b82f6', '#10b981', '#f59e0b']);
-            this.renderChart('ringTimeChart', 'Ring Time (Secs)', ['0-5', '5-10', '10-15', '15+'], donutData.ringTime, ['#6366f1', '#8b5cf6', '#ec4899', '#ef4444']);
-            this.renderChart('holdTimeChart', 'Hold Time (Secs)', ['0-30', '30-120', '120+'], donutData.holdTime, ['#f97316', '#eab308', '#dc2626']);
-            this.renderChart('discByChart', 'Disconnected By', ['Agent', 'Caller'], donutData.disconnectedBy, ['#06b6d4', '#14b8a6']);
+            this.renderChart('talkTimeChart', 'Talk Time (Sec)', ['0-2', '2-5', '5+'], donutData.talkTime, ['#0adf0f', '#fbe709', '#ec1313']);
+            this.renderChart('ringTimeChart', 'Ring Time (Sec)', ['0-5', '5-10', '10-15'], donutData.ringTime, ['#fbe709', '#1a4df0', '#ec1313']);
+            this.renderChart('holdTimeChart', 'Hold Time (Sec)', ['0-30', '30-120', '120+'], donutData.holdTime, ['#0adf0f', '#fbe709', '#ec1313']);
+            this.renderChart('discByChart', 'Disconnected By', ['Agent', 'Caller'], donutData.disconnectedBy, ['#1a4df0', '#fbe709']);
         },
         renderChart(id, label, labels, data, colors) {
             const ctx = document.getElementById(id).getContext('2d');
@@ -51,14 +51,19 @@
                 },
                 options: {
                     responsive: true,
+                    cutout: '60%',
                     maintainAspectRatio: false,
                     plugins: {
                         legend: {
-                            position: 'bottom',
+                            position: 'right',
                         },
                         title: {
                             display: true,
-                            text: label
+                            text: label,
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
                         },
                         tooltip: {
                             callbacks: {
@@ -82,11 +87,11 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 italic text-sm">
                     <div>
                         <label class="block text-gray-700 mb-1">Start Date</label>
-                        <input type="date" wire:model.lazy="startDate" min="{{ \Carbon\Carbon::now()->subDays(60)->format('Y-m-d') }}" max="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                        <input type="date" wire:model.lazy="startDate" min="{{ \Carbon\Carbon::now()->subDays(31)->format('Y-m-d') }}" max="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                     </div>
                     <div>
                         <label class="block text-gray-700 mb-1">End Date</label>
-                        <input type="date" wire:model.lazy="endDate" min="{{ \Carbon\Carbon::now()->subDays(60)->format('Y-m-d') }}" max="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
+                        <input type="date" wire:model.lazy="endDate" min="{{ \Carbon\Carbon::now()->subDays(31)->format('Y-m-d') }}" max="{{ \Carbon\Carbon::now()->format('Y-m-d') }}" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50">
                     </div>
                     <div>
                         <label class="block text-gray-700 mb-1">Extension</label>

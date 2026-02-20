@@ -9,7 +9,7 @@
                     </svg>
                 </a>
                 <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-                    {{ __('Agent Performance Analytics') }}
+                    {{ __('Call Center Performance Analytics') }}
                 </h2>
             </div>
         </div>
@@ -28,7 +28,7 @@
         initCharts() {
             const donutData = this.donutData;
             
-            this.renderChart('talkTimeChart', 'Talk Time (Mins)', ['0-2', '2-5', '5+'], donutData.talkTime, ['#3b82f6', '#10b981', '#f59e0b']);
+            this.renderChart('talkTimeChart', 'Talk Time (Secs)', ['0-2', '2-5', '5+'], donutData.talkTime, ['#3b82f6', '#10b981', '#f59e0b']);
             this.renderChart('ringTimeChart', 'Ring Time (Secs)', ['0-5', '5-10', '10-15', '15+'], donutData.ringTime, ['#6366f1', '#8b5cf6', '#ec4899', '#ef4444']);
             this.renderChart('holdTimeChart', 'Hold Time (Secs)', ['0-30', '30-120', '120+'], donutData.holdTime, ['#f97316', '#eab308', '#dc2626']);
             this.renderChart('discByChart', 'Disconnected By', ['Agent', 'Caller'], donutData.disconnectedBy, ['#06b6d4', '#14b8a6']);

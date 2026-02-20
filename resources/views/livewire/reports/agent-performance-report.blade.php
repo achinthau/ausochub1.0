@@ -2,7 +2,7 @@
     <x-slot name="header">
         <div class="flex">
             <h2 class="flex-1 font-semibold text-xl text-gray-800 leading-tight ">
-                {{ __('Agent Performance Report')  }}
+                {{ __('Call Center Performance Report')  }}
             </h2>
             <x-button 
                 href="{{ route('reports.agent-performance-report-analytics') }}"

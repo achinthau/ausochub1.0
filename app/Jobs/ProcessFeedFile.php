@@ -88,6 +88,7 @@ class ProcessFeedFile implements ShouldQueue
                         'contact_no_01' => $cleanPhone,
                         'contact_no_02' => $cleanPhone2,
                         'priority_field' => $contact->priority_field,
+                        'lang' => $contact->lang,
                         'data' => $contact->data,
                         'created_at' => now(),
                         'updated_at' => now(),

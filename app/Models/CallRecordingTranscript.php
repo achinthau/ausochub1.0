@@ -14,5 +14,7 @@ class CallRecordingTranscript extends Model
     protected $fillable = [
         'uniqueid',
         'transcript',
+        'summary',
+        'reaction',
     ];  
 }

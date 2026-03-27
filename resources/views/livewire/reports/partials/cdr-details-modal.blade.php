@@ -55,7 +55,7 @@
     </div>
 
     <hr>
-    <div class="mt-4">
+    {{-- <div class="mt-2">
     <strong class="block mb-2">Call Transcription:</strong>
 
     <div
@@ -70,13 +70,43 @@
                 </svg>
                 <span class="text-teal-600 font-medium">Loading transcription...</span>
             </div>
+
         @elseif($transcription)
             {{ $transcription }}
         @else
             <span class="text-gray-500">No transcription available.</span>
         @endif
     </div>
-</div>
+</div> --}}
+
+@if($summary || $reaction || $isProcessing)
+    <div class="mt-2">
+        <strong class="block mb-2">Call Summary:</strong>
+        <div class="border rounded-lg p-1 bg-gray-50 text-sm whitespace-pre-wrap">
+            @if($isProcessing && !$summary)
+                <span class="text-teal-600 font-medium">Loading summary...</span>
+            @elseif($summary)
+                {{ $summary }}
+            @else
+                <span class="text-gray-500">No summary available.</span>
+            @endif
+        </div>
+        <div class="mt-2">
+            <strong>Caller Reaction:</strong>
+            @if($reaction === 'happy')
+                <span class="ml-2 text-green-600 font-semibold">😊 Happy</span>
+            @elseif($reaction === 'angry')
+                <span class="ml-2 text-red-600 font-semibold">😠 Angry</span>
+            @elseif($reaction === 'normal')
+                <span class="ml-2 text-gray-700 font-semibold">😐 Normal</span>
+            @elseif($isProcessing && !$reaction)
+                <span class="ml-2 text-teal-600 font-medium">Loading reaction...</span>
+            @else
+                <span class="ml-2 text-gray-500">Unknown</span>
+            @endif
+        </div>
+    </div>
+@endif
 
 
     <x-slot name="footer">

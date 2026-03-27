@@ -120,6 +120,7 @@ class FileUpload extends Component
             $phone1 = $rowData['contact_no_01'] ?? $rowData['contact'] ?? null;
             $phone2 = $rowData['contact_no_02'] ?? null;
             $priority_field = $rowData['priority field'] ?? $rowData['priority_field'] ?? null;
+            $language = $rowData['language'] ?? null;
             // $phone = is_string($phone) ? preg_replace('/\D/', '', $phone) : $phone;
 
             unset($rowData['contact_no_01'],$rowData['contact_no_02'], $rowData['contact'], $rowData['priority field'], $rowData['priority_field']);
@@ -129,6 +130,7 @@ class FileUpload extends Component
                 'contact_no_01' => $phone1,
                 'contact_no_02' => $phone2,
                 'priority_field' => $priority_field,
+                'lang' => $language,
                 'data'          => json_encode($rowData),
                 'created_at'    => now(),
                 'updated_at'    => now(),

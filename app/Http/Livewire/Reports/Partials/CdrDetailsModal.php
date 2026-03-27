@@ -29,6 +29,8 @@ class CdrDetailsModal extends Component
     public $callerNic;
     public $uniqueid;
     public $transcription;
+    public $summary;
+    public $reaction;
     public $isProcessing = false;
 
     protected $listeners = ['show' => 'showDetailsModal'];
@@ -136,6 +138,8 @@ class CdrDetailsModal extends Component
         $dbRecord = CallRecordingTranscript::where('uniqueid', $uniqueid)->first();
         if ($dbRecord) {
             $this->transcription = $dbRecord->transcript;
+            $this->summary = $dbRecord->summary;
+            $this->reaction = $dbRecord->reaction;
             $this->isProcessing = false;
             return;
         }
@@ -199,6 +203,7 @@ class CdrDetailsModal extends Component
                 // Using Gemini 2.0 Flash on the Generative Language API
                 $url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 
+                // 1. Get Transcription
                 $response = $client->post($url, [
                     'json' => [
                         'contents' => [
@@ -226,30 +231,86 @@ class CdrDetailsModal extends Component
 
                 $data = json_decode($response->getBody()->getContents(), true);
 
+                $rawText = null;
                 if (isset($data['candidates'][0]['content']['parts'][0]['text'])) {
                     $rawText = $data['candidates'][0]['content']['parts'][0]['text'];
-
-                    // Cleanup
                     $rawText = trim(str_ireplace(['transcription:', '```', 'sinhala:'], '', $rawText));
+                }
 
-                    if (strtolower($rawText) === 'no speech detected') {
-                        $this->transcription = 'The AI could not detect any speech in this audio.';
-                    } else {
-                        $this->transcription = $rawText;
-                        CallRecordingTranscript::create([
-                            'uniqueid' => $uniqueid,
-                            'transcript' => $rawText,
-                        ]);
-                    }
+                if (!$rawText || strtolower($rawText) === 'no speech detected') {
+                    $this->transcription = 'The AI could not detect any speech in this audio.';
+                    $this->summary = null;
+                    $this->reaction = null;
                 } else {
-                    throw new \Exception("AI response format error. Data: " . json_encode($data));
+                    $this->transcription = $rawText;
+
+                    // 2. Generate summary and reaction from transcript
+                    $summaryPrompt = "Summarize the following Sinhala call transcript in 1-2 sentences. Output in Sinhala.\nTranscript: {$rawText}";
+                    $reactionPrompt = "Based on the following Sinhala call transcript, classify the caller's reaction as one of: happy, angry, or normal. Output only one word: happy, angry, or normal.\nTranscript: {$rawText}";
+
+                    // Summary
+                    $summaryResp = $client->post($url, [
+                        'json' => [
+                            'contents' => [
+                                [
+                                    'role' => 'user',
+                                    'parts' => [
+                                        [ 'text' => $summaryPrompt ]
+                                    ]
+                                ]
+                            ],
+                            'generationConfig' => [
+                                'temperature' => 0.2,
+                                'maxOutputTokens' => 256,
+                            ]
+                        ]
+                    ]);
+                    $summaryData = json_decode($summaryResp->getBody()->getContents(), true);
+                    $summary = isset($summaryData['candidates'][0]['content']['parts'][0]['text']) ? trim($summaryData['candidates'][0]['content']['parts'][0]['text']) : null;
+
+                    // Reaction
+                    $reactionResp = $client->post($url, [
+                        'json' => [
+                            'contents' => [
+                                [
+                                    'role' => 'user',
+                                    'parts' => [
+                                        [ 'text' => $reactionPrompt ]
+                                    ]
+                                ]
+                            ],
+                            'generationConfig' => [
+                                'temperature' => 0.0,
+                                'maxOutputTokens' => 8,
+                            ]
+                        ]
+                    ]);
+                    $reactionData = json_decode($reactionResp->getBody()->getContents(), true);
+                    $reaction = isset($reactionData['candidates'][0]['content']['parts'][0]['text']) ? strtolower(trim($reactionData['candidates'][0]['content']['parts'][0]['text'])) : null;
+                    if (!in_array($reaction, ['happy', 'angry', 'normal'])) {
+                        $reaction = 'normal';
+                    }
+
+                    $this->summary = $summary;
+                    $this->reaction = $reaction;
+
+                    CallRecordingTranscript::create([
+                        'uniqueid' => $uniqueid,
+                        'transcript' => $rawText,
+                        'summary' => $summary,
+                        'reaction' => $reaction,
+                    ]);
                 }
             } catch (\GuzzleHttp\Exception\ClientException $e) {
                 $response = $e->getResponse();
                 $responseBody = $response->getBody()->getContents();
                 $this->transcription = 'Google API Error: ' . $responseBody;
+                $this->summary = null;
+                $this->reaction = null;
             } catch (\Throwable $e) {
                 $this->transcription = 'Technical Error: ' . $e->getMessage();
+                $this->summary = null;
+                $this->reaction = null;
             }
 
             $this->isProcessing = false;
@@ -257,6 +318,8 @@ class CdrDetailsModal extends Component
         }
 
         $this->transcription = 'No transcription available for this call.';
+        $this->summary = null;
+        $this->reaction = null;
         $this->isProcessing = false;
     }
 

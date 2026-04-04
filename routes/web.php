@@ -26,6 +26,7 @@ use App\Http\Livewire\Reports\DailyCallSummary as ReportsDailyCallSummary;
 use App\Http\Livewire\Reports\DailyCallSummaryHourly;
 use App\Http\Livewire\Reports\DailyQueueSummary;
 use App\Http\Livewire\Reports\AgentPerformanceReport;
+use App\Http\Livewire\Reports\AgentPerformanceMetricsReport;
 // use App\Http\Livewire\Reports\CallQueue;
 use App\Http\Livewire\Reports\Index as ReportsIndex;
 use App\Http\Livewire\Settings\Extensions\Index as ExtensionsIndex;
@@ -121,6 +122,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/dialer-contact-attempt-report', DialerContactAttemptReport::class)->name('reports.dialer-contact-attempt-report')->middleware('can:can-view-cdr-reports');
         Route::get('/agent-performance-report', AgentPerformanceReport::class)->name('reports.agent-performance-report')->middleware('can:can-view-cdr-reports');
         Route::get('/agent-performance-report-analytics', \App\Http\Livewire\Reports\AgentPerformanceAnalytics::class)->name('reports.agent-performance-report-analytics')->middleware('can:can-view-cdr-reports');
+        Route::get('/agent-performance-metrics-report', AgentPerformanceMetricsReport::class)->name('reports.agent-performance-metrics-report')->middleware('can:can-view-cdr-reports');
         // Route::get('/call-queue-report', CallQueue::class)->name('reports.call-queue-report')->can('is-admin');
     });
 

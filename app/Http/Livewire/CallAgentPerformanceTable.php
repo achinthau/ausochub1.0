@@ -61,7 +61,7 @@ class CallAgentPerformanceTable extends DataTableComponent
                 ->sortable()
                 ->format(fn ($value) => number_format($value)),
 
-            Column::make("Avg Calls", "avg_calls")
+            Column::make("Avg Answered Calls", "avg_calls")
                 ->sortable()
                 ->format(fn ($value) => number_format($value, 2)),
 

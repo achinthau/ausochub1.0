@@ -243,28 +243,32 @@ function calculateAgentMetrics($pdoAC, $pdoMetrics, $agentId, $extension, $date)
     ];
 
     try {
-        // 1. Total calls and missed calls from CDR table (dstchannel contains agent extension)
+        // 1. Total calls and answered calls from callcount table
         $stmt = $pdoAC->prepare("
             SELECT 
                 COUNT(*) as total_calls,
-                SUM(CASE WHEN disposition IN ('NO ANSWER', 'FAILED') THEN 1 ELSE 0 END) as missed_calls,
-                SUM(COALESCE(billsec, 0)) as talk_time
-            FROM cdr
-            WHERE dstchannel LIKE CONCAT('SIP/', ?, '-%') AND DATE(calldate) = ?
+                SUM(CASE WHEN status = 2 THEN 1 ELSE 0 END) as answered_calls,
+                SUM(COALESCE(duration, 0)) as talk_time
+            FROM callcount
+            WHERE agent_id = ? AND DATE(date) = ?
         ");
         
-        $stmt->execute([$extension, $date]);
+        $stmt->execute([$agentId, $date]);
         $callMetrics = $stmt->fetch();
 
         if ($callMetrics && $callMetrics->total_calls > 0) {
-            $metrics['total_calls'] = (int) $callMetrics->total_calls;
-            $metrics['total_missed'] = (int) ($callMetrics->missed_calls ?? 0);
+            $answeredCalls = (int) ($callMetrics->answered_calls ?? 0);
+            $totalCalls = (int) $callMetrics->total_calls;
+            $missedCalls = $totalCalls - $answeredCalls;
+            
+            $metrics['total_calls'] = $answeredCalls;
+            $metrics['total_missed'] = $missedCalls;
             $metrics['talk_time'] = (int) ($callMetrics->talk_time ?? 0);
 
-            // Calculate averages
-            $metrics['avg_calls'] = round($metrics['total_calls'] / 24, 2);
-            $metrics['avg_missed'] = round($metrics['total_missed'] / 24, 2);
-            $metrics['avg_talk_time'] = round($metrics['talk_time'] / $metrics['total_calls'], 2);
+            // Calculate averages as ratios
+            $metrics['avg_calls'] = $totalCalls > 0 ? round($answeredCalls / $totalCalls, 2) : 0;
+            $metrics['avg_missed'] = $totalCalls > 0 ? round($missedCalls / $totalCalls, 2) : 0;
+            $metrics['avg_talk_time'] = $answeredCalls > 0 ? round($metrics['talk_time'] / $answeredCalls, 2) : 0;
         }
 
         // 3. Active time from ac_agent_logins table (auso_domex_new)

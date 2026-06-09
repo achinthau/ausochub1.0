@@ -1,6 +1,7 @@
 <?php
 
 use App\Events\CallAnswered;
+use App\Http\Controllers\Api\MessengerWebhookController;
 use App\Http\Requests\StoreAnsweredCall;
 use App\Models\Agent;
 use App\Models\FeedContactValid;
@@ -84,7 +85,7 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
 
 
     Cache::forever('agent-in-call-' . $agent->id, 1);
-    
+
     Cache::forever('call-' . $request['unique_id'], $agent->id);
 
     Cache::add('current-call-count', 0, 99999999);
@@ -95,13 +96,13 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
 
         $redis = Redis::connection()->client();
         $redis->select(1);
-        $redis->set('agent_on_call-' . $agent->id . '-' . $request['queuename'] .'-'. $request['unique_id'],1);
+        $redis->set('agent_on_call-' . $agent->id . '-' . $request['queuename'] . '-' . $request['unique_id'], 1);
 
     }
 
     Cache::increment('current-call-count');
     Cache::increment($request['queuename'] . "-current-call-count");
-    
+
 
 
 
@@ -279,7 +280,7 @@ Route::post('/call-dialed', function (StoreAnsweredCall $request) {
 
         $redis = Redis::connection()->client();
         $redis->select(1);
-        $redis->set('agent_on_call-' . $agent->id . '-' . $request['queuename'] .'-'. $request['unique_id'],1);
+        $redis->set('agent_on_call-' . $agent->id . '-' . $request['queuename'] . '-' . $request['unique_id'], 1);
     }
 
     Cache::increment('current-call-count');
@@ -372,21 +373,21 @@ Route::post('/call-disconnected', function (Request $request) {
     if (!empty($keys)) {
 
         foreach ($keys as $key) {
-            
-            
-        $redis->rpush('all_agent_on_call_keys', $key); // append to list
 
-        $redis->set('key', $key);
 
-        $keyNew = explode(':', $key, 2)[1] ?? $key;
+            $redis->rpush('all_agent_on_call_keys', $key); // append to list
 
-        $redis->del($keyNew);
-        
-    }
+            $redis->set('key', $key);
+
+            $keyNew = explode(':', $key, 2)[1] ?? $key;
+
+            $redis->del($keyNew);
+
+        }
         // $redis->set('key', $keys[0]);
 
-    
-    
+
+
     } else {
         $redis->set('key', false);
     }
@@ -631,9 +632,9 @@ Route::post('/get-missed-call-number', function (Request $request) {
     // return $dst;
 
     $campaigns = Campaign::where('status', 1)
-    // ->whereRaw('RIGHT(hotline, 9) = ?', [substr($dst, -9)])
-    ->where('hotline', 'LIKE', '%' . $dst)
-    ->get();
+        // ->whereRaw('RIGHT(hotline, 9) = ?', [substr($dst, -9)])
+        ->where('hotline', 'LIKE', '%' . $dst)
+        ->get();
 
     Log::info('Found campaign: ', ['data' => $campaigns->toArray()]);
 
@@ -653,8 +654,8 @@ Route::post('/get-missed-call-number', function (Request $request) {
                     ->orWhereIn('status', [2, 22, 222]);
             })
             ->where(function ($query) use ($phone) {
-                $query->where('contact_no_01','LIKE', '%' . $phone)
-                      ->orWhere('contact_no_02','LIKE', '%' . $phone);
+                $query->where('contact_no_01', 'LIKE', '%' . $phone)
+                    ->orWhere('contact_no_02', 'LIKE', '%' . $phone);
             })
             ->first();
 
@@ -683,7 +684,7 @@ Route::post('/get-missed-call-number', function (Request $request) {
 
 Route::post('/whatsapp/webhook', [\App\Http\Controllers\Api\WhatsappWebhookController::class, 'handle']);
 
+Route::get('/messenger/webhook', [MessengerWebhookController::class, 'verify']);
 
-
-
+Route::post('/messenger/webhook', [MessengerWebhookController::class, 'handleMessage']);
 

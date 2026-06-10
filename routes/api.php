@@ -688,3 +688,32 @@ Route::get('/messenger/webhook', [MessengerWebhookController::class, 'verify']);
 
 Route::post('/messenger/webhook', [MessengerWebhookController::class, 'handleMessage']);
 
+// ─── Internal: set sender name (called from Windows PowerShell helper) ────────
+// Protected by a static secret so no auth middleware is needed.
+Route::post('/messenger/set-name', function (Request $request) {
+    if ($request->header('X-Internal-Secret') !== env('MESSENGER_INTERNAL_SECRET', 'auso-internal-2024')) {
+        return response()->json(['error' => 'Unauthorized'], 401);
+    }
+
+    $senderId = $request->input('sender_id');
+    $name     = trim($request->input('name', ''));
+
+    if (!$senderId || !$name) {
+        return response()->json(['error' => 'sender_id and name are required'], 422);
+    }
+
+    $updated = \App\Models\MessengerMessage::where('sender_id', $senderId)
+        ->update(['sender_name' => $name]);
+
+    return response()->json([
+        'ok'     => true,
+        'sender' => $senderId,
+        'name'   => $name,
+        'rows'   => $updated,
+    ]);
+});
+
+// ─── Diagnostic: test Page Access Token & PSID profile lookup ─────────────────
+// Visit /api/messenger/test-api?psid=<PSID> in a browser to see what works/fails.
+Route::get('/messenger/test-api', [MessengerWebhookController::class, 'testMetaApi']);
+

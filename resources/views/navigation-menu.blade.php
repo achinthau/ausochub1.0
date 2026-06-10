@@ -14,24 +14,25 @@
                 @can('can-view-dashboard')
                     <!-- Navigation Links -->
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                        <x-jet-nav-link href="{{ route('dashboard.index') }}" :active="request()->routeIs('dashboard.index')">
+                        <x-jet-nav-link href="{{ route('dashboard.index') }}"
+                            :active="request()->routeIs('dashboard.index')">
                             {{ __('Dashboard') }}
                         </x-jet-nav-link>
                     </div>
                 @endcan
 
                 {{-- @php
-                    use Illuminate\Support\Facades\Redis;
+                use Illuminate\Support\Facades\Redis;
 
-                    $loggedUserId = Auth::id();
-                    $redisKey = "highlighted_users:$loggedUserId";
+                $loggedUserId = Auth::id();
+                $redisKey = "highlighted_users:$loggedUserId";
 
-                    $redis = app('redis')->connection();
-                    $redis->select(5);
+                $redis = app('redis')->connection();
+                $redis->select(5);
 
-                    $messagesCountIds = $redis->get($redisKey);
-                    $messagesCountIds = $messagesCountIds ? json_decode($messagesCountIds, true) : [];
-                    $messagesCount = max(count($messagesCountIds) - 1, 0);
+                $messagesCountIds = $redis->get($redisKey);
+                $messagesCountIds = $messagesCountIds ? json_decode($messagesCountIds, true) : [];
+                $messagesCount = max(count($messagesCountIds) - 1, 0);
                 @endphp
 
                 <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex" wire:poll.3000ms>
@@ -39,16 +40,16 @@
                         class="{{ $messagesCount > 0 ? 'text-green-500 font-bold' : '' }}">
                         {{ __('Chat') }}
                         @if ($messagesCount > 0)
-                            <span class="ml-2 bg-green-500 text-white px-2 py-1 text-xs rounded-full">
-                                {{ $messagesCount }}
-                            </span>
+                        <span class="ml-2 bg-green-500 text-white px-2 py-1 text-xs rounded-full">
+                            {{ $messagesCount }}
+                        </span>
                         @endif
                     </x-jet-nav-link>
                 </div> --}}
 
                 @can('can-view-chat')
 
-                @livewire('chat.chat-nav-button')
+                    @livewire('chat.chat-nav-button')
 
                 @endcan
 
@@ -62,9 +63,7 @@
                     </div>
                 @endcan
 
-                @can('can-view-leads')
-                    @livewire('whatsapp.whatsapp-nav-button')
-                @endcan
+
                 @can('can-view-tickets')
                     <!-- Navigation Links -->
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
@@ -80,7 +79,7 @@
                             <!-- Dropdown Button -->
                             <button @click="open = !open"
                                 class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none transition">
-                                Service-Tickets
+                                Serv-Tickets
                                 <svg class="ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
                                     fill="currentColor">
                                     <path fill-rule="evenodd"
@@ -117,7 +116,8 @@
                 @can('is-admin')
                     <!-- Navigation Links -->
                     {{-- <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                        <x-jet-nav-link href="{{ route('contact-feeds.index') }}" :active="request()->routeIs('contact-feeds.index')">
+                        <x-jet-nav-link href="{{ route('contact-feeds.index') }}"
+                            :active="request()->routeIs('contact-feeds.index')">
                             {{ __('Contact Feed') }}
                         </x-jet-nav-link>
                     </div> --}}
@@ -126,14 +126,14 @@
                     @if (config('auso.external_extension_url'))
                         <!-- Navigation Links -->
                         <!-- <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                            <x-jet-nav-link href="{{ route('live-dashboard.index') }}" :active="request()->routeIs('live-dashboard.index')">
-                                {{-- {{ __('Live') }} --}}
-                                {{ __('Live Agents') }}
-                            </x-jet-nav-link>
-                        </div> -->
+                                            <x-jet-nav-link href="{{ route('live-dashboard.index') }}" :active="request()->routeIs('live-dashboard.index')">
+                                                {{-- {{ __('Live') }} --}}
+                                                {{ __('Live Agents') }}
+                                            </x-jet-nav-link>
+                                        </div> -->
                     @endif
 
-                        @endcan
+                @endcan
                 @canany(['can-view-reports', 'can-view-cdr-reports', 'can-view-dialer-reports'])
 
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
@@ -143,24 +143,33 @@
                     </div>
                 @endcanany
 
-                @canany(['is-admin','client-admin'])
+                @canany(['is-admin', 'client-admin'])
                     <!-- Navigation Links -->
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                         <x-jet-nav-link href="{{ route('settings.index') }}" :active="request()->routeIs('settings.index')">
                             {{ __('Settings') }}
                         </x-jet-nav-link>
                     </div>
-                
-                <!-- Navigation Links -->
+
+                    <!-- Navigation Links -->
                     <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                        <x-jet-nav-link href="{{ route('dialer.admin.dashboard') }}" :active="request()->routeIs('dialer.index')">
+                        <x-jet-nav-link href="{{ route('dialer.admin.dashboard') }}"
+                            :active="request()->routeIs('dialer.index')">
                             {{ __('Dialer') }}
                         </x-jet-nav-link>
-                        {{-- <x-jet-nav-link href="{{ route('dialer.index') }}" :active="request()->routeIs('dialer.index')">
+                        {{-- <x-jet-nav-link href="{{ route('dialer.index') }}"
+                            :active="request()->routeIs('dialer.index')">
                             {{ __('Dialer') }}
                         </x-jet-nav-link> --}}
                     </div>
-                    @endcanany
+                @endcanany
+
+                @can('can-view-leads')
+                    @livewire('whatsapp.whatsapp-nav-button')
+                @endcan
+                @can('can-view-leads')
+                    @livewire('messenger.messenger-nav-button')
+                @endcan
             </div>
 
             <div class="hidden sm:flex sm:items-center sm:ml-6">
@@ -192,8 +201,7 @@
                                     </div>
 
                                     <!-- Team Settings -->
-                                    <x-jet-dropdown-link
-                                        href="{{ route('teams.show', Auth::user()->currentTeam->id) }}">
+                                    <x-jet-dropdown-link href="{{ route('teams.show', Auth::user()->currentTeam->id) }}">
                                         {{ __('Team Settings') }}
                                     </x-jet-dropdown-link>
 
@@ -223,31 +231,31 @@
                 <div class="flex justify-between">
                     <div class="ml-3 relative">
                         <div class="flex">
-                            
-                                
-                                {{-- @if (request()->is('/')) --}}
-                                    <div class="flex justify-between">
-                                        
-                                        @canany(['is-admin', 'is-agent', 'nps-user'])
-                                        <div class="pr-8 pt-4">
-                                            @livewire('dashboard.reminder')
-                                        </div>
-                                        @endcanany
 
-                                       
-                                        
-                                        @can('is-agent')
-                                         @if (Route::is('dashboard.index'))
-                                        <div class="pr-8 pt-4">
-                                            @livewire('dashboard.hand-raise')
-                                        </div>
-                                        <div class="pr-8 pt-4">
-                                        @livewire('dashboard.select-bound')
+
+                            {{-- @if (request()->is('/')) --}}
+                            <div class="flex justify-between">
+
+                                @canany(['is-admin', 'is-agent', 'nps-user'])
+                                    <div class="pr-8 pt-4">
+                                        @livewire('dashboard.reminder')
                                     </div>
-                                    @endif
+                                @endcanany
+
+
+
+                                @can('is-agent')
+                                        @if (Route::is('dashboard.index'))
+                                            <div class="pr-8 pt-4">
+                                                @livewire('dashboard.hand-raise')
+                                            </div>
+                                            <div class="pr-8 pt-4">
+                                                @livewire('dashboard.select-bound')
+                                            </div>
+                                        @endif
                                     </div>
-                                
-                            @endcan
+
+                                @endcan
 
                             <x-jet-dropdown align="right" width="48">
                                 <x-slot name="trigger">
@@ -312,15 +320,12 @@
                                     </form> --}}
 
                                     <form method="POST" action="{{ route('logout') }}" x-data="logoutHandler()">
-    @csrf
+                                        @csrf
 
-    <x-jet-dropdown-link
-        href="{{ route('logout') }}"
-        @click.prevent="logout"
-    >
-        {{ __('Log Out') }}
-    </x-jet-dropdown-link>
-</form>
+                                        <x-jet-dropdown-link href="{{ route('logout') }}" @click.prevent="logout">
+                                            {{ __('Log Out') }}
+                                        </x-jet-dropdown-link>
+                                    </form>
 
                                 </x-slot>
 
@@ -352,7 +357,8 @@
         <!-- Responsive Navigation Menu -->
         <div :class="{ 'block': open, 'hidden': !open }" class="hidden sm:hidden">
             <div class="pt-2 pb-3 space-y-1">
-                <x-jet-responsive-nav-link href="{{ route('dashboard.index') }}" :active="request()->routeIs('dashboard.index')">
+                <x-jet-responsive-nav-link href="{{ route('dashboard.index') }}"
+                    :active="request()->routeIs('dashboard.index')">
                     {{ __('Dashboard') }}
                 </x-jet-responsive-nav-link>
             </div>
@@ -362,8 +368,8 @@
                 <div class="flex items-center px-4">
                     @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
                         <div class="shrink-0 mr-3">
-                            <img class="h-10 w-10 rounded-full object-cover"
-                                src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
+                            <img class="h-10 w-10 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}"
+                                alt="{{ Auth::user()->name }}" />
                         </div>
                     @endif
 
@@ -375,12 +381,14 @@
 
                 <div class="mt-3 space-y-1">
                     <!-- Account Management -->
-                    <x-jet-responsive-nav-link href="{{ route('profile.show') }}" :active="request()->routeIs('profile.show')">
+                    <x-jet-responsive-nav-link href="{{ route('profile.show') }}"
+                        :active="request()->routeIs('profile.show')">
                         {{ __('Profile') }}
                     </x-jet-responsive-nav-link>
 
                     @if (Laravel\Jetstream\Jetstream::hasApiFeatures())
-                        <x-jet-responsive-nav-link href="{{ route('api-tokens.index') }}" :active="request()->routeIs('api-tokens.index')">
+                        <x-jet-responsive-nav-link href="{{ route('api-tokens.index') }}"
+                            :active="request()->routeIs('api-tokens.index')">
                             {{ __('API Tokens') }}
                         </x-jet-responsive-nav-link>
                     @endif
@@ -395,70 +403,67 @@
                     </form> --}}
 
                     <form method="POST" action="{{ route('logout') }}" x-data="logoutHandler()">
-    @csrf
+                        @csrf
 
-    <x-jet-dropdown-link
-        href="{{ route('logout') }}"
-        @click.prevent="logout"
-    >
-        {{ __('Log Out') }}
-    </x-jet-dropdown-link>
-</form>
+                        <x-jet-dropdown-link href="{{ route('logout') }}" @click.prevent="logout">
+                            {{ __('Log Out') }}
+                        </x-jet-dropdown-link>
+                    </form>
 
 
 
                     <script>
-function logoutHandler() {
-    return {
-        logout() {
-            try {
-                const phoneType = "{{ strtolower(config('auso.phone_type')) }}";
-                const exten = "{{ auth()->user()->extensionData }}";
+                        function logoutHandler() {
+                            return {
+                                logout() {
+                                    try {
+                                        const phoneType = "{{ strtolower(config('auso.phone_type')) }}";
+                                        const exten = "{{ auth()->user()->extensionData }}";
 
-                let url = null;
+                                        let url = null;
 
-                if (phoneType.includes('microsip')) {
-                    url = "http://127.0.0.1:5001/remove/microsip";
-                } else if (phoneType.includes('zoiper')) {
-                    url = "http://127.0.0.1:5001/remove/zoiper3";
-                }
+                                        if (phoneType.includes('microsip')) {
+                                            url = "http://127.0.0.1:5001/remove/microsip";
+                                        } else if (phoneType.includes('zoiper')) {
+                                            url = "http://127.0.0.1:5001/remove/zoiper3";
+                                        }
 
-                if (url) {
-                    const data = {
-                        exten: exten.extension,
-                        server: "123.231.74.22",
-                        // password: phoneType.includes('microsip')
-                        //     ? "@u5051p"
-                        //     : "vCkSoFyUNjxbVy7bm6TJdA==\n",
-                        password:"@u5051p",
-                        aa: "1",
-                        autoanswerdelay: "3",
-                        protocol: exten.exten_type
-                    };
+                                        if (url) {
+                                            const data = {
+                                                exten: exten.extension,
+                                                server: "123.231.74.22",
+                                                // password: phoneType.includes('microsip')
+                                                //     ? "@u5051p"
+                                                //     : "vCkSoFyUNjxbVy7bm6TJdA==\n",
+                                                password: "@u5051p",
+                                                aa: "1",
+                                                autoanswerdelay: "3",
+                                                protocol: exten.exten_type
+                                            };
 
-                    const payload = new Blob(
-                        [JSON.stringify(data)],
-                        { type: 'application/json' }
-                    );
+                                            const payload = new Blob(
+                                                [JSON.stringify(data)],
+                                                { type: 'application/json' }
+                                            );
 
-                    // navigator.sendBeacon(url, payload);
-                    fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-    credentials: 'omit',  // Explicitly no credentials → no need for Allow-Credentials: true
-    keepalive: true       //  allows it to send reliably on page unload
-})
-                }
-            } catch (e) {
-                console.warn('Softphone disconnect failed', e);
-            }
+                                            // navigator.sendBeacon(url, payload);
+                                            fetch(url, {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify(data),
+                                                credentials: 'omit',  // Explicitly no credentials → no need for Allow-Credentials: true
+                                                keepalive: true       //  allows it to send reliably on page unload
+                                            })
+                                        }
+                                    } catch (e) {
+                                        console.warn('Softphone disconnect failed', e);
+                                    }
 
-            this.$root.submit();
-        }
-    }
-}
-</script>
+                                    this.$root.submit();
+                                }
+                            }
+                        }
+                    </script>
 
 
 
@@ -478,7 +483,8 @@ function logoutHandler() {
                         </x-jet-responsive-nav-link>
 
                         @can('create', Laravel\Jetstream\Jetstream::newTeamModel())
-                            <x-jet-responsive-nav-link href="{{ route('teams.create') }}" :active="request()->routeIs('teams.create')">
+                            <x-jet-responsive-nav-link href="{{ route('teams.create') }}"
+                                :active="request()->routeIs('teams.create')">
                                 {{ __('Create New Team') }}
                             </x-jet-responsive-nav-link>
                         @endcan

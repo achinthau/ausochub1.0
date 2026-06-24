@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Whatsapp;
 use Livewire\Component;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use App\Models\WhatsappMetaMessage;
 
 class WhatsappNavButton extends Component
 {
@@ -24,6 +25,18 @@ class WhatsappNavButton extends Component
 
     public function loadUnreadCount()
     {
+        $type = config('services.whatsapp.type', 'webjs');
+
+        if ($type === 'meta_api') {
+            try {
+                $this->unreadCount = WhatsappMetaMessage::unread()->count();
+            } catch (\Exception $e) {
+                $this->unreadCount = 0;
+            }
+            return;
+        }
+
+        // WebJS unread count fetch
         try {
             $response = Http::timeout(5)->get($this->whatsappServiceUrl . '/unread-count');
             if ($response->successful()) {
@@ -31,12 +44,13 @@ class WhatsappNavButton extends Component
             }
         } catch (\Exception $e) {
             // Silently fail for navbar
+            $this->unreadCount = 0;
         }
     }
 
     public function incrementCount()
     {
-        // Simply reload from service to be accurate
+        // Simply reload to be accurate
         $this->loadUnreadCount();
     }
 

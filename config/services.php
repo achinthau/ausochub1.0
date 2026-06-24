@@ -36,6 +36,8 @@ return [
         'phone_id' => env('WHATSAPP_PHONE_ID'),
         'token' => env('WHATSAPP_TOKEN'),
         'webjs_url' => env('WHATSAPP_WEBJS_URL', 'http://localhost:3001'),
+        'type' => env('WHATSAPP_TYPE', 'webjs'),
+        'verify_token' => env('WHATSAPP_VERIFY_TOKEN'),
     ],
 
     'mobile' => [

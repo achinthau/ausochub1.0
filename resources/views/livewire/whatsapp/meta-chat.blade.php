@@ -6,15 +6,15 @@
     <div class="w-80 bg-white border-r border-gray-200 flex flex-col flex-shrink-0">
 
         {{-- Header --}}
-        <div class="px-4 py-3 bg-gradient-to-r from-blue-600 to-blue-500 flex items-center justify-between shadow-sm">
+        <div class="px-4 py-3 bg-gradient-to-r from-emerald-600 to-emerald-500 flex items-center justify-between shadow-sm">
             <div class="flex items-center gap-2">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" class="w-6 h-6">
-                    <path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.906 1.378 5.504 3.538 7.26V22l3.236-1.794A10.764 10.764 0 0 0 12 20.486c5.523 0 10-4.145 10-9.243S17.523 2 12 2zm1.007 12.443-2.548-2.72-4.975 2.72 5.473-5.81 2.61 2.72 4.912-2.72-5.472 5.81z"/>
+                    <path d="M12.01 2c-5.52 0-10 4.48-10 10a9.96 9.96 0 0 0 1.25 4.82L2 22l5.36-1.41A9.91 9.91 0 0 0 12.01 22c5.52 0 10-4.48 10-10s-4.48-10-10-10zm0 1.66c4.6 0 8.34 3.74 8.34 8.34s-3.74 8.34-8.34 8.34c-1.57 0-3.04-.43-4.3-1.19l-.31-.18-3.19.84.85-3.11-.2-.32a8.3 8.3 0 0 1-1.19-4.38c0-4.6 3.74-8.34 8.34-8.34z"/>
                 </svg>
-                <h2 class="text-white font-semibold text-base">Messenger</h2>
+                <h2 class="text-white font-semibold text-base">WhatsApp Business</h2>
             </div>
             <button wire:click="loadConversations"
-                    class="p-1.5 rounded-full hover:bg-blue-700 text-white transition-colors"
+                    class="p-1.5 rounded-full hover:bg-emerald-700 text-white transition-colors"
                     title="Refresh">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -28,8 +28,8 @@
             <div class="relative">
                 <input type="text"
                        wire:model.debounce.300ms="search"
-                       placeholder="Search conversations…"
-                       class="w-full pl-9 pr-3 py-1.5 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 transition-all border-none">
+                       placeholder="Search chats…"
+                       class="w-full pl-9 pr-3 py-1.5 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 transition-all border-none">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 absolute left-3 top-2 text-gray-400"
                      fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -44,17 +44,17 @@
                 <div wire:click="selectConversation('{{ $conv['id'] }}')"
                      class="flex items-center px-3 py-3 cursor-pointer transition-colors
                             {{ $selectedId === $conv['id']
-                                ? 'bg-blue-50 border-l-4 border-blue-500'
+                                ? 'bg-emerald-50 border-l-4 border-emerald-500'
                                 : 'hover:bg-gray-50 border-l-4 border-transparent' }}">
 
                     {{-- Avatar --}}
                     <div class="relative flex-shrink-0">
-                        <div class="h-11 w-11 rounded-full bg-blue-400
+                        <div class="h-11 w-11 rounded-full bg-green-400
                                     flex items-center justify-center text-white font-bold text-base shadow-sm">
-                            {{ strtoupper(substr($conv['name'], 0, 1)) }}
+                            {{ strtoupper(substr(ltrim($conv['name'], '+'), 0, 1)) }}
                         </div>
                         @if ($conv['unread'] > 0)
-                            <span class="absolute -top-1 -right-1 bg-blue-600 text-white text-[9px] font-bold
+                            <span class="absolute -top-1 -right-1 bg-emerald-600 text-white text-[9px] font-bold
                                          min-w-[16px] h-4 flex items-center justify-center
                                          rounded-full border-2 border-white shadow-sm px-1">
                                 {{ $conv['unread'] }}
@@ -65,7 +65,7 @@
                     {{-- Info --}}
                     <div class="ml-3 flex-1 min-w-0">
                         <div class="flex items-center justify-between">
-                            <p class="text-sm font-semibold text-gray-900 truncate {{ $conv['unread'] > 0 ? 'text-blue-700' : '' }}">
+                            <p class="text-sm font-semibold text-gray-900 truncate {{ $conv['unread'] > 0 ? 'text-emerald-700' : '' }}">
                                 {{ $conv['name'] }}
                             </p>
                             @if($conv['last_at'])
@@ -85,8 +85,8 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                               d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                     </svg>
-                    <p class="text-sm">No conversations yet</p>
-                    <p class="text-xs mt-1 text-gray-400">Messages from Facebook will appear here</p>
+                    <p class="text-sm">No chats yet</p>
+                    <p class="text-xs mt-1 text-gray-400">Incoming messages from Meta API will appear here</p>
                 </div>
             @endforelse
         </div>
@@ -95,16 +95,16 @@
     {{-- ═══════════════════════════════════════════════════
          MAIN CHAT AREA
     ══════════════════════════════════════════════════════ --}}
-    <div class="flex-1 flex flex-col" style="background: #f0f2f5;">
+    <div class="flex-1 flex flex-col" style="background: #efeae2;">
 
         @if($selectedId && $activeConv)
 
             {{-- Chat Header --}}
             <div class="px-4 py-3 bg-white border-b border-gray-200 flex items-center justify-between shadow-sm z-10">
                 <div class="flex items-center">
-                    <div class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600
+                    <div class="h-10 w-10 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600
                                 flex items-center justify-center text-white font-bold shadow-sm">
-                        {{ strtoupper(substr($activeConv['name'], 0, 1)) }}
+                        {{ strtoupper(substr(ltrim($activeConv['name'], '+'), 0, 1)) }}
                     </div>
                     <div class="ml-3">
                         @if($editingName)
@@ -113,8 +113,8 @@
                                        wire:model.defer="pendingName"
                                        wire:keydown.enter="saveContactName"
                                        wire:keydown.escape="cancelEditName"
-                                       placeholder="Enter sender's name..."
-                                       class="px-2 py-1 text-sm bg-gray-50 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium text-gray-900"
+                                       placeholder="Enter contact name..."
+                                       class="px-2 py-1 text-sm bg-gray-50 border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-emerald-500 font-medium text-gray-900"
                                        autoFocus>
                                 <button wire:click="saveContactName" class="p-1 text-green-600 hover:bg-green-50 rounded" title="Save">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -131,21 +131,14 @@
                             <div class="flex items-center gap-2 group">
                                 <h3 class="text-sm font-bold text-gray-900">{{ $activeConv['name'] }}</h3>
                                 {{-- Pencil: edit name manually --}}
-                                <button wire:click="startEditName" class="p-1 text-gray-400 hover:text-blue-600 rounded hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity" title="Edit name manually">
+                                <button wire:click="startEditName" class="p-1 text-gray-400 hover:text-emerald-600 rounded hover:bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity" title="Edit name manually">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                     </svg>
                                 </button>
-                                {{-- Cloud icon: try fetching from Meta API --}}
-                                <!-- <button wire:click="fetchNameFromApi" wire:loading.attr="disabled" title="Try fetching name from Meta Graph API"
-                                        class="p-1 text-gray-400 hover:text-indigo-600 rounded hover:bg-indigo-50 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                    </svg>
-                                </button> -->
                             </div>
                         @endif
-                        <p class="text-[11px] text-gray-500 mt-0.5">PSID: {{ $activeConv['id'] }}</p>
+                        <p class="text-[11px] text-gray-500 mt-0.5">Phone: +{{ $activeConv['id'] }}</p>
                     </div>
                 </div>
                 <button wire:click="closeConversation"
@@ -185,9 +178,9 @@
 
                         {{-- Incoming avatar --}}
                         @if(!$msg['from_me'])
-                            <div class="h-7 w-7 rounded-full bg-gradient-to-br from-blue-400 to-blue-600
+                            <div class="h-7 w-7 rounded-full bg-gray-400
                                         flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mb-1 shadow-sm">
-                                {{ strtoupper(substr($activeConv['name'], 0, 1)) }}
+                                {{ strtoupper(substr(ltrim($activeConv['name'], '+'), 0, 1)) }}
                             </div>
                         @endif
 
@@ -195,19 +188,19 @@
                         <div class="max-w-[65%]">
                             <div class="px-3 py-2 rounded-2xl shadow-sm text-sm leading-relaxed
                                         {{ $msg['from_me']
-                                            ? 'bg-blue-600 text-white rounded-br-sm'
-                                            : 'bg-white text-gray-800 rounded-bl-sm' }}">
+                                            ? 'bg-white text-gray-800 rounded-br-sm border border-[#e2e8f0]'
+                                            : 'bg-white text-gray-800 rounded-bl-sm border border-[#e2e8f0]' }}">
                                 <p class="whitespace-pre-wrap break-words">{{ $msg['text'] }}</p>
                             </div>
                             <p class="text-[10px] text-gray-400 mt-0.5 {{ $msg['from_me'] ? 'text-right' : 'text-left' }} px-1">
                                 {{ $msg['sent_at'] }}
                                 @if($msg['from_me'])
-                                    <span class="ml-1 text-blue-400">✓✓</span>
+                                    <span class="ml-1 text-green-500">✓✓</span>
                                 @endif
                             </p>
                         </div>
 
-                        {{-- Sent avatar (agent initials) --}}
+                        {{-- Sent avatar --}}
                         @if($msg['from_me'])
                             <div class="h-7 w-7 rounded-full bg-gray-400
                                         flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mb-1 shadow-sm">
@@ -217,7 +210,7 @@
                     </div>
                 @empty
                     <div class="flex items-center justify-center h-full">
-                        <p class="text-gray-400 text-sm">No messages in this conversation yet.</p>
+                        <p class="text-gray-400 text-sm">No messages in this chat yet.</p>
                     </div>
                 @endforelse
             </div>
@@ -228,9 +221,9 @@
                     <div class="flex-1 bg-gray-100 rounded-2xl px-4 py-2 flex items-end">
                         <textarea
                             wire:model.defer="newMessage"
-                            placeholder="Reply to {{ $activeConv['name'] }}…"
+                            placeholder="Type a message to {{ $activeConv['name'] }}…"
                             rows="1"
-                            id="messenger-reply-input"
+                            id="whatsapp-reply-input"
                             class="flex-1 bg-transparent resize-none focus:outline-none text-sm text-gray-800 placeholder-gray-400 max-h-32"
                             style="min-height:24px;"
                             onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();this.closest('form').dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));}"
@@ -239,7 +232,7 @@
 
                     {{-- Send Button --}}
                     <button type="submit"
-                            class="flex-shrink-0 w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white
+                            class="flex-shrink-0 w-10 h-10 bg-emerald-600 hover:bg-emerald-700 text-white
                                    rounded-full flex items-center justify-center shadow-md transition-all
                                    active:scale-95 disabled:opacity-50"
                             wire:loading.attr="disabled">
@@ -250,7 +243,7 @@
                 </form>
 
                 {{-- Sending indicator --}}
-                <div wire:loading wire:target="sendMessage" class="mt-1 flex items-center gap-1 text-[11px] text-blue-500">
+                <div wire:loading wire:target="sendMessage" class="mt-1 flex items-center gap-1 text-[11px] text-emerald-600">
                     <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
@@ -265,17 +258,17 @@
             <div class="flex-1 flex flex-col items-center justify-center text-center px-6">
                 <div class="w-28 h-28 rounded-full bg-white shadow-md border border-gray-100
                             flex items-center justify-center mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#2563EB" class="w-14 h-14">
-                        <path d="M12 2C6.477 2 2 6.145 2 11.243c0 2.906 1.378 5.504 3.538 7.26V22l3.236-1.794A10.764 10.764 0 0 0 12 20.486c5.523 0 10-4.145 10-9.243S17.523 2 12 2zm1.007 12.443-2.548-2.72-4.975 2.72 5.473-5.81 2.61 2.72 4.912-2.72-5.472 5.81z"/>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#059669" class="w-14 h-14">
+                        <path d="M12.01 2c-5.52 0-10 4.48-10 10a9.96 9.96 0 0 0 1.25 4.82L2 22l5.36-1.41A9.91 9.91 0 0 0 12.01 22c5.52 0 10-4.48 10-10s-4.48-10-10-10zm0 1.66c4.6 0 8.34 3.74 8.34 8.34s-3.74 8.34-8.34 8.34c-1.57 0-3.04-.43-4.3-1.19l-.31-.18-3.19.84.85-3.11-.2-.32a8.3 8.3 0 0 1-1.19-4.38c0-4.6 3.74-8.34 8.34-8.34zM8.83 7.35a.6.6 0 0 0-.42.2c-.17.18-.58.57-.58 1.39s.6 1.62.68 1.73c.09.12 1.18 1.81 2.87 2.54.4.17.72.28.97.36.41.13.78.11 1.07.07.32-.05 1-.41 1.14-.81.14-.4.14-.75.1-.82-.04-.07-.15-.11-.32-.19s-1-.49-1.15-.55-.27-.08-.38.09-.45.55-.55.67-.21.13-.38.05a4.77 4.77 0 0 1-1.42-.88 5.25 5.25 0 0 1-.98-1.22c-.1-.17-.01-.26.08-.35.08-.08.17-.2.25-.3.09-.09.12-.16.18-.27.06-.11.03-.21-.01-.3-.04-.08-.38-.92-.52-1.26-.14-.35-.29-.3-.38-.3z" />
                     </svg>
                 </div>
-                <h2 class="text-2xl font-bold text-gray-800 mb-2">Facebook Messenger</h2>
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">WhatsApp Business</h2>
                 <p class="text-gray-500 text-sm max-w-xs leading-relaxed">
                     Select a conversation from the left to view messages and reply to your customers.
                 </p>
                 <div class="mt-8 px-4 py-2 bg-white rounded-full border border-gray-100 shadow-sm
                             flex items-center gap-2 text-xs text-gray-400">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
                     </svg>

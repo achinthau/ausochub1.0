@@ -59,6 +59,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Redis;
 use App\Http\Livewire\Whatsapp\Chat as WhatsappChat;
+use App\Http\Livewire\Messenger\Chat as MessengerChat;
 
 /*
 |--------------------------------------------------------------------------
@@ -143,6 +144,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
     Route::get('/chat', ChatIndex::class)->name('chat.index');
     Route::get('/whatsapp/chat', WhatsappChat::class)->name('whatsapp.chat');
+    Route::get('/messenger/chat', MessengerChat::class)->name('messenger.chat');
 
     Route::get('/cx-tickets', CxTicketsIndex::class)->name('cx-tickets.index');
     Route::get('/cx-tickets/survey', SurveyIndex::class)->name('cx-tickets-survey.index');
@@ -187,5 +189,79 @@ Route::redirect('/admin/login', '/login')
 
 });
 
+Route::get('/test-network', function (Request $request) {
+    $out = [];
+    $mtu = $request->query('mtu');
+    if ($mtu && is_numeric($mtu)) {
+        $out[] = "=== trying to change MTU to $mtu ===";
+        $out[] = shell_exec("sudo ip link set dev eth0 mtu $mtu 2>&1");
+    }
 
-    
+    $out[] = "=== testing google.com curl (baseline check) ===";
+    $ch = curl_init("https://www.google.com/");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    $res = curl_exec($ch);
+    if ($res === false) {
+        $out[] = "google.com curl error: " . curl_error($ch) . " (code: " . curl_errno($ch) . ")";
+    } else {
+        $out[] = "google.com curl success: status " . curl_getinfo($ch, CURLINFO_HTTP_CODE) . ", " . strlen($res) . " bytes";
+    }
+    curl_close($ch);
+
+    $out[] = "\n=== testing graph.facebook.com curl ===";
+    $ch = curl_init("https://graph.facebook.com/");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    $res = curl_exec($ch);
+    if ($res === false) {
+        $out[] = "curl error: " . curl_error($ch) . " (code: " . curl_errno($ch) . ")";
+    } else {
+        $out[] = "curl success: " . substr($res, 0, 100);
+    }
+    curl_close($ch);
+
+    $out[] = "\n=== testing graph.facebook.com curl with SSL bypass ===";
+    $ch = curl_init("https://graph.facebook.com/");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    $chOptions = [
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
+    ];
+    curl_setopt_array($ch, $chOptions);
+    $res = curl_exec($ch);
+    if ($res === false) {
+        $out[] = "curl SSL bypass error: " . curl_error($ch) . " (code: " . curl_errno($ch) . ")";
+    } else {
+        $out[] = "curl SSL bypass success: " . substr($res, 0, 100);
+    }
+    curl_close($ch);
+
+    $out[] = "\n=== testing TCP socket connection to graph.facebook.com:443 ===";
+    $start = microtime(true);
+    $fp = @fsockopen("graph.facebook.com", 443, $errno, $errstr, 5);
+    if (!$fp) {
+        $out[] = "TCP connection failed: $errstr ($errno) in " . round((microtime(true) - $start) * 1000) . " ms";
+    } else {
+        $out[] = "TCP connection succeeded in " . round((microtime(true) - $start) * 1000) . " ms";
+        fclose($fp);
+    }
+
+    $out[] = "\n=== network interfaces ===";
+    $out[] = shell_exec('ip addr show 2>&1');
+
+    return response(implode("\n", $out), 200, ['Content-Type' => 'text/plain']);
+});
+
+Route::get('/db-check', function () {
+    try {
+        $messages = \App\Models\MessengerMessage::query()
+            ->select('sender_id', 'sender_name', \Illuminate\Support\Facades\DB::raw('count(*) as count'), \Illuminate\Support\Facades\DB::raw('max(sent_at) as last_sent'))
+            ->groupBy('sender_id', 'sender_name')
+            ->get();
+        return response()->json($messages);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()]);
+    }
+});

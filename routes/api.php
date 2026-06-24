@@ -682,6 +682,7 @@ Route::post('/get-missed-call-number', function (Request $request) {
     ]);
 });
 
+Route::get('/whatsapp/webhook', [\App\Http\Controllers\Api\WhatsappWebhookController::class, 'verify']);
 Route::post('/whatsapp/webhook', [\App\Http\Controllers\Api\WhatsappWebhookController::class, 'handle']);
 
 Route::get('/messenger/webhook', [MessengerWebhookController::class, 'verify']);

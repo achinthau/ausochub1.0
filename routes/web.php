@@ -59,6 +59,7 @@ use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Redis;
 use App\Http\Livewire\Whatsapp\Chat as WhatsappChat;
+use App\Http\Livewire\Whatsapp\MetaChat as WhatsappMetaChat;
 use App\Http\Livewire\Messenger\Chat as MessengerChat;
 
 /*
@@ -143,7 +144,13 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     });
 
     Route::get('/chat', ChatIndex::class)->name('chat.index');
-    Route::get('/whatsapp/chat', WhatsappChat::class)->name('whatsapp.chat');
+    if (config('services.whatsapp.type', 'webjs') === 'meta_api') {
+        Route::get('/whatsapp/chat', WhatsappMetaChat::class)->name('whatsapp.chat');
+        Route::get('/whatsapp/webjs/chat', WhatsappChat::class)->name('whatsapp.webjs.chat');
+    } else {
+        Route::get('/whatsapp/chat', WhatsappChat::class)->name('whatsapp.chat');
+        Route::get('/whatsapp/meta/chat', WhatsappMetaChat::class)->name('whatsapp.meta.chat');
+    }
     Route::get('/messenger/chat', MessengerChat::class)->name('messenger.chat');
 
     Route::get('/cx-tickets', CxTicketsIndex::class)->name('cx-tickets.index');

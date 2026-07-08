@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Tickets;
 use App\Models\CrmDepartment;
 use App\Models\Ticket;
 use App\Models\TicketActivity;
+use App\Models\TicketsDaily;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -65,6 +66,14 @@ public ?TicketActivity $activity;
         $this->ticket->ticket_status_id = 2;
         $this->ticket->save();
 
+        $dailyTicket = TicketsDaily::find($this->ticket->id);
+        if ($dailyTicket) {
+            foreach ($this->ticket->getAttributes() as $attribute => $value) {
+                $dailyTicket->{$attribute} = $value;
+            }
+            $dailyTicket->save();
+        }
+
         $this->ticket->logActivity("Ticket Started");
 
         if ($this->customerCard) {
@@ -91,6 +100,14 @@ public ?TicketActivity $activity;
         $this->ticket->ticket_status_id = 4;
         $this->ticket->updated_at = Carbon::now();
         $this->ticket->save();
+
+        $dailyTicket = TicketsDaily::find($this->ticket->id);
+        if ($dailyTicket) {
+            foreach ($this->ticket->getAttributes() as $attribute => $value) {
+                $dailyTicket->{$attribute} = $value;
+            }
+            $dailyTicket->save();
+        }
 
         $this->ticket->logActivity("Ticket Closed", $this->comment);
 
@@ -143,6 +160,15 @@ public ?TicketActivity $activity;
         $this->comment='';
         $this->assignOption = null;
         $this->ticket->save();
+
+        $dailyTicket = TicketsDaily::find($this->ticket->id);
+        if ($dailyTicket) {
+            foreach ($this->ticket->getAttributes() as $attribute => $value) {
+                $dailyTicket->{$attribute} = $value;
+            }
+            $dailyTicket->save();
+        }
+
         $this->ticket->refresh();
         $this->emit('updatedTicketTable');
     }
@@ -151,6 +177,15 @@ public ?TicketActivity $activity;
     {
         $this->ticket->assigned_user_id = $this->selectedUser;
         $this->ticket->save();
+
+        $dailyTicket = TicketsDaily::find($this->ticket->id);
+        if ($dailyTicket) {
+            foreach ($this->ticket->getAttributes() as $attribute => $value) {
+                $dailyTicket->{$attribute} = $value;
+            }
+            $dailyTicket->save();
+        }
+
         $this->ticket = $this->ticket->fresh('assignedUser');
         $userName = User::where('id', $this->selectedUser)->value('name');
         $this->ticket->logActivity("Assigned to ". $userName , $this->comment);
@@ -164,6 +199,15 @@ public ?TicketActivity $activity;
     {
         $this->ticket->assigned_user_id = Null;
         $this->ticket->save();
+
+        $dailyTicket = TicketsDaily::find($this->ticket->id);
+        if ($dailyTicket) {
+            foreach ($this->ticket->getAttributes() as $attribute => $value) {
+                $dailyTicket->{$attribute} = $value;
+            }
+            $dailyTicket->save();
+        }
+
         $this->ticket = $this->ticket->fresh('assignedUser');
         $this->ticket->logActivity("Unassigned", $this->comment);
         $this->ticket->refresh();
@@ -177,6 +221,15 @@ public ?TicketActivity $activity;
         $this->changeDepartment = null;
         $this->users= User::select('id','name')->where('department_id',$this->ticket->department_id)->get()->toArray();
         $this->ticket->save();
+
+        $dailyTicket = TicketsDaily::find($this->ticket->id);
+        if ($dailyTicket) {
+            foreach ($this->ticket->getAttributes() as $attribute => $value) {
+                $dailyTicket->{$attribute} = $value;
+            }
+            $dailyTicket->save();
+        }
+
         $this->ticket->refresh();
         $this->emit('updatedTicketTable');
     }

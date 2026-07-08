@@ -96,12 +96,11 @@
 
 
                         </span>
-                        <h3
-                            class="flex items-center mb-1 text-sm font-semibold text-gray-900 dark:text-white">
-                            {{ $timelineLog['title'] }}
-                            
-                            
-                            <div class="relative group inline-block px-3">
+                        <div class="mb-1 flex items-start justify-between gap-3 text-sm font-semibold text-gray-900 dark:text-white">
+                            <div class="flex items-center gap-3">
+                                <span>{{ $timelineLog['title'] }}</span>
+
+                                <div class="relative group inline-block">
 
     @if (!empty($timelineLog['last-comment']))
         <div class="pl-2 inline-block relative">
@@ -117,13 +116,26 @@
             </div>
         </div>
     @endif
-</div>
 
-                            @if ($loop->first)
-                                <span
-                                    class="animate-ping  bg-blue-100 text-blue-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800 ml-3">Latest</span>
+                                </div>
+
+                                @if ($loop->first)
+                                    <span
+                                        class="animate-ping  bg-blue-100 text-blue-800 text-sm font-medium mr-2 px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800 ml-3">Latest</span>
+                                @endif
+                            </div>
+
+                            @if (($timelineLog['kind'] ?? null) === 'call' && !empty($timelineLog['ticket_count']))
+                                <button type="button"
+                                    onclick="Livewire.emitTo('{{ $timelineLog['latest_ticket_component'] }}','openTicket', {{ $timelineLog['latest_ticket_id'] }},1);return false;"
+                                    class="inline-flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2 py-0.5 text-xs font-medium text-gray-700 hover:bg-gray-50">
+                                    <svg class="h-4 w-4 {{ $timelineLog['latest_ticket_status_id'] == 4 ? 'text-red-600' : ($timelineLog['latest_ticket_status_id'] == 3 ? 'text-amber-600' : ($timelineLog['latest_ticket_status_id'] == 2 ? 'text-green-600' : 'text-blue-500')) }}" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 6v.75m0 3v.75m0 3v.75m0 3V18m-9-5.25h5.25M7.5 15h3M3.375 5.25c-.621 0-1.125.504-1.125 1.125v3.026a2.999 2.999 0 010 5.198v3.026c0 .621.504 1.125 1.125 1.125h17.25c.621 0 1.125-.504 1.125-1.125v-3.026a2.999 2.999 0 010-5.198V6.375c0-.621-.504-1.125-1.125-1.125H3.375z"></path>
+                                    </svg>
+                                    <span>{{ $timelineLog['latest_ticket_status'] }}</span>
+                                </button>
                             @endif
-                        </h3>
+                        </div>
                         <time
                             class="block mb-2 text-xs font-normal leading-none text-gray-400 dark:text-gray-500">{{ $timelineLog['created_date'] }}
                             at {{ $timelineLog['created_time'] }}
@@ -163,6 +175,7 @@
                                 </svg>
                                 View {{ $timelineLog['title'] }}</a>
                         @endif
+
                         {{-- @if( $timelineLog['last-reaction'])
                         <label class="text-red-500">Last time angry customer </label>
                         @endif --}}

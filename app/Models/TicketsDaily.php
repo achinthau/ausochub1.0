@@ -10,11 +10,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
-class Ticket extends Model
+class TicketsDaily extends Model
 {
     use HasFactory;
 
-    protected $table = "tickets_report";
+    protected $table = "tickets";
 
     protected $attributes = [
         'ticket_category_id' => 0,

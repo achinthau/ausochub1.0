@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Leads\Partials;
 use App\Models\CallCount;
 use App\Models\CallCountReport;
 use App\Models\Lead;
+use App\Models\TicketsDaily;
 use App\Models\QueueCount;
 use App\Models\QueueCountReport;
 use Livewire\Component;
@@ -22,6 +23,7 @@ class ActivityLog extends Component
     public  $isLoad = false;
     public  $loadMoreStatus = false;
     public  $fliterStatus = [2];
+    public $expandedCallUniqueId = null;
 
 
     protected $listeners = ['refreshTimeline' => 'refreshTimeline'];
@@ -35,11 +37,32 @@ class ActivityLog extends Component
         return view('livewire.leads.partials.activity-log');
     }
 
+    public function toggleCallTickets($uniqueid)
+    {
+        $this->expandedCallUniqueId = $this->expandedCallUniqueId === $uniqueid ? null : $uniqueid;
+    }
+
+    protected function ticketStatusClasses($statusId): array
+    {
+        return match ((int) $statusId) {
+            1 => ['bg-gray-200', 'text-gray-700'],
+            2 => ['bg-blue-200', 'text-blue-700'],
+            3 => ['bg-amber-200', 'text-amber-700'],
+            4 => ['bg-green-200', 'text-green-700'],
+            5 => ['bg-red-200', 'text-red-700'],
+            default => ['bg-slate-200', 'text-slate-700'],
+        };
+    }
+
     public function refreshTimeline()
     {
         $timelineLogs = collect([]);
-
-        $lead = $this->lead->load('latestTickets', 'tickets.category', 'tickets.status', 'tickets.outlet', 'orders', 'orders.items');
+        $lead = $this->lead;
+        $dailyTickets = TicketsDaily::with('category', 'status', 'outlet', 'items', 'items.item')
+            ->where('lead_id', $lead->id)
+            ->latest()
+            ->get();
+        $ticketsByCallUniqueId = $dailyTickets->whereNotNull('call_uniqueid')->groupBy('call_uniqueid');
 
         if (in_array(2, $this->fliterStatus)) {
             $this->callLogs = QueueCount::with('agentInfo')->where(function ($query) use ($lead) {
@@ -54,8 +77,11 @@ class ActivityLog extends Component
 
 
             // Map call logs
-            $timelineLogs = $timelineLogs->merge($this->callLogs->map(function ($item) {
+            $timelineLogs = $timelineLogs->merge($this->callLogs->map(function ($item) use ($ticketsByCallUniqueId) {
+                $linkedTickets = $ticketsByCallUniqueId->get($item->uniqueid, collect([]));
                 return [
+                    'kind' => 'call',
+                    'uniqueid' => $item->uniqueid,
                     'title' => 'Incoming Call',
                     'created_at' => $item->date,
                     'created_date' => $item->date->format('F jS, Y'),
@@ -66,12 +92,33 @@ class ActivityLog extends Component
                     'icon-color' => 'text-blue-600 dark:text-blue-400',
                     'last-reaction' => $item->customer_reaction,
                     'last-comment' => $item->comment,
+                    'ticket_count' => $linkedTickets->count(),
+                    'latest_ticket_id' => $linkedTickets->first()?->id,
+                    'latest_ticket_component' => ($linkedTickets->first()?->ticket_category_id == 3) ? 'orders.show' : 'tickets.show',
+                    'latest_ticket_status' => $linkedTickets->first()?->status?->title,
+                    'latest_ticket_status_id' => $linkedTickets->first()?->ticket_status_id,
+                    'linked_tickets' => $linkedTickets->map(function ($ticket) {
+                        [$bgColor, $textColor] = $this->ticketStatusClasses($ticket->ticket_status_id);
+
+                        return [
+                            'id' => $ticket->id,
+                            'title' => $ticket->ticket_title,
+                            'status' => $ticket->status?->title,
+                            'status_id' => $ticket->ticket_status_id,
+                            'status_bg' => $bgColor,
+                            'status_text' => $textColor,
+                            'created_at' => $ticket->created_at?->format('Y-m-d H:i:s'),
+                        ];
+                    })->values()->all(),
                 ];
             }));
 
             // Map out call logs
-            $timelineLogs = $timelineLogs->merge($this->outCallLogs->map(function ($item) {
+            $timelineLogs = $timelineLogs->merge($this->outCallLogs->map(function ($item) use ($ticketsByCallUniqueId) {
+                $linkedTickets = $ticketsByCallUniqueId->get($item->uniqueid, collect([]));
                 return [
+                    'kind' => 'call',
+                    'uniqueid' => $item->uniqueid,
                     'title' => 'Outgoing Call',
                     'created_at' => $item->date,
                     'created_date' => $item->date->format('F jS, Y'),
@@ -82,6 +129,24 @@ class ActivityLog extends Component
                     'icon-color' => 'text-blue-600 dark:text-blue-400',
                     'last-reaction' => $item->customer_reaction,
                     'last-comment' => $item->comment,
+                    'ticket_count' => $linkedTickets->count(),
+                    'latest_ticket_id' => $linkedTickets->first()?->id,
+                    'latest_ticket_component' => ($linkedTickets->first()?->ticket_category_id == 3) ? 'orders.show' : 'tickets.show',
+                    'latest_ticket_status' => $linkedTickets->first()?->status?->title,
+                    'latest_ticket_status_id' => $linkedTickets->first()?->ticket_status_id,
+                    'linked_tickets' => $linkedTickets->map(function ($ticket) {
+                        [$bgColor, $textColor] = $this->ticketStatusClasses($ticket->ticket_status_id);
+
+                        return [
+                            'id' => $ticket->id,
+                            'title' => $ticket->ticket_title,
+                            'status' => $ticket->status?->title,
+                            'status_id' => $ticket->ticket_status_id,
+                            'status_bg' => $bgColor,
+                            'status_text' => $textColor,
+                            'created_at' => $ticket->created_at?->format('Y-m-d H:i:s'),
+                        ];
+                    })->values()->all(),
                 ];
             }));
         }
@@ -133,9 +198,10 @@ class ActivityLog extends Component
 
 
         // Map lead tickets (with null check)
-        if (in_array(1, $this->fliterStatus) && $this->lead->latestTickets) {
-            $timelineLogs = $timelineLogs->merge($this->lead->latestTickets->map(function ($item) {
+        if (in_array(1, $this->fliterStatus) && $dailyTickets) {
+            $timelineLogs = $timelineLogs->merge($dailyTickets->map(function ($item) {
                 return [
+                    'kind' => 'ticket',
                     'id' => $item->id,
                     'component' => $item->ticket_category_id == 3 ? 'orders.show' : 'tickets.show',
                     'action' => $item->ticket_category_id == 3 ? 'openTicket' : 'openTicket',

@@ -3,11 +3,13 @@
 namespace App\Http\Livewire\Tickets;
 
 use App\Models\CrmDepartment;
+use App\Models\Lead;
 use App\Models\Item;
 use App\Models\Outlet;
 use App\Models\Ticket;
 use App\Models\TicketCategory;
 use App\Models\TicketItem;
+use App\Models\TicketsDaily;
 use App\Models\User;
 use Livewire\Component;
 use WireUi\Traits\Actions;
@@ -168,8 +170,18 @@ class Create extends Component
         }
 
         $this->ticket->topic = $this->ticket->ticket_category_id == 3 ? "Order" : $this->ticket->topic;
+        $this->ticket->call_uniqueid = $this->leadId ? Lead::where('id', $this->leadId)->value('unique_id') : null;
         
         $this->ticket->save();
+
+        if ($this->ticket->created_at && $this->ticket->created_at->isToday()) {
+            $dailyTicket = TicketsDaily::find($this->ticket->id) ?? new TicketsDaily;
+            foreach ($this->ticket->getAttributes() as $attribute => $value) {
+                $dailyTicket->{$attribute} = $value;
+            }
+            $dailyTicket->id = $this->ticket->id;
+            $dailyTicket->save();
+        }
         
 
         $this->ticket->logActivity('Ticket created');
@@ -196,6 +208,14 @@ class Create extends Component
         if (config('auso.ticket_sla_enabled') && $this->ticket->subCategory->due_in_hours) {
             $this->ticket->due_at = $this->ticket->created_at->addSeconds($this->ticket->subCategory->due_in_hours * 60 * 60);
             $this->ticket->save();
+
+            $dailyTicket = TicketsDaily::find($this->ticket->id);
+            if ($dailyTicket) {
+                foreach ($this->ticket->getAttributes() as $attribute => $value) {
+                    $dailyTicket->{$attribute} = $value;
+                }
+                $dailyTicket->save();
+            }
         }
 
         $this->creatingTicket = false;

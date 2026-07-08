@@ -45,8 +45,8 @@ public ?TicketActivity $activity;
 
     public function updatedShowTicketModal($value)
     {
-        if ($value) {
-            $this->ticket = null;
+        if (! $value) {
+            $this->resetModalState();
         }
     }
 
@@ -63,16 +63,10 @@ public ?TicketActivity $activity;
 
     public function save()
     {
+        $this->preserveCallUniqueId();
         $this->ticket->ticket_status_id = 2;
         $this->ticket->save();
-
-        $dailyTicket = TicketsDaily::find($this->ticket->id);
-        if ($dailyTicket) {
-            foreach ($this->ticket->getAttributes() as $attribute => $value) {
-                $dailyTicket->{$attribute} = $value;
-            }
-            $dailyTicket->save();
-        }
+        $this->syncDailyTicket();
 
         $this->ticket->logActivity("Ticket Started");
 
@@ -97,17 +91,11 @@ public ?TicketActivity $activity;
             'comment' => 'required'
         ]);
 
+        $this->preserveCallUniqueId();
         $this->ticket->ticket_status_id = 4;
         $this->ticket->updated_at = Carbon::now();
         $this->ticket->save();
-
-        $dailyTicket = TicketsDaily::find($this->ticket->id);
-        if ($dailyTicket) {
-            foreach ($this->ticket->getAttributes() as $attribute => $value) {
-                $dailyTicket->{$attribute} = $value;
-            }
-            $dailyTicket->save();
-        }
+        $this->syncDailyTicket();
 
         $this->ticket->logActivity("Ticket Closed", $this->comment);
 
@@ -159,15 +147,9 @@ public ?TicketActivity $activity;
         $this->ticket->logActivity("Assigned to himself", $this->comment);
         $this->comment='';
         $this->assignOption = null;
+        $this->preserveCallUniqueId();
         $this->ticket->save();
-
-        $dailyTicket = TicketsDaily::find($this->ticket->id);
-        if ($dailyTicket) {
-            foreach ($this->ticket->getAttributes() as $attribute => $value) {
-                $dailyTicket->{$attribute} = $value;
-            }
-            $dailyTicket->save();
-        }
+        $this->syncDailyTicket();
 
         $this->ticket->refresh();
         $this->emit('updatedTicketTable');
@@ -176,15 +158,9 @@ public ?TicketActivity $activity;
     public function assignToUser()
     {
         $this->ticket->assigned_user_id = $this->selectedUser;
+        $this->preserveCallUniqueId();
         $this->ticket->save();
-
-        $dailyTicket = TicketsDaily::find($this->ticket->id);
-        if ($dailyTicket) {
-            foreach ($this->ticket->getAttributes() as $attribute => $value) {
-                $dailyTicket->{$attribute} = $value;
-            }
-            $dailyTicket->save();
-        }
+        $this->syncDailyTicket();
 
         $this->ticket = $this->ticket->fresh('assignedUser');
         $userName = User::where('id', $this->selectedUser)->value('name');
@@ -198,15 +174,9 @@ public ?TicketActivity $activity;
     public function unAssign()
     {
         $this->ticket->assigned_user_id = Null;
+        $this->preserveCallUniqueId();
         $this->ticket->save();
-
-        $dailyTicket = TicketsDaily::find($this->ticket->id);
-        if ($dailyTicket) {
-            foreach ($this->ticket->getAttributes() as $attribute => $value) {
-                $dailyTicket->{$attribute} = $value;
-            }
-            $dailyTicket->save();
-        }
+        $this->syncDailyTicket();
 
         $this->ticket = $this->ticket->fresh('assignedUser');
         $this->ticket->logActivity("Unassigned", $this->comment);
@@ -220,17 +190,56 @@ public ?TicketActivity $activity;
         $this->ticket->assigned_user_id = Null;
         $this->changeDepartment = null;
         $this->users= User::select('id','name')->where('department_id',$this->ticket->department_id)->get()->toArray();
+        $this->preserveCallUniqueId();
         $this->ticket->save();
-
-        $dailyTicket = TicketsDaily::find($this->ticket->id);
-        if ($dailyTicket) {
-            foreach ($this->ticket->getAttributes() as $attribute => $value) {
-                $dailyTicket->{$attribute} = $value;
-            }
-            $dailyTicket->save();
-        }
+        $this->syncDailyTicket();
 
         $this->ticket->refresh();
         $this->emit('updatedTicketTable');
+    }
+
+    protected function preserveCallUniqueId(): void
+    {
+        if (! $this->ticket) {
+            return;
+        }
+
+        $callUniqueId = $this->ticket->call_uniqueid
+            ?? $this->ticket->getOriginal('call_uniqueid')
+            ?? Ticket::whereKey($this->ticket->id)->value('call_uniqueid');
+
+        if ($callUniqueId) {
+            $this->ticket->call_uniqueid = $callUniqueId;
+        }
+    }
+
+    protected function syncDailyTicket(): void
+    {
+        $dailyTicket = TicketsDaily::find($this->ticket->id);
+
+        if (! $dailyTicket) {
+            return;
+        }
+
+        foreach ($this->ticket->getAttributes() as $attribute => $value) {
+            $dailyTicket->{$attribute} = $value;
+        }
+
+        if (! $dailyTicket->call_uniqueid) {
+            $dailyTicket->call_uniqueid = $this->ticket->call_uniqueid
+                ?? Ticket::whereKey($this->ticket->id)->value('call_uniqueid');
+        }
+
+        $dailyTicket->save();
+    }
+
+    protected function resetModalState(): void
+    {
+        $this->ticket = null;
+        $this->comment = null;
+        $this->assignOption = null;
+        $this->changeDepartment = null;
+        $this->selectedDepartment = null;
+        $this->selectedUser = null;
     }
 }

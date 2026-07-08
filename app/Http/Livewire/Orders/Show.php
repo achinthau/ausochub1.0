@@ -28,8 +28,9 @@ class Show extends Component
 
     public function updatedShowTicketModal($value)
     {
-        if ($value) {
+        if (! $value) {
             $this->ticket = null;
+            $this->orderRef = '';
         }
     }
 
@@ -46,6 +47,7 @@ class Show extends Component
             'orderRef'=>'required'
         ]);
 
+        $this->preserveCallUniqueId();
         $this->ticket->ticket_status_id = 2;
         $this->ticket->order_ref = $this->orderRef;
         $this->ticket->bill_no = $this->ticket->outlet->contact_no."-".$this->orderRef;
@@ -62,6 +64,7 @@ class Show extends Component
 
     public function closeTicket()
     {
+        $this->preserveCallUniqueId();
         $this->ticket->ticket_status_id = 4;
         $this->ticket->save();
         $this->ticket->logActivity("Completed");
@@ -71,5 +74,20 @@ class Show extends Component
             $description = 'Ticket Closed'
         );
         $this->showTicketModal = false;
+    }
+
+    protected function preserveCallUniqueId(): void
+    {
+        if (! $this->ticket) {
+            return;
+        }
+
+        $callUniqueId = $this->ticket->call_uniqueid
+            ?? $this->ticket->getOriginal('call_uniqueid')
+            ?? Ticket::whereKey($this->ticket->id)->value('call_uniqueid');
+
+        if ($callUniqueId) {
+            $this->ticket->call_uniqueid = $callUniqueId;
+        }
     }
 }

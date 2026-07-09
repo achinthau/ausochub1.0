@@ -138,7 +138,9 @@ class Create extends Component
 
     public function updatedCreatingTicket($value)
     {
-        $this->resetForm();
+        if (!$value) {
+            $this->resetForm();
+        }
     }
 
     public function updatedTicketCrm($value) {}
@@ -244,7 +246,7 @@ class Create extends Component
         $this->resetErrorBag();
         $this->resetValidation();
         // $this->emit('refreshDatatable');
-        redirect(route('tickets.index'));
+        // redirect(route('tickets.index'));
     }
 
 

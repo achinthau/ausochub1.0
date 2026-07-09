@@ -196,6 +196,12 @@ class Show extends Component
     {
         \Log::info('Show Lead component mounting', ['lead_id' => $lead->id]);
         $this->lead = $lead->load('tickets', 'tickets.category', 'tickets.status', 'tickets.outlet', 'orders', 'orders.items');
+
+        if (filled(trim((string) $this->lead->full_name))) {
+            // $this->emitTo('tickets.create', 'showCreatingTicket');
+            $this->emit('showCreatingTicket');
+        }
+
         $this->isIncomming = filter_var(request()->query('isIncomming'), FILTER_VALIDATE_BOOLEAN);
         $this->feed_id = request()->query('feed');
         $this->campaign = request()->query('cmp');

@@ -17,7 +17,7 @@
                 </a>
 
                 {{-- @if ($lead->status_id == 2) --}}
-                <a href="#" onclick="Livewire.emitTo('tickets.create', 'showCreatingTicket')"
+                <button type="button" onclick="Livewire.emitTo('tickets.create', 'showCreatingTicket'); return false;"
                     class="border border-info-600 dark:hover:bg-slate-700 dark:ring-offset-slate-800 disabled:cursor-not-allowed disabled:opacity-80 duration-150 ease-in focus:ring-2 focus:ring-offset-2 gap-x-2 group hover:bg-info-50 hover:shadow-sm inline-flex items-center justify-center outline-none px-4 py-0.5 ring-info-600 rounded text-info-600 text-sm transition-all">
                     <svg class="w-6 h-6 " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                         stroke-width="1.5" stroke="currentColor" aria-hidden="true">
@@ -26,7 +26,7 @@
                         </path>
                     </svg>
                     Ticket
-                </a>
+                </button>
                 {{-- <a href="#" onclick="$openModal('CreatingOrder')" class="outline-none inline-flex justify-center items-center group transition-all ease-in duration-150 focus:ring-2 focus:ring-offset-2 hover:shadow-sm disabled:opacity-80 disabled:cursor-not-allowed rounded gap-x-2 text-sm px-4 py-0.5     ring-positive-500 text-positive-500 border border-positive-500 hover:bg-positive-50
                                                        dark:ring-offset-slate-800 dark:hover:bg-slate-700">
                     <svg class="w-6 h-6" width="48" height="48" viewBox="0 0 48 48" fill="currentColor"
@@ -890,6 +890,39 @@
         </x-slot>
     </x-modal.card>
 </div>
+@if(filled(trim((string) ($lead->full_name ?? ''))))
+    <script>
+        (function() {
+            var emitOpenTicketModal = function(attempt) {
+                var currentAttempt = attempt || 0;
+
+                if (window.Livewire && typeof window.Livewire.emitTo === 'function') {
+                    window.Livewire.emitTo('tickets.create', 'showCreatingTicket');
+                    return;
+                }
+
+                if (window.livewire && typeof window.livewire.emitTo === 'function') {
+                    window.livewire.emitTo('tickets.create', 'showCreatingTicket');
+                    return;
+                }
+
+                if (currentAttempt < 15) {
+                    setTimeout(function() {
+                        emitOpenTicketModal(currentAttempt + 1);
+                    }, 200);
+                }
+            };
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', emitOpenTicketModal, { once: true });
+            } else {
+                emitOpenTicketModal();
+            }
+
+            document.addEventListener('livewire:load', emitOpenTicketModal, { once: true });
+        })();
+    </script>
+@endif
 @push('modals')
 
     @livewire('leads.create', ['lead' => $lead])

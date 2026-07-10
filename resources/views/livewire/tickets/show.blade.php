@@ -6,40 +6,13 @@
     <x-modal.card :title="$title" blur wire:model="showTicketModal" max-width="3xl" align="center">
         @if ($ticket)
             <div class="p-4 sm:p-6 space-y-4 bg-slate-50/60">
-                <div class="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                    <div class="space-y-1">
-                        <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Ticket Overview</div>
-                        <div class="text-sm text-slate-700">
-                            Department: <span class="font-medium">{{ $ticket->department?->name ?? 'Not assigned' }}</span>
-                        </div>
-                        <div class="text-sm text-slate-700">
-                            Assigned User: <span class="font-medium">{{ $ticket->assignedUser?->name ?? 'Not assigned' }}</span>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-2">
-                        @if ($ticket && $loggedUser && $loggedUser->id == $ticket->assigned_user_id)
-                            @if ($ticket->ticket_status_id == 1)
-                                <x-button flat label="Start" wire:click="save"
-                                    class="border border-blue-600 !bg-white !text-blue-600 hover:!bg-blue-50" />
-                            @endif
-
-                            @if ($ticket->ticket_status_id != 4)
-                                <x-button flat label="Complete" wire:click="closeTicket"
-                                    class="border border-red-600 !bg-white !text-red-600 hover:!bg-red-50" />
-                            @endif
-
-                            <x-button flat label="Exit" x-on:click="close" />
-                        @else
-                            <x-button flat label="Exit" x-on:click="close" />
-                        @endif
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                    <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                
+                <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                    <div class="flex items-start justify-between gap-4">
+                    <div class="p-4 pr-4 flex-1 min-w-0">
                         <div class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Customer</div>
-                        @if ($ticket->lead)
+                        
+                            @if ($ticket->lead)
                             <div class="space-y-2 text-sm text-slate-700">
                                 <div>Client Name: <span class="font-medium">{{ $ticket->lead->full_name }}</span></div>
                                 <div>Contact Number: <span class="font-medium">{{ $ticket->lead->contact_number }}</span></div>
@@ -49,8 +22,37 @@
                         @endif
                     </div>
 
+                    <div class="p-4 pl-0 flex shrink-0 justify-end">
+                        <div class="flex flex-wrap items-center justify-end gap-2">
+                        @if ($ticket && $loggedUser && $loggedUser->id == $ticket->assigned_user_id)
+                            @if ($ticket->ticket_status_id == 1)
+                                <x-button flat label="Start" wire:click="save"
+                                    class="border border-blue-600 !bg-white !text-blue-600 hover:!bg-blue-50" />
+                            @endif
+
+                            @if ($ticket->ticket_status_id != 4 && $ticket->ticket_status_id != 1)
+                                <x-button flat label="Complete" wire:click="closeTicket"
+                                    class="border border-red-600 !bg-white !text-red-600 hover:!bg-red-50" />
+                               @endif
+                            @if ($ticket->ticket_status_id != 4 && $ticket->ticket_status_id != 1 && $ticket->ticket_status_id != 5)
+                                <x-button flat label="Hold" wire:click="holdTicket"
+                                    class="border border-yellow-600 !bg-white !text-yellow-600 hover:!bg-yellow-50" />
+                            @endif
+
+                            {{-- <x-button flat label="Exit" x-on:click="close" /> --}}
+                        @else
+                            {{-- <x-button flat label="Exit" x-on:click="close" /> --}}
+                        @endif
+                        </div>
+                    </div>
+                    </div>
+
+                    
+                </div>
+                
+                <div class="grid grid-cols-1 gap-4 lg:grid-cols-2">
                     <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                        <div class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Classification</div>
+                        {{-- <div class="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Classification</div> --}}
                         <div class="space-y-2 text-sm text-slate-700">
                             @if ($ticket->ticket_category_id != 3)
                                 <div>Category: <span class="font-medium">{{ $ticket->category->title }}</span></div>
@@ -71,11 +73,39 @@
                             </div>
                         </div>
                     </div>
+                    
+                    <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                        {{-- <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Ticket Overview</div> --}}
+                        <div class="text-sm text-slate-700">
+                            Department: <span class="font-medium">{{ $ticket->department?->name ?? 'Not assigned' }}</span>
+                        </div>
+                        <div class="text-sm text-slate-700">
+                            Assigned User: <span class="font-medium">{{ $ticket->assignedUser?->name ?? 'Not assigned' }}</span>
+                        </div>
+                    </div>
+
+                    
                 </div>
 
-                <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
+                @if ($ticket->description)
+                    <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                        <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                            {{ $ticket->ticket_category_id != 3 ? 'Description' : 'Special Instruction' }}
+                        </div>
+                        <p class="text-sm leading-6 text-slate-700">{{ $ticket->description }}</p>
+                    </div>
+                @endif
+
+                
+
+                <div
+                    x-data="{
+                        assignOption: @entangle('assignOption').defer,
+                        changeDepartment: @entangle('changeDepartment').defer
+                    }"
+                    class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
                     <div class="flex items-center justify-between gap-4">
-                        <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Assignment</div>
+                        {{-- <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Assignment</div> --}}
                         @if ($loggedUser && $loggedUser->user_type_id == 1 && $ticket->ticket_status_id != 4 && $ticket->assigned_user_id)
                             <x-button secondary sm label="Unassign" wire:click="unAssign" />
                         @endif
@@ -86,27 +116,29 @@
                             <label class="text-sm font-semibold text-slate-700">Assignment Type</label>
                             <div class="flex flex-wrap gap-4 text-sm">
                                 <label class="flex items-center gap-2">
-                                    <input type="radio" value="me" wire:model="assignOption" />
+                                    <input type="radio" value="me" x-model="assignOption" />
                                     <span>Assign to me</span>
                                 </label>
 
                                 @if ($loggedUser->user_type_id == 1)
                                     <label class="flex items-center gap-2">
-                                        <input type="radio" value="user" wire:model="assignOption" />
+                                        <input type="radio" value="user" x-model="assignOption" />
                                         <span>Assign to user</span>
                                     </label>
                                 @endif
                             </div>
 
-                            @if ($assignOption === 'me')
+                            <div x-show="assignOption === 'me'" x-cloak>
                                 <x-button secondary label="Assign to me" wire:click="assign" />
-                            @endif
+                            </div>
 
-                            @if ($assignOption === 'user' && $loggedUser->user_type_id == 1)
+                            @if ($loggedUser->user_type_id == 1)
                                 <div class="flex flex-col gap-2 sm:w-72">
-                                    <x-native-select label="Users" placeholder="Select user" :options="$users"
-                                        wire:model="selectedUser" option-label="name" option-value="id" />
-                                    <x-button secondary label="Assign to User" wire:click="assignToUser" />
+                                    <div x-show="assignOption === 'user'" x-cloak class="flex flex-col gap-2">
+                                        <x-native-select label="Users" placeholder="Select user" :options="$users"
+                                            wire:model.defer="selectedUser" option-label="name" option-value="id" />
+                                        <x-button secondary label="Assign to User" wire:click="assignToUser" />
+                                    </div>
                                 </div>
                             @endif
                         </div>
@@ -115,17 +147,17 @@
                     @if ($loggedUser && $loggedUser->user_type_id == 1 && $ticket->ticket_status_id != 4)
                         <div class="pt-2 border-t border-slate-200 space-y-2">
                             <label class="flex items-center gap-2 text-sm font-semibold text-slate-700">
-                                <input type="radio" value="change" wire:model="changeDepartment" />
+                                <input type="radio" value="change" x-model="changeDepartment" />
                                 <span>Change Department</span>
                             </label>
 
-                            @if ($changeDepartment === 'change')
+                            <div x-show="changeDepartment === 'change'" x-cloak>
                                 <div class="flex flex-col gap-2 sm:w-72">
                                     <x-native-select label="Departments" placeholder="Select Department" :options="$departments"
-                                        wire:model="selectedDepartment" option-label="name" option-value="id" />
+                                        wire:model.defer="selectedDepartment" option-label="name" option-value="id" />
                                     <x-button secondary label="Assign Department" wire:click="assignDepartment" />
                                 </div>
-                            @endif
+                            </div>
                         </div>
                     @endif
 
@@ -142,14 +174,7 @@
                     @endif
                 </div>
 
-                @if ($ticket->description)
-                    <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-                        <div class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                            {{ $ticket->ticket_category_id != 3 ? 'Description' : 'Special Instruction' }}
-                        </div>
-                        <p class="text-sm leading-6 text-slate-700">{{ $ticket->description }}</p>
-                    </div>
-                @endif
+                
 
                 @if ($ticket->ticket_category_id == 3 && $ticket->crm)
                     <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
@@ -189,7 +214,7 @@
                 @endif
 
                 <div class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm space-y-4">
-                    <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Activity Log</div>
+                    {{-- <div class="text-xs font-semibold uppercase tracking-wide text-slate-500">Activity Log</div> --}}
 
                     <div class="space-y-2">
                         <x-textarea wire:model.defer="comment" placeholder="Enter your comment here" rows="2" />

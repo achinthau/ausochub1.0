@@ -115,6 +115,37 @@ public ?TicketActivity $activity;
 
         $this->emit('updatedTicketTable');
     }
+    public function holdTicket()
+    {
+
+        $this->validate([
+            'comment' => 'required'
+        ]);
+
+        $this->preserveCallUniqueId();
+        $this->ticket->ticket_status_id = 5;
+        $this->ticket->updated_at = Carbon::now();
+        $this->ticket->save();
+        $this->syncDailyTicket();
+
+        $this->ticket->logActivity("Ticket On Hold", $this->comment);
+
+        if ($this->customerCard) {
+            $this->emitTo('leads.show', 'refreshCard');
+        } else {
+            $this->emitTo('tickets.index-new', 'refreshList');
+        }
+        $this->comment = null;
+        $this->ticket->refresh();
+
+        $this->notification()->success(
+            $title = 'Success',
+            $description = 'Ticket On Hold'
+        );
+        $this->showTicketModal = false;
+
+        $this->emit('updatedTicketTable');
+    }
 
     public function comment()
     {

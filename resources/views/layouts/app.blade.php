@@ -95,22 +95,24 @@
 <body class="font-sans antialiased">
     <x-jet-banner />
     <x-notifications z-index="z-50" />
-    <div class="min-h-screen bg-gray-100">
+    <div x-data="{ sidebarOpen: window.innerWidth >= 1024 }" class="min-h-screen bg-gray-100">
         @livewire('navigation-menu')
 
-        <!-- Page Heading -->
-        @if (isset($header))
-            <header class="bg-white shadow">
-                <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                    {{ $header }}
-                </div>
-            </header>
-        @endif
+        <div class="pt-16 transition-all duration-300" :class="sidebarOpen ? 'lg:pl-72' : 'lg:pl-0'">
+            <!-- Page Heading -->
+            @if (isset($header))
+                <header class="bg-white shadow">
+                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                        {{ $header }}
+                    </div>
+                </header>
+            @endif
 
-        <!-- Page Content -->
-        <main>
-            {{ $slot }}
-        </main>
+            <!-- Page Content -->
+            <main>
+                {{ $slot }}
+            </main>
+        </div>
     </div>
 
     @stack('modals')

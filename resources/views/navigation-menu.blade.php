@@ -1,193 +1,128 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100">
-    <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
+<nav class="relative z-40">
+    <div x-cloak x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 bg-slate-950/40 lg:hidden" @click="sidebarOpen = false"></div>
 
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard.index') }}">
-                        {{-- <x-jet-application-mark class="block h-9 w-auto" /> --}}
-                        <x-general.logo navigation="1" />
-                    </a>
-                </div>
+    <aside
+        class="fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-slate-200 bg-white shadow-xl transition-transform duration-300"
+        :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
+        <div class="flex h-16 items-center justify-between border-b border-slate-200 px-5">
+            <a href="{{ route('dashboard.index') }}" class="flex items-center">
+                <x-general.logo navigation="1" />
+            </a>
+            <button type="button" class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900" @click="sidebarOpen = false">
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="flex-1 overflow-y-auto px-4 py-5">
+            <div class="space-y-2">
                 @can('can-view-dashboard')
-                    <!-- Navigation Links -->
-                    <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                        <x-jet-nav-link href="{{ route('dashboard.index') }}"
-                            :active="request()->routeIs('dashboard.index')">
-                            {{ __('Dashboard') }}
-                        </x-jet-nav-link>
-                    </div>
+                    <a href="{{ route('dashboard.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-medium transition {{ request()->routeIs('dashboard.index') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                        {{ __('Dashboard') }}
+                    </a>
                 @endcan
 
-                {{-- @php
-                use Illuminate\Support\Facades\Redis;
-
-                $loggedUserId = Auth::id();
-                $redisKey = "highlighted_users:$loggedUserId";
-
-                $redis = app('redis')->connection();
-                $redis->select(5);
-
-                $messagesCountIds = $redis->get($redisKey);
-                $messagesCountIds = $messagesCountIds ? json_decode($messagesCountIds, true) : [];
-                $messagesCount = max(count($messagesCountIds) - 1, 0);
-                @endphp
-
-                <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex" wire:poll.3000ms>
-                    <x-jet-nav-link href="{{ route('chat.index') }}" :active="request()->routeIs('chat.index')"
-                        class="{{ $messagesCount > 0 ? 'text-green-500 font-bold' : '' }}">
+                {{-- @can('can-view-chat')
+                    <a href="{{ route('chat.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-medium transition {{ request()->routeIs('chat.index') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
                         {{ __('Chat') }}
-                        @if ($messagesCount > 0)
-                        <span class="ml-2 bg-green-500 text-white px-2 py-1 text-xs rounded-full">
-                            {{ $messagesCount }}
-                        </span>
-                        @endif
-                    </x-jet-nav-link>
-                </div> --}}
-
-                @can('can-view-chat')
-
-                    @livewire('chat.chat-nav-button')
-
-                @endcan
+                    </a>
+                @endcan --}}
 
                 @can('can-view-leads')
-                    <!-- Navigation Links -->
-                    <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                        <x-jet-nav-link href="{{ route('leads.index') }}" :active="request()->routeIs('leads.index')">
-                            {{-- {{ __('Leads') }} --}}
-                            {{ __('Customers') }}
-                        </x-jet-nav-link>
-                    </div>
+                    <a href="{{ route('leads.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-medium transition {{ request()->routeIs('leads.index') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                        {{ __('Customers') }}
+                    </a>
                 @endcan
-
 
                 @can('can-view-tickets')
-                    <!-- Navigation Links -->
-                    <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                        <x-jet-nav-link href="{{ route('tickets.index') }}" :active="request()->routeIs('tickets.index')">
-                            {{ __('Tickets') }}
-                        </x-jet-nav-link>
-                    </div>
+                    <a href="{{ route('tickets.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-medium transition {{ request()->routeIs('tickets.index') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                        {{ __('Tickets') }}
+                    </a>
                 @endcan
+
                 @can('can-view-service-tickets')
-                    <!-- Navigation Bar with Dropdown -->
-                    <div class="hidden sm:flex sm:ml-10 pt-4">
-                        <div x-data="{ open: false }" class="relative">
-                            <!-- Dropdown Button -->
-                            <button @click="open = !open"
-                                class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 focus:outline-none transition">
-                                Serv-Tickets
-                                <svg class="ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                    fill="currentColor">
-                                    <path fill-rule="evenodd"
-                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </button>
-
-                            <!-- Dropdown Menu -->
-                            <div x-show="open" @click.away="open = false"
-                                class="absolute left-0 mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                                <a href="{{ route('cx-tickets.index') }}"
-                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    Info
-                                </a>
-                                <a href="{{ route('cx-tickets-survey.index') }}"
-                                    class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                                    Survey
-                                </a>
-
-                            </div>
+                    <div x-data="{ servTicketsOpen: {{ request()->routeIs('cx-tickets.index') || request()->routeIs('cx-tickets-survey.index') ? 'true' : 'false' }} }" class="rounded-2xl border border-slate-200 bg-slate-50/80 p-2">
+                        <button type="button" class="flex w-full items-center justify-between rounded-xl px-2 py-2 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 transition hover:bg-white hover:text-slate-700" @click="servTicketsOpen = !servTicketsOpen">
+                            <span>{{ __('Serv-Tickets') }}</span>
+                            <svg class="h-4 w-4 transition-transform duration-200" :class="servTicketsOpen ? 'rotate-180' : ''" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div x-show="servTicketsOpen" x-collapse class="space-y-1 pt-2">
+                            <a href="{{ route('cx-tickets.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-medium transition {{ request()->routeIs('cx-tickets.index') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-700 hover:bg-white hover:text-slate-900' }}">
+                                {{ __('Info') }}
+                            </a>
+                            <a href="{{ route('cx-tickets-survey.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-medium transition {{ request()->routeIs('cx-tickets-survey.index') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-700 hover:bg-white hover:text-slate-900' }}">
+                                {{ __('Survey') }}
+                            </a>
                         </div>
                     </div>
                 @endcan
 
-                {{-- @can('can-view-leads')
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                    <x-jet-nav-link href="{{ route('orders.index') }}" :active="request()->routeIs('orders.index')">
-                        {{ __('Orders') }}
-                    </x-jet-nav-link>
-                </div>
-                @endcan --}}
-                @can('is-admin')
-                    <!-- Navigation Links -->
-                    {{-- <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                        <x-jet-nav-link href="{{ route('contact-feeds.index') }}"
-                            :active="request()->routeIs('contact-feeds.index')">
-                            {{ __('Contact Feed') }}
-                        </x-jet-nav-link>
-                    </div> --}}
-                @endcan
-                @can('can-view-reports')
-                    @if (config('auso.external_extension_url'))
-                        <!-- Navigation Links -->
-                        <!-- <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                                            <x-jet-nav-link href="{{ route('live-dashboard.index') }}" :active="request()->routeIs('live-dashboard.index')">
-                                                {{-- {{ __('Live') }} --}}
-                                                {{ __('Live Agents') }}
-                                            </x-jet-nav-link>
-                                        </div> -->
-                    @endif
-
-                @endcan
                 @canany(['can-view-reports', 'can-view-cdr-reports', 'can-view-dialer-reports'])
-
-                    <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                        <x-jet-nav-link href="{{ route('reports.index') }}" :active="request()->routeIs('reports.index')">
-                            {{ __('Reports') }}
-                        </x-jet-nav-link>
-                    </div>
+                    <a href="{{ route('reports.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-medium transition {{ request()->routeIs('reports.index') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                        {{ __('Reports') }}
+                    </a>
                 @endcanany
 
                 @canany(['is-admin', 'client-admin'])
-                    <!-- Navigation Links -->
-                    <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                        <x-jet-nav-link href="{{ route('settings.index') }}" :active="request()->routeIs('settings.index')">
-                            {{ __('Settings') }}
-                        </x-jet-nav-link>
-                    </div>
+                    <a href="{{ route('settings.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-medium transition {{ request()->routeIs('settings.index') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                        {{ __('Settings') }}
+                    </a>
 
-                    <!-- Navigation Links -->
-                    <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
-                        <x-jet-nav-link href="{{ route('dialer.admin.dashboard') }}"
-                            :active="request()->routeIs('dialer.index')">
-                            {{ __('Dialer') }}
-                        </x-jet-nav-link>
-                        {{-- <x-jet-nav-link href="{{ route('dialer.index') }}"
-                            :active="request()->routeIs('dialer.index')">
-                            {{ __('Dialer') }}
-                        </x-jet-nav-link> --}}
-                    </div>
+                    <a href="{{ route('dialer.admin.dashboard') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-medium transition {{ request()->routeIs('dialer.index') || request()->routeIs('dialer.admin.dashboard') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
+                        {{ __('Dialer') }}
+                    </a>
                 @endcanany
+            </div>
+        </div>
+    </aside>
 
-                @can('can-view-leads')
-                    @livewire('whatsapp.whatsapp-nav-button')
-                @endcan
-                @can('can-view-leads')
-                    @livewire('messenger.messenger-nav-button')
-                @endcan
+    <div class="fixed top-0 right-0 left-0 border-b border-slate-200 bg-white/95 backdrop-blur" :class="sidebarOpen ? 'lg:left-72' : 'lg:left-0'">
+        <div class="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center gap-3">
+                <button type="button" class="rounded-xl border border-slate-200 p-2 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900" @click="sidebarOpen = !sidebarOpen">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+
+                {{-- <div>
+                    <div class="text-sm font-semibold text-slate-900">{{ config('app.name', 'Laravel') }}</div>
+                    <div class="text-xs text-slate-500">{{ Auth::user()->name }}</div>
+                </div> --}}
             </div>
 
-            <div class="hidden sm:flex sm:items-center sm:ml-6">
-                <!-- Teams Dropdown -->
+            <div class="flex items-center gap-2 sm:gap-3">
+                @can('can-view-leads')
+                    @livewire('chat.chat-nav-button')
+                    @livewire('whatsapp.whatsapp-nav-button')
+                    @livewire('messenger.messenger-nav-button')
+                @endcan
+
+                @canany(['is-admin', 'is-agent', 'nps-user'])
+                    @livewire('dashboard.reminder')
+                @endcanany
+
+                @can('is-agent')
+                    @if (Route::is('dashboard.index'))
+                        <div class="hidden items-center gap-3 lg:flex">
+                            @livewire('dashboard.hand-raise')
+                            @livewire('dashboard.select-bound')
+                        </div>
+                    @endif
+                @endcan
+
                 @if (Laravel\Jetstream\Jetstream::hasTeamFeatures())
-                    <div class="ml-3 relative">
+                    <div class="hidden md:block">
                         <x-jet-dropdown align="right" width="60">
                             <x-slot name="trigger">
                                 <span class="inline-flex rounded-md">
-                                    <button type="button"
-                                        class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:bg-gray-50 hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition">
+                                    <button type="button" class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 focus:outline-none">
                                         {{ Auth::user()->currentTeam->name }}
-
-                                        <svg class="ml-2 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg"
-                                            viewBox="0 0 20 20" fill="currentColor">
-                                            <path fill-rule="evenodd"
-                                                d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
-                                                clip-rule="evenodd" />
+                                        <svg class="ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                                         </svg>
                                     </button>
                                 </span>
@@ -195,12 +130,10 @@
 
                             <x-slot name="content">
                                 <div class="w-60">
-                                    <!-- Team Management -->
                                     <div class="block px-4 py-2 text-xs text-gray-400">
                                         {{ __('Manage Team') }}
                                     </div>
 
-                                    <!-- Team Settings -->
                                     <x-jet-dropdown-link href="{{ route('teams.show', Auth::user()->currentTeam->id) }}">
                                         {{ __('Team Settings') }}
                                     </x-jet-dropdown-link>
@@ -213,7 +146,6 @@
 
                                     <div class="border-t border-gray-100"></div>
 
-                                    <!-- Team Switcher -->
                                     <div class="block px-4 py-2 text-xs text-gray-400">
                                         {{ __('Switch Teams') }}
                                     </div>
@@ -227,280 +159,95 @@
                     </div>
                 @endif
 
-                <!-- Settings Dropdown -->
-                <div class="flex justify-between">
-                    <div class="ml-3 relative">
-                        <div class="flex">
+                <x-jet-dropdown align="right" width="48">
+                    <x-slot name="trigger">
+                        @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
+                            <button class="flex rounded-full border-2 border-transparent text-sm transition focus:border-slate-300 focus:outline-none">
+                                <img class="h-10 w-10 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
+                            </button>
+                        @else
+                            <span class="inline-flex rounded-md">
+                                <button type="button" class="inline-flex items-center rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 focus:outline-none">
+                                    {{ Auth::user()->name }}
+                                    <svg class="ml-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                        <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                    </svg>
+                                </button>
+                            </span>
+                        @endif
+                    </x-slot>
 
-
-                            {{-- @if (request()->is('/')) --}}
-                            <div class="flex justify-between">
-
-                                @canany(['is-admin', 'is-agent', 'nps-user'])
-                                    <div class="pr-8 pt-4">
-                                        @livewire('dashboard.reminder')
-                                    </div>
-                                @endcanany
-
-
-
-                                @can('is-agent')
-                                        @if (Route::is('dashboard.index'))
-                                            <div class="pr-8 pt-4">
-                                                @livewire('dashboard.hand-raise')
-                                            </div>
-                                            <div class="pr-8 pt-4">
-                                                @livewire('dashboard.select-bound')
-                                            </div>
-                                        @endif
-                                    </div>
-
-                                @endcan
-
-                            <x-jet-dropdown align="right" width="48">
-                                <x-slot name="trigger">
-                                    @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
-                                        <div class="flex justify-between">
-
-
-
-                                            <div>
-                                                <button
-                                                    class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition mt-4">
-                                                    <img class="h-8 w-8 rounded-full object-cover"
-                                                        src="{{ Auth::user()->profile_photo_url }}"
-                                                        alt="{{ Auth::user()->name }}" />
-                                                </button>
-                                            </div>
-
-                                        </div>
-                                    @else
-                                        <span class="inline-flex rounded-md">
-                                            <button type="button"
-                                                class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition">
-                                                {{ Auth::user()->name }}
-
-                                                <svg class="ml-2 -mr-0.5 h-4 w-4" xmlns="http://www.w3.org/2000/svg"
-                                                    viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fill-rule="evenodd"
-                                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                                        clip-rule="evenodd" />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    @endif
-                                </x-slot>
-
-                                <x-slot name="content">
-                                    <!-- Account Management -->
-                                    <div class="block px-4 py-2 text-xs text-gray-400">
-                                        {{ __('Manage Account') }}
-                                    </div>
-
-                                    <x-jet-dropdown-link href="{{ route('profile.show') }}">
-                                        {{ __('Profile') }}
-                                    </x-jet-dropdown-link>
-
-                                    @if (Laravel\Jetstream\Jetstream::hasApiFeatures())
-                                        <x-jet-dropdown-link href="{{ route('api-tokens.index') }}">
-                                            {{ __('API Tokens') }}
-                                        </x-jet-dropdown-link>
-                                    @endif
-
-                                    <div class="border-t border-gray-100"></div>
-
-                                    <!-- Authentication -->
-                                    {{-- <form method="POST" action="{{ route('logout') }}" x-data>
-                                        @csrf
-
-                                        <x-jet-dropdown-link href="{{ route('logout') }}"
-                                            @click.prevent="$root.submit();">
-                                            {{ __('Log Out') }}
-                                        </x-jet-dropdown-link>
-                                    </form> --}}
-
-                                    <form method="POST" action="{{ route('logout') }}" x-data="logoutHandler()">
-                                        @csrf
-
-                                        <x-jet-dropdown-link href="{{ route('logout') }}" @click.prevent="logout">
-                                            {{ __('Log Out') }}
-                                        </x-jet-dropdown-link>
-                                    </form>
-
-                                </x-slot>
-
-                            </x-jet-dropdown>
+                    <x-slot name="content">
+                        <div class="block px-4 py-2 text-xs text-gray-400">
+                            {{ __('Manage Account') }}
                         </div>
-                        <div>
-                            {{-- @livewire('dashboard.select-bound') --}}
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Hamburger -->
-                <div class="-mr-2 flex items-center sm:hidden">
-                    <button @click="open = ! open"
-                        class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:bg-gray-100 focus:text-gray-500 transition">
-                        <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                            <path :class="{ 'hidden': open, 'inline-flex': !open }" class="inline-flex"
-                                stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M4 6h16M4 12h16M4 18h16" />
-                            <path :class="{ 'hidden': !open, 'inline-flex': open }" class="hidden"
-                                stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Responsive Navigation Menu -->
-        <div :class="{ 'block': open, 'hidden': !open }" class="hidden sm:hidden">
-            <div class="pt-2 pb-3 space-y-1">
-                <x-jet-responsive-nav-link href="{{ route('dashboard.index') }}"
-                    :active="request()->routeIs('dashboard.index')">
-                    {{ __('Dashboard') }}
-                </x-jet-responsive-nav-link>
-            </div>
-
-            <!-- Responsive Settings Options -->
-            <div class="pt-4 pb-1 border-t border-gray-200">
-                <div class="flex items-center px-4">
-                    @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
-                        <div class="shrink-0 mr-3">
-                            <img class="h-10 w-10 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}"
-                                alt="{{ Auth::user()->name }}" />
-                        </div>
-                    @endif
-
-                    <div>
-                        <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                        <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
-                    </div>
-                </div>
-
-                <div class="mt-3 space-y-1">
-                    <!-- Account Management -->
-                    <x-jet-responsive-nav-link href="{{ route('profile.show') }}"
-                        :active="request()->routeIs('profile.show')">
-                        {{ __('Profile') }}
-                    </x-jet-responsive-nav-link>
-
-                    @if (Laravel\Jetstream\Jetstream::hasApiFeatures())
-                        <x-jet-responsive-nav-link href="{{ route('api-tokens.index') }}"
-                            :active="request()->routeIs('api-tokens.index')">
-                            {{ __('API Tokens') }}
-                        </x-jet-responsive-nav-link>
-                    @endif
-
-                    <!-- Authentication -->
-                    {{-- <form method="POST" action="{{ route('logout') }}" x-data>
-                        @csrf
-
-                        <x-jet-responsive-nav-link href="{{ route('logout') }}" @click.prevent="$root.submit();">
-                            {{ __('Log Out') }}
-                        </x-jet-responsive-nav-link>
-                    </form> --}}
-
-                    <form method="POST" action="{{ route('logout') }}" x-data="logoutHandler()">
-                        @csrf
-
-                        <x-jet-dropdown-link href="{{ route('logout') }}" @click.prevent="logout">
-                            {{ __('Log Out') }}
+                        <x-jet-dropdown-link href="{{ route('profile.show') }}">
+                            {{ __('Profile') }}
                         </x-jet-dropdown-link>
-                    </form>
 
+                        @if (Laravel\Jetstream\Jetstream::hasApiFeatures())
+                            <x-jet-dropdown-link href="{{ route('api-tokens.index') }}">
+                                {{ __('API Tokens') }}
+                            </x-jet-dropdown-link>
+                        @endif
 
+                        <div class="border-t border-gray-100"></div>
 
-                    <script>
-                        function logoutHandler() {
-                            return {
-                                logout() {
-                                    try {
-                                        const phoneType = "{{ strtolower(config('auso.phone_type')) }}";
-                                        const exten = "{{ auth()->user()->extensionData }}";
+                        <form method="POST" action="{{ route('logout') }}" x-data="logoutHandler()">
+                            @csrf
 
-                                        let url = null;
-
-                                        if (phoneType.includes('microsip')) {
-                                            url = "http://127.0.0.1:5001/remove/microsip";
-                                        } else if (phoneType.includes('zoiper')) {
-                                            url = "http://127.0.0.1:5001/remove/zoiper3";
-                                        }
-
-                                        if (url) {
-                                            const data = {
-                                                exten: exten.extension,
-                                                server: "123.231.74.22",
-                                                // password: phoneType.includes('microsip')
-                                                //     ? "@u5051p"
-                                                //     : "vCkSoFyUNjxbVy7bm6TJdA==\n",
-                                                password: "@u5051p",
-                                                aa: "1",
-                                                autoanswerdelay: "3",
-                                                protocol: exten.exten_type
-                                            };
-
-                                            const payload = new Blob(
-                                                [JSON.stringify(data)],
-                                                { type: 'application/json' }
-                                            );
-
-                                            // navigator.sendBeacon(url, payload);
-                                            fetch(url, {
-                                                method: 'POST',
-                                                headers: { 'Content-Type': 'application/json' },
-                                                body: JSON.stringify(data),
-                                                credentials: 'omit',  // Explicitly no credentials → no need for Allow-Credentials: true
-                                                keepalive: true       //  allows it to send reliably on page unload
-                                            })
-                                        }
-                                    } catch (e) {
-                                        console.warn('Softphone disconnect failed', e);
-                                    }
-
-                                    this.$root.submit();
-                                }
-                            }
-                        }
-                    </script>
-
-
-
-
-                    <!-- Team Management -->
-                    @if (Laravel\Jetstream\Jetstream::hasTeamFeatures())
-                        <div class="border-t border-gray-200"></div>
-
-                        <div class="block px-4 py-2 text-xs text-gray-400">
-                            {{ __('Manage Team') }}
-                        </div>
-
-                        <!-- Team Settings -->
-                        <x-jet-responsive-nav-link href="{{ route('teams.show', Auth::user()->currentTeam->id) }}"
-                            :active="request()->routeIs('teams.show')">
-                            {{ __('Team Settings') }}
-                        </x-jet-responsive-nav-link>
-
-                        @can('create', Laravel\Jetstream\Jetstream::newTeamModel())
-                            <x-jet-responsive-nav-link href="{{ route('teams.create') }}"
-                                :active="request()->routeIs('teams.create')">
-                                {{ __('Create New Team') }}
-                            </x-jet-responsive-nav-link>
-                        @endcan
-
-                        <div class="border-t border-gray-200"></div>
-
-                        <!-- Team Switcher -->
-                        <div class="block px-4 py-2 text-xs text-gray-400">
-                            {{ __('Switch Teams') }}
-                        </div>
-
-                        @foreach (Auth::user()->allTeams() as $team)
-                            <x-jet-switchable-team :team="$team" component="jet-responsive-nav-link" />
-                        @endforeach
-                    @endif
-                </div>
+                            <x-jet-dropdown-link href="{{ route('logout') }}" @click.prevent="logout">
+                                {{ __('Log Out') }}
+                            </x-jet-dropdown-link>
+                        </form>
+                    </x-slot>
+                </x-jet-dropdown>
             </div>
         </div>
+    </div>
+
+    <script>
+        function logoutHandler() {
+            return {
+                logout() {
+                    try {
+                        const phoneType = "{{ strtolower(config('auso.phone_type')) }}";
+                        const exten = "{{ auth()->user()->extensionData }}";
+
+                        let url = null;
+
+                        if (phoneType.includes('microsip')) {
+                            url = "http://127.0.0.1:5001/remove/microsip";
+                        } else if (phoneType.includes('zoiper')) {
+                            url = "http://127.0.0.1:5001/remove/zoiper3";
+                        }
+
+                        if (url) {
+                            const data = {
+                                exten: exten.extension,
+                                server: "123.231.74.22",
+                                password: "@u5051p",
+                                aa: "1",
+                                autoanswerdelay: "3",
+                                protocol: exten.exten_type
+                            };
+
+                            fetch(url, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(data),
+                                credentials: 'omit',
+                                keepalive: true
+                            });
+                        }
+                    } catch (e) {
+                        console.warn('Softphone disconnect failed', e);
+                    }
+
+                    this.$root.submit();
+                }
+            }
+        }
+    </script>
 </nav>

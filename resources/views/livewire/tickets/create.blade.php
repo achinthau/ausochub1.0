@@ -1,6 +1,6 @@
-<x-jet-dialog-modal wire:model="creatingTicket" maxWidth="2xl">
+<x-jet-dialog-modal id="create-ticket-modal" wire:model="creatingTicket" maxWidth="2xl">
     <x-slot name="title">
-        Create Ticket
+        <div id="create-ticket-modal-handle" class="cursor-move select-none">Create Ticket</div>
         <hr>
     </x-slot>
 
@@ -150,3 +150,67 @@
         </x-jet-button>
     </x-slot>
 </x-jet-dialog-modal>
+
+<script>
+    (function () {
+        var bindDrag = function () {
+            var modalRoot = document.getElementById('create-ticket-modal');
+            if (!modalRoot) return;
+
+            var handle = modalRoot.querySelector('#create-ticket-modal-handle');
+            var panel = modalRoot.querySelector('.bg-white.rounded-lg.overflow-hidden.shadow-xl');
+            if (!handle || !panel || handle.dataset.dragBound === '1') return;
+
+            handle.dataset.dragBound = '1';
+
+            var dragging = false;
+            var startX = 0;
+            var startY = 0;
+            var offsetX = 0;
+            var offsetY = 0;
+
+            handle.addEventListener('mousedown', function (event) {
+                dragging = true;
+                startX = event.clientX;
+                startY = event.clientY;
+                handle.classList.add('cursor-grabbing');
+                event.preventDefault();
+            });
+
+            document.addEventListener('mousemove', function (event) {
+                if (!dragging) return;
+
+                offsetX += event.clientX - startX;
+                offsetY += event.clientY - startY;
+                startX = event.clientX;
+                startY = event.clientY;
+
+                panel.style.position = 'relative';
+                panel.style.left = offsetX + 'px';
+                panel.style.top = offsetY + 'px';
+            });
+
+            document.addEventListener('mouseup', function () {
+                dragging = false;
+                handle.classList.remove('cursor-grabbing');
+            });
+        };
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', bindDrag);
+        } else {
+            bindDrag();
+        }
+
+        document.addEventListener('livewire:load', function () {
+            bindDrag();
+
+            if (window.Livewire && !window.__createTicketModalDragHooked) {
+                window.__createTicketModalDragHooked = true;
+                window.Livewire.hook('message.processed', function () {
+                    bindDrag();
+                });
+            }
+        });
+    })();
+</script>

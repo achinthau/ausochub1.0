@@ -1,6 +1,6 @@
 <x-jet-dialog-modal id="create-ticket-modal" wire:model="creatingTicket" maxWidth="2xl">
     <x-slot name="title">
-        <div id="create-ticket-modal-handle" class="cursor-move select-none">Create Ticket</div>
+        <div id="create-ticket-modal-handle" class="cursor-move select-none bg-gray-200 p-1 rounded-md">Create Ticket</div>
         <hr>
     </x-slot>
 
@@ -87,6 +87,15 @@
             <div class="px-2">
                 <x-textarea label="Description" wire:model.lazy="ticket.description"
                     placeholder="write your description here" />
+            </div>
+
+            <div class="px-2 bg-gray-100 p-1 rounded-md">
+                <label for="Customer name">
+                    Customer name : {{ $lead ? $lead->first_name . ' ' . $lead->last_name : '' }}
+                </label> <br>
+                <label for="phone">
+                    Customer contact : {{ $lead ? $lead->contact_number : '' }}
+                </label>
             </div>
 
             @if ($ticket->ticket_category_id == 3)

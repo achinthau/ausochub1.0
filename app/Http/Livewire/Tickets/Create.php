@@ -35,6 +35,8 @@ class Create extends Component
     public $users;
     public $departmentUsers;
 
+    public $lead;
+
     protected $listeners = ['showCreatingTicket' => 'showCreatingTicket'];
 
     protected $rules  = [
@@ -96,6 +98,7 @@ class Create extends Component
 
         $this->departments = CrmDepartment::select('id','name')->get()->toArray();
         $this->users = User::select('id', 'name', 'department_id')->get()->toArray();
+        $this->lead = $leadId ? Lead::find($leadId) : null;
     }
 
     public function render()

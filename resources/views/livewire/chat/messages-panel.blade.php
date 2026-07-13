@@ -116,19 +116,23 @@
 
     {{-- send message from enter press --}}
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            const messageInput = document.getElementById("messageInput");
-            if (!messageInput) {
-                return;
-            }
+        if (!window.chatEnterHandlerInitialized) {
+            window.chatEnterHandlerInitialized = true;
 
-            messageInput.addEventListener("keydown", function (event) {
-                if (event.key === "Enter" && !event.shiftKey) {
-                    event.preventDefault();
-                    sendMessage();
+            document.addEventListener("keydown", function (event) {
+                if (event.key !== "Enter" || event.shiftKey) {
+                    return;
                 }
+
+                const target = event.target;
+                if (!target || target.id !== "messageInput") {
+                    return;
+                }
+
+                event.preventDefault();
+                sendMessage();
             });
-        });
+        }
     </script>
 
 

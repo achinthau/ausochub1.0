@@ -105,10 +105,31 @@
                     @livewire('dashboard.reminder')
                 @endcanany
 
+                @php
+                use Illuminate\Support\Facades\Redis;
+
+                                        if (env('DASHBOARD_DATA_TYPE') == 'cache') {
+                                            if (env('CACHE_DRIVER') == 'file') {
+                                                $inCall = isset($jsonData['status']) && $jsonData['status'] == 1;
+                                                
+                                            } else {
+                                                $keys = Redis::connection()->client()->select(1);
+                                                $keys = Redis::keys("agent_on_call-".Auth::user()->id."-*");
+                                                $inCall = count($keys);
+                                            }
+                                        } else {
+                                             $keys = Redis::connection()->client()->select(1);
+                                            $keys = Redis::keys("agent_on_call-".Auth::user()->id."-*");
+                                                $inCall = count($keys);
+                                        }
+                                    @endphp
+
                 @can('is-agent')
                     @if (Route::is('dashboard.index'))
                         <div class="hidden items-center gap-3 lg:flex">
+                            @if($inCall > 0)
                             @livewire('dashboard.hand-raise')
+                            @endif
                             @livewire('dashboard.select-bound')
                         </div>
                     @endif

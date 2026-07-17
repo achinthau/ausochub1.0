@@ -710,11 +710,6 @@ class Show extends Component
         $this->callBack = !$this->callBack;
     }
 
-    public function toggleTicketInfo()
-    {
-        $this->ticketInfoOpen = !$this->ticketInfoOpen;
-    }
-
     public function saveCallback()
     {
         $this->validate([

@@ -292,8 +292,8 @@
                             </div>
                         </div>
                     </div> --}}
-                    <details class="bg-white p-4 space-y-2 text-xs rounded-md shadow-sm" @if($ticketInfoOpen) open @endif>
-                        <summary wire:click.prevent="toggleTicketInfo" class="font-bold cursor-pointer list-none flex items-center justify-between">
+                    <details class="bg-white p-4 space-y-2 text-xs rounded-md shadow-sm" @if($ticketInfoOpen) open @endif x-on:toggle="$wire.set('ticketInfoOpen', $event.target.open)">
+                        <summary class="font-bold cursor-pointer list-none flex items-center justify-between">
                             <span>Ticket Information</span>
                             <span class="text-gray-400 text-xs">{{ $ticketInfoOpen ? 'Click to collapse' : 'Click to expand' }}</span>
                         </summary>

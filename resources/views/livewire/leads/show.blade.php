@@ -292,8 +292,11 @@
                             </div>
                         </div>
                     </div> --}}
-                    <div class="bg-white p-4 space-y-2 text-xs">
-                        <h1 class=" font-bold">Ticket Information</h1>
+                    <details class="bg-white p-4 space-y-2 text-xs rounded-md shadow-sm">
+                        <summary class="font-bold cursor-pointer list-none flex items-center justify-between">
+                            <span>Ticket Information</span>
+                            <span class="text-gray-400 text-xs">Click to expand   >></span>
+                        </summary>
                         <hr>
 
 
@@ -379,9 +382,7 @@
                                 {{ session('messagedialog') }}
                             </div>
                         @endif
-
-
-                    </div>
+                    </details>
                     @if($boundType == 'dialer')
                         <div class="bg-white p-4 space-y-3 text-xs">
 

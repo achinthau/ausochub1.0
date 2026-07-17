@@ -100,22 +100,23 @@ class SubmitCallStatus extends Component
             ]);
         }
 
-        if ($this->applyToAll) {
-            // Get the contact number
-            $phone = $this->feed->contact_no_01;
-            $phone2 = $this->feed->contact_no_02;
+        $phones = collect([$this->feed->contact_no_01, $this->feed->contact_no_02])
+            ->map(function ($phone) {
+                return trim((string) $phone);
+            })
+            ->filter(function ($phone) {
+                return $phone !== '';
+            })
+            ->unique()
+            ->values();
 
+        if ($this->applyToAll && $phones->isNotEmpty()) {
             // Fetch only feeds with same number AND not updated before
-            $feeds = FeedContactValid::where(function ($query) use ($phone, $phone2) {
-                // if ($phone) {
-                $query->where('contact_no_01', $phone)
-                    ->orWhere('contact_no_02', $phone)
-                    // }
-                    // if ($phone2) {
-                    // $query->orWhere('contact_no_01', $phone2)
-                    ->orWhere('contact_no_01', $phone2)
-                    ->orWhere('contact_no_02', $phone2);
-                // }
+            $feeds = FeedContactValid::where(function ($query) use ($phones) {
+                foreach ($phones as $phone) {
+                    $query->orWhere('contact_no_01', $phone)
+                        ->orWhere('contact_no_02', $phone);
+                }
             })
                 ->where(function ($query) {
                     $query->whereNull('status') // Fresh ones
@@ -169,11 +170,11 @@ class SubmitCallStatus extends Component
             }
 
             if ($this->cxTicketId) {
-                $tickets = CxTicket::where(function ($query) use ($phone, $phone2) {
-                    $query->where('customer_contact_01', $phone)
-                        ->orWhere('customer_contact_02', $phone)
-                        ->orWhere('customer_contact_01', $phone2)
-                        ->orWhere('customer_contact_02', $phone2);
+                $tickets = CxTicket::where(function ($query) use ($phones) {
+                    foreach ($phones as $phone) {
+                        $query->orWhere('customer_contact_01', $phone)
+                            ->orWhere('customer_contact_02', $phone);
+                    }
                 })
                     ->where('status', 'Closed')
                     ->orWhere('status', 'Skip')

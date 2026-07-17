@@ -1,14 +1,11 @@
-<div class="w-full h-[80vh] px-4 pt-1 break-words">
-    @if ($receiver)
-        <div class="py-2 pl-0 bg-gray-200 rounded-md">
-            <h1 class=" text-xl pl-4 font-bold">
-                {{ $receiver ? $receiver->name : '' }}
-            </h1>
-        </div>
-    @endif
+<div class="w-full h-[78vh] px-2 md:px-4 pt-1 break-words bg-white border border-gray-200 rounded-lg flex flex-col">
+    <div class="py-2 pl-0 bg-gray-100 rounded-md mt-2">
+        <h1 class="text-lg md:text-xl pl-4 font-bold text-gray-800">
+            {{ $receiver ? $receiver->name : 'Select a user to start chatting' }}
+        </h1>
+    </div>
 
-
-    <div id="messagesContainer" class=" h-[55vh] overflow-y-auto pb-0 pt-2 mt-2">
+    <div id="messagesContainer" class="flex-1 overflow-y-auto pb-2 pt-2 mt-2 min-h-0">
         {{-- @if (isset($receiver) && $receiver)
         @livewire('chat.messages')
         @endif --}}
@@ -73,8 +70,12 @@
                 @endforeach
 
             @else
-                <p>No messages yet.</p>
+                <p class="text-sm text-gray-500 px-1">No messages yet.</p>
             @endif
+        @else
+            <div class="h-full flex items-center justify-center text-gray-500 text-sm px-4 text-center">
+                Choose a user from the left panel to view messages and send new ones.
+            </div>
         @endif
 
 
@@ -87,24 +88,26 @@
 
     </div>
 
-    {{-- @if ($receiver) --}}
-    <div class="absolute bottom-8 mb-4 pr-4 pl-4 flex">
-        {{-- <input type="text" placeholder="Type your message" id="messageInput" class="w-[12cm]"> --}}
-        <div class="pr-4">
-            <textarea name="" id="messageInput" cols="92" rows="2" class="pr-4 rounded-md"></textarea>
-            <input type="hidden" id="receiver" value="{{ $receiver ? $receiver->id : '' }}">
-        </div>
-        <div class="pt-5 pr-8">
-            {{-- <button class="pl-8 pr-8" onclick="sendMessage()">Send</button> --}}
-            <svg class="w-8 h-8 cursor-pointer" onclick="sendMessage()" xmlns="http://www.w3.org/2000/svg" width="16"
-                height="16" fill="currentColor" viewBox="0 0 16 16">
-                <path
-                    d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z">
-                </path>
-            </svg>
+    @if ($receiver)
+    <div class="pt-3 pb-3 px-1 md:px-2 border-t border-gray-200 mt-2">
+        <div class="flex items-end gap-3">
+            <div class="flex-1 min-w-0">
+                <textarea name="" id="messageInput" rows="2" class="w-full rounded-md border-gray-300 focus:border-blue-400 focus:ring-blue-400" placeholder="Type your message..."></textarea>
+                <input type="hidden" id="receiver" value="{{ $receiver ? $receiver->id : '' }}">
+            </div>
+            <div class="pb-1">
+                <button type="button" class="inline-flex items-center justify-center rounded-md bg-blue-500 text-white p-2 hover:bg-blue-600" onclick="sendMessage()" aria-label="Send message">
+                    <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" width="16"
+                        height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path
+                            d="M15.854.146a.5.5 0 0 1 .11.54l-5.819 14.547a.75.75 0 0 1-1.329.124l-3.178-4.995L.643 7.184a.75.75 0 0 1 .124-1.33L15.314.037a.5.5 0 0 1 .54.11ZM6.636 10.07l2.761 4.338L14.13 2.576zm6.787-8.201L1.591 6.602l4.339 2.76z">
+                        </path>
+                    </svg>
+                </button>
+            </div>
         </div>
     </div>
-    {{-- @endif --}}
+    @endif
 
     {{-- only for data save in redis --}}
     <livewire:chat.messages />
@@ -113,20 +116,22 @@
 
     {{-- send message from enter press --}}
     <script>
-        document.getElementById("messageInput").addEventListener("keydown", function (event) {
-            if (event.key === "Enter" && !event.shiftKey) { // Prevent shift+enter from submitting
-                event.preventDefault(); // Prevent new line in textarea
-                sendMessage(); // Call the function to send the message
-            }
-        });
+        if (!window.chatEnterHandlerInitialized) {
+            window.chatEnterHandlerInitialized = true;
 
-        function sendMessage() {
-            let message = document.getElementById("messageInput").value.trim();
+            document.addEventListener("keydown", function (event) {
+                if (event.key !== "Enter" || event.shiftKey) {
+                    return;
+                }
 
-            if (message !== "") {
-                Livewire.emit("sendMessage", message); // Emit event to Livewire
-                document.getElementById("messageInput").value = ""; // Clear input after sending
-            }
+                const target = event.target;
+                if (!target || target.id !== "messageInput") {
+                    return;
+                }
+
+                event.preventDefault();
+                sendMessage();
+            });
         }
     </script>
 
@@ -166,7 +171,8 @@
                     console.log('Logged-in user:', loggedInUserId);
 
                     const sender = data.from;
-                    const receiver = document.getElementById('receiver').value;
+                    const receiverElement = document.getElementById('receiver');
+                    const receiver = receiverElement ? receiverElement.value : null;
 
                     if (data.to == loggedInUserId || data.from == loggedInUserId) {
                         if (data.from !== loggedInUserId && data.from == receiver) {
@@ -245,12 +251,12 @@
         // Send a message
         function sendMessage() {
             const username = loggedInUserId;
-            const receiver = document.getElementById('receiver').value;
+            const receiverElement = document.getElementById('receiver');
+            const receiver = receiverElement ? receiverElement.value : '';
             const messageInput = document.getElementById('messageInput');
-            const text = messageInput.value.trim();
+            const text = messageInput ? messageInput.value.trim() : '';
 
-            if (!username || !text) {
-                alert("Enter a username and a message!");
+            if (!receiver || !username || !text) {
                 return;
             }
 

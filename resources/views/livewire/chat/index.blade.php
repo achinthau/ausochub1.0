@@ -11,16 +11,17 @@
         </div>
     </x-slot>
     
-    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 flex justify-between pt-4 w-full ">
-        
-        <div class="w-1/4 ">
+    <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 pt-4 w-full">
+        <div class="flex flex-col lg:flex-row gap-4 w-full min-h-[78vh]">
+            <div class="w-full lg:w-80 xl:w-96 shrink-0">
             @livewire('chat.users-panel')
-        </div>
+            </div>
 
-        <div class="border-l-4 border-gray-300 mx-4 rounded ml-4"></div>
+            <div class="hidden lg:block border-l border-gray-300"></div>
 
-        <div class="flex-1">
+            <div class="flex-1 min-w-0">
             @livewire('chat.messages-panel')
+            </div>
         </div>
     </div>
     

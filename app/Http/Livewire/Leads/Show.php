@@ -39,6 +39,7 @@ class Show extends Component
     public $callbackDate;
     public $callbackTime;
     public $callbackComment;
+    public $ticketInfoOpen = false;
 
     public $feedContacts = [];
     public $selectedFeedContact = null;
@@ -707,6 +708,11 @@ class Show extends Component
     public function toggleCallbackCustomer()
     {
         $this->callBack = !$this->callBack;
+    }
+
+    public function toggleTicketInfo()
+    {
+        $this->ticketInfoOpen = !$this->ticketInfoOpen;
     }
 
     public function saveCallback()

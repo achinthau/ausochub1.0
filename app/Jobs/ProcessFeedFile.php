@@ -44,11 +44,11 @@ class ProcessFeedFile implements ShouldQueue
     {
         $feed = Feed::find($this->feedId);
         if (!$feed) {
-            Log::error("ProcessFeedFile: Feed not found with ID {$this->feedId}");
+//             Log::error("ProcessFeedFile: Feed not found with ID {$this->feedId}");
             return;
         }
 
-        Log::info("Validating contacts for Feed ID: {$this->feedId}");
+//         Log::info("Validating contacts for Feed ID: {$this->feedId}");
 
         $totalValid = 0;
         $totalInvalid = 0;
@@ -145,20 +145,20 @@ class ProcessFeedFile implements ShouldQueue
                         $invalid[] = $data;
                     }
 
-                    Log::debug("Contact {$contact->id} | Original: {$phone1} → Normalized: {$cleanPhone} | " .
-                        ($isValid ? 'VALID' : 'INVALID'));
+//                     Log::debug("Contact {$contact->id} | Original: {$phone1} → Normalized: {$cleanPhone} | " .
+//                         ($isValid ? 'VALID' : 'INVALID'));
                 }
 
                 if (!empty($valid)) {
                     FeedContactValid::insert($valid);
                     $totalValid += count($valid);
-                    Log::info(count($valid) . " valid contacts inserted.");
+//                     Log::info(count($valid) . " valid contacts inserted.");
                 }
 
                 if (!empty($invalid)) {
                     FeedContactInValid::insert($invalid);
                     $totalInvalid += count($invalid);
-                    Log::info(count($invalid) . " invalid contacts inserted.");
+//                     Log::info(count($invalid) . " invalid contacts inserted.");
                 }
 
                 if (!empty($cxTickets)) {
@@ -166,9 +166,9 @@ class ProcessFeedFile implements ShouldQueue
                     // Bulk insert 
                     try {
                         CxTicket::insert($cxTickets);
-                        Log::info(count($cxTickets) . " CxTicket records inserted for satisfaction feed.");
+//                         Log::info(count($cxTickets) . " CxTicket records inserted for satisfaction feed.");
                     } catch (\Exception $e) {
-                        Log::error("Failed to insert CxTickets: " . $e->getMessage());
+//                         Log::error("Failed to insert CxTickets: " . $e->getMessage());
                         // Optionally, handle individually or skip
                         // foreach ($cxTickets as $ticket) {
                         //     try {
@@ -182,7 +182,7 @@ class ProcessFeedFile implements ShouldQueue
             });
 
         $feed->update(['status' => 'completed']);
-        Log::info("Feed ID {$this->feedId} validation finished. Valid: {$totalValid}, Invalid: {$totalInvalid}");
+//         Log::info("Feed ID {$this->feedId} validation finished. Valid: {$totalValid}, Invalid: {$totalInvalid}");
     }
 
     

@@ -29,11 +29,11 @@ class ProcessFeedFile implements ShouldQueue
     {
         $feed = Feed::find($this->feedId);
         if (!$feed) {
-            Log::error("ProcessFeedFile: Feed not found with ID {$this->feedId}");
+//             Log::error("ProcessFeedFile: Feed not found with ID {$this->feedId}");
             return;
         }
 
-        Log::info("Validating contacts for Feed ID: {$this->feedId}");
+//         Log::info("Validating contacts for Feed ID: {$this->feedId}");
 
         $totalValid   = 0;
         $totalInvalid = 0;
@@ -63,24 +63,24 @@ class ProcessFeedFile implements ShouldQueue
                         $invalid[] = $data;
                     }
 
-                    Log::debug("Contact {$contact->id} | Phone: {$contact->phone} → {$cleanPhone} | " .
-                        ($cleanPhone && preg_match('/^\d{9,10}$/', $cleanPhone) ? 'VALID' : 'INVALID'));
+//                     Log::debug("Contact {$contact->id} | Phone: {$contact->phone} → {$cleanPhone} | " .
+//                         ($cleanPhone && preg_match('/^\d{9,10}$/', $cleanPhone) ? 'VALID' : 'INVALID'));
                 }
 
                 if (!empty($valid)) {
                     FeedContactValid::insert($valid);
                     $totalValid += count($valid);
-                    Log::info(count($valid) . " valid contacts inserted.");
+//                     Log::info(count($valid) . " valid contacts inserted.");
                 }
 
                 if (!empty($invalid)) {
                     FeedContactInValid::insert($invalid);
                     $totalInvalid += count($invalid);
-                    Log::info(count($invalid) . " invalid contacts inserted.");
+//                     Log::info(count($invalid) . " invalid contacts inserted.");
                 }
             });
 
         $feed->update(['status' => 'completed']);
-        Log::info("Feed ID {$this->feedId} validation finished. Valid: {$totalValid}, Invalid: {$totalInvalid}");
+//         Log::info("Feed ID {$this->feedId} validation finished. Valid: {$totalValid}, Invalid: {$totalInvalid}");
     }
 }

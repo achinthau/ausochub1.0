@@ -26,7 +26,7 @@ class CallAnswered implements ShouldBroadcastNow
     public function __construct($id)
     {
         $this->lead = Lead::find($id);
-        Log::info($this->lead);
+//         Log::info($this->lead);
     }
 
     /**

@@ -61,7 +61,7 @@ Route::get('/items', function (Request $request) {
 })->name('api.items.index');
 
 Route::post('/call-answered', function (StoreAnsweredCall $request) {
-    Log::info($request);
+//     Log::info($request);
     // $lead = Lead::where('contact_number', $request['ani'])->first();
     $number = $request['ani'];
     // if (!empty($number) && strlen($number) === 9) {
@@ -152,10 +152,10 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
                     ]);
 
                     $responseData = json_decode($response->getBody(), true);
-                    Log::info('Socket event sent:', $responseData);
+//                     Log::info('Socket event sent:', $responseData);
 
                 } catch (\Exception $e) {
-                    Log::error('Failed to send the socket event: ' . $e->getMessage());
+//                     Log::error('Failed to send the socket event: ' . $e->getMessage());
                 }
             }
 
@@ -203,10 +203,10 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
                 ]);
 
                 $responseData = json_decode($response->getBody(), true);
-                Log::info('Socket event sent:', $responseData);
+//                 Log::info('Socket event sent:', $responseData);
 
             } catch (\Exception $e) {
-                Log::error('Failed to send the socket event: ' . $e->getMessage());
+//                 Log::error('Failed to send the socket event: ' . $e->getMessage());
             }
         }
 
@@ -257,7 +257,7 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
 
 
 Route::post('/call-dialed', function (StoreAnsweredCall $request) {
-    Log::info($request);
+//     Log::info($request);
     // $lead = Lead::where('contact_number', $request['ani'])->first();
     $number = $request['ani'];
     // if (!empty($number) && strlen($number) === 9) {
@@ -310,9 +310,9 @@ Route::post('/call-dialed', function (StoreAnsweredCall $request) {
                                 ]
                             ]
                         ]);
-                        Log::info('Socket event sent:', json_decode($response->getBody(), true));
+//                         Log::info('Socket event sent:', json_decode($response->getBody(), true));
                     } catch (\Exception $e) {
-                        Log::error('Failed to send the socket event: ' . $e->getMessage());
+//                         Log::error('Failed to send the socket event: ' . $e->getMessage());
                     }
                 }
 
@@ -337,9 +337,9 @@ Route::post('/call-dialed', function (StoreAnsweredCall $request) {
                             ]
                         ]
                     ]);
-                    Log::info('Socket event sent:', json_decode($response->getBody(), true));
+//                     Log::info('Socket event sent:', json_decode($response->getBody(), true));
                 } catch (\Exception $e) {
-                    Log::error('Failed to send the socket event: ' . $e->getMessage());
+//                     Log::error('Failed to send the socket event: ' . $e->getMessage());
                 }
             }
 
@@ -351,8 +351,8 @@ Route::post('/call-dialed', function (StoreAnsweredCall $request) {
 
 
 Route::post('/call-disconnected', function (Request $request) {
-    Log::info('call-disconntected-line');
-    Log::info($request);
+//     Log::info('call-disconntected-line');
+//     Log::info($request);
     if (Cache::has('call-' . $request['unique_id'])) {
         Cache::forget('agent-in-call-' . Cache::get('call-' . $request['unique_id']));
         Cache::forget('call-' . $request['unique_id']);
@@ -394,8 +394,8 @@ Route::post('/call-disconnected', function (Request $request) {
 });
 
 Route::post('/agent-disconnected', function (Request $request) {
-    Log::info('agent-disconntected-line');
-    Log::info($request);
+//     Log::info('agent-disconntected-line');
+//     Log::info($request);
     if (Cache::has('call-' . $request['unique_id'])) {
         Cache::forget('agent-in-call-' . Cache::get('call-' . $request['unique_id']));
         Cache::forget('call-' . $request['unique_id']);
@@ -443,7 +443,7 @@ Route::post('/logout-socket', function (\Illuminate\Http\Request $request) {
             ->first()
                 ?->update(['logout_time' => now()]);
 
-        Log::info("Socket logout for user {$userId}");
+//         Log::info("Socket logout for user {$userId}");
 
         return response()->noContent();
     }
@@ -567,9 +567,9 @@ Route::post('/get-answered-number', function (Request $request) {
                                 ]
                             ]
                         ]);
-                        Log::info('Socket event sent:', json_decode($response->getBody(), true));
+//                         Log::info('Socket event sent:', json_decode($response->getBody(), true));
                     } catch (\Exception $e) {
-                        Log::error('Failed to send the socket event: ' . $e->getMessage());
+//                         Log::error('Failed to send the socket event: ' . $e->getMessage());
                     }
                 }
 
@@ -594,9 +594,9 @@ Route::post('/get-answered-number', function (Request $request) {
                             ]
                         ]
                     ]);
-                    Log::info('Socket event sent:', json_decode($response->getBody(), true));
+//                     Log::info('Socket event sent:', json_decode($response->getBody(), true));
                 } catch (\Exception $e) {
-                    Log::error('Failed to send the socket event: ' . $e->getMessage());
+//                     Log::error('Failed to send the socket event: ' . $e->getMessage());
                 }
             }
 
@@ -619,7 +619,7 @@ Route::post('/get-answered-number', function (Request $request) {
 
 Route::post('/get-missed-call-number', function (Request $request) {
 
-    Log::info('Called the API: ', $request->all());
+//     Log::info('Called the API: ', $request->all());
 
     $validated = $request->validate([
         'customer' => 'required',
@@ -636,13 +636,13 @@ Route::post('/get-missed-call-number', function (Request $request) {
         ->where('hotline', 'LIKE', '%' . $dst)
         ->get();
 
-    Log::info('Found campaign: ', ['data' => $campaigns->toArray()]);
+//     Log::info('Found campaign: ', ['data' => $campaigns->toArray()]);
 
     $feedIds = [];
 
     if ($campaigns->isNotEmpty()) {
         $feedIds = $campaigns->flatMap->feed_ids->unique()->toArray();
-        Log::info('Found feedIds: ', ['data' => $feedIds]);
+//         Log::info('Found feedIds: ', ['data' => $feedIds]);
     }
 
     $record = null;
@@ -659,7 +659,7 @@ Route::post('/get-missed-call-number', function (Request $request) {
             })
             ->first();
 
-        Log::info('Found record: ', ['data' => $record ? $record->toArray() : null]);
+//         Log::info('Found record: ', ['data' => $record ? $record->toArray() : null]);
     }
 
     if ($record) {
@@ -669,7 +669,7 @@ Route::post('/get-missed-call-number', function (Request $request) {
         }
         $record->save();
 
-        Log::info('Record saved: ', ['data' => $record->toArray()]);
+//         Log::info('Record saved: ', ['data' => $record->toArray()]);
     }
 
     return response()->json([

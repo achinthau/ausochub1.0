@@ -20,18 +20,18 @@ class CheckCallbackNotifications extends Command
         $start = $now;
         $end = $now->copy()->addMinute()->subSecond();
 
-        \Log::info("CheckCallbackNotifications running between {$start} and {$end}");
+//         \Log::info("CheckCallbackNotifications running between {$start} and {$end}");
 
         $callbacks = CallbackCustomer::whereBetween('callback_at', [$start, $end])
             ->get();
 
         if ($callbacks->isEmpty()) {
-            \Log::info("No callbacks scheduled for this time.");
+//             \Log::info("No callbacks scheduled for this time.");
         } else {
             $callbacks->each(function ($callback) {
-                \Log::info("Sending notification for callback id {$callback->id}, lead #{$callback->lead_id}");
+//                 \Log::info("Sending notification for callback id {$callback->id}, lead #{$callback->lead_id}");
                 $this->sendSocketNotification($callback);
-                \Log::info("Notification sent for callback id {$callback->id}");
+//                 \Log::info("Notification sent for callback id {$callback->id}");
             });
         }
 
@@ -69,11 +69,11 @@ class CheckCallbackNotifications extends Command
                 'isReminder' => true,
             ]));
 
-            \Log::info("Socket emit response status: {$response->status()}");
-            \Log::info("Socket emit response body: {$response->body()}");
+//             \Log::info("Socket emit response status: {$response->status()}");
+//             \Log::info("Socket emit response body: {$response->body()}");
 
         } catch (\Exception $e) {
-            \Log::error('Socket emit failed: ' . $e->getMessage());
+//             \Log::error('Socket emit failed: ' . $e->getMessage());
         }
     }
 

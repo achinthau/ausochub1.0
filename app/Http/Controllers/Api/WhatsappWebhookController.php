@@ -45,7 +45,7 @@ class WhatsappWebhookController extends Controller
      */
     protected function handleWebJs(Request $request)
     {
-        Log::info('WhatsApp WebJS Webhook Received', $request->all());
+//         Log::info('WhatsApp WebJS Webhook Received', $request->all());
 
         $event = $request->input('event');
         $data = $request->input('data');
@@ -60,7 +60,7 @@ class WhatsappWebhookController extends Controller
                     'data' => $data
                 ]);
             } catch (\Exception $e) {
-                Log::error('Failed to emit WhatsApp socket event: ' . $e->getMessage());
+//                 Log::error('Failed to emit WhatsApp socket event: ' . $e->getMessage());
             }
         }
 
@@ -72,7 +72,7 @@ class WhatsappWebhookController extends Controller
      */
     protected function handleMetaApi(Request $request)
     {
-        Log::info('WhatsApp Meta API Webhook Received', $request->all());
+//         Log::info('WhatsApp Meta API Webhook Received', $request->all());
 
         $payload = $request->all();
 
@@ -164,7 +164,7 @@ class WhatsappWebhookController extends Controller
                                         ]
                                     ]);
                                 } catch (\Exception $e) {
-                                    Log::error('Failed to emit WhatsApp Meta socket event: ' . $e->getMessage());
+//                                     Log::error('Failed to emit WhatsApp Meta socket event: ' . $e->getMessage());
                                 }
                             }
                         }

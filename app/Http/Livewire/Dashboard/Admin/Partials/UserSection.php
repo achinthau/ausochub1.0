@@ -19,10 +19,10 @@ class UserSection extends Component
 
     public function render()
     {
-        \Log::info('Render started: Fetching agents with relations');
+//         \Log::info('Render started: Fetching agents with relations');
 
         $users = Agent::with(['currentActiveQueues', 'extensionDetails', 'user'])->get();
-        \Log::info('Agents loaded', ['agent_count' => $users->count()]);
+//         \Log::info('Agents loaded', ['agent_count' => $users->count()]);
 
         $raisedHands = [];
 
@@ -32,7 +32,7 @@ class UserSection extends Component
             ->unique()
             ->toArray();
 
-        \Log::info('Logged-in users fetched', ['ids' => $loggedUserIds]);
+//         \Log::info('Logged-in users fetched', ['ids' => $loggedUserIds]);
 
         $inboundUsers = [];
         $dialerUsers = [];
@@ -45,7 +45,7 @@ class UserSection extends Component
                 $key = "hand_raised:{$userId}";
                 if (Redis::get($key)) {
                     $raisedHands[$userId] = true;
-                    \Log::info('Hand raised detected', ['user_id' => $userId]);
+//                     \Log::info('Hand raised detected', ['user_id' => $userId]);
                 }
             }
 
@@ -53,7 +53,7 @@ class UserSection extends Component
                 $key = "user:{$userId}:bound_type";
                 $callDirection = Redis::get($key);
 
-                \Log::info('User bound type found', ['user_id' => $userId, 'bound_type' => $callDirection]);
+//                 \Log::info('User bound type found', ['user_id' => $userId, 'bound_type' => $callDirection]);
 
                 if ($callDirection == 'inbound') {
                     $inboundUsers[] = $userId;
@@ -72,22 +72,22 @@ class UserSection extends Component
                     ->count();
 
                 $dialerCallCounts[$userId] = $count;
-                \Log::info('Dialer call count fetched', ['user_id' => $userId, 'extension' => $extension, 'count' => $count]);
+//                 \Log::info('Dialer call count fetched', ['user_id' => $userId, 'extension' => $extension, 'count' => $count]);
             } else {
                 $dialerCallCounts[$userId] = 0;
-                \Log::info('No extension found, setting dialer count to 0', ['user_id' => $userId]);
+//                 \Log::info('No extension found, setting dialer count to 0', ['user_id' => $userId]);
             }
         }
 
         $this->dialerCallCounts = $dialerCallCounts;
 
-        \Log::info('Final data prepared', [
-            'inbound_users' => $inboundUsers,
-            'dialer_users' => $dialerUsers,
-            'raised_hands' => $raisedHands,
-        ]);
+//         \Log::info('Final data prepared', [
+//             'inbound_users' => $inboundUsers,
+//             'dialer_users' => $dialerUsers,
+//             'raised_hands' => $raisedHands,
+//         ]);
 
-        \Log::info('Render completed, returning view');
+//         \Log::info('Render completed, returning view');
 
         return view(
             'livewire.dashboard.admin.partials.user-section',
@@ -124,7 +124,7 @@ class UserSection extends Component
             ],
 
         ];
-        Log::info('Calling ApiManager::listenCall with data: ', $data);
+//         Log::info('Calling ApiManager::listenCall with data: ', $data);
         ApiManager::listentCall($data);
     }
 }

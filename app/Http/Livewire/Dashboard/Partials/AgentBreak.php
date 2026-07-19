@@ -127,21 +127,21 @@ LUA;
             
             // eval(script, args, num_keys) - pattern goes in args array
             $deletedCount = $redis->eval($luaScript, [$pattern], 0);
-            \Log::info('Agent Break - Deleted Redis keys:', [
-                'agent_id' => $user->agent_id,
-                'pattern' => $pattern,
-                'deleted_count' => $deletedCount
-            ]);
+//             \Log::info('Agent Break - Deleted Redis keys:', [
+//                 'agent_id' => $user->agent_id,
+//                 'pattern' => $pattern,
+//                 'deleted_count' => $deletedCount
+//             ]);
             
             // Restore Laravel's prefix
             $redis->setOption(\Redis::OPT_PREFIX, $currentPrefix);
         } catch (\Throwable $e) {
             // Log error but don't fail the break operation
-            \Log::error('Agent Break - Failed to delete Redis keys:', [
-                'agent_id' => $user->agent_id,
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
+//             \Log::error('Agent Break - Failed to delete Redis keys:', [
+//                 'agent_id' => $user->agent_id,
+//                 'error' => $e->getMessage(),
+//                 'trace' => $e->getTraceAsString()
+//             ]);
         }
 
         $this->createUserBreakModal = false;

@@ -39,6 +39,7 @@ class Show extends Component
     public $callbackDate;
     public $callbackTime;
     public $callbackComment;
+    public $ticketInfoOpen = false;
 
     public $feedContacts = [];
     public $selectedFeedContact = null;
@@ -194,7 +195,7 @@ class Show extends Component
 
     public function mount($lead)
     {
-        \Log::info('Show Lead component mounting', ['lead_id' => $lead->id]);
+//         \Log::info('Show Lead component mounting', ['lead_id' => $lead->id]);
         $this->lead = $lead->load('tickets', 'tickets.category', 'tickets.status', 'tickets.outlet', 'orders', 'orders.items');
 
         if (filled(trim((string) $this->lead->full_name))) {
@@ -456,7 +457,7 @@ class Show extends Component
 
     public function updated($propertyName)
     {
-        \Log::info('Property updated', ['property' => $propertyName, 'value' => $this->$propertyName]);
+//         \Log::info('Property updated', ['property' => $propertyName, 'value' => $this->$propertyName]);
 
         if ($propertyName === 'attachment' && $this->attachment) {
             $this->notifyPhone = false;
@@ -520,7 +521,7 @@ class Show extends Component
 
     public function showWhatsAppModal()
     {
-        \Log::info('showWhatsAppModal called');
+//         \Log::info('showWhatsAppModal called');
         $this->resetValidation();
         $this->whatsappMessage = '';
         $this->channelError = '';
@@ -540,7 +541,7 @@ class Show extends Component
         }
         $this->channelError = '';
 
-        \Log::info('sendWhatsAppMessage called', ['message' => $this->whatsappMessage]);
+//         \Log::info('sendWhatsAppMessage called', ['message' => $this->whatsappMessage]);
         $this->validate([
             'whatsappMessage' => 'required|string',
         ]);
@@ -556,7 +557,7 @@ class Show extends Component
         if ($this->notifyWhatsApp) {
             $waAttempted = true;
             $number = preg_replace('/\s+/', '', $this->lead->whatsapp);
-            \Log::info('WhatsApp Number from lead', ['number' => $number]);
+//             \Log::info('WhatsApp Number from lead', ['number' => $number]);
 
             if (empty($number)) {
                 $this->notification()->error('WhatsApp number is missing for this lead.');
@@ -569,7 +570,7 @@ class Show extends Component
                     $internationalNumber = '94' . $number;
                 }
 
-                \Log::info('International Number', ['number' => $internationalNumber]);
+//                 \Log::info('International Number', ['number' => $internationalNumber]);
                 $mode = config('services.whatsapp.mode', 'api');
                 $response = null;
 
@@ -589,14 +590,14 @@ class Show extends Component
                                 'filename' => $this->attachment->getClientOriginalName(),
                             ];
                         } catch (\Exception $e) {
-                            \Log::error('File attachment error', ['error' => $e->getMessage()]);
+//                             \Log::error('File attachment error', ['error' => $e->getMessage()]);
                         }
                     }
 
                     try {
                         $response = Http::timeout(30)->post($url, $postData);
                     } catch (\Exception $e) {
-                        \Log::error('HTTP Exception', ['message' => $e->getMessage()]);
+//                         \Log::error('HTTP Exception', ['message' => $e->getMessage()]);
                         $this->notification()->error('Failed to connect to WhatsApp server: ' . $e->getMessage());
                     }
                 } else {
@@ -653,7 +654,7 @@ class Show extends Component
 
                     $emailSuccess = true;
                 } catch (\Exception $e) {
-                    \Log::error('Email sending failed', ['error' => $e->getMessage()]);
+//                     \Log::error('Email sending failed', ['error' => $e->getMessage()]);
                     $this->notification()->error('Failed to send Email: ' . $e->getMessage());
                 }
             }
@@ -663,7 +664,7 @@ class Show extends Component
         if ($this->notifyPhone) {
             // Placeholder: Assume success for now as per original code
             $number = preg_replace('/\s+/', '', $this->lead->contact_number);
-            \Log::info('WhatsApp Number from lead', ['number' => $number]);
+//             \Log::info('WhatsApp Number from lead', ['number' => $number]);
 
             if (empty($number)) {
                 $this->notification()->error('WhatsApp number is missing for this lead.');

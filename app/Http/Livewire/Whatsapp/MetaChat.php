@@ -155,7 +155,7 @@ class MetaChat extends Component
         $token   = config('services.whatsapp.token');
 
         if (!$phoneId || !$token) {
-            Log::error('WhatsApp Meta API send error: config variables missing in services.php');
+//             Log::error('WhatsApp Meta API send error: config variables missing in services.php');
             session()->flash('error', 'API configuration error. Phone ID or Access Token is missing.');
             return;
         }
@@ -192,11 +192,11 @@ class MetaChat extends Component
                 $this->loadConversations();
                 $this->dispatchBrowserEvent('scrollToBottom');
             } else {
-                Log::error('WhatsApp Meta Cloud API Send failed: ' . $response->body());
+//                 Log::error('WhatsApp Meta Cloud API Send failed: ' . $response->body());
                 session()->flash('error', 'Failed to send: ' . ($response->json('error.message') ?? 'Meta API error'));
             }
         } catch (\Exception $e) {
-            Log::error('WhatsApp Meta Cloud API Send exception: ' . $e->getMessage());
+//             Log::error('WhatsApp Meta Cloud API Send exception: ' . $e->getMessage());
             session()->flash('error', 'Could not reach Meta API.');
         }
     }

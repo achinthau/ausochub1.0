@@ -211,11 +211,11 @@ class Chat extends Component
                 $this->loadConversations();
                 $this->dispatchBrowserEvent('scrollToBottom');
             } else {
-                Log::error('Messenger send failed: ' . $response->body());
+//                 Log::error('Messenger send failed: ' . $response->body());
                 session()->flash('error', 'Failed to send: ' . ($response->json('error.message') ?? 'Meta API error'));
             }
         } catch (\Exception $e) {
-            Log::error('Messenger send error: ' . $e->getMessage());
+//             Log::error('Messenger send error: ' . $e->getMessage());
             session()->flash('error', 'Could not reach Meta API.');
         }
     }

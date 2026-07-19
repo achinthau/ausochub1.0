@@ -181,7 +181,12 @@ class CallPanel extends Component
 
         $url = route('leads.show', ['lead' => $lead->id]) . '?feed=' . $this->feed_id . '&cmp=' . $this->campaignName;
 
-        return redirect()->to($url);
+        $this->dispatchBrowserEvent('open-lead-window', [
+            'url' => $url,
+            'lead_id' => $lead->id,
+            'feed_id' => $this->feed_id,
+            'cmp' => $this->campaignName,
+        ]);
     }
 
 

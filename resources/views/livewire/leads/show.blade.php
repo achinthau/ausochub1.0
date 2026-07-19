@@ -5,6 +5,15 @@
 
             <div class="flex justify-end space-x-2">
 
+                @if($boundType == 'dialer' && filled($campaign))
+                    <button type="button" wire:click="nextContact"
+                        class="border border-emerald-600 dark:hover:bg-slate-700 dark:ring-offset-slate-800 disabled:cursor-not-allowed disabled:opacity-80 duration-150 ease-in focus:ring-2 focus:ring-offset-2 gap-x-2 group hover:bg-emerald-50 hover:shadow-sm inline-flex items-center justify-center outline-none px-4 py-0.5 ring-emerald-600 rounded text-emerald-600 text-sm transition-all">
+                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                        </svg>
+                        Next Contact
+                    </button>
+                @endif
                 <a href="#" onclick="Livewire.emitTo('leads.create', 'openCreateLeadModal')"
                     class="border border-info-600 dark:hover:bg-slate-700 dark:ring-offset-slate-800 disabled:cursor-not-allowed disabled:opacity-80 duration-150 ease-in focus:ring-2 focus:ring-offset-2 gap-x-2 group hover:bg-info-50 hover:shadow-sm inline-flex items-center justify-center outline-none px-4 py-0.5 ring-info-600 rounded text-info-600 text-sm transition-all">
                     <svg class="w-6 h-6 " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -294,8 +303,8 @@
                     </div> --}}
                     <details class="bg-white p-4 space-y-2 text-xs rounded-md shadow-sm" @if($ticketInfoOpen) open @endif x-on:toggle="$wire.set('ticketInfoOpen', $event.target.open)">
                         <summary class="font-bold cursor-pointer list-none flex items-center justify-between">
-                            <span>Ticket Information</span>
-                            <span class="text-gray-400 text-xs">{{ $ticketInfoOpen ? 'Click to collapse' : 'Click to expand' }}</span>
+                            <span>Ticket Overview & Callback</span>
+                            <span class="text-gray-400 text-xs">{{ $ticketInfoOpen ? 'Click to collapse >>' : 'Click to expand  >>' }}</span>
                         </summary>
                         <hr>
 

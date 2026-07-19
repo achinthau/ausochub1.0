@@ -340,6 +340,10 @@ class Show extends Component
 
         if ($this->feedContacts->isNotEmpty()) {
             $foundContact = $this->feedContacts->first();
+            $this->selectedFeedContact = $foundContact;
+            $this->feedContactId = $foundContact->id;
+            $this->feedContactIdStatus = $foundContact->status;
+
             if ($foundContact->contact_no_01 === $phone) {
                 $this->phone2 = $foundContact->contact_no_02;
             } else {
@@ -370,6 +374,10 @@ class Show extends Component
 
             if ($this->feedContacts->isNotEmpty()) {
                 $foundContact = $this->feedContacts->first();
+                $this->selectedFeedContact = $foundContact;
+                $this->feedContactId = $foundContact->id;
+                $this->feedContactIdStatus = $foundContact->status;
+
                 if ($foundContact->contact_no_01 === $phone) {
                     $this->phone2 = $foundContact->contact_no_02;
                 } else {
@@ -466,15 +474,6 @@ class Show extends Component
             })
                 ->whereIn('status', ['Closed', 'Skip'])
                 ->get();
-
-            // $feedContacts = FeedContactValid::where(function ($query) use ($phone) {
-            //     $query->where('contact_no_01', $phone)
-            //         ->orWhere('contact_no_02', $phone);
-            // })
-            //     ->when($feedId, function ($query, $feedId) {
-            //         $query->where('feed_id', $feedId); // filter by feed_id if present
-            //     })
-            //     ->get();
 
             // $this->phone_numbers = [$phone];
 

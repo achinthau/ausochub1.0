@@ -462,10 +462,19 @@
                                     </div>
 
                                     <div>
-                                        <button type="button" wire:click="makeCall('{{ $selectedContact }}')"
+                                        {{-- <button type="button" wire:click="makeCall('{{ $selectedContact }}')"
                                             class="w-full bg-green-500 text-white font-bold text-lg hover:bg-green-600 px-4 py-2 rounded-md shadow">
                                             Call
-                                        </button>
+                                        </button> --}}
+                                        <button type="button"
+        x-data="{ disabled: false }"
+        x-bind:disabled="disabled"
+        x-on:click="disabled = true; setTimeout(() => disabled = false, 5000)"
+        wire:click="makeCall('{{ $selectedContact }}')"
+        x-bind:class="disabled ? 'opacity-50 cursor-not-allowed' : ''"
+        class="w-full bg-green-500 text-white font-bold text-lg hover:bg-green-600 px-4 py-2 rounded-md shadow">
+    Call
+</button>
                                     </div>
                                 </div>
 

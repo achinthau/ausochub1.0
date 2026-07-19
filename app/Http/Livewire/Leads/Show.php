@@ -239,40 +239,73 @@ class Show extends Component
         return $lead;
     }
 
+    protected function getCurrentDialerPanelContact(): array
+    {
+        $userId = Auth::id();
+        $currentSkills = Auth::user()->currentQueues()->active()->pluck('skill')->unique();
+
+        $campaigns = Campaign::where('status', 1)
+            ->whereIn('name', $currentSkills)
+            ->get();
+
+        $feedIds = $campaigns->flatMap->feed_ids->unique()->toArray();
+
+        if (empty($feedIds)) {
+            return [null, null];
+        }
+
+        $record = FeedContactValid::whereIn('feed_id', $feedIds)
+            ->where(function ($query) {
+                $query->whereNull('status')
+                    ->orWhereIn('status', [2, 22]);
+            })
+            ->where(function ($query) {
+                $query->whereNull('next_available_at')
+                    ->orWhere('next_available_at', '<=', now());
+            })
+            ->where(function ($query) use ($userId) {
+                $query->whereNull('assigned_to')
+                    ->orWhere('assigned_to', $userId);
+            })
+            ->first();
+
+        if (!$record) {
+            return [null, null];
+        }
+
+        $campaignForNumber = $campaigns->first(function ($campaign) use ($record) {
+            $campaignFeedIds = is_array($campaign->feed_ids)
+                ? $campaign->feed_ids
+                : json_decode($campaign->feed_ids, true);
+
+            return in_array($record->feed_id, $campaignFeedIds ?: []);
+        });
+
+        return [$record, $campaignForNumber ? $campaignForNumber->name : null];
+    }
+
     public function nextContact()
     {
         if ($this->boundType !== 'dialer') {
             return;
         }
 
-        $currentContact = $this->selectedFeedContact;
-
-        if (!$currentContact && $this->feedContactId) {
-            $currentContact = FeedContactValid::where('id', $this->feedContactId)->first();
-        }
-
-        if (!$currentContact) {
-            $currentContact = FeedContactValid::query()
-                ->when($this->feed_id, function ($query, $feedId) {
-                    $query->where('feed_id', $feedId);
-                })
-                ->where(function ($query) {
-                    $query->where('contact_no_01', $this->lead->contact_number)
-                        ->orWhere('contact_no_02', $this->lead->contact_number);
-                })
-                ->first();
-        }
+        [$currentContact, $campaignName] = $this->getCurrentDialerPanelContact();
 
         if (!$currentContact) {
             return;
         }
+
+        $this->selectedFeedContact = $currentContact;
+        $this->feedContactId = $currentContact->id;
+        $this->feedContactIdStatus = $currentContact->status;
 
         $lead = $this->resolveLeadForContact($currentContact);
 
         return redirect()->route('leads.show', [
             'lead' => $lead->id,
             'feed' => $currentContact->feed_id,
-            'cmp' => $this->campaign,
+            'cmp' => $campaignName ?? $this->campaign,
         ]);
     }
 

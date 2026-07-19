@@ -6,9 +6,9 @@
             <div class="flex justify-end space-x-2">
 
                 @if($boundType == 'dialer' && filled($campaign))
-                    <button type="button" wire:click="nextContact >>"
+                    <button type="button" wire:click="nextContact"
                         class="border border-emerald-600 dark:hover:bg-slate-700 dark:ring-offset-slate-800 disabled:cursor-not-allowed disabled:opacity-80 duration-150 ease-in focus:ring-2 focus:ring-offset-2 gap-x-2 group hover:bg-emerald-50 hover:shadow-sm inline-flex items-center justify-center outline-none px-4 py-0.5 ring-emerald-600 rounded text-emerald-600 text-sm transition-all">
-                        Next Contact
+                        Next Contact >>
                     </button>
                 @endif
                 <a href="#" onclick="Livewire.emitTo('leads.create', 'openCreateLeadModal')"

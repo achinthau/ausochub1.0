@@ -60,7 +60,7 @@ class RecordLogoutTime
                     );
                 }
             } catch (\Throwable $e) {
-                Log::error('Softphone disconnect failed: ' . $e->getMessage());
+//                 Log::error('Softphone disconnect failed: ' . $e->getMessage());
             }
         }
 
@@ -95,17 +95,17 @@ LUA;
             
             try {
                 $deletedCount = $redis->eval($luaScript, [$pattern], 0);
-                Log::info('Logout - Deleted agent_on_call Redis keys:', [
-                    'user_id' => $user->id,
-                    'agent_id' => $user->agent_id,
-                    'deleted_count' => $deletedCount
-                ]);
+//                 Log::info('Logout - Deleted agent_on_call Redis keys:', [
+//                     'user_id' => $user->id,
+//                     'agent_id' => $user->agent_id,
+//                     'deleted_count' => $deletedCount
+//                 ]);
             } catch (\Exception $e) {
-                Log::error('Logout - Failed to delete agent_on_call keys:', [
-                    'user_id' => $user->id,
-                    'agent_id' => $user->agent_id,
-                    'error' => $e->getMessage()
-                ]);
+//                 Log::error('Logout - Failed to delete agent_on_call keys:', [
+//                     'user_id' => $user->id,
+//                     'agent_id' => $user->agent_id,
+//                     'error' => $e->getMessage()
+//                 ]);
             } finally {
                 // Restore Laravel's prefix
                 $redis->setOption(\Redis::OPT_PREFIX, $currentPrefix);
@@ -113,7 +113,7 @@ LUA;
         }
 
 
-        Log::info("User {$user->id} logged out and softphone disconnected");
+//         Log::info("User {$user->id} logged out and softphone disconnected");
 
         // dd('Logout listener works');
 

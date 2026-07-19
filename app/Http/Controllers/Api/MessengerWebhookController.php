@@ -58,7 +58,7 @@ class MessengerWebhookController extends Controller
                             }
 
                             // Log::info("Messenger: message from {$senderName} ({$senderId}): {$messageText}");
-                            Log::info("Messenger: message from {$request}");
+//                             Log::info("Messenger: message from {$request}");
 
                             // Store in DB — avoid duplicates via message_id
                             if (!$messageId || !MessengerMessage::where('message_id', $messageId)->exists()) {
@@ -155,21 +155,21 @@ class MessengerWebhookController extends Controller
                     ?: null;
 
                 if ($name) {
-                    Log::info("Messenger: resolved name '{$name}' for PSID {$senderId}");
+//                     Log::info("Messenger: resolved name '{$name}' for PSID {$senderId}");
                 }
                 return $name ?: null;
             }
 
             // Log the exact error so developers know what to fix
             $err = $response->json('error', []);
-            Log::warning("Messenger: Graph API name lookup failed for {$senderId}", [
-                'http_status' => $response->status(),
-                'error_code' => $err['code'] ?? null,
-                'error_sub' => $err['error_subcode'] ?? null,
-                'error_msg' => $err['message'] ?? $response->body(),
-            ]);
+//             Log::warning("Messenger: Graph API name lookup failed for {$senderId}", [
+//                 'http_status' => $response->status(),
+//                 'error_code' => $err['code'] ?? null,
+//                 'error_sub' => $err['error_subcode'] ?? null,
+//                 'error_msg' => $err['message'] ?? $response->body(),
+//             ]);
         } catch (\Exception $e) {
-            Log::warning("Messenger: Graph API timeout/exception for {$senderId}: " . $e->getMessage());
+//             Log::warning("Messenger: Graph API timeout/exception for {$senderId}: " . $e->getMessage());
         }
 
         return null;
@@ -238,7 +238,7 @@ class MessengerWebhookController extends Controller
             ]);
 
         if ($response->failed()) {
-            Log::error('Meta Outbound API Error: ' . $response->body());
+//             Log::error('Meta Outbound API Error: ' . $response->body());
             return false;
         }
 

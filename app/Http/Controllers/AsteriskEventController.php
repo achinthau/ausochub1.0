@@ -15,7 +15,7 @@ class AsteriskEventController extends Controller
     public function handleEvent(Request $request)
     {
         $data = $request->json()->all();
-        Log::info("Received data in AsteriskEventController: " . json_encode($data));
+//         Log::info("Received data in AsteriskEventController: " . json_encode($data));
 
         // Determine channel identifier (adjust as per your data structure)
         $channelStateDesc = $data['channelStateDesc'] ?? null;
@@ -43,7 +43,7 @@ class AsteriskEventController extends Controller
         return response()->json(['message' => 'Events updated successfully']);
         }
         else {
-            Log::error('Invalid data received from Node.js:', $data);
+//             Log::error('Invalid data received from Node.js:', $data);
             return response()->json(['error' => 'Invalid data received'], 400);
         }
     }

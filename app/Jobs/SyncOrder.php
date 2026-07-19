@@ -47,7 +47,7 @@ class SyncOrder implements ShouldQueue
             $response = Http::post(config('auso.mrk_api_url') . "/order", [
                 'order_details' => $this->ticket
             ]);
-            Log::info($response);
+//             Log::info($response);
             if ($response->successful()) {
                 $this->ticket->synced_at = Carbon::now();
                 $this->ticket->is_synced = 1;
@@ -72,7 +72,7 @@ class SyncOrder implements ShouldQueue
             $this->ticket->save();
             $this->ticket->logActivity("Sync Failed : POS Middleware Connector Down");
             
-            Log::error($th);
+//             Log::error($th);
         }
     }
 }

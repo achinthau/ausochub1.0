@@ -18,8 +18,8 @@ class ApiManager
         
         try {
             $res = $client->request('POST', config('auso.api_url').'/Client/userAPI/queueLoginLogoutAPIL.php', $options);
-            Log::info(config('auso.api_url').'/Client/userAPI/queueLoginLogoutAPIL.php');
-            Log::info($options);
+//             Log::info(config('auso.api_url').'/Client/userAPI/queueLoginLogoutAPIL.php');
+//             Log::info($options);
             return $res->getStatusCode();
         } catch (\Throwable $th) {
             throw $th;
@@ -36,8 +36,8 @@ class ApiManager
         
         try {
             $res = $client->request('POST', config('auso.api_url').'/Client/userAPI/agentAutoLogout.php', $options);
-            Log::info(config('auso.api_url').'/Client/userAPI/agentAutoLogout.php');
-            Log::info($options);
+//             Log::info(config('auso.api_url').'/Client/userAPI/agentAutoLogout.php');
+//             Log::info($options);
             return $res->getStatusCode();
         } catch (\Throwable $th) {
             throw $th;

@@ -83,7 +83,7 @@ class FileUpload extends Component
     $batchSize  = 5000;
 
     $feed->update(['status' => 'processing']);
-    Log::info("Processing Feed ID: {$feed->id}");
+//     Log::info("Processing Feed ID: {$feed->id}");
 
     // Import Excel file and insert into FeedContact
     Excel::import(new class($feed->id, $batchSize) implements OnEachRow, WithChunkReading {
@@ -105,7 +105,7 @@ class FileUpload extends Component
             // First row = header
             if (!self::$header) {
                 self::$header = array_map(fn($h) => strtolower(trim($h)), $rowArray);
-                Log::info("Excel headers detected: " . implode(", ", self::$header));
+//                 Log::info("Excel headers detected: " . implode(", ", self::$header));
                 return;
             }
 
@@ -113,7 +113,7 @@ class FileUpload extends Component
 
             $rowData = array_combine(self::$header, $rowArray);
             if (!$rowData) {
-                Log::warning("Failed to combine row with header: " . json_encode($rowArray));
+//                 Log::warning("Failed to combine row with header: " . json_encode($rowArray));
                 return;
             }
 
@@ -138,7 +138,7 @@ class FileUpload extends Component
 
             if (count($this->buffer) >= $this->batchSize) {
                 FeedContact::insert($this->buffer);
-                Log::info(count($this->buffer) . " contacts inserted into FeedContact.");
+//                 Log::info(count($this->buffer) . " contacts inserted into FeedContact.");
                 $this->buffer = [];
             }
         }
@@ -152,7 +152,7 @@ class FileUpload extends Component
         {
             if (!empty($this->buffer)) {
                 FeedContact::insert($this->buffer);
-                Log::info(count($this->buffer) . " contacts inserted into FeedContact (final batch).");
+//                 Log::info(count($this->buffer) . " contacts inserted into FeedContact (final batch).");
                 $this->buffer = [];
             }
         }

@@ -29,7 +29,7 @@ class AsteriskEvents extends Component
         try {
             // Implement fetching logic if needed
         } catch (\Exception $e) {
-            Log::error('Error fetching data from Node.js API: ' . $e->getMessage());
+//             Log::error('Error fetching data from Node.js API: ' . $e->getMessage());
             // Optionally, handle errors (show an alert, retry logic, etc.)
         }
     }

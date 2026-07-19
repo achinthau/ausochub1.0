@@ -45,12 +45,12 @@ class AutoLogoutInactiveUsers extends Command
 
             $userId = $session->user_id;
 
-            Log::info('Inactive session detected', [
-                'session_id'    => $session->id,
-                'user_id'       => $userId,
-                'last_activity' => $session->last_activity,
-                'inactive_sec'  => now()->timestamp - $session->last_activity,
-            ]);
+//             Log::info('Inactive session detected', [
+//                 'session_id'    => $session->id,
+//                 'user_id'       => $userId,
+//                 'last_activity' => $session->last_activity,
+//                 'inactive_sec'  => now()->timestamp - $session->last_activity,
+//             ]);
 
             $user = User::find($userId);
 
@@ -72,7 +72,7 @@ class AutoLogoutInactiveUsers extends Command
 
             DB::table('sessions')->where('id', $session->id)->delete();
 
-            Log::info("Auto-logged out user {$userId}");
+//             Log::info("Auto-logged out user {$userId}");
         }
 
         $this->info("Auto logout completed for {$sessions->count()} users.");

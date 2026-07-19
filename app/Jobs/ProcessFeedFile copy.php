@@ -35,12 +35,12 @@ class ProcessFeedFile implements ShouldQueue
     {
         $feed = Feed::find($this->feedId);
         if (!$feed) {
-            Log::error("ProcessFeedFile: Feed not found with ID {$this->feedId}");
+//             Log::error("ProcessFeedFile: Feed not found with ID {$this->feedId}");
             return;
         }
 
         $feed->update(['status' => 'processing']);
-        Log::info("Processing Feed ID: {$this->feedId}");
+//         Log::info("Processing Feed ID: {$this->feedId}");
 
         // Step 1: Import Excel → FeedContact
         Excel::import(new class($this->feedId, $this->batchSize) implements OnEachRow, WithChunkReading {
@@ -61,7 +61,7 @@ class ProcessFeedFile implements ShouldQueue
 
                 if (!self::$header) {
                     self::$header = array_map(fn($h) => strtolower(trim($h)), $rowArray);
-                    Log::info("Excel headers detected: " . implode(", ", self::$header));
+//                     Log::info("Excel headers detected: " . implode(", ", self::$header));
                     return;
                 }
 
@@ -69,7 +69,7 @@ class ProcessFeedFile implements ShouldQueue
 
                 $rowData = array_combine(self::$header, $rowArray);
                 if (!$rowData) {
-                    Log::warning("Failed to combine row with header: " . json_encode($rowArray));
+//                     Log::warning("Failed to combine row with header: " . json_encode($rowArray));
                     return;
                 }
 
@@ -87,7 +87,7 @@ class ProcessFeedFile implements ShouldQueue
 
                 if (count($this->buffer) >= $this->batchSize) {
                     FeedContact::insert($this->buffer);
-                    Log::info(count($this->buffer) . " contacts inserted into FeedContact.");
+//                     Log::info(count($this->buffer) . " contacts inserted into FeedContact.");
                     $this->buffer = [];
                 }
             }
@@ -101,7 +101,7 @@ class ProcessFeedFile implements ShouldQueue
             {
                 if (!empty($this->buffer)) {
                     FeedContact::insert($this->buffer);
-                    Log::info(count($this->buffer) . " contacts inserted into FeedContact (final batch).");
+//                     Log::info(count($this->buffer) . " contacts inserted into FeedContact (final batch).");
                     $this->buffer = [];
                 }
             }
@@ -139,17 +139,17 @@ class ProcessFeedFile implements ShouldQueue
                 if (!empty($valid)) {
                     FeedContactValid::insert($valid);
                     $totalValid += count($valid);
-                    Log::info(count($valid) . " valid contacts inserted.");
+//                     Log::info(count($valid) . " valid contacts inserted.");
                 }
 
                 if (!empty($invalid)) {
                     FeedContactInValid::insert($invalid);
                     $totalInvalid += count($invalid);
-                    Log::info(count($invalid) . " invalid contacts inserted.");
+//                     Log::info(count($invalid) . " invalid contacts inserted.");
                 }
             });
 
         $feed->update(['status' => 'completed']);
-        Log::info("Feed ID {$this->feedId} processed successfully. Valid: {$totalValid}, Invalid: {$totalInvalid}");
+//         Log::info("Feed ID {$this->feedId} processed successfully. Valid: {$totalValid}, Invalid: {$totalInvalid}");
     }
 }

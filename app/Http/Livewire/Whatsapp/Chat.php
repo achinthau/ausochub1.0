@@ -39,10 +39,10 @@ class Chat extends Component
             if ($response->successful()) {
                 $this->chats = $response->json();
             } else {
-                Log::error('Failed to fetch WhatsApp chats', ['error' => $response->body()]);
+//                 Log::error('Failed to fetch WhatsApp chats', ['error' => $response->body()]);
             }
         } catch (\Exception $e) {
-            Log::error('WhatsApp Chat Service Error: ' . $e->getMessage());
+//             Log::error('WhatsApp Chat Service Error: ' . $e->getMessage());
         }
     }
 
@@ -69,7 +69,7 @@ class Chat extends Component
                 $this->messages = $response->json();
             }
         } catch (\Exception $e) {
-            Log::error('WhatsApp Message Fetch Error: ' . $e->getMessage());
+//             Log::error('WhatsApp Message Fetch Error: ' . $e->getMessage());
         }
     }
 
@@ -86,11 +86,11 @@ class Chat extends Component
             ];
 
             if ($this->attachment) {
-                Log::info('WhatsApp Attachment detected', [
-                    'name' => $this->attachment->getClientOriginalName(),
-                    'mime' => $this->attachment->getMimeType(),
-                    'size' => $this->attachment->getSize()
-                ]);
+//                 Log::info('WhatsApp Attachment detected', [
+//                     'name' => $this->attachment->getClientOriginalName(),
+//                     'mime' => $this->attachment->getMimeType(),
+//                     'size' => $this->attachment->getSize()
+//                 ]);
                 $postData['attachment'] = [
                     'base64' => base64_encode(file_get_contents($this->attachment->getRealPath())),
                     'mimetype' => $this->attachment->getMimeType(),
@@ -98,11 +98,11 @@ class Chat extends Component
                 ];
             }
 
-            Log::info('Sending WhatsApp message via service', ['target' => $this->selectedChatId, 'has_attachment' => !!$this->attachment]);
+//             Log::info('Sending WhatsApp message via service', ['target' => $this->selectedChatId, 'has_attachment' => !!$this->attachment]);
             $response = Http::timeout(60)->post($this->whatsappServiceUrl . '/send-message', $postData);
 
             if ($response->successful()) {
-                Log::info('WhatsApp message sent successfully');
+//                 Log::info('WhatsApp message sent successfully');
                 
                 // Optimistically append message
                 $responseData = $response->json()['data'];
@@ -123,13 +123,13 @@ class Chat extends Component
                 $this->loadChats();    // Refresh chat list (last message)
                 $this->dispatchBrowserEvent('scrollToBottom');
             } else {
-                Log::error('Failed to send WhatsApp message', [
-                    'status' => $response->status(),
-                    'body' => $response->body()
-                ]);
+//                 Log::error('Failed to send WhatsApp message', [
+//                     'status' => $response->status(),
+//                     'body' => $response->body()
+//                 ]);
             }
         } catch (\Exception $e) {
-            Log::error('WhatsApp Send Error: ' . $e->getMessage());
+//             Log::error('WhatsApp Send Error: ' . $e->getMessage());
         }
     }
 
@@ -164,7 +164,7 @@ class Chat extends Component
                 session()->flash('error', 'Failed to download media: ' . ($response->json()['message'] ?? 'Unknown error'));
             }
         } catch (\Exception $e) {
-            Log::error('Media Download Error: ' . $e->getMessage());
+//             Log::error('Media Download Error: ' . $e->getMessage());
             session()->flash('error', 'Error downloading media.');
         }
     }

@@ -172,7 +172,7 @@ class CallAgentPerformanceTable extends DataTableComponent
         $selectedIds = $this->getSelected();
         
         // Log for debugging
-        \Log::info('Export: selectedIds', ['ids' => $selectedIds]);
+//         \Log::info('Export: selectedIds', ['ids' => $selectedIds]);
 
         // Ensure selectedIds is an array
         if (!is_array($selectedIds) || empty($selectedIds)) {
@@ -186,7 +186,7 @@ class CallAgentPerformanceTable extends DataTableComponent
             fn($id) => $id !== null
         );
 
-        \Log::info('Export: after filter', ['ids' => $selectedIds]);
+//         \Log::info('Export: after filter', ['ids' => $selectedIds]);
 
         if (empty($selectedIds)) {
             session()->flash('error', 'Invalid record IDs.');
@@ -196,7 +196,7 @@ class CallAgentPerformanceTable extends DataTableComponent
         // Fetch records using the same connection as the model
         $records = AgentPerformance::whereIn('id', $selectedIds)->get();
 
-        \Log::info('Export: fetched records', ['count' => $records->count()]);
+//         \Log::info('Export: fetched records', ['count' => $records->count()]);
 
         if ($records->isEmpty()) {
             session()->flash('error', 'No records found.');

@@ -179,24 +179,9 @@ class CallPanel extends Component
             $lead->save();
         }
 
-        // Emit browser event to open new tab/window
-        // $url = route('leads.show', ['lead' => $lead->id]) . '?feed=' . $this->feed_id . '?cmp=' . $this->campaignName;
         $url = route('leads.show', ['lead' => $lead->id]) . '?feed=' . $this->feed_id . '&cmp=' . $this->campaignName;
 
-
-        $this->dispatchBrowserEvent('open-lead-window', [
-            'url' => $url,
-            'lead_id' => $lead->id,
-            'feed_id' => $this->feed_id,
-            'cmp' => $this->campaignName
-        ]);
-    }
-
-
-
-    public function render()
-    {
-        return view('livewire.dashboard.partials.dialer.call-panel');
+        return redirect()->to($url);
     }
 
 

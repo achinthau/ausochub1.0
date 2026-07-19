@@ -192,6 +192,116 @@ class Show extends Component
         $this->comment = '';
     }
 
+    protected function normalizePhoneNumber($phone): string
+    {
+        $phone = preg_replace('/\s+/', '', (string) $phone);
+
+        if (strlen($phone) === 10 && str_starts_with($phone, '0')) {
+            return substr($phone, 1);
+        }
+
+        return $phone;
+    }
+
+    protected function resolveLeadForContact(FeedContactValid $contact): Lead
+    {
+        $phone = $this->normalizePhoneNumber($contact->contact_no_01);
+        $phone2 = $this->normalizePhoneNumber($contact->contact_no_02);
+
+        $lead = Lead::where(function ($query) use ($phone, $phone2) {
+            if ($phone !== '') {
+                $query->where('contact_number', 'LIKE', "%{$phone}%")
+                    ->orWhere('contact_number_2', 'LIKE', "%{$phone}%");
+            }
+
+            if ($phone2 !== '') {
+                $query->orWhere('contact_number', 'LIKE', "%{$phone2}%")
+                    ->orWhere('contact_number_2', 'LIKE', "%{$phone2}%");
+            }
+        })->first();
+
+        if (!$lead) {
+            $data = json_decode($contact->data ?? '{}', true);
+
+            $lead = new Lead();
+            $lead->contact_number = $phone !== '' ? $phone : $phone2;
+            $lead->contact_number_2 = $phone2 !== '' ? $phone2 : null;
+            $lead->first_name = $data['cust_name'] ?? $data['customer_name'] ?? null;
+            $lead->address_line_1 = $data['add1'] ?? $data['address_line_1'] ?? null;
+            $lead->address_line_2 = $data['add2'] ?? $data['address_line_2'] ?? null;
+            $lead->status_id = 1;
+            $lead->agent_id = auth()->id();
+            $lead->extension = auth()->user()->extension ?? null;
+            $lead->skill_id = 0;
+            $lead->save();
+        }
+
+        return $lead;
+    }
+
+    public function nextContact()
+    {
+        if ($this->boundType !== 'dialer') {
+            return;
+        }
+
+        $currentPhones = collect([$this->lead->contact_number, $this->lead->contact_number_2])
+            ->map(fn ($phone) => $this->normalizePhoneNumber($phone))
+            ->filter(fn ($phone) => $phone !== '')
+            ->unique()
+            ->values();
+
+        if ($currentPhones->isEmpty()) {
+            return;
+        }
+
+        $baseQuery = FeedContactValid::query()
+            ->when($this->feed_id, function ($query, $feedId) {
+                $query->where('feed_id', $feedId);
+            })
+            ->where(function ($query) {
+                $query->whereNull('status')
+                    ->orWhereIn('status', [2, 22]);
+            })
+            ->where(function ($query) {
+                $query->whereNull('next_available_at')
+                    ->orWhere('next_available_at', '<=', now());
+            });
+
+        $currentContact = (clone $baseQuery)
+            ->where(function ($query) use ($currentPhones) {
+                foreach ($currentPhones as $phone) {
+                    $query->orWhere('contact_no_01', $phone)
+                        ->orWhere('contact_no_02', $phone);
+                }
+            })
+            ->orderBy('id')
+            ->first();
+
+        $nextContact = (clone $baseQuery)
+            ->when($currentContact, function ($query) use ($currentContact) {
+                $query->where('id', '>', $currentContact->id);
+            })
+            ->orderBy('id')
+            ->first();
+
+        if (!$nextContact) {
+            $nextContact = (clone $baseQuery)->orderBy('id')->first();
+        }
+
+        if (!$nextContact) {
+            return;
+        }
+
+        $lead = $this->resolveLeadForContact($nextContact);
+
+        return redirect()->route('leads.show', [
+            'lead' => $lead->id,
+            'feed' => $nextContact->feed_id,
+            'cmp' => $this->campaign,
+        ]);
+    }
+
 
     public function mount($lead)
     {

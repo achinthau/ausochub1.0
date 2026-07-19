@@ -51,18 +51,4 @@
     </div>
     {{-- @endforeach --}}
 </div>
-
-<script>
-    window.addEventListener('open-lead-window', event => {
-        const leadUrl = event.detail.url;
-
-        // If a window is already open for this lead, close it
-        if (window.leadWindow && !window.leadWindow.closed) {
-            window.leadWindow.close();
-        }
-
-        // Open the new lead window
-        window.leadWindow = window.open(leadUrl, '_blank');
-        window.leadWindow.focus();
-    });
-</script>
+</div>

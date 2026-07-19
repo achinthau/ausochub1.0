@@ -245,59 +245,33 @@ class Show extends Component
             return;
         }
 
-        $currentPhones = collect([$this->lead->contact_number, $this->lead->contact_number_2])
-            ->map(fn ($phone) => $this->normalizePhoneNumber($phone))
-            ->filter(fn ($phone) => $phone !== '')
-            ->unique()
-            ->values();
+        $currentContact = $this->selectedFeedContact;
 
-        if ($currentPhones->isEmpty()) {
+        if (!$currentContact && $this->feedContactId) {
+            $currentContact = FeedContactValid::where('id', $this->feedContactId)->first();
+        }
+
+        if (!$currentContact) {
+            $currentContact = FeedContactValid::query()
+                ->when($this->feed_id, function ($query, $feedId) {
+                    $query->where('feed_id', $feedId);
+                })
+                ->where(function ($query) {
+                    $query->where('contact_no_01', $this->lead->contact_number)
+                        ->orWhere('contact_no_02', $this->lead->contact_number);
+                })
+                ->first();
+        }
+
+        if (!$currentContact) {
             return;
         }
 
-        $baseQuery = FeedContactValid::query()
-            ->when($this->feed_id, function ($query, $feedId) {
-                $query->where('feed_id', $feedId);
-            })
-            ->where(function ($query) {
-                $query->whereNull('status')
-                    ->orWhereIn('status', [2, 22]);
-            })
-            ->where(function ($query) {
-                $query->whereNull('next_available_at')
-                    ->orWhere('next_available_at', '<=', now());
-            });
-
-        $currentContact = (clone $baseQuery)
-            ->where(function ($query) use ($currentPhones) {
-                foreach ($currentPhones as $phone) {
-                    $query->orWhere('contact_no_01', $phone)
-                        ->orWhere('contact_no_02', $phone);
-                }
-            })
-            ->orderBy('id')
-            ->first();
-
-        $nextContact = (clone $baseQuery)
-            ->when($currentContact, function ($query) use ($currentContact) {
-                $query->where('id', '>', $currentContact->id);
-            })
-            ->orderBy('id')
-            ->first();
-
-        if (!$nextContact) {
-            $nextContact = (clone $baseQuery)->orderBy('id')->first();
-        }
-
-        if (!$nextContact) {
-            return;
-        }
-
-        $lead = $this->resolveLeadForContact($nextContact);
+        $lead = $this->resolveLeadForContact($currentContact);
 
         return redirect()->route('leads.show', [
             'lead' => $lead->id,
-            'feed' => $nextContact->feed_id,
+            'feed' => $currentContact->feed_id,
             'cmp' => $this->campaign,
         ]);
     }

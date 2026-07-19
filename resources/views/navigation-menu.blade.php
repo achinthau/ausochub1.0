@@ -125,12 +125,12 @@
                                     @endphp
 
                 @can('is-agent')
-                    @if (Route::is('dashboard.index'))
+                    {{-- @if (Route::is('dashboard.index')) --}}
                         <div class="hidden items-center gap-3 lg:flex">
                             @livewire('dashboard.hand-raise')
                             @livewire('dashboard.select-bound')
                         </div>
-                    @endif
+                    {{-- @endif --}}
                 @endcan
 
                 @if (Laravel\Jetstream\Jetstream::hasTeamFeatures())

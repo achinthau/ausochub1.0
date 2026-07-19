@@ -1,14 +1,6 @@
 <div wire:poll.1s="loadContact"
     @if($phone || $phone2) 
-    {{-- wire:click="openProfile('{{ $phone }}','{{ $phone2 }}')"  --}}
-    x-on:click="
-            if (!clickDisabled) {
-                clickDisabled = true;
-                $wire.openProfile('{{ $phone }}', '{{ $phone2 }}');
-                setTimeout(() => clickDisabled = false, 5000);
-            }
-        "
-        x-bind:class="clickDisabled ? 'opacity-50 pointer-events-none' : ''"
+    wire:click="openProfile('{{ $phone }}','{{ $phone2 }}')" 
     class="bg-white p-4 space-y-2 cursor-pointer" 
     @else class="bg-white p-4 space-y-2" 
     @endif

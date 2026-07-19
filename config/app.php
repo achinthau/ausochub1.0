@@ -223,6 +223,9 @@ return [
         // user delete
         'user_inactive_days' => env('USER_INACTIVE_DAYS', 7),
 
+        // show next contact button in leads show page
+        'show_next_contact_button' => env('SHOW_NEXT_CONTACT_BUTTON', false),
+
 
     
 

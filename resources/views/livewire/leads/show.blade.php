@@ -9,11 +9,11 @@
                 @if(config('app.show_next_contact_button'))
                 @if($boundType == 'dialer' && filled($campaign))
                     <button type="button" wire:click="nextContact"
-                        class="border border-green-800 bg-green-500 dark:hover:bg-green-400 dark:ring-offset-slate-800 disabled:cursor-not-allowed disabled:opacity-80 duration-150 ease-in focus:ring-2 focus:ring-offset-2 gap-x-2 group hover:bg-green-400 hover:shadow-sm inline-flex items-center justify-center outline-none px-4 py-0.5 ring-emerald-600 rounded text-white text-sm transition-all">
-                        <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                        class="border border-green-800 bg-green-500 dark:hover:bg-green-400 dark:ring-offset-slate-800 disabled:cursor-not-allowed disabled:opacity-80 duration-150 ease-in focus:ring-2 focus:ring-offset-2 gap-x-2 group hover:bg-green-400 hover:shadow-sm inline-flex items-center justify-center outline-none px-4 py-2 ring-emerald-600 rounded text-white text-m transition-all">
+                        {{-- <svg class="w-4 h-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                        </svg>
-                        Next Contact
+                        </svg> --}}
+                        Next Customer >>
                     </button>
                 @endif
                 @endif

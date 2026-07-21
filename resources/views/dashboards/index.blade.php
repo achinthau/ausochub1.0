@@ -134,7 +134,7 @@
                     // password: softphone === "microsip"
                     //     ? "@u5051p"
                     //     : "vCkSoFyUNjxbVy7bm6TJdA==\n",
-                    password:"auso123",
+                    password: @json(optional(auth()->user()->extensionData)->password ?? 'auso123'),
                     aa: "1",
                     autoanswerdelay: @json(config('auso.softphone_autoanswerdelay')),
                     protocol: extenType

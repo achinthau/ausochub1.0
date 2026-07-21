@@ -130,13 +130,13 @@
 
                 let data = {
                     exten: exten,
-                    server: "123.231.74.22",
+                    server: @json(config('auso.softphone_server')),
                     // password: softphone === "microsip"
                     //     ? "@u5051p"
                     //     : "vCkSoFyUNjxbVy7bm6TJdA==\n",
-                    password:"@u5051p",
+                    password: @json(config('auso.softphone_password')),
                     aa: "1",
-                    autoanswerdelay: "3",
+                    autoanswerdelay: @json(config('auso.softphone_autoanswerdelay')),
                     protocol: extenType
                 };
 

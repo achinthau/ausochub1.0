@@ -226,6 +226,9 @@ return [
         // show next contact button in leads show page
         'show_next_contact_button' => env('SHOW_NEXT_CONTACT_BUTTON', false),
 
+        // auto open create ticket modal when lead show is loaded
+        'auto_open_create_ticket_modal' => env('AUTO_OPEN_CREATE_TICKET_MODAL', true),
+
 
     
 

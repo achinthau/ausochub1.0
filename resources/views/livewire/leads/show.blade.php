@@ -920,7 +920,7 @@
         </x-slot>
     </x-modal.card>
 </div>
-@if(filled(trim((string) ($lead->full_name ?? ''))))
+@if(config('app.auto_open_create_ticket_modal') && filled(trim((string) ($lead->full_name ?? ''))))
     <script>
         (function() {
             var emitOpenTicketModal = function(attempt) {

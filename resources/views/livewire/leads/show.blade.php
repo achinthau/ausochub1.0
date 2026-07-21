@@ -3,8 +3,9 @@
 
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-2">
 
-            <div class="flex justify-end space-x-2">
+            <div class="flex justify-between space-x-2">
 
+<div>
                 @if(config('app.show_next_contact_button'))
                 @if($boundType == 'dialer' && filled($campaign))
                     <button type="button" wire:click="nextContact"
@@ -16,6 +17,8 @@
                     </button>
                 @endif
                 @endif
+                </div>
+                <div>
                 <a href="#" onclick="Livewire.emitTo('leads.create', 'openCreateLeadModal')"
                     class="border border-info-600 dark:hover:bg-slate-700 dark:ring-offset-slate-800 disabled:cursor-not-allowed disabled:opacity-80 duration-150 ease-in focus:ring-2 focus:ring-offset-2 gap-x-2 group hover:bg-info-50 hover:shadow-sm inline-flex items-center justify-center outline-none px-4 py-0.5 ring-info-600 rounded text-info-600 text-sm transition-all">
                     <svg class="w-6 h-6 " xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
@@ -64,6 +67,7 @@
                 <x-button icon="pencil" positive label="Complete Profile" onclick="$openModal('showTicketEditModal')" />
                 @endif --}}
 
+            </div>
             </div>
 
             <div class="grid grid-cols-3 gap-2">

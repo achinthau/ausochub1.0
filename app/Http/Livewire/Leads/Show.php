@@ -172,10 +172,12 @@ class Show extends Component
                 }
             }
         } else {
-            $dnis = $this->lead->contact_number;
+            $dnisCandidates = $this->dialerReactionCandidates();
 
-            if ($dnis) {
-                $latestRecord = CallCount::where('dnis', $dnis)->where('status', 1)
+            if (!empty($dnisCandidates)) {
+                $latestRecord = CallCount::whereIn('dnis', $dnisCandidates)
+                    ->where('direction', 'out')
+                    ->where('status', 1)
                     ->orderBy('id', 'desc')
                     ->first();
 
@@ -201,6 +203,53 @@ class Show extends Component
         }
 
         return $phone;
+    }
+
+    protected function dialerPhoneCandidates(?string $phone): array
+    {
+        $digits = preg_replace('/\D+/', '', (string) $phone);
+
+        if ($digits === '') {
+            return [];
+        }
+
+        $candidates = [$digits];
+
+        if (strlen($digits) === 9) {
+            $local = '0' . $digits;
+            $candidates[] = $local;
+            $candidates[] = '94' . $digits;
+            $candidates[] = '9' . $local;
+        } elseif (strlen($digits) === 10 && str_starts_with($digits, '0')) {
+            $local = substr($digits, 1);
+            $candidates[] = $local;
+            $candidates[] = '94' . $local;
+            $candidates[] = '9' . $digits;
+        } elseif (strlen($digits) === 11 && str_starts_with($digits, '94')) {
+            $local = substr($digits, 2);
+            $candidates[] = $local;
+            $candidates[] = '0' . $local;
+            $candidates[] = '9' . '0' . $local;
+        }
+
+        return array_values(array_unique(array_filter($candidates)));
+    }
+
+    protected function dialerReactionCandidates(): array
+    {
+        $phones = array_filter([
+            $this->selectedContact,
+            $this->lead->contact_number ?? null,
+            $this->lead->contact_number_2 ?? null,
+        ]);
+
+        $candidates = [];
+
+        foreach ($phones as $phone) {
+            $candidates = array_merge($candidates, $this->dialerPhoneCandidates($phone));
+        }
+
+        return array_values(array_unique($candidates));
     }
 
     protected function resolveLeadForContact(FeedContactValid $contact): Lead

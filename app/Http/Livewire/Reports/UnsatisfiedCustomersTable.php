@@ -18,21 +18,28 @@ class UnsatisfiedCustomersTable extends LivewireDatatable
 
     public function builder()
     {
-
         return Cdr::query()
-    ->leftJoin('au_queuecount_report', function ($join) {
-        $join->on('cdr.uniqueid', '=', 'au_queuecount_report.uniqueid')
-             ->where('au_queuecount_report.customer_reaction', '=', 1);
-    })
-    ->leftJoin('au_callcount_report', function ($join) {
-        $join->on('cdr.uniqueid', '=', 'au_callcount_report.uniqueid')
-             ->where('au_callcount_report.customer_reaction', '=', 1)
-             ->where('au_callcount_report.direction', '=', 'out');
-    })
-    ->where(function ($query) {
-        $query->whereNotNull('au_queuecount_report.uniqueid')
-              ->orWhereNotNull('au_callcount_report.uniqueid');
-    });
+            ->select('cdr.*', 'au_queuecount_report.agent as queue_agent', 'au_callcount_report.ani as dialer_extension')
+            ->leftJoin('au_queuecount_report', function ($join) {
+                $join->on('cdr.uniqueid', '=', 'au_queuecount_report.uniqueid')
+                    ->where('au_queuecount_report.customer_reaction', '=', 1);
+            })
+            ->leftJoin('au_callcount_report', function ($join) {
+                $join->on('cdr.uniqueid', '=', 'au_callcount_report.uniqueid')
+                    ->where('au_callcount_report.customer_reaction', '=', 1)
+                    ->where('au_callcount_report.direction', '=', 'out');
+            })
+            ->whereIn('lastapp', ['Dial', 'Queue'])
+            ->where(function ($query) {
+                $query->where(function ($queueQuery) {
+                    $queueQuery->where('lastapp', 'Queue')
+                        ->whereNotNull('au_queuecount_report.uniqueid');
+                })->orWhere(function ($dialQuery) {
+                    $dialQuery->where('lastapp', 'Dial')
+                        ->whereNotNull('au_callcount_report.uniqueid');
+                });
+            })
+            ->distinct();
     }
 
     public function columns()
@@ -51,9 +58,17 @@ class UnsatisfiedCustomersTable extends LivewireDatatable
             // NumberColumn::name('duration')->label('Duration')->filterable(),
             NumberColumn::name('billsec')->label('BillSec')->filterable(),
             // Column::name('disposition')->label('Disposition')->filterable(),
-            Column::callback(['lastapp', 'au_queuecount_report.agent', 'au_callcount_report.ani'], function ($lastapp, $agent, $ani) {
-    return $lastapp == 'Queue' ? $agent : ('Dial' ? $ani :'');
-})->label('Extension')->sortable()->searchable(),
+            Column::callback(['lastapp', 'queue_agent', 'dialer_extension'], function ($lastapp, $agent, $ani) {
+                if ($lastapp === 'Queue') {
+                    return $agent;
+                }
+
+                if ($lastapp === 'Dial') {
+                    return $ani;
+                }
+
+                return '';
+            })->label('Extension')->sortable()->searchable(),
 
             Column::callback(['id', 'uniqueid'], function ($id, $uniqueid) {
                 return view('table-actions-v2', ['id' => $id, 'uniqueid' => $uniqueid]);

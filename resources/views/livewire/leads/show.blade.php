@@ -783,12 +783,42 @@
                                                                 <ul class="grid grid-cols-2 gap-x-4 gap-y-1 text-base">
                                                                     @foreach($contactData as $key => $value)
                                                                         @if(!empty($key))
-                                                                            <li>
-                                                                                <span class="font-medium text-base">
-                                                                                    {{ ucfirst(str_replace('_', ' ', $key)) }}:
-                                                                                </span>
-                                                                                {{ $value }}
-                                                                            </li>
+                                                                            @if(is_array($value))
+                                                                                <li class="col-span-2">
+                                                                                    <span class="font-medium text-base">
+                                                                                        {{ ucfirst(str_replace('_', ' ', $key)) }}:
+                                                                                    </span>
+                                                                                    <div class="mt-2 ml-4 space-y-2">
+                                                                                        @foreach($value as $item)
+                                                                                            @if(is_array($item))
+                                                                                                <div class="border rounded p-2 bg-gray-50">
+                                                                                                    <ul class="grid grid-cols-2 gap-x-4 gap-y-1">
+                                                                                                        @foreach($item as $itemKey => $itemValue)
+                                                                                                            @if(!is_array($itemValue))
+                                                                                                                <li>
+                                                                                                                    <span class="font-medium">
+                                                                                                                        {{ ucfirst(str_replace('_', ' ', $itemKey)) }}:
+                                                                                                                    </span>
+                                                                                                                    {{ $itemValue }}
+                                                                                                                </li>
+                                                                                                            @endif
+                                                                                                        @endforeach
+                                                                                                    </ul>
+                                                                                                </div>
+                                                                                            @else
+                                                                                                <div class="ml-2">{{ $item }}</div>
+                                                                                            @endif
+                                                                                        @endforeach
+                                                                                    </div>
+                                                                                </li>
+                                                                            @else
+                                                                                <li>
+                                                                                    <span class="font-medium text-base">
+                                                                                        {{ ucfirst(str_replace('_', ' ', $key)) }}:
+                                                                                    </span>
+                                                                                    {{ $value }}
+                                                                                </li>
+                                                                            @endif
                                                                         @endif
                                                                     @endforeach
                                                                 </ul>

@@ -12,6 +12,7 @@ use App\Models\QueueCount;
 use App\Models\Ticket;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redis;
@@ -185,6 +186,36 @@ class Show extends Component
                     $latestRecord->customer_reaction = $reaction;
                     $latestRecord->comment = $this->comment;
                     $latestRecord->save();
+
+                    // Keep report table in sync for dialer reports.
+                    DB::connection('mysql-old')
+                        ->table('au_callcount_report')
+                        ->where('uniqueid', $latestRecord->uniqueid)
+                        ->whereIn('direction', ['out', 'disout'])
+                        ->update([
+                            'customer_reaction' => $reaction,
+                            'comment' => $this->comment,
+                        ]);
+                } else {
+                    // Fallback when uniqueid linkage is missing: update the latest outbound report row by dialed number.
+                    $reportRow = DB::connection('mysql-old')
+                        ->table('au_callcount_report')
+                        ->select('id')
+                        ->whereIn('dnis', $dnisCandidates)
+                        ->where('direction', 'out')
+                        ->where('status', 1)
+                        ->orderByDesc('id')
+                        ->first();
+
+                    if ($reportRow) {
+                        DB::connection('mysql-old')
+                            ->table('au_callcount_report')
+                            ->where('id', $reportRow->id)
+                            ->update([
+                                'customer_reaction' => $reaction,
+                                'comment' => $this->comment,
+                            ]);
+                    }
                 }
             }
         }

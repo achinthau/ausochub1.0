@@ -18,29 +18,45 @@ class NuisanceCustomersTable extends LivewireDatatable
 
     public function builder()
     {
-        return Cdr::query()
-            ->select('cdr.*')
-            ->selectRaw("CASE WHEN cdr.lastapp = 'Queue' THEN au_queuecount_report.agent WHEN cdr.lastapp = 'Dial' THEN au_callcount_report.ani ELSE '' END as extension")
-            ->leftJoin('au_queuecount_report', function ($join) {
-                $join->on('cdr.uniqueid', '=', 'au_queuecount_report.uniqueid')
-                    ->where('au_queuecount_report.customer_reaction', '=', 2);
-            })
-            ->leftJoin('au_callcount_report', function ($join) {
-                $join->on('cdr.uniqueid', '=', 'au_callcount_report.uniqueid')
-                    ->where('au_callcount_report.customer_reaction', '=', 2)
-                    ->where('au_callcount_report.direction', '=', 'out');
-            })
-            ->whereIn('lastapp', ['Dial', 'Queue'])
-            ->where(function ($query) {
-                $query->where(function ($queueQuery) {
-                    $queueQuery->where('lastapp', 'Queue')
-                        ->whereNotNull('au_queuecount_report.uniqueid');
-                })->orWhere(function ($dialQuery) {
-                    $dialQuery->where('lastapp', 'Dial')
-                        ->whereNotNull('au_callcount_report.uniqueid');
-                });
-            })
-            ->distinct();
+        // return Cdr::query()
+        //     ->where(function ($query) {
+        //         $query->whereIn('uniqueid', function ($q) {
+        //             $q->select('uniqueid')
+        //               ->from('au_callcount_report')
+        //               ->where('customer_reaction', 2);
+        //         })
+        //         ->orWhereIn('uniqueid', function ($q) {
+        //             $q->select('uniqueid')
+        //               ->from('au_queuecount_report')
+        //               ->where('customer_reaction', 2);
+        //         });
+        //     });
+
+        // return Cdr::query()
+        //     ->leftJoin('au_queuecount_report', function ($join) {
+        //         $join->on('cdr.uniqueid', '=', 'au_queuecount_report.uniqueid')
+        //             ->where('au_queuecount_report.customer_reaction', '=', 2);
+        //     })
+        //     ->leftJoin('au_callcount_report', function ($join) {
+        //         $join->on('cdr.uniqueid', '=', 'au_callcount_report.uniqueid')
+        //             ->where('au_queuecount_report.customer_reaction', '=', 2);
+        //     });
+            // ->whereIn('lastapp', ['Dial', 'Queue'])->whereNotNull('src')->where('src','<>','');
+
+            return Cdr::query()
+    ->leftJoin('au_queuecount_report', function ($join) {
+        $join->on('cdr.uniqueid', '=', 'au_queuecount_report.uniqueid')
+             ->where('au_queuecount_report.customer_reaction', '=', 2);
+    })
+    ->leftJoin('au_callcount_report', function ($join) {
+        $join->on('cdr.uniqueid', '=', 'au_callcount_report.uniqueid')
+             ->where('au_callcount_report.customer_reaction', '=', 2)
+             ->where('au_callcount_report.direction', '=', 'out');
+    })
+    ->where(function ($query) {
+        $query->whereNotNull('au_queuecount_report.uniqueid')
+              ->orWhereNotNull('au_callcount_report.uniqueid');
+    });
 
     }
 
@@ -50,26 +66,28 @@ class NuisanceCustomersTable extends LivewireDatatable
             ->label('Call Date')
             ->format('Y-m-d H:i:s')
             ->filterable()
-            ->sortBy('cdr.calldate')
+            ->sortBy('calldate')
             ->defaultSort('desc');
 
         $dateColumn->sortable = true;
 
         return [
-            Column::name('cdr.id')->label('ID')->filterable()->hide(),
+            Column::name('id')->label('ID')->filterable()->hide(),
             $dateColumn,
-            Column::name('cdr.src')->label('Source')->searchable()->filterable(),
-            Column::name('cdr.dst')->label('Destination')->searchable()->filterable(),
-            Column::name('cdr.dcontext')->label('DContext')->filterable(),
+            Column::name('src')->label('Source')->searchable()->filterable(),
+            Column::name('dst')->label('Destination')->searchable()->filterable(),
+            Column::name('dcontext')->label('DContext')->filterable(),
             // Column::name('channel')->label('Channel')->filterable(),
             // Column::name('duration')->label('Duration')->filterable(),
-            Column::name('cdr.billsec')->label('Bill Sec')->filterable(),
+            Column::name('billsec')->label('Bill Sec')->filterable(),
             // Column::name('disposition')->label('Disposition')->filterable(),
             // Column::name('au_queuecount_report.agent')->label('Extension')->filterable(),
             // Column::name('au_callcount_report.ani')->label('Extension')->filterable(),
-            Column::name('extension')->label('Extension')->sortable()->searchable(),
+            Column::callback(['lastapp', 'au_queuecount_report.agent', 'au_callcount_report.ani'], function ($lastapp, $agent, $ani) {
+    return $lastapp == 'Queue' ? $agent : ('Dial' ? $ani :'');
+})->label('Extension')->sortable()->searchable(),
 
-            Column::callback(['cdr.id', 'cdr.uniqueid'], function ($id, $uniqueid) {
+            Column::callback(['id', 'uniqueid'], function ($id, $uniqueid) {
                 return view('table-actions-v2', ['id' => $id, 'uniqueid' => $uniqueid]);
             })->unsortable()->excludeFromExport(),
         ];

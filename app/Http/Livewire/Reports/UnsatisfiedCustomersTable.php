@@ -19,7 +19,8 @@ class UnsatisfiedCustomersTable extends LivewireDatatable
     public function builder()
     {
         return Cdr::query()
-            ->select('cdr.*', 'au_queuecount_report.agent as queue_agent', 'au_callcount_report.ani as dialer_extension')
+            ->select('cdr.*')
+            ->selectRaw("CASE WHEN cdr.lastapp = 'Queue' THEN au_queuecount_report.agent WHEN cdr.lastapp = 'Dial' THEN au_callcount_report.ani ELSE '' END as extension")
             ->leftJoin('au_queuecount_report', function ($join) {
                 $join->on('cdr.uniqueid', '=', 'au_queuecount_report.uniqueid')
                     ->where('au_queuecount_report.customer_reaction', '=', 1);
@@ -45,32 +46,22 @@ class UnsatisfiedCustomersTable extends LivewireDatatable
     public function columns()
     {
         return [
-            Column::name('id')->label('ID')->filterable(),
-            DateColumn::name('calldate')
+            Column::name('cdr.id')->label('ID')->filterable(),
+            DateColumn::name('cdr.calldate')
                 ->label('Call Date')
                 ->format('Y-m-d H:i:s')
                 ->filterable()
                 ->defaultSort('desc'),
-            Column::name('src')->label('Source')->filterable()->searchable(),
+            Column::name('cdr.src')->label('Source')->filterable()->searchable(),
             // Column::name('dst')->label('Destination')->filterable()->searchable(),
-            Column::name('dcontext')->label('DContext')->filterable(),
+            Column::name('cdr.dcontext')->label('DContext')->filterable(),
             // Column::name('channel')->label('Channel')->filterable(),
             // NumberColumn::name('duration')->label('Duration')->filterable(),
-            NumberColumn::name('billsec')->label('BillSec')->filterable(),
+            NumberColumn::name('cdr.billsec')->label('BillSec')->filterable(),
             // Column::name('disposition')->label('Disposition')->filterable(),
-            Column::callback(['lastapp', 'queue_agent', 'dialer_extension'], function ($lastapp, $agent, $ani) {
-                if ($lastapp === 'Queue') {
-                    return $agent;
-                }
+            Column::name('extension')->label('Extension')->sortable()->searchable(),
 
-                if ($lastapp === 'Dial') {
-                    return $ani;
-                }
-
-                return '';
-            })->label('Extension')->sortable()->searchable(),
-
-            Column::callback(['id', 'uniqueid'], function ($id, $uniqueid) {
+            Column::callback(['cdr.id', 'cdr.uniqueid'], function ($id, $uniqueid) {
                 return view('table-actions-v2', ['id' => $id, 'uniqueid' => $uniqueid]);
             })->unsortable()->excludeFromExport(),
         ];

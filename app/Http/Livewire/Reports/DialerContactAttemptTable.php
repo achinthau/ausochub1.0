@@ -60,7 +60,7 @@ class DialerContactAttemptTable extends DataTableComponent
             Column::make("Id", "id")
                 ->sortable()
                 ->searchable(),
-            Column::make("Priority Field", "feed_contact_valid_id")
+            Column::make("Tracking_code", "feed_contact_valid_id")
                 ->format(function ($value, $row) {
                     return optional($row->feed)->priority_field ?? 'N/A';
                 })

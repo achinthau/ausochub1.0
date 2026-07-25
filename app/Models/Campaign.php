@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Campaign extends Model
 {
@@ -37,5 +38,10 @@ class Campaign extends Model
         return $this->assigned_feeds
             ? array_filter(explode(',', $this->assigned_feeds))
             : [];
+    }
+
+    public function callStatusOptions(): HasMany
+    {
+        return $this->hasMany(DialerCallStatusOption::class, 'campaign_id');
     }
 }

@@ -24,4 +24,5 @@
 
 @push('modals')
     @livewire('dialer.settings.campaign.create')
+    @livewire('dialer.settings.campaign.status-option')
 @endpush

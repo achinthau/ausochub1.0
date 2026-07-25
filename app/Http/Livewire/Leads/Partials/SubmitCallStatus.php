@@ -51,11 +51,19 @@ class SubmitCallStatus extends Component
         $this->campaign = $this->campaign->first()->id;
         // dd($this->campaign);
         $this->status = $status;
-        // $this->options = DialerCallStatusOption::where('type', $status === 'answered' ? 1 : 2)
-        //     ->pluck('option', 'id')
-        //     ->toArray();
-        $this->options = DialerCallStatusOption::where('type', $status === 'answered' ? 1 : 2)
+
+        $statusType = $status === 'answered' ? 1 : 2;
+        $campaignOptions = DialerCallStatusOption::where('campaign_id', $this->campaign)
+            ->where('type', $statusType)
             ->get();
+
+        if ($campaignOptions->isNotEmpty()) {
+            $this->options = $campaignOptions;
+        } else {
+            $this->options = DialerCallStatusOption::whereNull('campaign_id')
+                ->where('type', $statusType)
+                ->get();
+        }
 
         $this->selectedOption = null;
         $this->comment = '';

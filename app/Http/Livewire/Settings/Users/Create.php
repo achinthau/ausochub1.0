@@ -4,6 +4,7 @@ namespace App\Http\Livewire\Settings\Users;
 
 use App\Models\Agent;
 use App\Models\CrmDepartment;
+use App\Models\Language;
 use App\Models\Outlet;
 use App\Models\User;
 use App\Models\UserType;
@@ -18,10 +19,12 @@ class Create extends Component
     public $userTypes;
     public $outlets;
     public $departments;
+    public $languages;
 
     public User $user;
     public $companies;
     public $selectedCompanies = [];
+    public $selectedLanguages = [];
 
 
     protected $rules = [
@@ -36,6 +39,7 @@ class Create extends Component
         'user.address' => 'nullable',
         // 'user.tenant_context' => 'required',
         'selectedCompanies' => 'required|array|min:1',
+        'selectedLanguages' => 'nullable|array',
         'user.outlet_id' => 'required_if:user.user_type_id,5,6',
         'user.department_id' => 'required_if:user.user_type_id,9',
 
@@ -56,6 +60,7 @@ class Create extends Component
         $this->userTypes = UserType::select('id', 'title')->get()->toArray();
         $this->outlets = Outlet::select('id', 'title')->get()->toArray();
         $this->departments = CrmDepartment::select('id', 'name')->get()->toArray();
+        $this->languages = Language::select('id', 'name')->get()->toArray();
         // $this->companies = Company::select('id', 'name')->get()->toArray();
         $this->companies = Company::select('id', 'name')
             ->whereIn('name', explode(',', auth()->user()->tenant_context))
@@ -82,6 +87,9 @@ class Create extends Component
         $this->user->password = Hash::make("auso123");
         $this->user['tenant_context'] = implode(',', $this->selectedCompanies);
         $this->user->save();
+
+        $this->user->languages()->sync($this->selectedLanguages);
+
         $this->createUserModal = false;
 
         $this->emitTo('tables.settings.user-table', 'refreshLivewireDatatable');
@@ -91,6 +99,7 @@ class Create extends Component
     public function resetForm()
     {
         $this->user = new User();
+        $this->selectedLanguages = [];
 
         $this->resetErrorBag();
         $this->resetValidation();

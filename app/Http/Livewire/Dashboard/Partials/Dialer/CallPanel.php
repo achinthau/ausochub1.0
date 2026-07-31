@@ -75,6 +75,8 @@ class CallPanel extends Component
         $feedIds = $campaigns->flatMap->feed_ids->unique()->toArray();
 
         // 3. Find first available contact for those feeds
+        $userLanguageNames = Auth::user()->languages->pluck('name')->toArray();
+
         $record = FeedContactValid::whereIn('feed_id', $feedIds)
             ->where(function ($query) {
                 $query->whereNull('status') // Fresh ones
@@ -87,6 +89,9 @@ class CallPanel extends Component
             ->where(function ($query) use ($userId) {
                 $query->whereNull('assigned_to')        // unassigned
                     ->orWhere('assigned_to', $userId); // or already assigned to this user
+            })
+            ->when(!empty($userLanguageNames), function ($query) use ($userLanguageNames) {
+                $query->whereIn('lang', $userLanguageNames);
             })
             ->first();
 

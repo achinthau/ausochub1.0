@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Settings\Users;
 use App\Models\Agent;
 use App\Models\CrmDepartment;
 use App\Models\Extension;
+use App\Models\Language;
 use App\Models\User;
 use App\Models\UserType;
 use App\Repositories\ApiManager;
@@ -18,6 +19,7 @@ class Show extends Component
 
     public $updateUserModal = false;
     public $userTypes;
+    public $languages;
 
     public User $user;
     public $agent;
@@ -26,6 +28,7 @@ class Show extends Component
     public $departments;
     public $companies;
     public $selectedCompanies = [];
+    public $selectedLanguages = [];
 
     protected $rules  = [
 
@@ -40,6 +43,7 @@ class Show extends Component
         'user.tenant_context' => 'nullable',
         'user.extension' => 'nullable',
         'user.department_id' => 'nullable|exists:crm_departments,id',
+        'selectedLanguages' => 'nullable|array',
 
     ];
 
@@ -53,6 +57,7 @@ class Show extends Component
     {
         $this->userTypes = UserType::select('id', 'title')->get()->toArray();
         $this->extensions = [];
+        $this->languages = Language::select('id', 'name')->get()->toArray();
 
         $this->departments = CrmDepartment::select('id','name')->get()->toArray();
         // $this->companies = Company::select('id', 'name')->get()->toArray();
@@ -72,9 +77,10 @@ class Show extends Component
     public function showUpdateUserModal($id)
     {
         $this->departments = CrmDepartment::select('id','name')->get()->toArray();
-        $this->user = User::find($id);
+        $this->user = User::with('languages')->find($id);
         $this->extensions = Extension::notAssigned($this->user->agent_id)->get();
         $this->updateUserModal = true;
+        $this->languages = Language::select('id', 'name')->get()->toArray();
         // $this->companies = Company::select('id', 'name')->get()->toArray(); 
         $this->companies = Company::select('id', 'name')
             ->whereIn('name', explode(',', auth()->user()->tenant_context))
@@ -82,6 +88,7 @@ class Show extends Component
             ->toArray();
 
             $this->selectedCompanies = explode(',', $this->user->tenant_context ?? '');
+            $this->selectedLanguages = $this->user->languages->pluck('id')->toArray();
     }
 
     public function save()
@@ -91,6 +98,8 @@ class Show extends Component
         $this->user['tenant_context'] = implode(',', $this->selectedCompanies);
         $this->validate();
         $this->user->save();
+
+        $this->user->languages()->sync($this->selectedLanguages);
         
         if ($this->user->user_type_id > 2) {
             // $this->rules['user.extension'] =  'required';

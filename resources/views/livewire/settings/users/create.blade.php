@@ -19,6 +19,8 @@
             wire:model.defer="selectedCompanies" {{-- This will be an array --}} option-label="name"
             option-value="name" />
 
+        <x-select label="Languages" placeholder="Select languages" multiselect :options="$languages"
+            wire:model.defer="selectedLanguages" option-label="name" option-value="id" />
 
 
 

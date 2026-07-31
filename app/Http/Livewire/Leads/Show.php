@@ -411,6 +411,8 @@ class Show extends Component
         $boundType = Redis::get("user:{$userId}:bound_type");
         $this->boundType = $boundType;
 
+        $userLanguageNames = Auth::user()->languages->pluck('name')->toArray();
+
         $phone = $this->lead->contact_number;
         $this->selectedContact = $phone;
         // $this->feedContacts = FeedContactValid::where('contact_no_01', $phone)->orWhere('contact_no_02', $phone)->get();
@@ -421,6 +423,9 @@ class Show extends Component
         })
             ->when($feedId, function ($query, $feedId) {
                 $query->where('feed_id', $feedId); // filter by feed_id if present
+            })
+            ->when(!empty($userLanguageNames), function ($query) use ($userLanguageNames) {
+                $query->whereIn('lang', $userLanguageNames);
             })
             ->get();
 
@@ -456,6 +461,9 @@ class Show extends Component
                 }
             })
                 ->when($feedId, fn($query) => $query->where('feed_id', $feedId))
+                ->when(!empty($userLanguageNames), function ($query) use ($userLanguageNames) {
+                    $query->whereIn('lang', $userLanguageNames);
+                })
                 ->get();
 
 

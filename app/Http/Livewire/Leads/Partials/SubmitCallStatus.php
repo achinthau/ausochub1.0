@@ -31,16 +31,18 @@ class SubmitCallStatus extends Component
 
     protected $listeners = ['openCallStatusModal' => 'openModal'];
 
-    public function openModal($id, $status, $feedCount, $ticketId = null)
+    public function openModal($id, $status, $feedCount, $ticketId = null, $feedContactId = null)
     {
         // dd(is_numeric($id));
         $this->CallStatusModal = true;
         $this->feedCount = $feedCount;
         // $this->feed = FeedContactValid::find($id);
-        if (is_numeric($id)) {
+        if ($feedContactId) {
+            $this->feed = FeedContactValid::find($feedContactId);
+        } elseif (is_numeric($id)) {
             $this->feed = FeedContactValid::find($id);
         } else {
-            $this->feed = FeedContactValid::where('priority_field', $id)->first();
+            $this->feed = FeedContactValid::whereRaw('TRIM(priority_field) = ?', [trim($id)])->first();
         }
         // dd($this->feedCount);
         // dd($this->feed->id);

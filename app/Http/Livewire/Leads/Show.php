@@ -55,6 +55,7 @@ class Show extends Component
     public $surveyContacts;
     public $feedContactId;
     public $feedContactIdStatus;
+    public $satisfactionNotAnsweredCounts = [];
     public $phone_numbers = [];
     public $whatsappModal = false;
     public $whatsappMessage = '';
@@ -65,7 +66,7 @@ class Show extends Component
     public $attachment;
     public $attachmentResetKey = 0;
 
-    protected $listeners = ['refreshCard' => 'refreshCard', 'FeedCompleted' => '$refresh'];
+    protected $listeners = ['refreshCard' => 'refreshCard', 'FeedCompleted' => 'refreshFeedContactStatus'];
 
     protected $rules = [
         'lead.contact_number' => 'required',
@@ -574,8 +575,10 @@ class Show extends Component
                         ->orWhere('customer_contact_02', $phone2);
                 }
             })
-                ->whereIn('status', ['Closed', 'Skip'])
-                ->get();
+            ->whereIn('status', ['Closed', 'Skip'])
+            ->get();
+
+            $this->refreshSatisfactionNotAnsweredCounts();
 
             // $this->phone_numbers = [$phone];
 
@@ -684,6 +687,78 @@ class Show extends Component
     {
         $this->lead->refresh();
         $this->refreshTimeline();
+    }
+
+    public function refreshFeedContactStatus()
+    {
+        if ($this->feedContactId) {
+            $contact = FeedContactValid::find($this->feedContactId);
+            if ($contact) {
+                $this->feedContactId = $contact->id;
+                $this->feedContactIdStatus = $contact->status;
+            }
+        }
+
+        if ($this->feedContacts && $this->feedContacts->isNotEmpty()) {
+            $ids = $this->feedContacts->pluck('id')->toArray();
+            $this->feedContacts = FeedContactValid::whereIn('id', $ids)->get();
+        }
+
+        if ($this->service_type == 'satisfaction') {
+            $phone = $this->lead->contact_number;
+            $phone2 = $this->phone2;
+
+            $this->surveyContacts = CxTicket::where(function ($query) use ($phone, $phone2) {
+                $query->where('customer_contact_01', $phone)
+                    ->orWhere('customer_contact_02', $phone);
+
+                if (!empty($phone2)) {
+                    $query->orWhere('customer_contact_01', $phone2)
+                        ->orWhere('customer_contact_02', $phone2);
+                }
+            })
+            ->where(function ($query) {
+                $query->whereIn('status', ['Closed', 'Skip']);
+
+                if ($this->surveyContacts && $this->surveyContacts->isNotEmpty()) {
+                    $query->orWhereIn('id', $this->surveyContacts->pluck('id')->toArray());
+                }
+            })
+            ->get();
+
+            $this->refreshSatisfactionNotAnsweredCounts();
+        }
+
+        $this->refreshTimeline();
+    }
+
+    protected function refreshSatisfactionNotAnsweredCounts()
+    {
+        $this->satisfactionNotAnsweredCounts = [];
+
+        if ($this->service_type !== 'satisfaction' || empty($this->surveyContacts)) {
+            return;
+        }
+
+        $workOrderNos = $this->surveyContacts->pluck('work_order_no')
+            ->filter()
+            ->map(fn ($no) => trim($no))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($workOrderNos)) {
+            return;
+        }
+
+        $this->satisfactionNotAnsweredCounts = FeedContactValid::whereRaw("TRIM(priority_field) IS NOT NULL AND TRIM(priority_field) <> ''")
+            ->whereIn(DB::raw('TRIM(priority_field)'), $workOrderNos)
+            ->get(['priority_field', 'status'])
+            ->mapWithKeys(function ($row) {
+                return [trim($row->priority_field) => strlen((string) $row->status)];
+            })
+            ->all();
     }
 
     public function refreshTimeline()

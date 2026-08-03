@@ -107,15 +107,17 @@ class RatingPanel extends Component
     }
 
 
-    public function showCxTicketRating($id, $isCancel, $validContact=null)
+    public function showCxTicketRating($id, $isCancel, $validContact=null, $feedContactId=null)
     {
         $this->ticket_id = $id;
         $this->cxTicketRatingModal = true;
         // dd($validContact);
-        if($validContact)
+        if($validContact || $feedContactId)
         {
             // $this->feed = FeedContactValid::find($validContact);
-            $this->feed = FeedContactValid::where('priority_field',$validContact)->first();
+            $this->feed = $feedContactId
+                ? FeedContactValid::find($feedContactId)
+                : FeedContactValid::whereRaw('TRIM(priority_field) = ?', [trim($validContact)])->first();
             // dd($this->feed);
         }
 

@@ -1,3 +1,4 @@
+<div class="flex space-x-1 justify-around">
 <a href="#"
     wire:click.prevent="$emitTo('dialer.settings.campaign.status-option', 'showStatusOptionModal', {{ $campaign->id }})"
     class="inline-flex items-center justify-center p-1 rounded text-purple-600 hover:bg-purple-600 hover:text-white"
@@ -7,3 +8,4 @@
         <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6z" />
     </svg>
 </a>
+</div>

@@ -122,10 +122,24 @@ class ProcessFeedFile implements ShouldQueue
                             $technicianName = $json['technician_name'] ?? '';
                             $technicianContact = $json['technician_contact'] ?? '';
 
+                            // Save any extra excel fields (not part of cx_tickets) as json in more_data
+                            $cxTicketColumns = [
+                                'category', 'product', 'model', 'work_order_no', 'service_center',
+                                'warranty_status', 'sold_date', 'customer_name', 'customer_address',
+                                'customer_contact_01', 'customer_contact_02', 'technician_name',
+                                'technician_contact', 'supervisor_name', 'supervisor_contact',
+                                'status', 'creator', 'satisfaction_rate', 'satisfaction_reasons',
+                                'dis_satisfaction_reasons', 'cancelling_reasons', 'closed_by',
+                                'surveyed_by', 'company', 'reopened_by', 'reopened_reasons',
+                                'skipped_reasons', 'skipped_by', 'cancelling_comment', 'change_request',
+                            ];
+                            $moreData = array_diff_key($json, array_flip($cxTicketColumns));
+
                             $cxTickets[] = [
                                 'category' => $category,
                                 'product' => $product,
                                 'model' => $model,
+                                'more_data' => !empty($moreData) ? json_encode($moreData) : null,
                                 'work_order_no' => $workOrderNo,
                                 'service_center' => $serviceCenter,
                                 'warranty_status' => $warrantyStatus,

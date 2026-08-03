@@ -502,7 +502,7 @@
 
     @foreach ($surveyContacts as $ticket)
     @php
-        $contactData = json_decode($ticket->data ?? '{}', true);
+        $contactData = json_decode($ticket->more_data ?? '{}', true);
 
         // Status classifications
         $isAnswered = $ticket->status == 'Rated'; 
@@ -658,6 +658,55 @@
                     </div>
                 </div>
             </div>
+
+            {{-- More Data --}}
+            @if(!empty($contactData))
+                <div class="border p-3 rounded-lg shadow-md mt-4">
+                    <h1 class="p-1 pl-0 font-bold text-lg">More Data</h1>
+                    <ul class="grid grid-cols-2 gap-x-4 gap-y-1 text-base">
+                        @foreach($contactData as $key => $value)
+                            @if(!empty($key))
+                                @if(is_array($value))
+                                    <li class="col-span-2">
+                                        <span class="font-medium text-base">
+                                            {{ ucfirst(str_replace('_', ' ', $key)) }}:
+                                        </span>
+                                        <div class="mt-2 ml-4 space-y-2">
+                                            @foreach($value as $item)
+                                                @if(is_array($item))
+                                                    <div class="border rounded p-2 bg-gray-50">
+                                                        <ul class="grid grid-cols-2 gap-x-4 gap-y-1">
+                                                            @foreach($item as $itemKey => $itemValue)
+                                                                @if(!is_array($itemValue))
+                                                                    <li>
+                                                                        <span class="font-medium">
+                                                                            {{ ucfirst(str_replace('_', ' ', $itemKey)) }}:
+                                                                        </span>
+                                                                        {{ $itemValue }}
+                                                                    </li>
+                                                                @endif
+                                                            @endforeach
+                                                        </ul>
+                                                    </div>
+                                                @else
+                                                    <div class="ml-2">{{ $item }}</div>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    </li>
+                                @else
+                                    <li>
+                                        <span class="font-medium text-base">
+                                            {{ ucfirst(str_replace('_', ' ', $key)) }}:
+                                        </span>
+                                        {{ $value }}
+                                    </li>
+                                @endif
+                            @endif
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
             {{-- Skipped Reasons --}}
             @if($isNotAnswered == 'Skip')

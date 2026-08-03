@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Dashboard;
 use App\Models\AgentBreakSummary;
 use App\Models\Campaign;
 use App\Models\CampaignMetric;
+use App\Models\FeedContactValid;
 use App\Models\Skill;
 use App\Models\User;
 use App\Repositories\ApiManager;
@@ -29,6 +30,9 @@ class Index extends Component
     public $boundType;
     public $dialerCallCounts;
     public $validCampaignTypes;
+    public $hasStartedCampaign = false;
+    public $dialedCallsToday = 0;
+    public $answeredCallsToday = 0;
 
     protected $listeners = ['hideBreak' => 'hideBreak', 'showBreak' => 'showBreak', 'setOutbound' => 'setOutbound', 'setInbound' => 'setInbound'];
 
@@ -183,9 +187,57 @@ class Index extends Component
         // $this->messagesCount = count($messagesCountIds) - 1 ;
         $this->messagesCount = count($messagesCountIds);
 
-
+        $this->loadStartedCampaignStatistics();
 
         return view('livewire.dashboard.index');
+    }
+
+    public function loadStartedCampaignStatistics()
+    {
+        $this->hasStartedCampaign = false;
+        $this->dialedCallsToday = 0;
+        $this->answeredCallsToday = 0;
+
+        if ($this->boundType != 'dialer') {
+            return;
+        }
+
+        $startedCampaignNames = collect($this->selectedSkills)
+            ->filter(fn($value) => !empty($value))
+            ->values()
+            ->toArray();
+
+        if (empty($startedCampaignNames)) {
+            return;
+        }
+
+        $startedCampaigns = Campaign::whereIn('name', $startedCampaignNames)
+            ->where('status', 1)
+            ->get();
+
+        if ($startedCampaigns->isEmpty()) {
+            return;
+        }
+
+        $feedIds = $startedCampaigns->flatMap->feed_ids->unique()->values()->toArray();
+
+        if (empty($feedIds)) {
+            return;
+        }
+
+        $this->hasStartedCampaign = true;
+
+        $this->dialedCallsToday = FeedContactValid::whereIn('feed_id', $feedIds)
+            ->whereNotNull('status')
+            ->whereDate('updated_at', today())
+            ->distinct('contact_no_01')
+            ->count('contact_no_01');
+
+        $this->answeredCallsToday = FeedContactValid::whereIn('feed_id', $feedIds)
+            ->where('status', 1)
+            ->whereDate('updated_at', today())
+            ->distinct('contact_no_01')
+            ->count('contact_no_01');
     }
 
     public function updatedSelectedSkills($type, $value)

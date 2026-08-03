@@ -120,7 +120,7 @@
                                                 <div class="text-xl font-bold">{{ number_format($dialedCallsToday, 0) }}</div>
                                             </div>
                                             <div class="flex-1">
-                                                <div class="text-gray-500 text-sm">Answered Today</div>
+                                                <div class="text-gray-500 text-sm">Completed Today</div>
                                                 <div class="text-xl font-bold">{{ number_format($answeredCallsToday, 0) }}</div>
                                             </div>
                                         </div>

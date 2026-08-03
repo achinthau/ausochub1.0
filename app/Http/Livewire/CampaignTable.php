@@ -84,6 +84,9 @@ class CampaignTable extends DataTableComponent
             Column::make("Status Options")
                 ->label(fn($row) => view('livewire.dialer.settings.campaign.status-option-action', ['campaign' => $row]))
                 ->html(),
+            Column::make("Max Dial Counts")
+                ->label(fn($row) => view('livewire.dialer.settings.campaign.max-dial-count-action', ['campaign' => $row]))
+                ->html(),
         ];
     }
 }

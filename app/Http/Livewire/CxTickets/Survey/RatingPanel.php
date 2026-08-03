@@ -5,6 +5,7 @@ namespace App\Http\Livewire\CxTickets\Survey;
 use App\Models\CxDisSatisReason;
 use App\Models\CxSatisReason;
 use App\Models\CxTicket;
+use App\Models\CampaignAgentDialLimit;
 use App\Models\FeedContactValid;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -97,6 +98,7 @@ class RatingPanel extends Component
         {
             $this->feed->status = 1;
         $this->feed->save();
+        CampaignAgentDialLimit::incrementForFeed((int) $this->feed->feed_id, (int) Auth::id());
         }
 
         $this->emit('cxTicketSurveyUpdated');
@@ -217,6 +219,7 @@ class RatingPanel extends Component
             $this->feed->status = 1;
             $this->feed->next_available_at = NULL;
             $this->feed->save();
+            CampaignAgentDialLimit::incrementForFeed((int) $this->feed->feed_id, (int) Auth::id());
         }
 
             $this->cxTicketRatingModal = false;

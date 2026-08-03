@@ -4,6 +4,7 @@ namespace App\Http\Livewire\CxTickets\Survey;
 
 use App\Models\CallbackCustomer;
 use App\Models\FeedContactValid;
+use App\Models\CampaignAgentDialLimit;
 use Livewire\Component;
 use App\Models\CxTicket;
 use Carbon\Carbon;
@@ -93,6 +94,7 @@ class ReopenPanel extends Component
         {
             $this->feed->status = 1;
             $this->feed->save();
+            CampaignAgentDialLimit::incrementForFeed((int) $this->feed->feed_id, (int) Auth::id());
             $this->emit('FeedCompleted');
         }
             }

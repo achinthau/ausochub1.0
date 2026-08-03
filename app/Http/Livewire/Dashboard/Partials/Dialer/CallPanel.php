@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Dashboard\Partials\Dialer;
 
 use App\Models\Campaign;
+use App\Models\CampaignAgentDialLimit;
 use App\Models\FeedContactValid;
 use App\Models\Lead;
 use Illuminate\Support\Facades\Auth;
@@ -63,7 +64,10 @@ class CallPanel extends Component
         //     });
         $campaigns = Campaign::where('status', 1)
             ->whereIn('name', $currentSkills)
-            ->get();
+            ->get()
+            ->filter(function ($campaign) use ($userId) {
+                return !CampaignAgentDialLimit::hasReachedLimit((int) $campaign->id, (int) $userId);
+            });
 
         // dd($campaigns);
         //status and name index 

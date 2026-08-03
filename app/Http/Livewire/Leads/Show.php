@@ -5,6 +5,7 @@ namespace App\Http\Livewire\Leads;
 use App\Models\CallbackCustomer;
 use App\Models\CallCount;
 use App\Models\Campaign;
+use App\Models\CampaignAgentDialLimit;
 use App\Models\CxTicket;
 use App\Models\FeedContactValid;
 use App\Models\Lead;
@@ -319,6 +320,11 @@ class Show extends Component
         return $lead;
     }
 
+    protected function hasReachedDialLimit($campaignId, $userId): bool
+    {
+        return CampaignAgentDialLimit::hasReachedLimit((int) $campaignId, (int) $userId);
+    }
+
     protected function getCurrentDialerPanelContact(): array
     {
         $userId = Auth::id();
@@ -326,7 +332,8 @@ class Show extends Component
 
         $campaigns = Campaign::where('status', 1)
             ->whereIn('name', $currentSkills)
-            ->get();
+            ->get()
+            ->filter(fn($campaign) => !$this->hasReachedDialLimit($campaign->id, $userId));
 
         $feedIds = $campaigns->flatMap->feed_ids->unique()->toArray();
 

@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Leads\Partials;
 
 use App\Models\Campaign;
+use App\Models\CampaignAgentDialLimit;
 use App\Models\CxTicket;
 use App\Models\DialerCallStatusOption;
 use App\Models\FeedContactAttempt;
@@ -82,6 +83,11 @@ class SubmitCallStatus extends Component
         'selectedOption.required' => 'You must select a call status.',
     ];
 
+
+    protected function incrementDialCount()
+    {
+        CampaignAgentDialLimit::incrementCount((int) $this->campaign, (int) Auth::id());
+    }
 
     public function submit()
     {
@@ -254,6 +260,10 @@ class SubmitCallStatus extends Component
                 'updated_by' => Auth::id(),
                 'call_status_option_type' =>$option['type'],
             ]);
+        }
+
+        if ($this->status == 'answered') {
+            $this->incrementDialCount();
         }
 
         $this->emit('FeedCompleted');

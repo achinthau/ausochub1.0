@@ -38,6 +38,9 @@
                             <span class="ml-1 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
                                 Current: {{ $entry->current_count }}
                             </span>
+                            <span class="ml-1 text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600">
+                                Last Month: {{ $entry->last_month_count }}
+                            </span>
                         </div>
                         <x-button icon="trash" wire:click="deleteEntry({{ $entry->id }})" class="text-xs p-1 text-red-500" />
                     </div>

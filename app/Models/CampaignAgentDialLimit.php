@@ -17,6 +17,7 @@ class CampaignAgentDialLimit extends Model
         'agent_id',
         'max_count',
         'current_count',
+        'last_month_count',
         'month',
     ];
 
@@ -63,6 +64,7 @@ class CampaignAgentDialLimit extends Model
         $currentMonth = now()->format('Y-m');
 
         if ($entry->exists && $entry->month && $entry->month !== $currentMonth) {
+            $entry->last_month_count = (int) $entry->current_count;
             $entry->current_count = 1;
         } else {
             $entry->current_count = (int) $entry->current_count + 1;

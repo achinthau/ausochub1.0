@@ -696,7 +696,7 @@
                                     </li>
                                 @else
                                     <li>
-                                        <span class="font-medium text-base">
+                                        <span class="font-bold text-base">
                                             {{ ucfirst(str_replace('_', ' ', $key)) }}:
                                         </span>
                                         {{ $value }}

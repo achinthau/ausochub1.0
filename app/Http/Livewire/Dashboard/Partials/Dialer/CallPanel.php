@@ -117,22 +117,8 @@ class CallPanel extends Component
             $phone2 = $record->contact_no_02 ?? $record->contact_no_01;
             $feedId = $record->feed_id;
 
-            // 1. Find all rows with this number across all feeds (matching the agent's languages)
-            $relatedContacts = FeedContactValid::where(function ($query) use ($phone,$phone2) {
-                $query->where('contact_no_01', $phone)
-                    ->orWhere('contact_no_02', $phone)
-                    ->orWhere('contact_no_01', $phone2)
-                    ->orWhere('contact_no_02', $phone2);
-            })
-                ->whereNull('status')
-                ->where(function ($q) use ($userLanguageNames) {
-                    $q->whereNull('lang')
-                        ->orWhereIn('lang', $userLanguageNames);
-                });
-            // ->where('feed_id',$feedId); 
-
-            // 2. Assign all of them to the current agent
-            $relatedContacts->update(['assigned_to' => $userId]);
+            // Assign only the loaded record to the current agent
+            $record->update(['assigned_to' => $userId]);
             $this->contact = $record;
             $this->phone = !empty($record->contact_no_01) ? $record->contact_no_01 : $record->contact_no_02;
             $this->phone2 = !empty($record->contact_no_02) ? $record->contact_no_02 : $record->contact_no_01;

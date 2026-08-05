@@ -11,31 +11,49 @@
 
             {{-- Dropdown --}}
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Select Status</label>
-                {{-- <select wire:model="selectedOption"
-                    class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 transition duration-150 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
-                    <option value="">-- Choose an option --</option>
-                    @foreach($options as $id => $name)
-                    <option value="{{ $id }}">{{ $name }}</option>
-                    @endforeach
-                </select> --}}
-                <select wire:model="selectedOption"
-                    class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 transition duration-150 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
-                    <option value="">-- Choose an option --</option>
-                    @foreach($options as $option)
-                                        <option value="{{ json_encode([
+                @if($isSatisfaction && $status == 'not_answered')
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Reason</label>
+                    <select wire:model="selectedReason"
+                        class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 transition duration-150 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                        <option value="">-- Select a reason --</option>
+                        @foreach($options as $option)
+                            <option value="{{ $option->option }}">{{ $option->option }}</option>
+                        @endforeach
+                    </select>
+
+                    <h3 class="text-lg font-bold mt-4">Selected Reasons</h3>
+                    <div class="flex flex-wrap gap-2 mt-2">
+                        @foreach($selectedReasons as $reason)
+                            <span class="px-3 py-1 rounded-md flex items-center bg-yellow-200 text-black-700">
+                                {{ $reason }}
+                                <button wire:click="removeReason('{{ $reason }}')" class="ml-2 text-black font-bold">&times;</button>
+                            </span>
+                        @endforeach
+                    </div>
+
+                    @error('selectedReasons')
+                        <span class="mt-1 text-red-500 text-sm font-medium">{{ $message }}</span>
+                    @enderror
+                @else
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Status</label>
+                    <select wire:model="selectedOption"
+                        class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 transition duration-150 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                        <option value="">-- Choose an option --</option>
+                        @foreach($options as $option)
+                                            <option value="{{ json_encode([
                             'id' => $option->id,
                             'value' => $option->option,
                             'type' => $option->type
                         ]) }}">
-                                            {{ $option->option }}
-                                        </option>
-                    @endforeach
-                </select>
+                                                {{ $option->option }}
+                                            </option>
+                        @endforeach
+                    </select>
 
-                @error('selectedOption')
-                    <span class="mt-1 text-red-500 text-sm font-medium">{{ $message }}</span>
-                @enderror
+                    @error('selectedOption')
+                        <span class="mt-1 text-red-500 text-sm font-medium">{{ $message }}</span>
+                    @enderror
+                @endif
             </div>
 
             {{-- Comment --}}

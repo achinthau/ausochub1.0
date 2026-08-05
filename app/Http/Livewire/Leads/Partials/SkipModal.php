@@ -2,8 +2,6 @@
 
 namespace App\Http\Livewire\Leads\Partials;
 
-use App\Models\CxTicket;
-use App\Models\DialerCallStatusOption;
 use App\Models\FeedContactAttempt;
 use App\Models\FeedContactValid;
 use Illuminate\Support\Facades\Auth;
@@ -36,24 +34,6 @@ class SkipModal extends Component
         $phone = $this->phone;
         $phone2 = $this->phone2;
 
-        if ($this->serviceType == 'satisfaction') {
-            $surveyTickets = CxTicket::where(function ($query) use ($phone,$phone2) {
-                $query->where('customer_contact_01', $phone)
-                    ->orWhere('customer_contact_02', $phone)
-                    ->orWhere('customer_contact_01', $phone2)
-                    ->orWhere('customer_contact_02', $phone2);
-            })
-                ->where('status', 'Closed')
-                ->get();
-
-            foreach ($surveyTickets as $surveyTicket) {
-                $surveyTicket->status = 'Skip';
-                $surveyTicket->skipped_reasons = $this->comment;
-                $surveyTicket->skipped_by = Auth::user()->name;
-                $surveyTicket->save();
-            }
-        } 
-        
             $feeds = FeedContactValid::where('feed_id', $this->feedId)
                 ->where(function ($q) {
                     $q->where('contact_no_01', $this->phone)
@@ -67,12 +47,10 @@ class SkipModal extends Component
                 $feed->status = 3; // skipped
                 $feed->save();
 
-                $option = DialerCallStatusOption::where('option', 'Skip')->first();
-                // dd($option);
-
                 FeedContactAttempt::create([
                     'feed_contact_valid_id' => $feed->id,
-                    'call_status_option_id' => $option ? $option->id : '0',
+                    'call_status_option_id' => null,
+                    'call_status_option_type' => 'skip',
                     'comments' => $this->comment,
                     'updated_by' => Auth::id(),
                 ]);

@@ -1,4 +1,7 @@
 <x-modal.card title="Status Options" blur align="center" wire:model="modalOpen">
+    @php
+        $isSatisfaction = $campaignType === 'satisfaction';
+    @endphp
     <div class="p-4">
         <p class="text-sm text-gray-500 mb-4">Manage call status options for <strong>{{ $campaignName }}</strong></p>
 
@@ -9,9 +12,12 @@
             </div>
             <div class="w-40">
                 <x-select label="Type" wire:model="newType">
-                    <x-select.option label="Answered" :value="1" />
-                    <x-select.option label="Not Answered" :value="2" />
-                    <x-select.option label="Skip" :value="3" />
+                    <x-select.option label="{{ $isSatisfaction ? 'Satisfied' : 'Answered' }}" :value="1" />
+                    <x-select.option label="{{ $isSatisfaction ? 'Dissatisfied' : 'Not Answered' }}" :value="2" />
+                    <x-select.option label="{{ $isSatisfaction ? 'Cancel' : 'Skip' }}" :value="3" />
+                    @if($isSatisfaction)
+                        <x-select.option label="Not Answered" :value="4" />
+                    @endif
                 </x-select>
             </div>
             <div class="pb-0.5">
@@ -34,9 +40,12 @@
                                 </div>
                                 <div class="w-32">
                                     <x-select wire:model="editType">
-                                        <x-select.option label="Answered" :value="1" />
-                                        <x-select.option label="Not Answered" :value="2" />
-                                        <x-select.option label="Skip" :value="3" />
+                                        <x-select.option label="{{ $isSatisfaction ? 'Satisfied' : 'Answered' }}" :value="1" />
+                                        <x-select.option label="{{ $isSatisfaction ? 'Dissatisfied' : 'Not Answered' }}" :value="2" />
+                                        <x-select.option label="{{ $isSatisfaction ? 'Cancel' : 'Skip' }}" :value="3" />
+                                        @if($isSatisfaction)
+                                            <x-select.option label="Not Answered" :value="4" />
+                                        @endif
                                     </x-select>
                                 </div>
                             </div>
@@ -49,10 +58,12 @@
                                 <span class="ml-2 text-xs px-2 py-0.5 rounded-full
                                     @if($option->type == 1) bg-green-100 text-green-700
                                     @elseif($option->type == 2) bg-orange-100 text-orange-700
+                                    @elseif($option->type == 4) bg-yellow-100 text-yellow-700
                                     @else bg-gray-100 text-gray-600 @endif">
-                                    @if($option->type == 1) Answered
-                                    @elseif($option->type == 2) Not Answered
-                                    @else Skip @endif
+                                    @if($option->type == 1) {{ $isSatisfaction ? 'Satisfied' : 'Answered' }}
+                                    @elseif($option->type == 2) {{ $isSatisfaction ? 'Dissatisfied' : 'Not Answered' }}
+                                    @elseif($option->type == 4) Not Answered
+                                    @else {{ $isSatisfaction ? 'Cancel' : 'Skip' }} @endif
                                 </span>
                             </div>
                             <x-button icon="pencil" wire:click="startEdit({{ $option->id }})" class="text-xs p-1" />

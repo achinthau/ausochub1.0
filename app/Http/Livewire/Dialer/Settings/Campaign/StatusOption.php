@@ -15,6 +15,7 @@ class StatusOption extends Component
     public $modalOpen = false;
     public $campaignId = null;
     public $campaignName = '';
+    public $campaignType = null;
 
     public $options = [];
 
@@ -31,6 +32,7 @@ class StatusOption extends Component
         $this->campaignId = $campaignId;
         $campaign = Campaign::find($campaignId);
         $this->campaignName = $campaign ? $campaign->name : '';
+        $this->campaignType = $campaign ? $campaign->service_type : null;
         $this->loadOptions();
         $this->modalOpen = true;
     }
@@ -47,7 +49,7 @@ class StatusOption extends Component
     {
         $this->validate([
             'newOption' => 'required|string|max:255',
-            'newType' => 'required|in:1,2,3',
+            'newType' => 'required|in:1,2,3,4',
         ]);
 
         DialerCallStatusOption::create([
@@ -80,7 +82,7 @@ class StatusOption extends Component
     {
         $this->validate([
             'editOption' => 'required|string|max:255',
-            'editType' => 'required|in:1,2,3',
+            'editType' => 'required|in:1,2,3,4',
         ]);
 
         $option = DialerCallStatusOption::find($this->editingId);

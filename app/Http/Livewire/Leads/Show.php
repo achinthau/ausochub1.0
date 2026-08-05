@@ -7,6 +7,7 @@ use App\Models\CallCount;
 use App\Models\Campaign;
 use App\Models\CampaignAgentDialLimit;
 use App\Models\CxTicket;
+use App\Models\FeedContactAttempt;
 use App\Models\FeedContactValid;
 use App\Models\Lead;
 use App\Models\QueueCount;
@@ -577,28 +578,7 @@ class Show extends Component
 
             $phone2 = $this->phone2;
 
-            $this->surveyContacts = CxTicket::where(function ($query) use ($phone, $phone2) {
-
-                $query->where('customer_contact_01', $phone)
-                    ->orWhere('customer_contact_02', $phone);
-
-                if (!empty($phone2)) {
-                    $query->orWhere('customer_contact_01', $phone2)
-                        ->orWhere('customer_contact_02', $phone2);
-                }
-            })
-            ->when($feedId, function ($query, $feedId) {
-                $query->where('feed_id', $feedId);
-            })
-            ->where(function ($query) {
-                $query->where('status', 'Closed')
-                    ->orWhere('status', 'Remind')
-                    ->orWhere(function ($q) {
-                        $q->where('status', 'Skip')
-                            ->whereDate('updated_at', '!=', now()->toDateString());
-                    });
-            })
-            ->get();
+            $this->surveyContacts = $this->buildSatisfactionWorkOrders($phone, $phone2, $feedId);
 
             $this->refreshSatisfactionNotAnsweredCounts();
 
@@ -662,9 +642,9 @@ class Show extends Component
             $this->phone_numbers = [$this->lead->contact_number];
 
             if ($this->surveyContacts->isNotEmpty()) {
-                // Collect all customer_contact_01 and customer_contact_02 values
+                // Collect all contact_no_01 and contact_no_02 values
                 $allContacts = $this->surveyContacts->flatMap(function ($contact) {
-                    return [$contact->customer_contact_01, $contact->customer_contact_02];
+                    return [$contact->contact_no_01, $contact->contact_no_02];
                 });
 
                 // Normalize numbers: remove spaces, remove leading 0 if 10 digits
@@ -730,33 +710,7 @@ class Show extends Component
             $phone = $this->lead->contact_number;
             $phone2 = $this->phone2;
 
-            $this->surveyContacts = CxTicket::where(function ($query) use ($phone, $phone2) {
-                $query->where('customer_contact_01', $phone)
-                    ->orWhere('customer_contact_02', $phone);
-
-                if (!empty($phone2)) {
-                    $query->orWhere('customer_contact_01', $phone2)
-                        ->orWhere('customer_contact_02', $phone2);
-                }
-            })
-            ->when($this->feed_id, function ($query, $feedId) {
-                $query->where('feed_id', $feedId);
-            })
-            ->where(function ($query) {
-                $query->where(function ($q) {
-                    $q->where('status', 'Closed')
-                        ->orWhere('status', 'Remind')
-                        ->orWhere(function ($q2) {
-                            $q2->where('status', 'Skip')
-                                ->whereDate('updated_at', '!=', now()->toDateString());
-                        });
-                });
-
-                if ($this->surveyContacts && $this->surveyContacts->isNotEmpty()) {
-                    $query->orWhereIn('id', $this->surveyContacts->pluck('id')->toArray());
-                }
-            })
-            ->get();
+            $this->surveyContacts = $this->buildSatisfactionWorkOrders($phone, $phone2, $this->feed_id);
 
             $this->refreshSatisfactionNotAnsweredCounts();
         }
@@ -791,6 +745,95 @@ class Show extends Component
                 return [trim($row->priority_field) => strlen((string) $row->status)];
             })
             ->all();
+    }
+
+    protected function buildSatisfactionWorkOrders($phone, $phone2, $feedId)
+    {
+        $contacts = FeedContactValid::where(function ($query) use ($phone, $phone2) {
+            $query->where('contact_no_01', $phone)
+                ->orWhere('contact_no_02', $phone);
+
+            if (!empty($phone2)) {
+                $query->orWhere('contact_no_01', $phone2)
+                    ->orWhere('contact_no_02', $phone2);
+            }
+        })
+            ->when($feedId, function ($query, $feedId) {
+                $query->where('feed_id', $feedId);
+            })
+            ->get();
+
+        if ($contacts->isEmpty()) {
+            return collect();
+        }
+
+        $attempts = FeedContactAttempt::whereIn('feed_contact_valid_id', $contacts->pluck('id'))
+            ->orderBy('created_at', 'asc')
+            ->get()
+            ->groupBy('feed_contact_valid_id');
+
+        $cxTicketColumns = ['category', 'product', 'model', 'work_order_no', 'service_center', 'warranty_status', 'sold_date', 'customer_name', 'customer_address', 'customer_contact_01', 'customer_contact_02', 'technician_name', 'technician_contact', 'supervisor_name', 'supervisor_contact', 'status', 'creator', 'satisfaction_rate', 'satisfaction_reasons', 'dis_satisfaction_reasons', 'cancelling_reasons', 'closed_by', 'surveyed_by', 'company', 'reopened_by', 'reopened_reasons', 'skipped_reasons', 'skipped_by', 'cancelling_comment', 'change_request'];
+
+        return $contacts->map(function ($contact) use ($attempts, $cxTicketColumns) {
+            $data = json_decode((string) $contact->data, true) ?: [];
+            $contactAttempts = $attempts->get($contact->id, collect());
+
+            $status = 'Closed';
+            $callStatusOptionType = null;
+            $satisfactionRate = null;
+            $skippedReasons = null;
+            $latest = null;
+
+            if ($contactAttempts->isNotEmpty()) {
+                $latest = $contactAttempts->last();
+                $callStatusOptionType = $latest->call_status_option_type;
+                $satisfactionRate = $latest->rate;
+                $skippedReasons = $latest->comments;
+
+                if ($satisfactionRate !== null) {
+                    $status = 'Rated';
+                } elseif (is_string($callStatusOptionType) && str_contains($callStatusOptionType, '3')) {
+                    $status = 'Canceled';
+                } elseif (is_string($callStatusOptionType) && (str_contains($callStatusOptionType, '4') || str_contains($callStatusOptionType, '2'))) {
+                    $status = 'Skip';
+                } elseif ($callStatusOptionType === 'skip') {
+                    $status = 'Skip';
+                } elseif ($callStatusOptionType === 'reopen') {
+                    $status = 'ReOpened';
+                } elseif ($callStatusOptionType === 'remind') {
+                    $status = 'Remind';
+                }
+            } elseif (in_array((string) $contact->status, ['2', '22', '222', '3'])) {
+                $status = 'Skip';
+            }
+
+            $ticket = (object) $data;
+            foreach (['category', 'product', 'model', 'service_center', 'warranty_status', 'sold_date', 'customer_name', 'customer_address', 'customer_contact_01', 'customer_contact_02', 'technician_name', 'technician_contact', 'supervisor_name', 'supervisor_contact'] as $field) {
+                if (!property_exists($ticket, $field) || $ticket->$field === null || $ticket->$field === '') {
+                    $ticket->$field = null;
+                }
+            }
+            $ticket->work_order_no = trim((string) $contact->priority_field);
+            $ticket->status = $status;
+            $ticket->updated_at = $latest ? $latest->created_at : $contact->updated_at;
+            $ticket->contact_no_01 = $contact->contact_no_01;
+            $ticket->contact_no_02 = $contact->contact_no_02;
+            if (empty($ticket->customer_contact_01)) {
+                $ticket->customer_contact_01 = $contact->contact_no_01;
+            }
+            if (empty($ticket->customer_contact_02)) {
+                $ticket->customer_contact_02 = $contact->contact_no_02;
+            }
+            $ticket->satisfaction_rate = $satisfactionRate;
+            $ticket->satisfaction_reasons = ($status === 'Rated' && is_string($callStatusOptionType) && str_contains($callStatusOptionType, '1')) ? $skippedReasons : null;
+            $ticket->dis_satisfaction_reasons = ($status === 'Rated' && is_string($callStatusOptionType) && str_contains($callStatusOptionType, '2')) ? $skippedReasons : null;
+            $ticket->cancelling_reasons = $status === 'Canceled' ? $skippedReasons : null;
+            $ticket->skipped_reasons = $status === 'Skip' ? $skippedReasons : null;
+            $ticket->feed_contact_id = $contact->id;
+            $ticket->more_data = json_encode(array_diff_key($data, array_flip($cxTicketColumns)));
+
+            return $ticket;
+        });
     }
 
     public function refreshTimeline()

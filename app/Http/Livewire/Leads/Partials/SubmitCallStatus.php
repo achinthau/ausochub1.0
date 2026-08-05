@@ -4,7 +4,6 @@ namespace App\Http\Livewire\Leads\Partials;
 
 use App\Models\Campaign;
 use App\Models\CampaignAgentDialLimit;
-use App\Models\CxTicket;
 use App\Models\DialerCallStatusOption;
 use App\Models\FeedContactAttempt;
 use App\Models\FeedContactValid;
@@ -26,12 +25,14 @@ class SubmitCallStatus extends Component
     public $applyToAll = false;
     public $feedCount = 0;
     public $paymentDate;
-    public $cxTicketId;
     public $campaign;
+    public $isSatisfaction = false;
+    public $selectedReason = null;
+    public $selectedReasons = [];
 
     protected $listeners = ['openCallStatusModal' => 'openModal'];
 
-    public function openModal($id, $status, $feedCount, $ticketId = null, $feedContactId = null)
+    public function openModal($id, $status, $feedCount, $feedContactId = null, $campaignId = null)
     {
         // dd(is_numeric($id));
         $this->CallStatusModal = true;
@@ -47,15 +48,23 @@ class SubmitCallStatus extends Component
         // dd($this->feedCount);
         // dd($this->feed->id);
         // $this->campaign = Campaign::whereIn('assigned_feeds', [$this->feed->feed_id])->get();
-        $feedId = $this->feed->feed_id;
-        $this->campaign = Campaign::whereRaw('FIND_IN_SET(?, assigned_feeds)', [$feedId])->get();
+        if ($campaignId) {
+            $this->campaign = $campaignId;
+        } else {
+            $feedId = $this->feed->feed_id;
+            $campaigns = Campaign::whereRaw('FIND_IN_SET(?, assigned_feeds)', [$feedId])->get();
+            $this->campaign = $campaigns->first()->id;
+        }
 
-        // dd($this->campaign);
-        $this->campaign = $this->campaign->first()->id;
         // dd($this->campaign);
         $this->status = $status;
+        $this->isSatisfaction = Campaign::find($this->campaign)?->service_type === 'satisfaction';
 
-        $statusType = $status === 'answered' ? 1 : 2;
+        if ($this->isSatisfaction && $status === 'not_answered') {
+            $statusType = 4;
+        } else {
+            $statusType = $status === 'answered' ? 1 : 2;
+        }
         $campaignOptions = DialerCallStatusOption::where('campaign_id', $this->campaign)
             ->where('type', $statusType)
             ->get();
@@ -69,8 +78,21 @@ class SubmitCallStatus extends Component
         }
 
         $this->selectedOption = null;
+        $this->selectedReason = null;
+        $this->selectedReasons = [];
         $this->comment = '';
-        $this->cxTicketId = $ticketId;
+    }
+
+    public function updatedSelectedReason($value)
+    {
+        if ($value && !in_array($value, $this->selectedReasons)) {
+            $this->selectedReasons[] = $value;
+        }
+    }
+
+    public function removeReason($reason)
+    {
+        $this->selectedReasons = array_values(array_filter($this->selectedReasons, fn($r) => $r !== $reason));
     }
 
     // protected $rules = [
@@ -93,27 +115,52 @@ class SubmitCallStatus extends Component
 
     public function submit()
     {
-        if (empty($this->selectedOption)) {
-            $this->addError('selectedOption', 'Please select an option.');
-            return;
-        }
+        $isNotAnsweredSatisfaction = $this->isSatisfaction && $this->status == 'not_answered';
 
-        // Decode the JSON from the dropdown
-        $option = json_decode($this->selectedOption, true);
+        if ($isNotAnsweredSatisfaction) {
+            if (empty($this->selectedReasons)) {
+                $this->addError('selectedReasons', 'Please select at least one reason.');
+                return;
+            }
 
-        // Validation based on the option value
-        if ($option['value'] === 'Promised to pay') {
-            $this->validate([
-                'paymentDate' => 'required|date|after_or_equal:today',
-                'selectedOption' => 'required',
-            ]);
-
-            // Append payment date to comment
-            $this->comment = $this->comment . ' Payment Date: ' . $this->paymentDate;
+            $optionIds = DialerCallStatusOption::where('campaign_id', $this->campaign)
+                ->whereIn('option', $this->selectedReasons)
+                ->pluck('id')
+                ->values()
+                ->toArray();
+            $optionIdString = implode(',', $optionIds);
+            $optionTypeString = DialerCallStatusOption::whereIn('id', $optionIds)
+                ->pluck('type')
+                ->map(fn ($type) => (string) $type)
+                ->unique()
+                ->values()
+                ->implode(',');
         } else {
-            $this->validate([
-                'selectedOption' => 'required',
-            ]);
+            if (empty($this->selectedOption)) {
+                $this->addError('selectedOption', 'Please select an option.');
+                return;
+            }
+
+            // Decode the JSON from the dropdown
+            $option = json_decode($this->selectedOption, true);
+
+            // Validation based on the option value
+            if ($option['value'] === 'Promised to pay') {
+                $this->validate([
+                    'paymentDate' => 'required|date|after_or_equal:today',
+                    'selectedOption' => 'required',
+                ]);
+
+                // Append payment date to comment
+                $this->comment = $this->comment . ' Payment Date: ' . $this->paymentDate;
+            } else {
+                $this->validate([
+                    'selectedOption' => 'required',
+                ]);
+            }
+
+            $optionIdString = $option['id'];
+            $optionTypeString = $option['type'];
         }
 
         $phones = collect([$this->feed->contact_no_01, $this->feed->contact_no_02])
@@ -177,39 +224,13 @@ class SubmitCallStatus extends Component
 
                 FeedContactAttempt::create([
                     'feed_contact_valid_id' => $feed->id,
-                    'call_status_option_id' => $option['id'],
+                    'call_status_option_id' => $optionIdString,
                     'comments' => $this->comment,
                     'campaign_id' => $this->campaign,
                     'updated_by' => Auth::id(),
-                    'call_status_option_type' =>$option['type']
+                    'call_status_option_type' => $optionTypeString
                 ]);
             }
-
-            if ($this->cxTicketId) {
-                $tickets = CxTicket::where(function ($query) use ($phones) {
-                    foreach ($phones as $phone) {
-                        $query->orWhere('customer_contact_01', $phone)
-                            ->orWhere('customer_contact_02', $phone);
-                    }
-                })
-                    ->where('status', 'Closed')
-                    ->orWhere('status', 'Skip')
-                    ->get();
-
-                foreach ($tickets as $ticket) {
-                    if ($ticket) {
-                        $ticket->status = 'Skip';
-                        if ($this->selectedOption) {
-                            $optionName = DialerCallStatusOption::where('id', $this->selectedOption)->value('option');
-                            $ticket->skipped_reasons = $optionName . ' ' . $this->comment;
-                        }
-
-                        $ticket->skipped_by = Auth::user()->name;
-                    }
-                    $ticket->save();
-                }
-            }
-
 
         } else {
             // ✅ Update only the current feed
@@ -237,30 +258,16 @@ class SubmitCallStatus extends Component
 
                 // Set next date each time for status 2-based
                 $this->feed->next_available_at = now()->addDay();
-
-                if ($this->cxTicketId) {
-                    $ticket = CxTicket::find($this->cxTicketId);
-                    if ($ticket) {
-                        $ticket->status = 'Skip';
-                        if ($this->selectedOption) {
-                            $optionName = DialerCallStatusOption::where('id', $this->selectedOption)->value('option');
-                            $ticket->skipped_reasons = $optionName . ' ' . $this->comment;
-                        }
-
-                        $ticket->skipped_by = Auth::user()->name;
-                    }
-                    $ticket->save();
-                }
             }
             $this->feed->save();
 
             FeedContactAttempt::create([
                 'feed_contact_valid_id' => $this->feed->id,
-                'call_status_option_id' => $option['id'],
+                'call_status_option_id' => $optionIdString,
                 'comments' => $this->comment,
                 'campaign_id' => $this->campaign,
                 'updated_by' => Auth::id(),
-                'call_status_option_type' =>$option['type'],
+                'call_status_option_type' => $optionTypeString,
             ]);
         }
 

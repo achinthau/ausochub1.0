@@ -2,8 +2,6 @@
 
 namespace App\Http\Livewire\Leads\Partials;
 
-use App\Models\CxTicket;
-use App\Models\DialerCallStatusOption;
 use App\Models\FeedContactAttempt;
 use App\Models\FeedContactValid;
 use Illuminate\Support\Facades\Auth;
@@ -37,20 +35,22 @@ class UpdateContact extends Component
         $phone2 = $this->phone2;
 
         if ($this->serviceType == 'satisfaction') {
-            $surveyTickets = CxTicket::where(function ($query) use ($phone,$phone2) {
-                $query->where('customer_contact_01', $phone)
-                    ->orWhere('customer_contact_02', $phone)
-                    ->orWhere('customer_contact_01', $this->phone2)
-                    ->orWhere('customer_contact_02', $this->phone2);
+            $surveyFeeds = FeedContactValid::where(function ($query) use ($phone,$phone2) {
+                $query->where('contact_no_01', $phone)
+                    ->orWhere('contact_no_02', $phone)
+                    ->orWhere('contact_no_01', $this->phone2)
+                    ->orWhere('contact_no_02', $this->phone2);
             })
-                ->where('status', 'Closed')
                 ->get();
 
-            foreach ($surveyTickets as $surveyTicket) {
-                // $surveyTicket->status = 'Skip';
-                $surveyTicket->change_request = $this->comment;
-                $surveyTicket->surveyed_by = Auth::user()->name;
-                $surveyTicket->save();
+            foreach ($surveyFeeds as $surveyFeed) {
+                FeedContactAttempt::create([
+                    'feed_contact_valid_id' => $surveyFeed->id,
+                    'call_status_option_id' => null,
+                    'call_status_option_type' => 'change_request',
+                    'comments' => $this->comment,
+                    'updated_by' => Auth::id(),
+                ]);
             }
         } 
         

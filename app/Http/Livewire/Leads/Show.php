@@ -286,8 +286,7 @@ class Show extends Component
     }
 
     protected function resolveLeadForContact(FeedContactValid $contact): Lead
-    {
-        $phone = $this->normalizePhoneNumber($contact->contact_no_01);
+    {        $phone = $this->normalizePhoneNumber($contact->contact_no_01);
         $phone2 = $this->normalizePhoneNumber($contact->contact_no_02);
 
         $lead = Lead::where(function ($query) use ($phone, $phone2) {
@@ -336,6 +335,12 @@ class Show extends Component
             ->get()
             ->filter(fn($campaign) => !$this->hasReachedDialLimit($campaign->id, $userId));
 
+        if ($campaigns->isEmpty()) {
+            return [null, null];
+        }
+
+        $userLanguageNames = Auth::user()->languages->pluck('name')->toArray();
+
         $feedIds = $campaigns->flatMap->feed_ids->unique()->toArray();
 
         if (empty($feedIds)) {
@@ -354,6 +359,10 @@ class Show extends Component
             ->where(function ($query) use ($userId) {
                 $query->whereNull('assigned_to')
                     ->orWhere('assigned_to', $userId);
+            })
+            ->where(function ($q) use ($userLanguageNames) {
+                $q->whereNull('lang')
+                    ->orWhereIn('lang', $userLanguageNames);
             })
             ->first();
 
@@ -389,10 +398,11 @@ class Show extends Component
         $this->feedContactIdStatus = $currentContact->status;
 
         $lead = $this->resolveLeadForContact($currentContact);
+        $feedId = $currentContact->feed_id;
 
         return redirect()->route('leads.show', [
             'lead' => $lead->id,
-            'feed' => $currentContact->feed_id,
+            'feed' => $feedId,
             'cmp' => $campaignName ?? $this->campaign,
         ]);
     }
@@ -432,8 +442,9 @@ class Show extends Component
             ->when($feedId, function ($query, $feedId) {
                 $query->where('feed_id', $feedId); // filter by feed_id if present
             })
-            ->when(!empty($userLanguageNames), function ($query) use ($userLanguageNames) {
-                $query->whereIn('lang', $userLanguageNames);
+            ->where(function ($q) use ($userLanguageNames) {
+                $q->whereNull('lang')
+                    ->orWhereIn('lang', $userLanguageNames);
             })
             ->get();
 
@@ -469,8 +480,9 @@ class Show extends Component
                 }
             })
                 ->when($feedId, fn($query) => $query->where('feed_id', $feedId))
-                ->when(!empty($userLanguageNames), function ($query) use ($userLanguageNames) {
-                    $query->whereIn('lang', $userLanguageNames);
+                ->where(function ($q) use ($userLanguageNames) {
+                    $q->whereNull('lang')
+                        ->orWhereIn('lang', $userLanguageNames);
                 })
                 ->get();
 
@@ -575,7 +587,17 @@ class Show extends Component
                         ->orWhere('customer_contact_02', $phone2);
                 }
             })
-            ->whereIn('status', ['Closed', 'Skip'])
+            ->when($feedId, function ($query, $feedId) {
+                $query->where('feed_id', $feedId);
+            })
+            ->where(function ($query) {
+                $query->where('status', 'Closed')
+                    ->orWhere('status', 'Remind')
+                    ->orWhere(function ($q) {
+                        $q->where('status', 'Skip')
+                            ->whereDate('updated_at', '!=', now()->toDateString());
+                    });
+            })
             ->get();
 
             $this->refreshSatisfactionNotAnsweredCounts();
@@ -717,8 +739,18 @@ class Show extends Component
                         ->orWhere('customer_contact_02', $phone2);
                 }
             })
+            ->when($this->feed_id, function ($query, $feedId) {
+                $query->where('feed_id', $feedId);
+            })
             ->where(function ($query) {
-                $query->whereIn('status', ['Closed', 'Skip']);
+                $query->where(function ($q) {
+                    $q->where('status', 'Closed')
+                        ->orWhere('status', 'Remind')
+                        ->orWhere(function ($q2) {
+                            $q2->where('status', 'Skip')
+                                ->whereDate('updated_at', '!=', now()->toDateString());
+                        });
+                });
 
                 if ($this->surveyContacts && $this->surveyContacts->isNotEmpty()) {
                     $query->orWhereIn('id', $this->surveyContacts->pluck('id')->toArray());

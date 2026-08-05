@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Dialer\Settings\Feed;
 
 use App\Jobs\ProcessFeedFile;
+use App\Models\CxTicket;
 use App\Models\Feed;
 use App\Models\FeedContact;
 use App\Models\FeedContactInValid;
@@ -84,6 +85,11 @@ class FileUpload extends Component
 
     $feed->update(['status' => 'processing']);
 //     Log::info("Processing Feed ID: {$feed->id}");
+
+    FeedContact::where('feed_id', $feed->id)->delete();
+    FeedContactValid::where('feed_id', $feed->id)->delete();
+    FeedContactInValid::where('feed_id', $feed->id)->delete();
+    CxTicket::where('feed_id', $feed->id)->delete();
 
     // Import Excel file and insert into FeedContact
     Excel::import(new class($feed->id, $batchSize) implements OnEachRow, WithChunkReading {

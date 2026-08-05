@@ -10,7 +10,7 @@ class CxTicket extends Model
     use HasFactory;
 
     protected $fillable = [
-        'category', 'product', 'model', 'more_data', 'work_order_no', 'service_center', 'warranty_status', 'sold_date',
+        'feed_id', 'category', 'product', 'model', 'more_data', 'work_order_no', 'service_center', 'warranty_status', 'sold_date',
         'customer_name', 'customer_address', 'customer_contact_01', 'customer_contact_02',
         'technician_name', 'technician_contact', 'supervisor_name', 'supervisor_contact', 'status', 'creator',
         'satisfaction_rate','satisfaction_reasons','dis_satisfaction_reasons','cancelling_reasons',
@@ -18,4 +18,8 @@ class CxTicket extends Model
         'cancelling_comment','change_request',
     ];
 
+    public function feed()
+    {
+        return $this->belongsTo(Feed::class, 'feed_id');
+    }
 }

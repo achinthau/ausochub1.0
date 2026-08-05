@@ -136,6 +136,7 @@ class ProcessFeedFile implements ShouldQueue
                             $moreData = array_diff_key($json, array_flip($cxTicketColumns));
 
                             $cxTickets[] = [
+                                'feed_id' => $contact->feed_id,
                                 'category' => $category,
                                 'product' => $product,
                                 'model' => $model,

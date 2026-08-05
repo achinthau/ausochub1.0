@@ -72,11 +72,20 @@ class CallPanel extends Component
         // dd($campaigns);
         //status and name index 
 
-
-
+        if ($campaigns->isEmpty()) {
+            $this->phone = null;
+            $this->reason = 'No available contacts in your assigned campaigns.';
+            return;
+        }
 
         // 2. Collect feed IDs from these campaigns
         $feedIds = $campaigns->flatMap->feed_ids->unique()->toArray();
+
+        if (empty($feedIds)) {
+            $this->phone = null;
+            $this->reason = 'No available contacts in your assigned campaigns.';
+            return;
+        }
 
         // 3. Find first available contact for those feeds
         $userLanguageNames = Auth::user()->languages->pluck('name')->toArray();
@@ -94,8 +103,9 @@ class CallPanel extends Component
                 $query->whereNull('assigned_to')        // unassigned
                     ->orWhere('assigned_to', $userId); // or already assigned to this user
             })
-            ->when(!empty($userLanguageNames), function ($query) use ($userLanguageNames) {
-                $query->whereIn('lang', $userLanguageNames);
+            ->where(function ($q) use ($userLanguageNames) {
+                $q->whereNull('lang')
+                    ->orWhereIn('lang', $userLanguageNames);
             })
             ->first();
 
@@ -107,14 +117,18 @@ class CallPanel extends Component
             $phone2 = $record->contact_no_02 ?? $record->contact_no_01;
             $feedId = $record->feed_id;
 
-            // 1. Find all rows with this number across all feeds
+            // 1. Find all rows with this number across all feeds (matching the agent's languages)
             $relatedContacts = FeedContactValid::where(function ($query) use ($phone,$phone2) {
                 $query->where('contact_no_01', $phone)
                     ->orWhere('contact_no_02', $phone)
                     ->orWhere('contact_no_01', $phone2)
                     ->orWhere('contact_no_02', $phone2);
             })
-                ->whereNull('status');
+                ->whereNull('status')
+                ->where(function ($q) use ($userLanguageNames) {
+                    $q->whereNull('lang')
+                        ->orWhereIn('lang', $userLanguageNames);
+                });
             // ->where('feed_id',$feedId); 
 
             // 2. Assign all of them to the current agent

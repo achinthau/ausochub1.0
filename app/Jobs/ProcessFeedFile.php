@@ -2,7 +2,6 @@
 
 namespace App\Jobs;
 
-use App\Models\CxTicket;
 use App\Models\Feed;
 use App\Models\FeedContact;
 use App\Models\FeedContactValid;
@@ -12,7 +11,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 
 class ProcessFeedFile implements ShouldQueue
@@ -28,17 +26,6 @@ class ProcessFeedFile implements ShouldQueue
         $this->feedId = $feedId;
         $this->type = $type;
     }
-
-    function excelDateToYmd($excelDate) {
-    if (!is_numeric($excelDate)) {
-        return null;
-    }
-
-    // Excel’s epoch starts at 1900-01-01
-    // Subtract 2 to fix Excel leap year bug (1900 treated as leap year)
-    $unixTimestamp = ($excelDate - 25569) * 86400;
-    return gmdate('Y-m-d', $unixTimestamp);
-}
 
     public function handle()
     {
@@ -58,7 +45,6 @@ class ProcessFeedFile implements ShouldQueue
             ->chunk($this->batchSize, function ($contacts) use (&$totalValid, &$totalInvalid) {
                 $valid = [];
                 $invalid = [];
-                $satisfactionFeeds = [];
 
                 foreach ($contacts as $contact) {
                     $phone1 = $contact->contact_no_01 ?? '';
@@ -103,59 +89,6 @@ class ProcessFeedFile implements ShouldQueue
 
                     if ($isValid) {
                         $valid[] = $data;
-                        if ($this->type == 'satisfaction') {
-                            $json = json_decode($contact->data, true) ?? [];
-
-                            // Extract and prepare CxTicket fields directly here
-                            $category = $json['category'] ?? '';
-                            $product = $json['product'] ?? null;
-                            $model = $json['model'] ?? null;
-                            $workOrderNo = $contact->priority_field ?? '';
-                            $serviceCenter = $json['service_center'] ?? '';
-                            $warrantyStatus = $json['warranty_status'] ?? '';
-                            $rawSoldDate = $json['sold_date'] ?? null;
-                            $soldDate = $this->excelDateToYmd($rawSoldDate);
-                            $customerName = $json['customer_name'] ?? null;
-                            $customerAddress = $json['customer_address'] ?? '';
-                            $contact01 = $cleanPhone ?? null;
-                            $contact02 = $cleanPhone2 ?? null;
-                            $technicianName = $json['technician_name'] ?? '';
-                            $technicianContact = $json['technician_contact'] ?? '';
-
-                            // Save any extra excel fields (not part of cx_tickets) as json in more_data
-                            $cxTicketColumns = [
-                                'category', 'product', 'model', 'work_order_no', 'service_center',
-                                'warranty_status', 'sold_date', 'customer_name', 'customer_address',
-                                'customer_contact_01', 'customer_contact_02', 'technician_name',
-                                'technician_contact', 'supervisor_name', 'supervisor_contact',
-                                'status', 'creator', 'satisfaction_rate', 'satisfaction_reasons',
-                                'dis_satisfaction_reasons', 'cancelling_reasons', 'closed_by',
-                                'surveyed_by', 'company', 'reopened_by', 'reopened_reasons',
-                                'skipped_reasons', 'skipped_by', 'cancelling_comment', 'change_request',
-                            ];
-                            $moreData = array_diff_key($json, array_flip($cxTicketColumns));
-
-                            $cxTickets[] = [
-                                'feed_id' => $contact->feed_id,
-                                'category' => $category,
-                                'product' => $product,
-                                'model' => $model,
-                                'more_data' => !empty($moreData) ? json_encode($moreData) : null,
-                                'work_order_no' => $workOrderNo,
-                                'service_center' => $serviceCenter,
-                                'warranty_status' => $warrantyStatus,
-                                'sold_date' => $soldDate,
-                                'customer_name' => $customerName,
-                                'customer_address' => $customerAddress,
-                                'customer_contact_01' => $contact01,
-                                'customer_contact_02' => $contact02,
-                                'technician_name' => $technicianName,
-                                'technician_contact' => $technicianContact,
-                                'status' => 'Closed',
-                                'created_at' => now(),
-                                'updated_at' => now(),
-                            ];
-                        }
                     } else {
                         $invalid[] = $data;
                     }
@@ -174,25 +107,6 @@ class ProcessFeedFile implements ShouldQueue
                     FeedContactInValid::insert($invalid);
                     $totalInvalid += count($invalid);
 //                     Log::info(count($invalid) . " invalid contacts inserted.");
-                }
-
-                if (!empty($cxTickets)) {
-
-                    // Bulk insert 
-                    try {
-                        CxTicket::insert($cxTickets);
-//                         Log::info(count($cxTickets) . " CxTicket records inserted for satisfaction feed.");
-                    } catch (\Exception $e) {
-//                         Log::error("Failed to insert CxTickets: " . $e->getMessage());
-                        // Optionally, handle individually or skip
-                        // foreach ($cxTickets as $ticket) {
-                        //     try {
-                        //         CxTicket::create($ticket);
-                        //     } catch (\Exception $innerE) {
-                        //         Log::warning("Skipped individual CxTicket insert: " . $innerE->getMessage());
-                        //     }
-                        // }
-                    }
                 }
             });
 

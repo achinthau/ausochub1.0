@@ -277,6 +277,22 @@
                 </a>
                 @endcan
 
+                @canany(['can-view-dialer-reports', 'can-view-leads'])
+                <a href="{{ route('reports.today-dialer-report') }}"
+                    class="flex p-2 space-x-2 transform transition duration-500 hover:scale-105 hover:bg-[#5E81F4]/[.1]  hover:text-[#5E81F4] rounded-md ">
+                    <div class="p-2 bg-gray-100 rounded-md max-h-12">
+                        <svg class="w-8 h-8 text-gray-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path fill="currentColor" d="M9 10h6V8H9v2zm0 4h6v-2H9v2zm-7 4V6a2 2 0 0 1 2-2h6.5l5.5 5.5V20a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2zm7-4h6v-2H9v2zm8-8.5V4l4 4h-3.5a.5.5 0 0 1-.5-.5z"/></svg>
+                    </div>
+                    <div>
+                        <div class="text-lg font-semibold text-gray-700">Daily Dialer Report</div>
+                        <div
+                            class="text-sm text-gray-600 font-thin text-ellipsis whitespace-nowrap overflow-hidden w-60 hover:w-full hover:whitespace-normal transition transform">
+                            Today's dialer data 
+                        </div>
+                    </div>
+                </a>
+                @endcanany
+
 
 
             </div>

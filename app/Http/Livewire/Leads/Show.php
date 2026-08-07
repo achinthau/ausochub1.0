@@ -394,6 +394,8 @@ class Show extends Component
             return;
         }
 
+        $currentContact->update(['assigned_to' => Auth::id()]);
+
         $this->selectedFeedContact = $currentContact;
         $this->feedContactId = $currentContact->id;
         $this->feedContactIdStatus = $currentContact->status;

@@ -5,7 +5,6 @@ namespace App\Http\Livewire\CxTickets\Survey;
 use App\Models\CallbackCustomer;
 use App\Models\CampaignAgentDialLimit;
 use App\Models\DialerCallStatusOption;
-use App\Models\FeedContactAttempt;
 use App\Models\FeedContactValid;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
@@ -67,20 +66,20 @@ class SatisfactionReopenPanel extends Component
             ->toArray();
     }
 
-    protected function selectedSkipReasonIds(): array
+    protected function selectedSkipReasonTypes(): array
     {
-        $ids = [];
-        $options = DialerCallStatusOption::where('campaign_id', $this->campaignId)
-            ->whereIn('type', [2, 3])
-            ->get();
-        $byName = $options->pluck('id', 'option');
-
-        foreach ($this->selectedReasons as $reason) {
-            if (isset($byName[$reason])) {
-                $ids[] = $byName[$reason];
-            }
+        if (empty($this->selectedReasons)) {
+            return [];
         }
-        return $ids;
+
+        return DialerCallStatusOption::where('campaign_id', $this->campaignId)
+            ->whereIn('type', [2, 3])
+            ->whereIn('option', $this->selectedReasons)
+            ->pluck('type')
+            ->map(fn ($type) => (string) $type)
+            ->unique()
+            ->values()
+            ->toArray();
     }
 
     public function showReOpenModal($feedContactId, $value, $campaignId)
@@ -104,33 +103,25 @@ class SatisfactionReopenPanel extends Component
         }
 
         if ($this->isReOpen === 'reopen') {
-            FeedContactAttempt::create([
-                'feed_contact_valid_id' => $this->feed->id,
-                'call_status_option_id' => null,
-                'call_status_option_type' => 'reopen',
-                'rate' => null,
-                'comments' => $this->comment,
-                'campaign_id' => $this->campaignId,
-                'updated_by' => Auth::id(),
-            ]);
-
+            $this->feed->call_status_option_id = null;
+            $this->feed->call_status_option_type = 'reopen';
+            $this->feed->rate = null;
+            $this->feed->comments = $this->comment;
+            $this->feed->campaign_id = $this->campaignId;
+            $this->feed->updated_by = Auth::id();
+            $this->feed->attempted_at = now();
             $this->feed->status = 1;
             $this->feed->save();
             CampaignAgentDialLimit::incrementForFeed((int) $this->feed->feed_id, (int) Auth::id());
             $this->emit('FeedCompleted');
         } elseif ($this->isReOpen === 'skip') {
-            $ids = $this->selectedSkipReasonIds();
-
-            FeedContactAttempt::create([
-                'feed_contact_valid_id' => $this->feed->id,
-                'call_status_option_id' => implode(',', $ids),
-                'call_status_option_type' => implode(',', array_values(array_unique(array_map(fn($id) => (string) DialerCallStatusOption::where('id', $id)->value('type'), $ids)))),
-                'rate' => null,
-                'comments' => $this->comment,
-                'campaign_id' => $this->campaignId,
-                'updated_by' => Auth::id(),
-            ]);
-
+            $this->feed->call_status_option_id = implode(',', array_values(array_unique($this->selectedReasons)));
+            $this->feed->call_status_option_type = implode(',', $this->selectedSkipReasonTypes());
+            $this->feed->rate = null;
+            $this->feed->comments = $this->comment;
+            $this->feed->campaign_id = $this->campaignId;
+            $this->feed->updated_by = Auth::id();
+            $this->feed->attempted_at = now();
             $this->feed->status = 3;
             $this->feed->save();
         }
@@ -156,15 +147,14 @@ class SatisfactionReopenPanel extends Component
             'callbackComment' => 'nullable|string',
         ]);
 
-        FeedContactAttempt::create([
-            'feed_contact_valid_id' => $this->feed->id,
-            'call_status_option_id' => null,
-            'call_status_option_type' => 'remind',
-            'rate' => null,
-            'comments' => $this->callbackComment,
-            'campaign_id' => $this->campaignId,
-            'updated_by' => Auth::id(),
-        ]);
+        $this->feed->call_status_option_id = null;
+        $this->feed->call_status_option_type = 'remind';
+        $this->feed->rate = null;
+        $this->feed->comments = $this->callbackComment;
+        $this->feed->campaign_id = $this->campaignId;
+        $this->feed->updated_by = Auth::id();
+        $this->feed->attempted_at = now();
+        $this->feed->save();
 
         CallbackCustomer::create([
             'agent_id' => auth()->id(),

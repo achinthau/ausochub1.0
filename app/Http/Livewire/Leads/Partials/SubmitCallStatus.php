@@ -5,7 +5,6 @@ namespace App\Http\Livewire\Leads\Partials;
 use App\Models\Campaign;
 use App\Models\CampaignAgentDialLimit;
 use App\Models\DialerCallStatusOption;
-use App\Models\FeedContactAttempt;
 use App\Models\FeedContactValid;
 use Hamcrest\Type\IsInteger;
 use Illuminate\Support\Facades\Auth;
@@ -123,13 +122,8 @@ class SubmitCallStatus extends Component
                 return;
             }
 
-            $optionIds = DialerCallStatusOption::where('campaign_id', $this->campaign)
-                ->whereIn('option', $this->selectedReasons)
-                ->pluck('id')
-                ->values()
-                ->toArray();
-            $optionIdString = implode(',', $optionIds);
-            $optionTypeString = DialerCallStatusOption::whereIn('id', $optionIds)
+            $optionNameString = implode(',', array_values(array_unique($this->selectedReasons)));
+            $optionTypeString = DialerCallStatusOption::whereIn('option', $this->selectedReasons)
                 ->pluck('type')
                 ->map(fn ($type) => (string) $type)
                 ->unique()
@@ -159,7 +153,7 @@ class SubmitCallStatus extends Component
                 ]);
             }
 
-            $optionIdString = $option['id'];
+            $optionNameString = $option['value'];
             $optionTypeString = $option['type'];
         }
 
@@ -195,41 +189,23 @@ class SubmitCallStatus extends Component
                 if ($this->status == 'answered') {
                     $feed->status = 1; // Answered
                 } else {
-                    // If first time (null or not 2-based)
-                    // if ($feed->status == 2) {
-                    //     $feed->status = 22; // Second time
-                    // } elseif ($feed->status == 22) {
-                    //     $feed->status = 222; // Third time
-                    // } 
-                    // // elseif ($feed->status == 222) {
-                    // //     $feed->status = 4; // Third time
-                    // // } 
-                    // else {
-                    //     $feed->status = 2; // First time "no answer"
-                    // }
                     if (str_starts_with((string) $feed->status, '2')) {
                         $feed->status = (int) ($feed->status . '2');
                     } else {
                         $feed->status = 2; // First time "no answer"
                     }
 
-
                     // Set next date each time for status 2-based
                     $feed->next_available_at = now()->addDay();
-
-
                 }
 
+                $feed->call_status_option_id = $optionNameString;
+                $feed->call_status_option_type = $optionTypeString;
+                $feed->comments = $this->comment;
+                $feed->campaign_id = $this->campaign;
+                $feed->updated_by = Auth::id();
+                $feed->attempted_at = now();
                 $feed->save();
-
-                FeedContactAttempt::create([
-                    'feed_contact_valid_id' => $feed->id,
-                    'call_status_option_id' => $optionIdString,
-                    'comments' => $this->comment,
-                    'campaign_id' => $this->campaign,
-                    'updated_by' => Auth::id(),
-                    'call_status_option_type' => $optionTypeString
-                ]);
             }
 
         } else {
@@ -237,19 +213,6 @@ class SubmitCallStatus extends Component
             if ($this->status == 'answered') {
                 $this->feed->status = 1; // Answered
             } else {
-                // If first time (null or not 2-based)
-                // if ($this->feed->status == 2) {
-                //     $this->feed->status = 22; // Second time
-                // } elseif ($this->feed->status == 22) {
-                //     $this->feed->status = 222; // Third time
-                // } 
-                // // elseif ($this->feed->status == 222) {
-                // //     $this->feed->status = 4; // Third time
-                // // }
-                //  else {
-                //     $this->feed->status = 2; // First time "no answer"
-                // }
-
                 if (str_starts_with((string) $this->feed->status, '2')) {
                     $this->feed->status = (int) ($this->feed->status . '2');
                 } else {
@@ -259,16 +222,14 @@ class SubmitCallStatus extends Component
                 // Set next date each time for status 2-based
                 $this->feed->next_available_at = now()->addDay();
             }
-            $this->feed->save();
 
-            FeedContactAttempt::create([
-                'feed_contact_valid_id' => $this->feed->id,
-                'call_status_option_id' => $optionIdString,
-                'comments' => $this->comment,
-                'campaign_id' => $this->campaign,
-                'updated_by' => Auth::id(),
-                'call_status_option_type' => $optionTypeString,
-            ]);
+            $this->feed->call_status_option_id = $optionNameString;
+            $this->feed->call_status_option_type = $optionTypeString;
+            $this->feed->comments = $this->comment;
+            $this->feed->campaign_id = $this->campaign;
+            $this->feed->updated_by = Auth::id();
+            $this->feed->attempted_at = now();
+            $this->feed->save();
         }
 
         if ($this->status == 'answered') {

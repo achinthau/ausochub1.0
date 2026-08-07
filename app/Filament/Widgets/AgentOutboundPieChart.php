@@ -31,8 +31,8 @@ class AgentOutboundPieChart extends PieChartWidget
         $end = $this->endDate ? Carbon::parse($this->endDate)->endOfDay() : now()->endOfDay();
 
         // 1. Get Agent's Total Dials (All attempts)
-        $agentQuery = \App\Models\FeedContactAttempt::query()
-            ->whereBetween('created_at', [$start, $end])
+        $agentQuery = \App\Models\FeedContactValid::query()
+            ->whereBetween('attempted_at', [$start, $end])
             ->where('updated_by', $user->id);
             
         if (!empty($this->campaignId)) {
@@ -45,8 +45,8 @@ class AgentOutboundPieChart extends PieChartWidget
         $companyId = $user->tenant_context;
         $companyUserIds = \App\Models\User::where('tenant_context', $companyId)->pluck('id')->toArray();
         
-        $companyQuery = \App\Models\FeedContactAttempt::query()
-            ->whereBetween('created_at', [$start, $end])
+        $companyQuery = \App\Models\FeedContactValid::query()
+            ->whereBetween('attempted_at', [$start, $end])
             ->whereIn('updated_by', $companyUserIds);
             
         if (!empty($this->campaignId)) {

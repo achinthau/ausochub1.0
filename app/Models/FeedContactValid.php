@@ -12,7 +12,12 @@ class FeedContactValid extends Model
 
     protected $table = 'feed_contact_valids';
 
-    protected $fillable = ['feed_id',  'contact_no_01','contact_no_02', 'priority_field','lang', 'data', 'status', 'assigned_to'];
+    protected $fillable = [
+        'feed_id', 'contact_no_01', 'contact_no_02', 'priority_field', 'lang', 'data', 'status', 'assigned_to',
+        'next_available_at', 'attempt_count', 'in_queue',
+        'call_status_option_id', 'call_status_option_type', 'rate', 'comments',
+        'campaign_id', 'updated_by', 'attempted_at',
+    ];
 
     // protected $casts = [
     //     'data' => 'array', 
@@ -25,6 +30,14 @@ class FeedContactValid extends Model
     public function agent(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to');
+    }
+    public function updater(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by');
+    }
+    public function campaign(): BelongsTo
+    {
+        return $this->belongsTo(Campaign::class, 'campaign_id');
     }
 
     //status

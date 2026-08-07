@@ -10,7 +10,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
-use App\Models\FeedContactAttempt;
+use App\Models\FeedContactValid;
 use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
 
 class DialerContactAttemptTable extends DataTableComponent
 {
-    protected $model = FeedContactAttempt::class;
+    protected $model = FeedContactValid::class;
 
     public $selectedCampaign = null;
     protected $listeners = ['dialerCampUpdated' => 'setCampaign', 'refreshTable' => '$refresh'];
@@ -37,36 +37,22 @@ class DialerContactAttemptTable extends DataTableComponent
     public function builder(): Builder
     {
         if ($this->selectedCampaign) {
-            return FeedContactAttempt::query()
-                ->with(['feed', 'status', 'agent', 'campaign'])->orderByDesc('id')
+            return FeedContactValid::query()
+                ->with(['campaign', 'updater'])->orderByDesc('attempted_at')
                 ->where('campaign_id', $this->selectedCampaign);
         } else {
             $user = auth()->user();
             $userTenants = array_map('trim', explode(',', $user->tenant_context));
             $tenantIds = Company::whereIn('name', $userTenants)->pluck('id');
             $campaignIds = Campaign::whereIn('company', $tenantIds)->pluck('id');
-            return FeedContactAttempt::query()
-                ->with(['feed', 'status', 'agent', 'campaign'])->orderByDesc('id')
+            return FeedContactValid::query()
+                ->with(['campaign', 'updater'])->orderByDesc('attempted_at')
                 ->whereIn('campaign_id', $campaignIds);
         }
     }
 
 
 
-
-    protected $statusOptionsCache = null;
-
-    protected function statusOptionsMap(): array
-    {
-        if ($this->statusOptionsCache === null) {
-            $this->statusOptionsCache = DialerCallStatusOption::query()
-                ->get(['id', 'option', 'type'])
-                ->mapWithKeys(fn ($option) => [$option->id => ['option' => $option->option, 'type' => $option->type]])
-                ->all();
-        }
-
-        return $this->statusOptionsCache;
-    }
 
     protected function optionIds($value): array
     {
@@ -76,32 +62,15 @@ class DialerContactAttemptTable extends DataTableComponent
         ));
     }
 
-    protected function optionNames($value): string
+    protected function optionTypeLabels($value): string
     {
-        $map = $this->statusOptionsMap();
-        $names = [];
+        $labels = [];
 
-        foreach ($this->optionIds($value) as $id) {
-            if (isset($map[$id])) {
-                $names[] = $map[$id]['option'];
-            }
+        foreach ($this->optionIds($value) as $type) {
+            $labels[] = $this->statusTypeLabel($type);
         }
 
-        return implode(', ', $names);
-    }
-
-    protected function optionTypes($value): string
-    {
-        $map = $this->statusOptionsMap();
-        $types = [];
-
-        foreach ($this->optionIds($value) as $id) {
-            if (isset($map[$id])) {
-                $types[] = $this->statusTypeLabel($map[$id]['type']);
-            }
-        }
-
-        return implode(', ', array_values(array_unique($types)));
+        return implode(', ', array_values(array_unique($labels)));
     }
 
     protected function statusTypeLabel($type): string
@@ -111,6 +80,10 @@ class DialerContactAttemptTable extends DataTableComponent
             '2' => 'Not Answered',
             '3' => 'Skipped',
             '4' => 'Not Answered',
+            'skip' => 'Skipped',
+            'reopen' => 'ReOpened',
+            'remind' => 'Remind',
+            'change_request' => 'Change Request',
         ][(string) $type] ?? 'N/A';
     }
 
@@ -120,68 +93,54 @@ class DialerContactAttemptTable extends DataTableComponent
             Column::make("Id", "id")
                 ->sortable()
                 ->searchable(),
-            Column::make("Tracking_code", "feed_contact_valid_id")
+            Column::make("Tracking_code", "priority_field")
                 ->format(function ($value, $row) {
-                    return optional($row->feed)->priority_field ?? 'N/A';
+                    return $row->priority_field ?? 'N/A';
                 })
                 ->sortable()
                 ->searchable(function ($builder, $term) {
-                    return $builder->orWhereHas('feed', function ($query) use ($term) {
-                        $query->where('priority_field', 'like', '%' . $term . '%');
-                    });
+                    return $builder->orWhere('priority_field', 'like', '%' . $term . '%');
                 }),
-            Column::make("Contact_no_01", "feed_contact_valid_id")
+            Column::make("Contact_no_01", "contact_no_01")
                 ->format(function ($value, $row) {
-                    return optional($row->feed)->contact_no_01 ?? 'N/A';
+                    return $row->contact_no_01 ?? 'N/A';
                 })
                 ->sortable()
                 ->searchable(function ($builder, $term) {
-                    return $builder->orWhereHas('feed', function ($query) use ($term) {
-                        $query->where('contact_no_01', 'like', '%' . $term . '%');
-                    });
+                    return $builder->orWhere('contact_no_01', 'like', '%' . $term . '%');
                 }),
-            Column::make("Contact_no_02", "feed_contact_valid_id")
+            Column::make("Contact_no_02", "contact_no_02")
                 ->format(function ($value, $row) {
-                    $contact = $row->feed;
-                    return $contact->contact_no_02
+                    return $row->contact_no_02
                         ?? 'N/A';
                 })
                 ->sortable()
                 ->searchable(function ($builder, $term) {
-                    return $builder->orWhereHas('feed', function ($query) use ($term) {
-                        $query->where('contact_no_02', 'like', '%' . $term . '%');
-                    });
+                    return $builder->orWhere('contact_no_02', 'like', '%' . $term . '%');
                 }),
             Column::make("Call status option", "call_status_option_id")
                 ->format(function ($value, $row) {
-                    return $this->optionNames($row->call_status_option_id) ?: 'N/A';
+                    return $row->call_status_option_id ?: 'N/A';
                 })
                 ->sortable()
                 ->searchable(function ($builder, $term) {
-                    $optionIds = DialerCallStatusOption::where('option', 'like', '%' . $term . '%')
-                        ->pluck('id')
-                        ->map(fn ($id) => (string) $id);
-
-                    if ($optionIds->isEmpty()) {
-                        return $builder;
-                    }
-
-                    return $builder->orWhere(function ($query) use ($optionIds) {
-                        foreach ($optionIds as $id) {
-                            $query->orWhereRaw("FIND_IN_SET(?, REPLACE(call_status_option_id, ' ', ''))", [$id]);
-                        }
-                    });
+                    return $builder->orWhere('call_status_option_id', 'like', '%' . $term . '%');
                 }),
-            Column::make("Call status", "call_status_option_id")
+            Column::make("Call status", "call_status_option_type")
                 ->format(function ($value, $row) {
-                    return $this->optionTypes($row->call_status_option_id) ?: 'N/A';
+                    return $this->optionTypeLabels($row->call_status_option_type) ?: 'N/A';
                 })
                 ->sortable()
                 ->searchable(function ($builder, $term) {
                     $typeMap = [
-                        1 => 'Answered',
-                        2 => 'Not Answered',
-                        3 => 'Skipped',
+                        '1' => 'Answered',
+                        '2' => 'Not Answered',
+                        '3' => 'Skipped',
+                        '4' => 'Not Answered',
+                        'skip' => 'Skipped',
+                        'reopen' => 'ReOpened',
+                        'remind' => 'Remind',
+                        'change_request' => 'Change Request',
                     ];
 
                     $matchedTypes = collect($typeMap)
@@ -192,17 +151,9 @@ class DialerContactAttemptTable extends DataTableComponent
                         return $builder;
                     }
 
-                    $typeIds = DialerCallStatusOption::whereIn('type', $matchedTypes)
-                        ->pluck('id')
-                        ->map(fn ($id) => (string) $id);
-
-                    if ($typeIds->isEmpty()) {
-                        return $builder;
-                    }
-
-                    return $builder->orWhere(function ($query) use ($typeIds) {
-                        foreach ($typeIds as $id) {
-                            $query->orWhereRaw("FIND_IN_SET(?, REPLACE(call_status_option_id, ' ', ''))", [$id]);
+                    return $builder->orWhere(function ($query) use ($matchedTypes) {
+                        foreach ($matchedTypes as $type) {
+                            $query->orWhereRaw("FIND_IN_SET(?, REPLACE(call_status_option_type, ' ', ''))", [$type]);
                         }
                     });
                 }),
@@ -221,12 +172,12 @@ class DialerContactAttemptTable extends DataTableComponent
 
             Column::make("Updated by", "updated_by")
                 ->format(function ($value, $row) {
-                    $user = $row->agent;
+                    $user = $row->updater;
                     return $user->name ?? 'N/A';
                 })
                 ->sortable()
                 ->searchable(function ($builder, $term) {
-                    return $builder->orWhereHas('agent', function ($query) use ($term) {
+                    return $builder->orWhereHas('updater', function ($query) use ($term) {
                         $query->where('name', 'like', '%' . $term . '%');
                     });
                 }),
@@ -251,19 +202,7 @@ class DialerContactAttemptTable extends DataTableComponent
     ])
     ->filter(function ($builder, $value) {
         if ($value !== '') {
-            $typeIds = DialerCallStatusOption::where('type', $value)
-                ->pluck('id')
-                ->map(fn ($id) => (string) $id);
-
-            if ($typeIds->isEmpty()) {
-                $builder->whereRaw('1 = 0');
-            } else {
-                $builder->where(function ($query) use ($typeIds) {
-                    foreach ($typeIds as $id) {
-                        $query->orWhereRaw("FIND_IN_SET(?, REPLACE(call_status_option_id, ' ', ''))", [$id]);
-                    }
-                });
-            }
+            $builder->whereRaw("FIND_IN_SET(?, REPLACE(call_status_option_type, ' ', ''))", [$value]);
         }
     }),
 
@@ -271,7 +210,7 @@ class DialerContactAttemptTable extends DataTableComponent
             // ✅ Call Status Option (Dynamic)
             SelectFilter::make('Call Status Option')
                 ->options(
-                    DialerCallStatusOption::pluck('option', 'id')
+                    DialerCallStatusOption::pluck('option', 'option')
                         ->prepend('All', '')
                         ->toArray() // ✅ Convert to array
                 )
@@ -302,17 +241,7 @@ class DialerContactAttemptTable extends DataTableComponent
                 )
                 ->filter(function ($builder, $campaignId) {
                     if ($campaignId !== '') {
-                        $assignedFeeds = Campaign::where('id', $campaignId)
-                            ->value('assigned_feeds'); // e.g., "101,100"
-        
-                        if ($assignedFeeds) {
-                            $feedIds = array_map('trim', explode(',', $assignedFeeds));
-
-                            // Filter attempts whose feed_contact_valid.feed_id is in assigned feeds
-                            $builder->whereHas('feed', function ($query) use ($feedIds) {
-                                $query->whereIn('feed_id', $feedIds);
-                            });
-                        }
+                        $builder->where('campaign_id', $campaignId);
                     }
                 }),
 
@@ -336,7 +265,7 @@ class DialerContactAttemptTable extends DataTableComponent
         }
 
         // Fetch the selected records with relationships
-        $records = FeedContactAttempt::with(['feed', 'agent'])
+        $records = FeedContactValid::with(['updater', 'campaign'])
             ->whereIn('id', $selectedIds)
             ->get();
 
@@ -361,15 +290,14 @@ class DialerContactAttemptTable extends DataTableComponent
         foreach ($records as $record) {
             $csvData[] = [
                 $record->id,
-                optional($record->feed)->priority_field ?? 'N/A',
-                optional($record->feed)->contact_no_01 ?? 'N/A',
-                optional($record->feed)->contact_no_02 ?? 'N/A',
-                $this->optionNames($record->call_status_option_id) ?: 'N/A',
+                $record->priority_field ?? 'N/A',
+                $record->contact_no_01 ?? 'N/A',
+                $record->contact_no_02 ?? 'N/A',
+                                $record->call_status_option_id ?: 'N/A',
                 $record->comments ?? 'N/A',
                 optional($record->campaign)->name ?? 'N/A',
-                optional($record->agent)->name ?? 'N/A',
-                $record->updated_at ? $record->updated_at->toDateTimeString() : 'N/A',
-            ];
+                optional($record->updater)->name ?? 'N/A',
+                $record->attempted_at ? $record->attempted_at->toDateTimeString() : 'N/A',            ];
         }
 
         // Generate CSV content

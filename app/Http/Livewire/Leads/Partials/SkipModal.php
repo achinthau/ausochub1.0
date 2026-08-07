@@ -2,7 +2,6 @@
 
 namespace App\Http\Livewire\Leads\Partials;
 
-use App\Models\FeedContactAttempt;
 use App\Models\FeedContactValid;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -45,15 +44,12 @@ class SkipModal extends Component
 
             foreach ($feeds as $feed) {
                 $feed->status = 3; // skipped
+                $feed->call_status_option_id = null;
+                $feed->call_status_option_type = 'skip';
+                $feed->comments = $this->comment;
+                $feed->updated_by = Auth::id();
+                $feed->attempted_at = now();
                 $feed->save();
-
-                FeedContactAttempt::create([
-                    'feed_contact_valid_id' => $feed->id,
-                    'call_status_option_id' => null,
-                    'call_status_option_type' => 'skip',
-                    'comments' => $this->comment,
-                    'updated_by' => Auth::id(),
-                ]);
             }
         
 

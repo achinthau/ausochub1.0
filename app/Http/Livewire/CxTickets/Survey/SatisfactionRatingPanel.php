@@ -4,7 +4,6 @@ namespace App\Http\Livewire\CxTickets\Survey;
 
 use App\Models\CampaignAgentDialLimit;
 use App\Models\DialerCallStatusOption;
-use App\Models\FeedContactAttempt;
 use App\Models\FeedContactValid;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -77,50 +76,38 @@ class SatisfactionRatingPanel extends Component
         $this->cancelReasons = $options->where('type', 3)->pluck('option')->values()->toArray();
     }
 
-    protected function selectedReasonIds(): array
+    protected function selectedReasonTypes(): array
     {
         if (empty($this->selectedReasons)) {
             return [];
         }
 
-        return DialerCallStatusOption::where('campaign_id', $this->campaignId)
+        $types = DialerCallStatusOption::where('campaign_id', $this->campaignId)
             ->whereIn('option', $this->selectedReasons)
-            ->pluck('id')
+            ->pluck('type')
+            ->map(fn ($type) => (string) $type)
+            ->unique()
             ->values()
             ->toArray();
-    }
 
-    protected function selectedReasonTypes(array $ids): array
-    {
-        $types = [];
-        foreach ($ids as $id) {
-            $type = DialerCallStatusOption::where('id', $id)->value('type');
-            if ($type !== null) {
-                $types[] = (string) $type;
-            }
-        }
-        return array_values(array_unique($types));
+        return array_values(array_filter($types));
     }
 
     public function cancelRatings()
     {
-        $ids = $this->selectedReasonIds();
-        $types = $this->selectedReasonTypes($ids);
+        $types = $this->selectedReasonTypes();
         if (empty($types)) {
             $types = ['3'];
         }
 
         if ($this->feed) {
-            FeedContactAttempt::create([
-                'feed_contact_valid_id' => $this->feed->id,
-                'call_status_option_id' => implode(',', $ids),
-                'call_status_option_type' => implode(',', $types),
-                'rate' => null,
-                'comments' => $this->CancelComment,
-                'campaign_id' => $this->campaignId,
-                'updated_by' => Auth::id(),
-            ]);
-
+            $this->feed->call_status_option_id = implode(',', array_values(array_unique($this->selectedReasons)));
+            $this->feed->call_status_option_type = implode(',', $types);
+            $this->feed->rate = null;
+            $this->feed->comments = $this->CancelComment;
+            $this->feed->campaign_id = $this->campaignId;
+            $this->feed->updated_by = Auth::id();
+            $this->feed->attempted_at = now();
             $this->feed->status = 1;
             $this->feed->save();
             CampaignAgentDialLimit::incrementForFeed((int) $this->feed->feed_id, (int) Auth::id());
@@ -147,17 +134,16 @@ class SatisfactionRatingPanel extends Component
         $this->selectedReasons = [];
         $this->CancelComment = '';
 
-        $attempt = $this->feed
-            ? FeedContactAttempt::where('feed_contact_valid_id', $this->feed->id)
-                ->orderByDesc('id')
-                ->first()
-            : null;
+        $attempt = $this->feed;
+        $hasAttempt = $attempt && ($attempt->rate !== null
+            || $attempt->call_status_option_id !== null
+            || $attempt->call_status_option_type !== null
+            || $attempt->comments !== null);
 
-        if ($attempt) {
+        if ($hasAttempt) {
             $this->rating = (int) $attempt->rate ?: 0;
 
-            $ids = array_filter(explode(',', (string) $attempt->call_status_option_id));
-            $names = DialerCallStatusOption::whereIn('id', $ids)->pluck('option')->toArray();
+            $names = array_filter(array_map('trim', explode(',', (string) $attempt->call_status_option_id)));
 
             if ($isCancel) {
                 $this->selectedReasons = array_values(array_intersect($names, $this->cancelReasons));
@@ -220,19 +206,14 @@ class SatisfactionRatingPanel extends Component
             'rating.max' => 'Please select a rating before submitting.'
         ]);
 
-        $ids = $this->selectedReasonIds();
-
         if ($this->feed) {
-            FeedContactAttempt::create([
-                'feed_contact_valid_id' => $this->feed->id,
-                'call_status_option_id' => implode(',', $ids),
-                'call_status_option_type' => implode(',', $this->selectedReasonTypes($ids)),
-                'rate' => $this->rating,
-                'comments' => '',
-                'campaign_id' => $this->campaignId,
-                'updated_by' => Auth::id(),
-            ]);
-
+            $this->feed->call_status_option_id = implode(',', array_values(array_unique($this->selectedReasons)));
+            $this->feed->call_status_option_type = implode(',', $this->selectedReasonTypes());
+            $this->feed->rate = $this->rating;
+            $this->feed->comments = '';
+            $this->feed->campaign_id = $this->campaignId;
+            $this->feed->updated_by = Auth::id();
+            $this->feed->attempted_at = now();
             $this->feed->status = 1;
             $this->feed->next_available_at = null;
             $this->feed->save();

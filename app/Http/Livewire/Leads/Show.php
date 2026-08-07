@@ -7,7 +7,6 @@ use App\Models\CallCount;
 use App\Models\Campaign;
 use App\Models\CampaignAgentDialLimit;
 use App\Models\CxTicket;
-use App\Models\FeedContactAttempt;
 use App\Models\FeedContactValid;
 use App\Models\Lead;
 use App\Models\QueueCount;
@@ -769,28 +768,21 @@ class Show extends Component
             return collect();
         }
 
-        $attempts = FeedContactAttempt::whereIn('feed_contact_valid_id', $contacts->pluck('id'))
-            ->orderBy('created_at', 'asc')
-            ->get()
-            ->groupBy('feed_contact_valid_id');
-
         $cxTicketColumns = ['category', 'product', 'model', 'work_order_no', 'service_center', 'warranty_status', 'sold_date', 'customer_name', 'customer_address', 'customer_contact_01', 'customer_contact_02', 'technician_name', 'technician_contact', 'supervisor_name', 'supervisor_contact', 'status', 'creator', 'satisfaction_rate', 'satisfaction_reasons', 'dis_satisfaction_reasons', 'cancelling_reasons', 'closed_by', 'surveyed_by', 'company', 'reopened_by', 'reopened_reasons', 'skipped_reasons', 'skipped_by', 'cancelling_comment', 'change_request'];
 
-        return $contacts->map(function ($contact) use ($attempts, $cxTicketColumns) {
+        return $contacts->map(function ($contact) use ($cxTicketColumns) {
             $data = json_decode((string) $contact->data, true) ?: [];
-            $contactAttempts = $attempts->get($contact->id, collect());
 
             $status = 'Closed';
-            $callStatusOptionType = null;
-            $satisfactionRate = null;
-            $skippedReasons = null;
+            $callStatusOptionType = $contact->call_status_option_type;
+            $satisfactionRate = $contact->rate;
+            $skippedReasons = $contact->comments;
             $latest = null;
 
-            if ($contactAttempts->isNotEmpty()) {
-                $latest = $contactAttempts->last();
-                $callStatusOptionType = $latest->call_status_option_type;
-                $satisfactionRate = $latest->rate;
-                $skippedReasons = $latest->comments;
+            if ($callStatusOptionType !== null
+                || $satisfactionRate !== null
+                || $contact->call_status_option_id !== null) {
+                $latest = $contact;
 
                 if ($satisfactionRate !== null) {
                     $status = 'Rated';
@@ -817,7 +809,7 @@ class Show extends Component
             }
             $ticket->work_order_no = trim((string) $contact->priority_field);
             $ticket->status = $status;
-            $ticket->updated_at = $latest ? $latest->created_at : $contact->updated_at;
+            $ticket->updated_at = $latest ? $latest->attempted_at : $contact->updated_at;
             $ticket->contact_no_01 = $contact->contact_no_01;
             $ticket->contact_no_02 = $contact->contact_no_02;
             if (empty($ticket->customer_contact_01)) {

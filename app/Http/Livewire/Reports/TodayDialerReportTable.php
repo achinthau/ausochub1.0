@@ -89,6 +89,8 @@ class TodayDialerReportTable extends DataTableComponent
 
     protected function statusTypeLabel($type): string
     {
+        $normalized = str_replace('_', '', strtolower((string) $type));
+
         return [
             '1' => 'Answered',
             '2' => 'Not Answered',
@@ -97,8 +99,8 @@ class TodayDialerReportTable extends DataTableComponent
             'skip' => 'Skipped',
             'reopen' => 'ReOpened',
             'remind' => 'Remind',
-            'change_request' => 'Change Request',
-        ][(string) $type] ?? 'N/A';
+            'changerequest' => 'Change Request',
+        ][$normalized] ?? 'N/A';
     }
 
     protected function optionTypeLabels($value): string
@@ -206,14 +208,14 @@ class TodayDialerReportTable extends DataTableComponent
                     '1' => 'Answered',
                     '2' => 'Not Answered',
                     '3' => 'Canceled',
-                    'skip' => 'Skipped',
-                    'reopen' => 'ReOpened',
-                    'remind' => 'Remind',
+                    // 'skip' => 'Skipped',
+                    // 'reopen' => 'ReOpened',
+                    // 'remind' => 'Remind',
                     'change_request' => 'Change Request',
                 ])
                 ->filter(function (Builder $builder, string $value) {
                     if ($value !== '') {
-                        $builder->whereRaw("FIND_IN_SET(?, LOWER(REPLACE(call_status_option_type, ' ', '')))", [strtolower($value)]);
+                        $builder->whereRaw("FIND_IN_SET(?, LOWER(REPLACE(REPLACE(call_status_option_type, ' ', ''), '_', '')))", [str_replace('_', '', strtolower($value))]);
                     }
                 }),
         ];

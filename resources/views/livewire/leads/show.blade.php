@@ -408,6 +408,14 @@
 
                             @if(collect($feedContacts)->isNotEmpty() || collect($surveyContacts)->isNotEmpty())
 
+                                @php
+                                    $loadedContactIds = collect($feedContacts)->pluck('id')
+                                        ->merge(collect($surveyContacts)->pluck('feed_contact_id'))
+                                        ->filter()
+                                        ->unique()
+                                        ->values();
+                                @endphp
+
                                 <div class="flex justify-between">
                                     <h2 class="font-bold text-sm mb-2">All Work Orders</h2>
                                     <div class="pr-4 space-x-4">
@@ -433,19 +441,20 @@
                                         {{-- <button type="button" wire:click="makeCall('{{ $lead->contact_number }}')"
                                             class="w-24 bg-green-300 font-bold hover:bg-green-400 p-2 rounded-md shadow-md ">
                                             Make a call</button> --}}
-                                        <button type="button"
-                                            wire:click="$emit('openSkipContactModal', '{{ $lead->contact_number }}','{{ $lead->contact_number_2 }}', '{{ $feed_id }}', '{{ $service_type }}')"
+                                            
+                                        {{-- <button type="button"
+                                            wire:click="$emit('openSkipContactModal', '{{ $lead->contact_number }}','{{ $lead->contact_number_2 }}', '{{ $feed_id }}', '{{ $service_type }}', '{{ $loadedContactIds->implode(',') }}')"
                                             class="w-24 bg-orange-300 font-bold hover:bg-orange-400 p-2 rounded-md shadow-md">
                                             Skip
-                                        </button>
+                                        </button> --}}
 
-                                        @if ($service_type == 'satisfaction')
+                                        {{-- @if ($service_type == 'satisfaction')
                                         <button type="button"
                                             wire:click="$emit('openUpdateContactModal', '{{ $lead->contact_number }}','{{ $lead->contact_number_2 }}', '{{ $feed_id }}', '{{ $service_type }}')"
                                             class="w-32 bg-orange-300 font-bold hover:bg-orange-400 p-2 rounded-md shadow-md">
                                             Change Request
                                         </button>
-                                        @endif
+                                        @endif --}}
 
                                     </div>
 
@@ -525,7 +534,7 @@
     <details class="border rounded-lg shadow-sm p-2
         @if($isAnswered)
             bg-green-50 border-green-300
-        @elseif($isNotAnswered == 'Skip' || $isNotAnswered == 'ReOpened' || $isNotAnswered == 'Canceled')
+        @elseif($isNotAnswered == 'Skip' || $isNotAnswered == 'ReOpened' || $isNotAnswered == 'Canceled' || $isNotAnswered == 'Change Request')
             bg-yellow-50 border-yellow-300
         @else
             bg-gray-50 border-gray-200
@@ -536,7 +545,7 @@
         <summary class="flex justify-between items-center cursor-pointer px-2 py-2 text-lg font-semibold rounded-t-lg
             @if($isAnswered)
                 text-green-700 hover:bg-green-100
-            @elseif($isNotAnswered == 'Skip' || $isNotAnswered == 'ReOpened' || $isNotAnswered == 'Canceled')
+            @elseif($isNotAnswered == 'Skip' || $isNotAnswered == 'ReOpened' || $isNotAnswered == 'Canceled' || $isNotAnswered == 'Change Request')
                 text-yellow-700 hover:bg-yellow-100
             @else
                 text-gray-700 hover:bg-gray-100
@@ -562,6 +571,10 @@
                 @elseif($isNotAnswered == 'Canceled')
                     <span class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-yellow-600 rounded-full">
                         Canceled
+                    </span>
+                @elseif($isNotAnswered == 'Change Request')
+                    <span class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-yellow-600 rounded-full">
+                        Change Request
                     </span>
                 @endif
 

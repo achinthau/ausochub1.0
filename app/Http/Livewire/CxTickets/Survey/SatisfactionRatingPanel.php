@@ -108,7 +108,7 @@ class SatisfactionRatingPanel extends Component
             $this->feed->campaign_id = $this->campaignId;
             $this->feed->updated_by = Auth::id();
             $this->feed->attempted_at = now();
-            $this->feed->status = 1;
+            $this->feed->status = 4;
             $this->feed->save();
             CampaignAgentDialLimit::incrementForFeed((int) $this->feed->feed_id, (int) Auth::id());
         }
@@ -208,7 +208,7 @@ class SatisfactionRatingPanel extends Component
 
         if ($this->feed) {
             $this->feed->call_status_option_id = implode(',', array_values(array_unique($this->selectedReasons)));
-            $this->feed->call_status_option_type = implode(',', $this->selectedReasonTypes());
+            $this->feed->call_status_option_type = '1';
             $this->feed->rate = $this->rating;
             $this->feed->comments = '';
             $this->feed->campaign_id = $this->campaignId;

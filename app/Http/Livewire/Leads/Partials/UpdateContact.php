@@ -43,6 +43,7 @@ class UpdateContact extends Component
                 ->get();
 
             foreach ($surveyFeeds as $surveyFeed) {
+                $surveyFeed->status = 5;
                 $surveyFeed->call_status_option_id = null;
                 $surveyFeed->call_status_option_type = 'change_request';
                 $surveyFeed->comments = $this->comment;

@@ -78,7 +78,7 @@ class DialerContactAttemptTable extends DataTableComponent
         return [
             '1' => 'Answered',
             '2' => 'Not Answered',
-            '3' => 'Skipped',
+            '3' => 'Canceled',
             '4' => 'Not Answered',
             'skip' => 'Skipped',
             'reopen' => 'ReOpened',
@@ -135,7 +135,7 @@ class DialerContactAttemptTable extends DataTableComponent
                     $typeMap = [
                         '1' => 'Answered',
                         '2' => 'Not Answered',
-                        '3' => 'Skipped',
+                        '3' => 'Canceled',
                         '4' => 'Not Answered',
                         'skip' => 'Skipped',
                         'reopen' => 'ReOpened',
@@ -153,7 +153,7 @@ class DialerContactAttemptTable extends DataTableComponent
 
                     return $builder->orWhere(function ($query) use ($matchedTypes) {
                         foreach ($matchedTypes as $type) {
-                            $query->orWhereRaw("FIND_IN_SET(?, REPLACE(call_status_option_type, ' ', ''))", [$type]);
+                            $query->orWhereRaw("FIND_IN_SET(?, LOWER(REPLACE(call_status_option_type, ' ', '')))", [strtolower($type)]);
                         }
                     });
                 }),
@@ -197,12 +197,16 @@ class DialerContactAttemptTable extends DataTableComponent
     ->options([
         '' => 'All',      // default option
         1  => 'Answered',
-        2  => 'NotAnswered',
-        3  => 'Skipped',
+        2  => 'Not Answered',
+        3  => 'Canceled',
+        // 'skip' => 'Skipped',
+        // 'reopen' => 'ReOpened',
+        // 'remind' => 'Remind',
+        'change_request' => 'Change Request',
     ])
     ->filter(function ($builder, $value) {
         if ($value !== '') {
-            $builder->whereRaw("FIND_IN_SET(?, REPLACE(call_status_option_type, ' ', ''))", [$value]);
+            $builder->whereRaw("FIND_IN_SET(?, LOWER(REPLACE(call_status_option_type, ' ', '')))", [strtolower($value)]);
         }
     }),
 

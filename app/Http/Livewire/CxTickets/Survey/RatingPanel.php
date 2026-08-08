@@ -96,7 +96,7 @@ class RatingPanel extends Component
 
         if($this->feed)
         {
-            $this->feed->status = 1;
+            $this->feed->status = 4;
         $this->feed->save();
         CampaignAgentDialLimit::incrementForFeed((int) $this->feed->feed_id, (int) Auth::id());
         }

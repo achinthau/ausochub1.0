@@ -92,7 +92,7 @@ class TodayDialerReportTable extends DataTableComponent
         return [
             '1' => 'Answered',
             '2' => 'Not Answered',
-            '3' => 'Skipped',
+            '3' => 'Canceled',
             '4' => 'Not Answered',
             'skip' => 'Skipped',
             'reopen' => 'ReOpened',
@@ -205,11 +205,15 @@ class TodayDialerReportTable extends DataTableComponent
                     '' => 'All',
                     '1' => 'Answered',
                     '2' => 'Not Answered',
-                    '3' => 'Skipped',
+                    '3' => 'Canceled',
+                    'skip' => 'Skipped',
+                    'reopen' => 'ReOpened',
+                    'remind' => 'Remind',
+                    'change_request' => 'Change Request',
                 ])
                 ->filter(function (Builder $builder, string $value) {
                     if ($value !== '') {
-                        $builder->whereRaw("FIND_IN_SET(?, REPLACE(call_status_option_type, ' ', ''))", [$value]);
+                        $builder->whereRaw("FIND_IN_SET(?, LOWER(REPLACE(call_status_option_type, ' ', '')))", [strtolower($value)]);
                     }
                 }),
         ];

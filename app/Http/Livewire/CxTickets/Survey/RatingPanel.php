@@ -117,7 +117,7 @@ class RatingPanel extends Component
         if($this->feed)
         {
             if ($isChangeRequest) {
-                $this->feed->status = 5;
+                $this->feed->status = $this->cancelCallResult === 'answered' ? 51 : 52;
             } else {
                 $this->feed->status = $this->cancelCallResult === 'answered' ? 41 : 42;
             }
@@ -152,8 +152,8 @@ class RatingPanel extends Component
 
         $this->cancelCallResult = '';
 
-        if ($isCancel && $this->feed && in_array((string) $this->feed->status, ['41', '42'])) {
-            $this->cancelCallResult = (string) $this->feed->status === '41' ? 'answered' : 'not_answered';
+        if ($isCancel && $this->feed && in_array((string) $this->feed->status, ['41', '42', '51', '52'])) {
+            $this->cancelCallResult = in_array((string) $this->feed->status, ['41', '51']) ? 'answered' : 'not_answered';
         }
 
         

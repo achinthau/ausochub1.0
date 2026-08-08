@@ -133,7 +133,7 @@ class SatisfactionRatingPanel extends Component
             $this->feed->updated_by = Auth::id();
             $this->feed->attempted_at = now();
             if ($isChangeRequest) {
-                $this->feed->status = 5;
+                $this->feed->status = $this->cancelCallResult === 'answered' ? 51 : 52;
             } else {
                 $this->feed->status = $this->cancelCallResult === 'answered' ? 41 : 42;
             }
@@ -176,8 +176,8 @@ class SatisfactionRatingPanel extends Component
 
             if ($isCancel) {
                 $this->selectedReasons = array_values(array_intersect($names, $this->cancelReasons));
-                if (in_array((string) $attempt->status, ['41', '42'])) {
-                    $this->cancelCallResult = (string) $attempt->status === '41' ? 'answered' : 'not_answered';
+                if (in_array((string) $attempt->status, ['41', '42', '51', '52'])) {
+                    $this->cancelCallResult = in_array((string) $attempt->status, ['41', '51']) ? 'answered' : 'not_answered';
                 }
             } else {
                 $this->selectedReasons = array_values(array_unique(array_merge(

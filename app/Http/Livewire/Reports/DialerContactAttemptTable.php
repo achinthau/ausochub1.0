@@ -68,6 +68,8 @@ class DialerContactAttemptTable extends DataTableComponent
             '3' => 'Skipped',
             '4' => 'Canceled',
             '5' => 'Change Request',
+            '51' => 'Change Request Answered',
+            '52' => 'Change Request Not Answered',
         ][$status] ?? 'N/A';
     }
 
@@ -126,6 +128,8 @@ class DialerContactAttemptTable extends DataTableComponent
                         '3' => 'Skipped',
                         '4' => 'Canceled',
                         '5' => 'Change Request',
+                        '51' => 'Change Request Answered',
+                        '52' => 'Change Request Not Answered',
                     ];
 
                     $matchedStatuses = collect($statusMap)
@@ -190,11 +194,11 @@ class DialerContactAttemptTable extends DataTableComponent
     ->filter(function ($builder, $value) {
         if ($value !== '') {
             $statuses = match ($value) {
-                '1' => [1, 41],
-                '2' => [2, 22, 222, 42],
+                '1' => [1, 41, 51],
+                '2' => [2, 22, 222, 42, 52],
                 '3' => [3],
                 '4' => [4, 41, 42],
-                '5' => [5],
+                '5' => [5, 51, 52],
                 default => [(int) $value],
             };
             $builder->whereIn('status', $statuses);

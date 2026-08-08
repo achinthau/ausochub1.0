@@ -233,15 +233,13 @@ class Index extends Component
             ->where('updated_by', $userId)
             ->whereNotNull('status')
             ->whereDate('updated_at', today())
-            ->distinct('contact_no_01')
-            ->count('contact_no_01');
+            ->count();
 
         $this->answeredCallsToday = FeedContactValid::whereIn('feed_id', $feedIds)
             ->where('updated_by', $userId)
             ->whereIn('status', [1, 41])
             ->whereDate('updated_at', today())
-            ->distinct('contact_no_01')
-            ->count('contact_no_01');
+            ->count();
     }
 
     public function updatedSelectedSkills($type, $value)

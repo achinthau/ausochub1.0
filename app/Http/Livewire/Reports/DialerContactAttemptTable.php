@@ -60,7 +60,9 @@ class DialerContactAttemptTable extends DataTableComponent
 
         return [
             '1' => 'Answered',
+            '41' => 'Canceled Answered',
             '2' => 'Not Answered',
+            '42' => 'Canceled Not Answered',
             '22' => 'Not Answered',
             '222' => 'Not Answered',
             '3' => 'Skipped',
@@ -116,7 +118,9 @@ class DialerContactAttemptTable extends DataTableComponent
                 ->searchable(function ($builder, $term) {
                     $statusMap = [
                         '1' => 'Answered',
+                        '41' => 'Canceled Answered',
                         '2' => 'Not Answered',
+                        '42' => 'Canceled Not Answered',
                         '22' => 'Not Answered',
                         '222' => 'Not Answered',
                         '3' => 'Skipped',
@@ -185,7 +189,15 @@ class DialerContactAttemptTable extends DataTableComponent
     ])
     ->filter(function ($builder, $value) {
         if ($value !== '') {
-            $builder->where('status', $value);
+            $statuses = match ($value) {
+                '1' => [1, 41],
+                '2' => [2, 22, 222, 42],
+                '3' => [3],
+                '4' => [4, 41, 42],
+                '5' => [5],
+                default => [(int) $value],
+            };
+            $builder->whereIn('status', $statuses);
         }
     }),
 

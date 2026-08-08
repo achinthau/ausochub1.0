@@ -227,14 +227,18 @@ class Index extends Component
 
         $this->hasStartedCampaign = true;
 
+        $userId = Auth::id();
+
         $this->dialedCallsToday = FeedContactValid::whereIn('feed_id', $feedIds)
+            ->where('updated_by', $userId)
             ->whereNotNull('status')
             ->whereDate('updated_at', today())
             ->distinct('contact_no_01')
             ->count('contact_no_01');
 
         $this->answeredCallsToday = FeedContactValid::whereIn('feed_id', $feedIds)
-            ->where('status', 1)
+            ->where('updated_by', $userId)
+            ->whereIn('status', [1, 41])
             ->whereDate('updated_at', today())
             ->distinct('contact_no_01')
             ->count('contact_no_01');

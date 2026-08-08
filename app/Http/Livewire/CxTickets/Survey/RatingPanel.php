@@ -37,6 +37,7 @@ class RatingPanel extends Component
 
     public $isCancel = false;
     public $CancelComment = '' ;
+    public $cancelCallResult = '';
 
     public function mount()
     {
@@ -88,6 +89,16 @@ class RatingPanel extends Component
 
     public function cancelRatings()
     {
+        if (empty($this->selectedReasons)) {
+            $this->addError('selectedReasons', 'Please select at least one cancelling reason.');
+            return;
+        }
+
+        if (empty($this->cancelCallResult)) {
+            $this->addError('cancelCallResult', 'Please select answered or not answered.');
+            return;
+        }
+
         $isChangeRequest = $this->hasChangeRequestReason();
 
         $ticket = CxTicket::find($this->ticket_id);
@@ -105,7 +116,11 @@ class RatingPanel extends Component
 
         if($this->feed)
         {
-            $this->feed->status = $isChangeRequest ? 5 : 4;
+            if ($isChangeRequest) {
+                $this->feed->status = 5;
+            } else {
+                $this->feed->status = $this->cancelCallResult === 'answered' ? 41 : 42;
+            }
             $this->feed->call_status_option_type = $isChangeRequest ? 'change_request' : $this->feed->call_status_option_type;
             $this->feed->save();
             CampaignAgentDialLimit::incrementForFeed((int) $this->feed->feed_id, (int) Auth::id());
@@ -134,6 +149,12 @@ class RatingPanel extends Component
         $this->isCancel = $isCancel;
 
         $ticket = CxTicket::find($id);
+
+        $this->cancelCallResult = '';
+
+        if ($isCancel && $this->feed && in_array((string) $this->feed->status, ['41', '42'])) {
+            $this->cancelCallResult = (string) $this->feed->status === '41' ? 'answered' : 'not_answered';
+        }
 
         
             if ($ticket) {

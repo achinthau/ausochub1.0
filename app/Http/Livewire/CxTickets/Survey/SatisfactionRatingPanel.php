@@ -33,6 +33,7 @@ class SatisfactionRatingPanel extends Component
 
     public $isCancel = false;
     public $CancelComment = '';
+    public $cancelCallResult = '';
 
     public function updatedSelectedSatisfactionReason($value)
     {
@@ -102,6 +103,16 @@ class SatisfactionRatingPanel extends Component
 
     public function cancelRatings()
     {
+        if (empty($this->selectedReasons)) {
+            $this->addError('selectedReasons', 'Please select at least one cancelling reason.');
+            return;
+        }
+
+        if (empty($this->cancelCallResult)) {
+            $this->addError('cancelCallResult', 'Please select answered or not answered.');
+            return;
+        }
+
         $types = $this->selectedReasonTypes();
         if (empty($types)) {
             $types = ['3'];
@@ -121,7 +132,11 @@ class SatisfactionRatingPanel extends Component
             $this->feed->campaign_id = $this->campaignId;
             $this->feed->updated_by = Auth::id();
             $this->feed->attempted_at = now();
-            $this->feed->status = $isChangeRequest ? 5 : 4;
+            if ($isChangeRequest) {
+                $this->feed->status = 5;
+            } else {
+                $this->feed->status = $this->cancelCallResult === 'answered' ? 41 : 42;
+            }
             $this->feed->save();
             CampaignAgentDialLimit::incrementForFeed((int) $this->feed->feed_id, (int) Auth::id());
         }
@@ -146,6 +161,7 @@ class SatisfactionRatingPanel extends Component
         $this->hoverRating = 0;
         $this->selectedReasons = [];
         $this->CancelComment = '';
+        $this->cancelCallResult = '';
 
         $attempt = $this->feed;
         $hasAttempt = $attempt && ($attempt->rate !== null
@@ -160,6 +176,9 @@ class SatisfactionRatingPanel extends Component
 
             if ($isCancel) {
                 $this->selectedReasons = array_values(array_intersect($names, $this->cancelReasons));
+                if (in_array((string) $attempt->status, ['41', '42'])) {
+                    $this->cancelCallResult = (string) $attempt->status === '41' ? 'answered' : 'not_answered';
+                }
             } else {
                 $this->selectedReasons = array_values(array_unique(array_merge(
                     array_intersect($names, $this->satisfactionReasons),

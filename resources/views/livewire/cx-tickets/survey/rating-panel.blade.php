@@ -95,6 +95,18 @@
                 </select>
             </div>
 
+            <h3 class="text-lg font-bold mt-4 mb-2">Call Result</h3>
+            <div class="flex gap-2 items-center">
+                <select wire:model="cancelCallResult" class="border p-2 rounded-md w-[470px]">
+                    <option value="">-- Select answered or not answered --</option>
+                    <option value="answered">Answered</option>
+                    <option value="not_answered">Not Answered</option>
+                </select>
+            </div>
+            @if($errors->has('cancelCallResult'))
+                <span class="text-red-500">{{ $errors->first('cancelCallResult') }}</span>
+            @endif
+
             <h3 class="text-lg font-bold mt-4">Selected Reasons</h3>
                 <div class="flex flex-wrap gap-2 mt-2">
                     @foreach($selectedReasons as $reason)
@@ -107,6 +119,9 @@
                         </span>
                     @endforeach
                 </div>
+                @if($errors->has('selectedReasons'))
+                    <span class="text-red-500">{{ $errors->first('selectedReasons') }}</span>
+                @endif
 
                 <div>
                 <label class="pb-4 text-lg font-bold">Add comment for cancelling</label>

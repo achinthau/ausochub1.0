@@ -792,7 +792,7 @@ class Show extends Component
 
             if ($contactStatus === '5') {
                 $status = 'Change Request';
-            } elseif ($contactStatus === '4') {
+            } elseif (in_array($contactStatus, ['4', '41', '42'])) {
                 $status = 'Canceled';
             } elseif ($contactStatus === '3' || in_array($contactStatus, ['2', '22', '222'])) {
                 $status = 'Skip';

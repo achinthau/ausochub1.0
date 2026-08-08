@@ -93,9 +93,11 @@ class TodayDialerReportTable extends DataTableComponent
 
         return [
             '1' => 'Answered',
+            '41' => 'Answered Canceled',
             '2' => 'Not Answered',
-            '22' => 'Not Answered',
-            '222' => 'Not Answered',
+            '42' => 'Not-Answered Canceled',
+            '22' => 'Not-Answered',
+            '222' => 'Not-Answered',
             '3' => 'Skipped',
             '4' => 'Canceled',
             '5' => 'Change Request',
@@ -190,13 +192,25 @@ class TodayDialerReportTable extends DataTableComponent
                     '' => 'All',
                     '1' => 'Answered',
                     '2' => 'Not Answered',
-                    '3' => 'Skipped',
+                    // '3' => 'Skipped',
                     '4' => 'Canceled',
+                    '41' => 'Answered Canceled',
+                    '42' => 'Not-Answered Canceled',
                     '5' => 'Change Request',
                 ])
                 ->filter(function (Builder $builder, string $value) {
                     if ($value !== '') {
-                        $builder->where('status', $value);
+                        $statuses = match ($value) {
+                            '1' => [1, 41],
+                            '2' => [2, 22, 222, 42],
+                            // '3' => [3],
+                            '4' => [4, 41, 42],
+                            '41' => [41],
+                            '42' => [42],
+                            '5' => [5],
+                            default => [(int) $value],
+                        };
+                        $builder->whereIn('status', $statuses);
                     }
                 }),
         ];

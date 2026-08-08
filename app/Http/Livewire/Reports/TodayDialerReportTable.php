@@ -148,6 +148,10 @@ class TodayDialerReportTable extends DataTableComponent
             // Column::make("Campaign Type", "campaign_id")
             //     ->format(fn ($value, $row) => optional($row->campaign?->types)->name ?? 'N/A'),
 
+            Column::make("Call Status", "status")
+                ->format(fn ($value, $row) => $this->statusLabel($row->status) ?: 'N/A')
+                ->sortable(),
+                
             Column::make("Call Status Option", "call_status_option_id")
                 ->format(fn ($value, $row) => $row->call_status_option_id ?: 'N/A')
                 ->sortable()
@@ -155,9 +159,7 @@ class TodayDialerReportTable extends DataTableComponent
                     return $builder->orWhere('call_status_option_id', 'like', '%' . $term . '%');
                 }),
 
-            Column::make("Call Status", "status")
-                ->format(fn ($value, $row) => $this->statusLabel($row->status) ?: 'N/A')
-                ->sortable(),
+            
 
             Column::make("Rate", "rate")
                 ->sortable(),

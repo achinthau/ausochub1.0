@@ -93,11 +93,24 @@ class SatisfactionRatingPanel extends Component
         return array_values(array_filter($types));
     }
 
+    protected function hasChangeRequestReason(): bool
+    {
+        return collect($this->selectedReasons)
+            ->map(fn ($reason) => str_replace(['_', ' '], '', strtolower((string) trim($reason))))
+            ->contains('changerequest');
+    }
+
     public function cancelRatings()
     {
         $types = $this->selectedReasonTypes();
         if (empty($types)) {
             $types = ['3'];
+        }
+
+        $isChangeRequest = $this->hasChangeRequestReason();
+
+        if ($isChangeRequest && !in_array('change_request', $types)) {
+            $types[] = 'change_request';
         }
 
         if ($this->feed) {
@@ -108,7 +121,7 @@ class SatisfactionRatingPanel extends Component
             $this->feed->campaign_id = $this->campaignId;
             $this->feed->updated_by = Auth::id();
             $this->feed->attempted_at = now();
-            $this->feed->status = 4;
+            $this->feed->status = $isChangeRequest ? 5 : 4;
             $this->feed->save();
             CampaignAgentDialLimit::incrementForFeed((int) $this->feed->feed_id, (int) Auth::id());
         }

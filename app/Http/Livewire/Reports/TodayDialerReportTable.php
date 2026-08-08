@@ -87,39 +87,19 @@ class TodayDialerReportTable extends DataTableComponent
         return $query;
     }
 
-    protected function statusTypeLabel($type): string
+    protected function statusLabel($status): string
     {
-        $normalized = str_replace('_', '', strtolower((string) $type));
+        $status = (string) $status;
 
         return [
             '1' => 'Answered',
             '2' => 'Not Answered',
-            '3' => 'Canceled',
-            '4' => 'Not Answered',
-            'skip' => 'Skipped',
-            'reopen' => 'ReOpened',
-            'remind' => 'Remind',
-            'changerequest' => 'Change Request',
-        ][$normalized] ?? 'N/A';
-    }
-
-    protected function optionTypeLabels($value): string
-    {
-        $labels = [];
-
-        foreach ($this->optionIds($value) as $type) {
-            $labels[] = $this->statusTypeLabel($type);
-        }
-
-        return implode(', ', array_values(array_unique($labels)));
-    }
-
-    protected function optionIds($value): array
-    {
-        return array_values(array_filter(
-            array_map('trim', explode(',', (string) $value)),
-            fn ($id) => $id !== ''
-        ));
+            '22' => 'Not Answered',
+            '222' => 'Not Answered',
+            '3' => 'Skipped',
+            '4' => 'Canceled',
+            '5' => 'Change Request',
+        ][$status] ?? 'N/A';
     }
 
     public function columns(): array
@@ -175,8 +155,9 @@ class TodayDialerReportTable extends DataTableComponent
                     return $builder->orWhere('call_status_option_id', 'like', '%' . $term . '%');
                 }),
 
-            // Column::make("Call Status", "call_status_option_id")
-            //     ->format(fn ($value, $row) => $this->optionTypes($row->call_status_option_id) ?: 'N/A'),
+            Column::make("Call Status", "status")
+                ->format(fn ($value, $row) => $this->statusLabel($row->status) ?: 'N/A')
+                ->sortable(),
 
             Column::make("Rate", "rate")
                 ->sortable(),
@@ -202,20 +183,18 @@ class TodayDialerReportTable extends DataTableComponent
     public function filters(): array
     {
         $filters = [
-            SelectFilter::make('Call Status Type')
+            SelectFilter::make('Call Status')
                 ->options([
                     '' => 'All',
                     '1' => 'Answered',
                     '2' => 'Not Answered',
-                    '3' => 'Canceled',
-                    // 'skip' => 'Skipped',
-                    // 'reopen' => 'ReOpened',
-                    // 'remind' => 'Remind',
-                    'change_request' => 'Change Request',
+                    '3' => 'Skipped',
+                    '4' => 'Canceled',
+                    '5' => 'Change Request',
                 ])
                 ->filter(function (Builder $builder, string $value) {
                     if ($value !== '') {
-                        $builder->whereRaw("FIND_IN_SET(?, LOWER(REPLACE(REPLACE(call_status_option_type, ' ', ''), '_', '')))", [str_replace('_', '', strtolower($value))]);
+                        $builder->where('status', $value);
                     }
                 }),
         ];
@@ -286,7 +265,7 @@ class TodayDialerReportTable extends DataTableComponent
                 // $record->contact_no_01 ?? 'N/A',
                 // $record->contact_no_02 ?? 'N/A',
                 $record->call_status_option_id ?: 'N/A',
-                $this->optionTypeLabels($record->call_status_option_type) ?: 'N/A',
+                $this->statusLabel($record->status) ?: 'N/A',
                 $record->rate ?? 'N/A',
                 $record->comments ?? 'N/A',
                 optional($record->campaign)->name ?? 'N/A',

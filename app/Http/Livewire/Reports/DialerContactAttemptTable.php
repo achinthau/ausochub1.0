@@ -54,39 +54,19 @@ class DialerContactAttemptTable extends DataTableComponent
 
 
 
-    protected function optionIds($value): array
+    protected function statusLabel($status): string
     {
-        return array_values(array_filter(
-            array_map('trim', explode(',', (string) $value)),
-            fn ($id) => $id !== ''
-        ));
-    }
-
-    protected function optionTypeLabels($value): string
-    {
-        $labels = [];
-
-        foreach ($this->optionIds($value) as $type) {
-            $labels[] = $this->statusTypeLabel($type);
-        }
-
-        return implode(', ', array_values(array_unique($labels)));
-    }
-
-    protected function statusTypeLabel($type): string
-    {
-        $normalized = str_replace('_', '', strtolower((string) $type));
+        $status = (string) $status;
 
         return [
             '1' => 'Answered',
             '2' => 'Not Answered',
-            '3' => 'Canceled',
-            '4' => 'Not Answered',
-            'skip' => 'Skipped',
-            'reopen' => 'ReOpened',
-            'remind' => 'Remind',
-            'changerequest' => 'Change Request',
-        ][$normalized] ?? 'N/A';
+            '22' => 'Not Answered',
+            '222' => 'Not Answered',
+            '3' => 'Skipped',
+            '4' => 'Canceled',
+            '5' => 'Change Request',
+        ][$status] ?? 'N/A';
     }
 
     public function columns(): array
@@ -128,34 +108,33 @@ class DialerContactAttemptTable extends DataTableComponent
                 ->searchable(function ($builder, $term) {
                     return $builder->orWhere('call_status_option_id', 'like', '%' . $term . '%');
                 }),
-            Column::make("Call status", "call_status_option_type")
+            Column::make("Call status", "status")
                 ->format(function ($value, $row) {
-                    return $this->optionTypeLabels($row->call_status_option_type) ?: 'N/A';
+                    return $this->statusLabel($row->status) ?: 'N/A';
                 })
                 ->sortable()
                 ->searchable(function ($builder, $term) {
-                    $typeMap = [
+                    $statusMap = [
                         '1' => 'Answered',
                         '2' => 'Not Answered',
-                        '3' => 'Canceled',
-                        '4' => 'Not Answered',
-                        'skip' => 'Skipped',
-                        'reopen' => 'ReOpened',
-                        'remind' => 'Remind',
-                        'change_request' => 'Change Request',
+                        '22' => 'Not Answered',
+                        '222' => 'Not Answered',
+                        '3' => 'Skipped',
+                        '4' => 'Canceled',
+                        '5' => 'Change Request',
                     ];
 
-                    $matchedTypes = collect($typeMap)
+                    $matchedStatuses = collect($statusMap)
                         ->filter(fn ($label) => stripos($label, $term) !== false)
                         ->keys();
 
-                    if ($matchedTypes->isEmpty()) {
+                    if ($matchedStatuses->isEmpty()) {
                         return $builder;
                     }
 
-                    return $builder->orWhere(function ($query) use ($matchedTypes) {
-                        foreach ($matchedTypes as $type) {
-                            $query->orWhereRaw("FIND_IN_SET(?, LOWER(REPLACE(REPLACE(call_status_option_type, ' ', ''), '_', '')))", [str_replace('_', '', strtolower($type))]);
+                    return $builder->orWhere(function ($query) use ($matchedStatuses) {
+                        foreach ($matchedStatuses as $status) {
+                            $query->orWhere('status', $status);
                         }
                     });
                 }),
@@ -195,20 +174,18 @@ class DialerContactAttemptTable extends DataTableComponent
     {
         return [
 
-            SelectFilter::make('Call Status Type')
+            SelectFilter::make('Call Status')
     ->options([
         '' => 'All',      // default option
-        1  => 'Answered',
-        2  => 'Not Answered',
-        3  => 'Canceled',
-        // 'skip' => 'Skipped',
-        // 'reopen' => 'ReOpened',
-        // 'remind' => 'Remind',
-        'change_request' => 'Change Request',
+        '1' => 'Answered',
+        '2' => 'Not Answered',
+        '3' => 'Skipped',
+        '4' => 'Canceled',
+        '5' => 'Change Request',
     ])
     ->filter(function ($builder, $value) {
         if ($value !== '') {
-            $builder->whereRaw("FIND_IN_SET(?, LOWER(REPLACE(REPLACE(call_status_option_type, ' ', ''), '_', '')))", [str_replace('_', '', strtolower($value))]);
+            $builder->where('status', $value);
         }
     }),
 

@@ -774,34 +774,24 @@ class Show extends Component
             $data = json_decode((string) $contact->data, true) ?: [];
 
             $status = 'Closed';
-            $callStatusOptionType = $contact->call_status_option_type;
-            $callStatusOptionTypeLower = strtolower((string) $callStatusOptionType);
             $satisfactionRate = $contact->rate;
             $skippedReasons = $contact->comments;
             $latest = null;
 
-            if ($callStatusOptionType !== null
-                || $satisfactionRate !== null
-                || $contact->call_status_option_id !== null) {
-                $latest = $contact;
+            $contactStatus = (string) $contact->status;
 
-                if ($satisfactionRate !== null) {
-                    $status = 'Rated';
-                } elseif ($callStatusOptionTypeLower !== '' && str_contains($callStatusOptionTypeLower, '3')) {
-                    $status = 'Canceled';
-                } elseif ($callStatusOptionTypeLower !== '' && (str_contains($callStatusOptionTypeLower, '4') || str_contains($callStatusOptionTypeLower, '2'))) {
-                    $status = 'Skip';
-                } elseif ($callStatusOptionTypeLower === 'skip') {
-                    $status = 'Skip';
-                } elseif ($callStatusOptionTypeLower === 'reopen') {
-                    $status = 'ReOpened';
-                } elseif ($callStatusOptionTypeLower === 'remind') {
-                    $status = 'Remind';
-                } elseif ($callStatusOptionTypeLower === 'change_request') {
-                    $status = 'Change Request';
-                }
-            } elseif (in_array((string) $contact->status, ['2', '22', '222', '3'])) {
+            if ($contactStatus === '5') {
+                $status = 'Change Request';
+            } elseif ($contactStatus === '4') {
+                $status = 'Canceled';
+            } elseif ($contactStatus === '3' || in_array($contactStatus, ['2', '22', '222'])) {
                 $status = 'Skip';
+            } elseif ($contactStatus === '1') {
+                $status = 'Rated';
+            }
+
+            if ($contactStatus !== '' && $contactStatus !== '0') {
+                $latest = $contact;
             }
 
             $ticket = (object) $data;
@@ -822,8 +812,8 @@ class Show extends Component
                 $ticket->customer_contact_02 = $contact->contact_no_02;
             }
             $ticket->satisfaction_rate = $satisfactionRate;
-            $ticket->satisfaction_reasons = ($status === 'Rated' && $callStatusOptionTypeLower !== '' && str_contains($callStatusOptionTypeLower, '1')) ? $skippedReasons : null;
-            $ticket->dis_satisfaction_reasons = ($status === 'Rated' && $callStatusOptionTypeLower !== '' && str_contains($callStatusOptionTypeLower, '2')) ? $skippedReasons : null;
+            $ticket->satisfaction_reasons = $status === 'Rated' ? $skippedReasons : null;
+            $ticket->dis_satisfaction_reasons = null;
             $ticket->cancelling_reasons = $status === 'Canceled' ? $skippedReasons : null;
             $ticket->skipped_reasons = $status === 'Skip' ? $skippedReasons : null;
             $ticket->feed_contact_id = $contact->id;

@@ -157,6 +157,10 @@ class SubmitCallStatus extends Component
             $optionTypeString = $option['type'];
         }
 
+        $isChangeRequest = collect(explode(',', $optionNameString))
+            ->map(fn ($name) => str_replace(['_', ' '], '', strtolower((string) trim($name))))
+            ->contains('changerequest');
+
         $phones = collect([$this->feed->contact_no_01, $this->feed->contact_no_02])
             ->map(function ($phone) {
                 return trim((string) $phone);
@@ -186,7 +190,9 @@ class SubmitCallStatus extends Component
                 ->get();
 
             foreach ($feeds as $feed) {
-                if ($this->status == 'answered') {
+                if ($isChangeRequest) {
+                    $feed->status = 5;
+                } elseif ($this->status == 'answered') {
                     $feed->status = 1; // Answered
                 } else {
                     if (str_starts_with((string) $feed->status, '2')) {
@@ -200,7 +206,7 @@ class SubmitCallStatus extends Component
                 }
 
                 $feed->call_status_option_id = $optionNameString;
-                $feed->call_status_option_type = $optionTypeString;
+                $feed->call_status_option_type = $isChangeRequest ? 'change_request' : $optionTypeString;
                 $feed->comments = $this->comment;
                 $feed->campaign_id = $this->campaign;
                 $feed->updated_by = Auth::id();
@@ -210,7 +216,9 @@ class SubmitCallStatus extends Component
 
         } else {
             // ✅ Update only the current feed
-            if ($this->status == 'answered') {
+            if ($isChangeRequest) {
+                $this->feed->status = 5;
+            } elseif ($this->status == 'answered') {
                 $this->feed->status = 1; // Answered
             } else {
                 if (str_starts_with((string) $this->feed->status, '2')) {
@@ -224,7 +232,7 @@ class SubmitCallStatus extends Component
             }
 
             $this->feed->call_status_option_id = $optionNameString;
-            $this->feed->call_status_option_type = $optionTypeString;
+            $this->feed->call_status_option_type = $isChangeRequest ? 'change_request' : $optionTypeString;
             $this->feed->comments = $this->comment;
             $this->feed->campaign_id = $this->campaign;
             $this->feed->updated_by = Auth::id();

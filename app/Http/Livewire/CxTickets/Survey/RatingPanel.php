@@ -79,15 +79,24 @@ class RatingPanel extends Component
         $this->selectedReasons = array_filter($this->selectedReasons, fn($r) => $r !== $reason);
     }
 
+    protected function hasChangeRequestReason(): bool
+    {
+        return collect($this->selectedReasons)
+            ->map(fn ($reason) => str_replace(['_', ' '], '', strtolower((string) trim($reason))))
+            ->contains('changerequest');
+    }
+
     public function cancelRatings()
     {
+        $isChangeRequest = $this->hasChangeRequestReason();
+
         $ticket = CxTicket::find($this->ticket_id);
         if ($ticket) {
 
             $cancelReasons = array_intersect($this->selectedReasons, $this->cancelReasons);
 
             $ticket->update([
-                'status' => "Canceled",
+                'status' => $isChangeRequest ? 'Change Request' : "Canceled",
                 'cancelling_reasons' => implode(',', $cancelReasons),
                 'surveyed_by' => Auth::user()->name,
                 'cancelling_comment' => $this->CancelComment,
@@ -96,9 +105,10 @@ class RatingPanel extends Component
 
         if($this->feed)
         {
-            $this->feed->status = 4;
-        $this->feed->save();
-        CampaignAgentDialLimit::incrementForFeed((int) $this->feed->feed_id, (int) Auth::id());
+            $this->feed->status = $isChangeRequest ? 5 : 4;
+            $this->feed->call_status_option_type = $isChangeRequest ? 'change_request' : $this->feed->call_status_option_type;
+            $this->feed->save();
+            CampaignAgentDialLimit::incrementForFeed((int) $this->feed->feed_id, (int) Auth::id());
         }
 
         $this->emit('cxTicketSurveyUpdated');

@@ -85,17 +85,7 @@
         @if($isCancel)
 
         <div class="p-4">
-            <h3 class="text-lg font-bold mb-2">Select Cancelling Reason</h3>
-            <div class="flex gap-2 items-center">
-                <select wire:model="selectedCancellingReason" class="border p-2 rounded-md w-[470px]">
-                    <option value="">-- Select a reason --</option>
-                    @foreach($cancelReasons as $reason)
-                        <option value="{{ $reason }}">{{ $reason }}</option>
-                    @endforeach
-                </select>
-            </div>
-
-            <h3 class="text-lg font-bold mt-4 mb-2">Call Result</h3>
+            <h3 class="text-lg font-bold mb-2">Call Result</h3>
             <div class="flex gap-2 items-center">
                 <select wire:model="cancelCallResult" class="border p-2 rounded-md w-[470px]">
                     <option value="">-- Select answered or not answered --</option>
@@ -106,6 +96,18 @@
             @if($errors->has('cancelCallResult'))
                 <span class="text-red-500">{{ $errors->first('cancelCallResult') }}</span>
             @endif
+
+            <h3 class="text-lg font-bold mb-2 mt-4">Select Cancelling Reason</h3>
+            <div class="flex gap-2 items-center">
+                <select wire:model="selectedCancellingReason" class="border p-2 rounded-md w-[470px]">
+                    <option value="">-- Select a reason --</option>
+                    @foreach($cancelReasons as $reason)
+                        <option value="{{ $reason }}">{{ $reason }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            
 
             <h3 class="text-lg font-bold mt-4">Selected Reasons</h3>
                 <div class="flex flex-wrap gap-2 mt-2">

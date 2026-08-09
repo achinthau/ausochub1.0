@@ -25,6 +25,8 @@ class SatisfactionRatingPanel extends Component
     public array $satisfactionReasons = [];
     public array $dissatisfactionReasons = [];
     public array $cancelReasons = [];
+    public array $cancelAnsweredReasons = [];
+    public array $cancelNotAnsweredReasons = [];
     public array $selectedReasons = [];
 
     public $selectedSatisfactionReason = null;
@@ -49,7 +51,13 @@ class SatisfactionRatingPanel extends Component
         }
     }
 
-    public function updatedselectedCancellingReason($value)
+    public function updatedCancelCallResult($value)
+    {
+        $this->selectedReasons = [];
+        $this->selectedCancellingReason = null;
+    }
+
+    public function updatedSelectedCancellingReason($value)
     {
         if ($value) {
             $this->selectReason($value);
@@ -74,7 +82,12 @@ class SatisfactionRatingPanel extends Component
 
         $this->satisfactionReasons = $options->where('type', 1)->pluck('option')->values()->toArray();
         $this->dissatisfactionReasons = $options->where('type', 2)->pluck('option')->values()->toArray();
-        $this->cancelReasons = $options->where('type', 3)->pluck('option')->values()->toArray();
+        $this->cancelAnsweredReasons = $options->whereIn('type', [41, 3])->pluck('option')->values()->toArray();
+        $this->cancelNotAnsweredReasons = $options->where('type', 42)->pluck('option')->values()->toArray();
+        $this->cancelReasons = array_values(array_unique(array_merge(
+            $this->cancelAnsweredReasons,
+            $this->cancelNotAnsweredReasons
+        )));
     }
 
     protected function selectedReasonTypes(): array
@@ -115,7 +128,7 @@ class SatisfactionRatingPanel extends Component
 
         $types = $this->selectedReasonTypes();
         if (empty($types)) {
-            $types = ['3'];
+            $types = [$this->cancelCallResult === 'answered' ? '41' : '42'];
         }
 
         $isChangeRequest = $this->hasChangeRequestReason();

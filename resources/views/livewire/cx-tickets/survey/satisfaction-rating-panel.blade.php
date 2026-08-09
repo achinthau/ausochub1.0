@@ -101,11 +101,20 @@
             <div class="flex gap-2 items-center">
                 <select wire:model="selectedCancellingReason" class="border p-2 rounded-md w-[470px]">
                     <option value="">-- Select a reason --</option>
-                    @foreach($cancelReasons as $reason)
-                        <option value="{{ $reason }}">{{ $reason }}</option>
-                    @endforeach
+                    @if($cancelCallResult === 'answered')
+                        @foreach($cancelAnsweredReasons as $reason)
+                            <option value="{{ $reason }}">{{ $reason }}</option>
+                        @endforeach
+                    @elseif($cancelCallResult === 'not_answered')
+                        @foreach($cancelNotAnsweredReasons as $reason)
+                            <option value="{{ $reason }}">{{ $reason }}</option>
+                        @endforeach
+                    @endif
                 </select>
             </div>
+            @if(empty($cancelCallResult))
+                <p class="text-xs text-gray-400 mt-1">Select Answered or Not Answered in Call Result to load the cancelling reasons.</p>
+            @endif
 
             
 

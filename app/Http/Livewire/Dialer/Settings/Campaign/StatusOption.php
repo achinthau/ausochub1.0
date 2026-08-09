@@ -49,7 +49,7 @@ class StatusOption extends Component
     {
         $this->validate([
             'newOption' => 'required|string|max:255',
-            'newType' => 'required|in:1,2,3,4',
+            'newType' => 'required|in:1,2,3,4,41,42',
         ]);
 
         DialerCallStatusOption::create([
@@ -82,7 +82,7 @@ class StatusOption extends Component
     {
         $this->validate([
             'editOption' => 'required|string|max:255',
-            'editType' => 'required|in:1,2,3,4',
+            'editType' => 'required|in:1,2,3,4,41,42',
         ]);
 
         $option = DialerCallStatusOption::find($this->editingId);

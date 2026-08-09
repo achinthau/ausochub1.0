@@ -14,9 +14,12 @@
                 <x-select label="Type" wire:model="newType">
                     <x-select.option label="{{ $isSatisfaction ? 'Satisfied' : 'Answered' }}" :value="1" />
                     <x-select.option label="{{ $isSatisfaction ? 'Dissatisfied' : 'Not Answered' }}" :value="2" />
-                    <x-select.option label="{{ $isSatisfaction ? 'Cancel' : 'Skip' }}" :value="3" />
                     @if($isSatisfaction)
+                        <x-select.option label="Answered Cancel" :value="41" />
+                        <x-select.option label="Not Answered Cancel" :value="42" />
                         <x-select.option label="Not Answered" :value="4" />
+                    @else
+                        <x-select.option label="Skip" :value="3" />
                     @endif
                 </x-select>
             </div>
@@ -42,9 +45,12 @@
                                     <x-select wire:model="editType">
                                         <x-select.option label="{{ $isSatisfaction ? 'Satisfied' : 'Answered' }}" :value="1" />
                                         <x-select.option label="{{ $isSatisfaction ? 'Dissatisfied' : 'Not Answered' }}" :value="2" />
-                                        <x-select.option label="{{ $isSatisfaction ? 'Cancel' : 'Skip' }}" :value="3" />
                                         @if($isSatisfaction)
+                                            <x-select.option label="Answered Cancel" :value="41" />
+                                            <x-select.option label="Not Answered Cancel" :value="42" />
                                             <x-select.option label="Not Answered" :value="4" />
+                                        @else
+                                            <x-select.option label="Skip" :value="3" />
                                         @endif
                                     </x-select>
                                 </div>
@@ -59,10 +65,14 @@
                                     @if($option->type == 1) bg-green-100 text-green-700
                                     @elseif($option->type == 2) bg-orange-100 text-orange-700
                                     @elseif($option->type == 4) bg-yellow-100 text-yellow-700
+                                    @elseif($option->type == 41) bg-rose-100 text-rose-700
+                                    @elseif($option->type == 42) bg-red-100 text-red-700
                                     @else bg-gray-100 text-gray-600 @endif">
                                     @if($option->type == 1) {{ $isSatisfaction ? 'Satisfied' : 'Answered' }}
                                     @elseif($option->type == 2) {{ $isSatisfaction ? 'Dissatisfied' : 'Not Answered' }}
                                     @elseif($option->type == 4) Not Answered
+                                    @elseif($option->type == 41) Answered Cancel
+                                    @elseif($option->type == 42) Not Answered Cancel
                                     @else {{ $isSatisfaction ? 'Cancel' : 'Skip' }} @endif
                                 </span>
                             </div>

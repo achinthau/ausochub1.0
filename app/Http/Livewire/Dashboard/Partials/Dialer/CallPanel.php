@@ -119,6 +119,31 @@ class CallPanel extends Component
 
             // Assign only the loaded record to the current agent
             $record->update(['assigned_to' => $userId]);
+
+            // Assign all related work orders with the same contact number(s) to this
+            // agent too, so different work orders from the same customer go to the
+            // same agent (matches the Next Customer logic in leads.show).
+            $relatedContacts = FeedContactValid::where(function ($query) use ($phone, $phone2) {
+                $query->where('contact_no_01', $phone)
+                    ->orWhere('contact_no_02', $phone);
+
+                if (!empty($phone2) && $phone2 !== $phone) {
+                    $query->orWhere('contact_no_01', $phone2)
+                        ->orWhere('contact_no_02', $phone2);
+                }
+            })
+                ->when($feedId, fn($query) => $query->where('feed_id', $feedId))
+                ->where(function ($q) use ($userLanguageNames) {
+                    $q->whereNull('lang')
+                        ->orWhereIn('lang', $userLanguageNames);
+                })
+                ->get();
+
+            if ($relatedContacts->isNotEmpty()) {
+                FeedContactValid::whereIn('id', $relatedContacts->pluck('id')->unique()->values())
+                    ->update(['assigned_to' => $userId]);
+            }
+
             $this->contact = $record;
             $this->phone = !empty($record->contact_no_01) ? $record->contact_no_01 : $record->contact_no_02;
             $this->phone2 = !empty($record->contact_no_02) ? $record->contact_no_02 : $record->contact_no_01;

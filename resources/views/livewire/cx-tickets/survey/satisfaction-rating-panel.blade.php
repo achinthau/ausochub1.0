@@ -85,7 +85,7 @@
         @if($isCancel)
 
         <div class="p-4">
-            <h3 class="text-lg font-bold mb-2">Call Result</h3>
+            <h3 class="text-lg font-bold mb-2">Call Status</h3>
             <div class="flex gap-2 items-center">
                 <select wire:model="cancelCallResult" class="border p-2 rounded-md w-[470px]">
                     <option value="">-- Select answered or not answered --</option>

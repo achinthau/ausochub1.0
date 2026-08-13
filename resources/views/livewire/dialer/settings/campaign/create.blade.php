@@ -13,6 +13,7 @@
         <!-- Service Selection -->
         <x-select label="Select Service Type" placeholder="Choose a Service Type" wire:model="service_type">
                 <x-select.option label="Satisfaction" value="satisfaction" />
+                <x-select.option label="Satisfaction Mini" value="satisfaction-mini" />
                 <x-select.option label="Follow-up" value="follow-up" />
                 <x-select.option label="Confirmation" value="confirmation" />
         </x-select>

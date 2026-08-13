@@ -783,8 +783,194 @@
     </details>
 @endforeach
 
+    @elseif($service_type == 'satisfaction-mini' && $surveyContacts && $surveyContacts->count() > 0)
 
-    
+    @php
+        $miniFirst = (object) collect($surveyContacts)->first();
+    @endphp
+
+    <div class="bg-white p-4 rounded-lg shadow-md space-y-3">
+
+        @if($miniFirst)
+            <div class="flex flex-wrap gap-x-8 gap-y-1 text-base">
+                <div class="flex gap-2">
+                    <label class="font-bold">Customer Name:</label>
+                    <span>{{ $miniFirst->customer_name ?? '--' }}</span>
+                </div>
+                <div class="flex gap-2">
+                    <label class="font-bold">Service Center:</label>
+                    <span>{{ $miniFirst->service_center ?? '--' }}</span>
+                </div>
+            </div>
+        @endif
+
+        <hr>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm border-collapse min-w-max">
+                <thead>
+                    <tr class="bg-gray-100 text-left">
+                        <th class="p-2 border font-semibold">Priority</th>
+                        <th class="p-2 border font-semibold">Call Status</th>
+                        <th class="p-2 border font-semibold">Rate</th>
+                        <th class="p-2 border font-semibold">Reasons</th>
+                        <th class="p-2 border font-semibold">Comment</th>
+                        <th class="p-2 border font-semibold">Product</th>
+                        <th class="p-2 border font-semibold">Model</th>
+                        <th class="p-2 border font-semibold">Warranty Status</th>
+                        <th class="p-2 border font-semibold">Sold Date</th>
+                        <th class="p-2 border font-semibold">More Data</th>
+                        <th class="p-2 border font-semibold">Customer Name</th>
+                        <th class="p-2 border font-semibold">Customer Address</th>
+                        {{-- <th class="p-2 border font-semibold">Contact 01</th>
+                        <th class="p-2 border font-semibold">Contact 02</th> --}}
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($surveyContacts as $ticket)
+                        @php
+                            $ticket = (object) $ticket;
+                            $id = $ticket->feed_contact_id;
+                            $rating = $miniRatings[$id] ?? null;
+                            $callStatus = $miniCallStatus[$id] ?? null;
+
+                            if (is_numeric($rating) && (int) $rating >= 1 && (int) $rating <= 5) {
+                                $reasonOptions = array_merge($satisfactionReasons, $dissatisfactionReasons);
+                            } elseif ($rating === 'cancel' && $callStatus === 'answered') {
+                                $reasonOptions = $cancelAnsweredReasons;
+                            } elseif ($rating === 'cancel' && $callStatus === 'not_answered') {
+                                $reasonOptions = $cancelNotAnsweredReasons;
+                            } else {
+                                $reasonOptions = [];
+                            }
+
+                            $moreData = json_decode($ticket->more_data ?? '{}', true) ?: [];
+
+                            $isSubmitted = in_array($ticket->status, ['Rated', 'Canceled', 'Change Request'], true);
+                            $isNotAnswered = $ticket->status == 'Skip';
+                        @endphp
+                        <tr class="align-top border-b hover:bg-gray-50">
+                            <td class="p-2 border font-semibold">
+                                {{ $ticket->work_order_no ?? '--' }}
+                                @if($isSubmitted)
+                                    <div class="mt-1">
+                                        <span class="px-2 py-0.5 text-xs font-semibold text-white bg-green-600 rounded-full">
+                                            Submitted
+                                        </span>
+                                    </div>
+                                @elseif($isNotAnswered)
+                                    <div class="mt-1 flex items-center gap-1">
+                                        <span class="px-2 py-0.5 text-xs font-semibold text-white bg-yellow-600 rounded-full">
+                                            Not Answered
+                                        </span>
+                                        <span class="px-2 py-0.5 text-xs font-bold text-white bg-red-700 rounded-full">
+                                            {{ $satisfactionNotAnsweredCounts[trim($ticket->work_order_no)] ?? '' }}
+                                        </span>
+                                    </div>
+                                @endif
+                            </td>
+
+                            <td class="p-2 border">
+                                <select wire:model="miniCallStatus.{{ $id }}" @disabled($isSubmitted)
+                                    class="border p-1 rounded w-full text-xs {{ $isSubmitted ? 'bg-gray-100' : '' }}">
+                                    <option value="">-- Select --</option>
+                                    <option value="answered">Answered</option>
+                                    <option value="not_answered">Not Answered</option>
+                                </select>
+                            </td>
+
+                            <td class="p-2 border">
+                                <select wire:model="miniRatings.{{ $id }}" @disabled($isSubmitted)
+                                    class="border p-1 rounded w-full text-xs {{ $isSubmitted ? 'bg-gray-100' : '' }}">
+                                    <option value="">-- Select --</option>
+                                    <option value="1">1 - Very Bad</option>
+                                    <option value="2">2 - Bad</option>
+                                    <option value="3">3 - Neutral</option>
+                                    <option value="4">4 - Good</option>
+                                    <option value="5">5 - Excellent</option>
+                                    <option value="cancel">Cancel</option>
+                                    <option value="change_request">Change Request</option>
+                                </select>
+                            </td>
+
+                            <td class="p-2 border">
+                                @if($reasonOptions)
+                                    <div x-data="{ open: false }" class="relative inline-block">
+                                        <button type="button" @click="open = !open" @disabled($isSubmitted)
+                                            class="w-44 border p-1 rounded text-xs flex items-center justify-between {{ $isSubmitted ? 'bg-gray-100' : 'bg-white' }}">
+                                            <span class="truncate">
+                                                {{ count((array) ($miniSelectedReasons[$id] ?? [])) }} selected
+                                            </span>
+                                            <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </button>
+                                        <div x-show="open" x-cloak x-on:click.away="open = false"
+                                            class="absolute z-50 mt-1 w-64 max-h-48 overflow-y-auto border border-gray-200 bg-white rounded shadow-xl p-1">
+                                            @foreach($reasonOptions as $reason)
+                                                <label class="flex items-center gap-1 p-1 hover:bg-gray-50 cursor-pointer text-xs whitespace-nowrap">
+                                                    <input type="checkbox" value="{{ $reason }}"
+                                                        @checked(in_array($reason, (array) ($miniSelectedReasons[$id] ?? [])))
+                                                        wire:click.prevent="toggleMiniReason({{ $id }}, '{{ addslashes($reason) }}')"
+                                                        class="rounded">
+                                                    {{ $reason }}
+                                                </label>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @else
+                                    <span class="text-gray-400 text-xs">No reasons</span>
+                                @endif
+                            </td>
+
+                            <td class="p-2 border">
+                                <textarea wire:model="miniComments.{{ $id }}" rows="2"
+                                    @disabled($isSubmitted)
+                                    class="w-40 border p-1 rounded text-xs {{ $isSubmitted ? 'bg-gray-100' : '' }}"
+                                    placeholder="Add comment"></textarea>
+                            </td>
+
+                            <td class="p-2 border">{{ $ticket->product ?? '--' }}</td>
+                            <td class="p-2 border">{{ $ticket->model ?? '--' }}</td>
+                            <td class="p-2 border">{{ $ticket->warranty_status ?? '--' }}</td>
+                            <td class="p-2 border">{{ $ticket->sold_date ?? '--' }}</td>
+
+                            <td class="p-2 border">
+                                @if($moreData)
+                                    <div class="text-xs space-y-0.5">
+                                        @foreach($moreData as $key => $value)
+                                            @if($value === null || $value === '' || $key === '')
+                                                @continue
+                                            @endif
+                                            <div class="whitespace-nowrap">
+                                                <span class="font-semibold">{{ ucfirst(str_replace('_', ' ', $key)) }}:</span>
+                                                {{ is_array($value) ? json_encode($value) : $value }}
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <span class="text-gray-400 text-xs">--</span>
+                                @endif
+                            </td>
+
+                            <td class="p-2 border">{{ $ticket->customer_name ?? '--' }}</td>
+                            <td class="p-2 border">{{ $ticket->customer_address ?? '--' }}</td>
+                            {{-- <td class="p-2 border">{{ $ticket->customer_contact_01 ?? '--' }}</td>
+                            <td class="p-2 border">{{ $ticket->customer_contact_02 ?? '--' }}</td> --}}
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <div class="flex justify-start pt-2">
+            <button type="button" wire:click="submitSatisfactionMini" wire:loading.attr="disabled"
+                class="bg-teal-500 text-white font-bold py-2 px-6 rounded-md hover:bg-teal-600 transition-colors duration-200">
+                Submit
+            </button>
+        </div>
+    </div>
+
     @elseif($service_type == 'follow-up' && $feedContacts && $feedContacts->count() > 0)
 
                                 @foreach($feedContacts as $contact)

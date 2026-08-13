@@ -7,6 +7,7 @@ use App\Models\CallCount;
 use App\Models\Campaign;
 use App\Models\CampaignAgentDialLimit;
 use App\Models\CxTicket;
+use App\Models\DialerCallStatusOption;
 use App\Models\FeedContactValid;
 use App\Models\Lead;
 use App\Models\QueueCount;
@@ -65,6 +66,17 @@ class Show extends Component
     public $channelError = '';
     public $attachment;
     public $attachmentResetKey = 0;
+
+    public $miniRatings = [];
+    public $miniCallStatus = [];
+    public $miniSelectedReasons = [];
+    public $miniComments = [];
+
+    public array $satisfactionReasons = [];
+    public array $dissatisfactionReasons = [];
+    public array $cancelAnsweredReasons = [];
+    public array $cancelNotAnsweredReasons = [];
+    public $miniCampaignId = null;
 
     protected $listeners = ['refreshCard' => 'refreshCard', 'FeedCompleted' => 'refreshFeedContactStatus'];
 
@@ -467,7 +479,7 @@ class Show extends Component
             $this->phone2 = null;
         }
 
-        if ($boundType && $boundType == 'dialer' && $this->service_type != 'satisfaction') {
+        if ($boundType && $boundType == 'dialer' && !in_array($this->service_type, ['satisfaction', 'satisfaction-mini'])) {
             $phone = $this->lead->contact_number;
             $phone2 = $this->phone2;
             $this->selectedContact = $phone;
@@ -551,7 +563,7 @@ class Show extends Component
 
 
 
-        if ($boundType && $boundType == 'dialer' && $this->service_type == 'satisfaction') {
+        if ($boundType && $boundType == 'dialer' && in_array($this->service_type, ['satisfaction', 'satisfaction-mini'])) {
             $phone = $this->lead->contact_number;
             $this->selectedContact = $phone;
 
@@ -676,14 +688,40 @@ class Show extends Component
             }
 
         }
+
+        if ($this->service_type == 'satisfaction-mini') {
+            $this->loadSatisfactionMiniReasons();
+        }
     }
 
-    public function updated($propertyName)
+    public function updated($propertyName, $value)
     {
 //         \Log::info('Property updated', ['property' => $propertyName, 'value' => $this->$propertyName]);
 
         if ($propertyName === 'attachment' && $this->attachment) {
             $this->notifyPhone = false;
+        }
+
+        if (str_starts_with($propertyName, 'miniRatings.')) {
+            $id = substr($propertyName, strlen('miniRatings.'));
+            $this->miniSelectedReasons[$id] = [];
+        } elseif (str_starts_with($propertyName, 'miniCallStatus.')) {
+            $id = substr($propertyName, strlen('miniCallStatus.'));
+            if (($this->miniRatings[$id] ?? null) === 'cancel') {
+                $this->miniSelectedReasons[$id] = [];
+            }
+        }
+    }
+
+    public function toggleMiniReason($id, $reason)
+    {
+        $current = (array) ($this->miniSelectedReasons[$id] ?? []);
+
+        if (in_array($reason, $current, true)) {
+            $this->miniSelectedReasons[$id] = array_values(array_diff($current, [$reason]));
+        } else {
+            $current[] = $reason;
+            $this->miniSelectedReasons[$id] = array_values($current);
         }
     }
 
@@ -713,7 +751,7 @@ class Show extends Component
             $this->feedContacts = FeedContactValid::whereIn('id', $ids)->get();
         }
 
-        if ($this->service_type == 'satisfaction') {
+        if (in_array($this->service_type, ['satisfaction', 'satisfaction-mini'])) {
             $phone = $this->lead->contact_number;
             $phone2 = $this->phone2;
 
@@ -729,7 +767,7 @@ class Show extends Component
     {
         $this->satisfactionNotAnsweredCounts = [];
 
-        if ($this->service_type !== 'satisfaction' || empty($this->surveyContacts)) {
+        if (!in_array($this->service_type, ['satisfaction', 'satisfaction-mini']) || empty($this->surveyContacts)) {
             return;
         }
 
@@ -832,6 +870,153 @@ class Show extends Component
 
             return $ticket;
         });
+    }
+
+    protected function loadSatisfactionMiniReasons()
+    {
+        $campaignId = Campaign::where('name', $this->campaign)->value('id');
+        $this->miniCampaignId = $campaignId ?: null;
+
+        $this->satisfactionReasons = [];
+        $this->dissatisfactionReasons = [];
+        $this->cancelAnsweredReasons = [];
+        $this->cancelNotAnsweredReasons = [];
+
+        if (!$this->miniCampaignId) {
+            return;
+        }
+
+        $options = DialerCallStatusOption::where('campaign_id', $this->miniCampaignId)->get();
+
+        $this->satisfactionReasons = $options->where('type', 1)->pluck('option')->values()->toArray();
+        $this->dissatisfactionReasons = $options->where('type', 2)->pluck('option')->values()->toArray();
+        $this->cancelAnsweredReasons = $options->where('type', 41)->pluck('option')->values()->toArray();
+        $this->cancelNotAnsweredReasons = $options->where('type', 42)->pluck('option')->values()->toArray();
+    }
+
+    protected function miniSelectedReasonTypes(array $reasons): array
+    {
+        if (empty($reasons) || empty($this->miniCampaignId)) {
+            return [];
+        }
+
+        return DialerCallStatusOption::where('campaign_id', $this->miniCampaignId)
+            ->whereIn('option', $reasons)
+            ->pluck('type')
+            ->map(fn ($type) => (string) $type)
+            ->unique()
+            ->values()
+            ->toArray();
+    }
+
+    public function submitSatisfactionMini()
+    {
+        if (empty($this->surveyContacts)) {
+            return;
+        }
+
+        $submitted = 0;
+        $skipped = 0;
+
+        foreach ($this->surveyContacts as $ticket) {
+            $ticket = (object) $ticket;
+            $id = $ticket->feed_contact_id;
+            $rating = $this->miniRatings[$id] ?? null;
+            $callStatus = $this->miniCallStatus[$id] ?? null;
+            $reasons = array_values(array_unique(array_filter(
+                is_array($this->miniSelectedReasons[$id] ?? null) ? $this->miniSelectedReasons[$id] : []
+            )));
+            $comment = trim((string) ($this->miniComments[$id] ?? ''));
+
+            if ($rating === null || $rating === '' || $rating === 0) {
+                continue;
+            }
+
+            $feed = FeedContactValid::find($id);
+            if (!$feed) {
+                continue;
+            }
+
+            if (is_numeric($rating) && (int) $rating >= 1 && (int) $rating <= 5) {
+                $feed->call_status_option_id = implode(',', $reasons);
+                $feed->call_status_option_type = '1';
+                $feed->rate = (int) $rating;
+                $feed->comments = '';
+                $feed->campaign_id = $this->miniCampaignId;
+                $feed->updated_by = Auth::id();
+                $feed->attempted_at = now();
+                $feed->status = 1;
+                $feed->next_available_at = null;
+                $feed->save();
+                CampaignAgentDialLimit::incrementForFeed((int) $feed->feed_id, (int) Auth::id());
+                $submitted++;
+            } elseif (in_array($rating, ['cancel', 'change_request'], true)) {
+                if (!in_array($callStatus, ['answered', 'not_answered'], true)) {
+                    $skipped++;
+                    continue;
+                }
+
+                if ($rating === 'change_request') {
+                    $status = $callStatus === 'answered' ? 51 : 52;
+                    $types = ['change_request'];
+                } else {
+                    if (empty($reasons)) {
+                        $skipped++;
+                        continue;
+                    }
+                    $isChangeRequest = collect($reasons)
+                        ->map(fn ($r) => str_replace(['_', ' '], '', strtolower((string) trim($r))))
+                        ->contains('changerequest');
+
+                    if ($isChangeRequest) {
+                        $status = $callStatus === 'answered' ? 51 : 52;
+                        $types = array_values(array_unique(array_merge($this->miniSelectedReasonTypes($reasons), ['change_request'])));
+                    } else {
+                        $types = $this->miniSelectedReasonTypes($reasons);
+                        if (empty($types)) {
+                            $types = [$callStatus === 'answered' ? '41' : '42'];
+                        }
+                        $status = $callStatus === 'answered' ? 41 : 42;
+                    }
+                }
+
+                $feed->call_status_option_id = implode(',', $reasons);
+                $feed->call_status_option_type = implode(',', $types);
+                $feed->rate = null;
+                $feed->comments = $comment;
+                $feed->campaign_id = $this->miniCampaignId;
+                $feed->updated_by = Auth::id();
+                $feed->attempted_at = now();
+                $feed->status = $status;
+                $feed->save();
+                CampaignAgentDialLimit::incrementForFeed((int) $feed->feed_id, (int) Auth::id());
+                $submitted++;
+            }
+        }
+
+        if ($submitted > 0) {
+            $this->emit('FeedCompleted');
+
+            foreach ($this->surveyContacts as $ticket) {
+                $id = ((object) $ticket)->feed_contact_id;
+                unset(
+                    $this->miniRatings[$id],
+                    $this->miniCallStatus[$id],
+                    $this->miniSelectedReasons[$id],
+                    $this->miniComments[$id]
+                );
+            }
+
+            $this->surveyContacts = $this->buildSatisfactionWorkOrders($this->lead->contact_number, $this->phone2, $this->feed_id);
+
+            $message = "{$submitted} record(s) submitted successfully.";
+            if ($skipped > 0) {
+                $message .= " {$skipped} record(s) skipped (incomplete).";
+            }
+            $this->notification()->success('Success', $message);
+        } else {
+            $this->notification()->error('Error', $skipped > 0 ? 'No complete records to submit.' : 'No records to submit.');
+        }
     }
 
     public function refreshTimeline()

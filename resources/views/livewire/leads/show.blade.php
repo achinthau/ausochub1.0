@@ -792,7 +792,7 @@
     <div class="bg-white p-4 rounded-lg shadow-md space-y-3">
 
         @if($miniFirst)
-            <div class="flex flex-wrap gap-x-8 gap-y-1 text-base">
+            <div class="flex flex-wrap justify-between gap-x-8 gap-y-1 text-base">
                 <div class="flex gap-2">
                     <label class="font-bold">Customer Name:</label>
                     <span>{{ $miniFirst->customer_name ?? '--' }}</span>

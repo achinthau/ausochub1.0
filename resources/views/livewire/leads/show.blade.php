@@ -901,9 +901,9 @@
 
                             <td class="p-2 border">
                                 <select wire:model="miniRatings.{{ $id }}" @disabled($isSubmitted)
-                                    class="border p-1 rounded w-full text-xs {{ $isSubmitted ? 'bg-gray-100' : '' }}">
+                                    class="border p-1 rounded w-full text-xs text-center {{ $isSubmitted ? 'bg-gray-100' : '' }}">
                                     <option value="">-- Select --</option>
-                                    <option value="1">1</option>
+                                    <option value="1"><span class="bg-red-100 rounded-md">1</span></option>
                                     <option value="2">2</option>
                                     <option value="3">3</option>
                                     <option value="4">4</option>

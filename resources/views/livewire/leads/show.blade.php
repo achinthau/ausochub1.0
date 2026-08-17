@@ -871,23 +871,48 @@
                             </td>
 
                             <td class="p-2 border">
-                                <select wire:model="miniCallStatus.{{ $id }}" @disabled($isSubmitted)
-                                    class="border p-1 rounded w-full text-xs {{ $isSubmitted ? 'bg-gray-100' : '' }}">
-                                    <option value="">-- Select --</option>
-                                    <option value="answered">Answered</option>
-                                    <option value="not_answered">Not Answered</option>
-                                </select>
+                                <div x-data="{ open: false }" class="relative">
+                                    <button type="button" @click="open = !open" @disabled($isSubmitted)
+                                        class="border p-1 rounded w-full text-xs flex items-center justify-center {{ $isSubmitted ? 'bg-gray-100' : 'bg-white' }}">
+                                        @if(($miniCallStatus[$id] ?? '') === 'answered')
+                                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-500">
+                                                <svg class="w-5 h-5 text-white" style="transform: rotate(180deg);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"></path></svg>
+                                            </span>
+                                        @elseif(($miniCallStatus[$id] ?? '') === 'not_answered')
+                                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-500">
+                                                <svg class="w-5 h-5 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"></path></svg>
+                                            </span>
+                                        @else
+                                            <span class="text-gray-400">-- Select --</span>
+                                        @endif
+                                    </button>
+                                    <div x-show="open" x-cloak x-on:click.away="open = false"
+                                        class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded shadow-xl text-xs">
+                                        <button type="button" wire:click="$set('miniCallStatus.{{ $id }}', 'answered')" @click="open = false"
+                                            class="w-full px-2 py-1 text-left hover:bg-gray-50 flex items-center justify-center gap-1">
+                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-500">
+                                                <svg class="w-4 h-4 text-white" style="transform: rotate(180deg);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"></path></svg>
+                                            </span>
+                                        </button>
+                                        <button type="button" wire:click="$set('miniCallStatus.{{ $id }}', 'not_answered')" @click="open = false"
+                                            class="w-full px-2 py-1 text-left hover:bg-gray-50 flex items-center justify-center gap-1">
+                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-500">
+                                                <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"></path></svg>
+                                            </span>
+                                        </button>
+                                    </div>
+                                </div>
                             </td>
 
                             <td class="p-2 border">
                                 <select wire:model="miniRatings.{{ $id }}" @disabled($isSubmitted)
                                     class="border p-1 rounded w-full text-xs {{ $isSubmitted ? 'bg-gray-100' : '' }}">
                                     <option value="">-- Select --</option>
-                                    <option value="1">1 - Very Bad</option>
-                                    <option value="2">2 - Bad</option>
-                                    <option value="3">3 - Neutral</option>
-                                    <option value="4">4 - Good</option>
-                                    <option value="5">5 - Excellent</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                    <option value="3">3</option>
+                                    <option value="4">4</option>
+                                    <option value="5">5</option>
                                     <option value="cancel">Cancel</option>
                                     <option value="change_request">Change Request</option>
                                 </select>

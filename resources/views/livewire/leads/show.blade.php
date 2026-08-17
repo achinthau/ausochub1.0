@@ -815,13 +815,17 @@
                         <th class="p-2 border font-semibold">Rate</th>
                         <th class="p-2 border font-semibold">Reasons</th>
                         <th class="p-2 border font-semibold">Comment</th>
+                        <th class="p-2 border font-semibold">Real Completion Date</th>
+                        {{-- <th class="p-2 border font-semibold">Sold Date</th> --}}
                         <th class="p-2 border font-semibold">Product</th>
+                        <th class="p-2 border font-semibold">Product Description</th>
                         <th class="p-2 border font-semibold">Model</th>
+                        <th class="p-2 border font-semibold">Model Description</th>
+                        <th class="p-2 border font-semibold">Work Type</th>
                         <th class="p-2 border font-semibold">Warranty Status</th>
-                        <th class="p-2 border font-semibold">Sold Date</th>
-                        <th class="p-2 border font-semibold">More Data</th>
+                        {{-- <th class="p-2 border font-semibold">More Data</th> --}}
                         <th class="p-2 border font-semibold">Customer Name</th>
-                        <th class="p-2 border font-semibold">Customer Address</th>
+                        <th class="p-2 border font-semibold">Customer Address</th> 
                         {{-- <th class="p-2 border font-semibold">Contact 01</th>
                         <th class="p-2 border font-semibold">Contact 02</th> --}}
                     </tr>
@@ -856,15 +860,6 @@
                                     <div class="mt-1">
                                         <span class="px-2 py-0.5 text-xs font-semibold text-white bg-green-600 rounded-full">
                                             Submitted
-                                        </span>
-                                    </div>
-                                @elseif($isNotAnswered)
-                                    <div class="mt-1 flex items-center gap-1">
-                                        <span class="px-2 py-0.5 text-xs font-semibold text-white bg-yellow-600 rounded-full">
-                                            Not Answered
-                                        </span>
-                                        <span class="px-2 py-0.5 text-xs font-bold text-white bg-red-700 rounded-full">
-                                            {{ $satisfactionNotAnsweredCounts[trim($ticket->work_order_no)] ?? '' }}
                                         </span>
                                     </div>
                                 @endif
@@ -955,15 +950,41 @@
                                     placeholder="Add comment"></textarea>
                             </td>
 
-                            <td class="p-2 border">{{ $ticket->product ?? '--' }}</td>
-                            <td class="p-2 border">{{ $ticket->model ?? '--' }}</td>
-                            <td class="p-2 border">{{ $ticket->warranty_status ?? '--' }}</td>
-                            <td class="p-2 border">{{ $ticket->sold_date ?? '--' }}</td>
+                            {{-- <td class="p-2 border">{{ $ticket->sold_date ?? '--' }}</td> --}}
+                            
+                            @php
+                                $normalizeKey = function ($k) { return strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $k)); };
+                                $targetFields = [
+                                    'realcompletiondate' => 'Real Completion Date',
+                                    'productdescription' => 'Product Description',
+                                    'modeldescription' => 'Model Description',
+                                    'worktype' => 'Work Type',
+                                ];
+                                $matched = [];
+                                $matchedKeys = [];
+                                foreach ($moreData as $k => $v) {
+                                    $nk = $normalizeKey($k);
+                                    if (isset($targetFields[$nk])) {
+                                        $matched[$nk] = $v;
+                                        $matchedKeys[] = $k;
+                                    }
+                                }
+                                $remainingData = array_diff_key($moreData, array_flip($matchedKeys));
+                            @endphp
 
-                            <td class="p-2 border">
-                                @if($moreData)
+                            <td class="p-2 border text-xs">{{ $matched['realcompletiondate'] ?? '--' }}</td>
+                            <td class="p-2 border">{{ $ticket->product ?? '--' }}</td>
+                            <td class="p-2 border text-xs">{{ $matched['productdescription'] ?? '--' }}</td>
+                            <td class="p-2 border">{{ $ticket->model ?? '--' }}</td>
+                            <td class="p-2 border text-xs">{{ $matched['modeldescription'] ?? '--' }}</td>
+                            <td class="p-2 border text-xs">{{ $matched['worktype'] ?? '--' }}</td>
+                            <td class="p-2 border">{{ $ticket->warranty_status ?? '--' }}</td>
+
+
+                            {{-- <td class="p-2 border">
+                                @if($remainingData)
                                     <div class="text-xs space-y-0.5">
-                                        @foreach($moreData as $key => $value)
+                                        @foreach($remainingData as $key => $value)
                                             @if($value === null || $value === '' || $key === '')
                                                 @continue
                                             @endif
@@ -976,7 +997,7 @@
                                 @else
                                     <span class="text-gray-400 text-xs">--</span>
                                 @endif
-                            </td>
+                            </td> --}}
 
                             <td class="p-2 border">{{ $ticket->customer_name ?? '--' }}</td>
                             <td class="p-2 border">{{ $ticket->customer_address ?? '--' }}</td>

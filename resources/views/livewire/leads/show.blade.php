@@ -815,13 +815,14 @@
                         <th class="p-2 border font-semibold">Rate</th>
                         <th class="p-2 border font-semibold">Reasons</th>
                         <th class="p-2 border font-semibold">Comment</th>
-                        <th class="p-2 border font-semibold">Real Completion Date</th>
                         {{-- <th class="p-2 border font-semibold">Sold Date</th> --}}
-                        <th class="p-2 border font-semibold">Product</th>
+                        {{-- <th class="p-2 border font-semibold">Product</th> --}}
                         <th class="p-2 border font-semibold">Product Description</th>
                         <th class="p-2 border font-semibold">Model</th>
                         <th class="p-2 border font-semibold">Model Description</th>
                         <th class="p-2 border font-semibold">Work Type</th>
+                        <th class="p-2 border font-semibold">Real Completion Date</th>
+
                         <th class="p-2 border font-semibold">Warranty Status</th>
                         {{-- <th class="p-2 border font-semibold">More Data</th> --}}
                         <th class="p-2 border font-semibold">Customer Name</th>
@@ -973,12 +974,14 @@
                                 $remainingData = array_diff_key($moreData, array_flip($matchedKeys));
                             @endphp
 
-                            <td class="p-2 border text-xs">{{ $matched['realcompletiondate'] ?? '--' }}</td>
-                            <td class="p-2 border">{{ $ticket->product ?? '--' }}</td>
+                            {{-- <td class="p-2 border">{{ $ticket->product ?? '--' }}</td> --}}
                             <td class="p-2 border text-xs">{{ $matched['productdescription'] ?? '--' }}</td>
                             <td class="p-2 border">{{ $ticket->model ?? '--' }}</td>
                             <td class="p-2 border text-xs">{{ $matched['modeldescription'] ?? '--' }}</td>
-                            <td class="p-2 border text-xs">{{ $matched['worktype'] ?? '--' }}</td>
+                            <td class="p-2 border text-xs">{{ $matched['worktype'] ?? '--' }}</td>                            <td class="p-2 border text-xs">{{ $matched['realcompletiondate'] ?? '--' }}</td>
+                            <td class="p-2 border text-xs">{{ $matched['realcompletiondate'] ?? '--' }}</td>
+
+
                             <td class="p-2 border">{{ $ticket->warranty_status ?? '--' }}</td>
 
 

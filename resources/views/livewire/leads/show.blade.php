@@ -822,7 +822,6 @@
                         <th class="p-2 border font-semibold">Model Description</th>
                         <th class="p-2 border font-semibold">Work Type</th>
                         <th class="p-2 border font-semibold">Real Completion Date</th>
-
                         <th class="p-2 border font-semibold">Warranty Status</th>
                         {{-- <th class="p-2 border font-semibold">More Data</th> --}}
                         <th class="p-2 border font-semibold">Customer Name</th>
@@ -978,7 +977,7 @@
                             <td class="p-2 border text-xs">{{ $matched['productdescription'] ?? '--' }}</td>
                             <td class="p-2 border">{{ $ticket->model ?? '--' }}</td>
                             <td class="p-2 border text-xs">{{ $matched['modeldescription'] ?? '--' }}</td>
-                            <td class="p-2 border text-xs">{{ $matched['worktype'] ?? '--' }}</td>                            <td class="p-2 border text-xs">{{ $matched['realcompletiondate'] ?? '--' }}</td>
+                            <td class="p-2 border text-xs">{{ $matched['worktype'] ?? '--' }}</td>          
                             <td class="p-2 border text-xs">{{ $matched['realcompletiondate'] ?? '--' }}</td>
 
 

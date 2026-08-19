@@ -168,6 +168,20 @@ class TodayDialerReportTable extends DataTableComponent
             Column::make("Rate", "rate")
                 ->sortable(),
 
+            Column::make("Customer Name", "data")
+                ->format(fn ($value, $row) => trim((string) (data_get(json_decode((string) $row->data, true) ?: [], 'customer_name') ?? ''), '"') ?: 'N/A')
+                ->searchable(function ($builder, $term) {
+                    $normalized = strtolower(preg_replace('/\s+/', '', $term));
+                    return $builder->whereRaw("LOWER(REPLACE(JSON_EXTRACT(data, '$.customer_name'), ' ', '')) LIKE ?", ['%' . $normalized . '%']);
+                }),
+
+            Column::make("Service Center", "data")
+                ->format(fn ($value, $row) => trim((string) (data_get(json_decode((string) $row->data, true) ?: [], 'service_center') ?? ''), '"') ?: 'N/A')
+                ->searchable(function ($builder, $term) {
+                    $normalized = strtolower(preg_replace('/\s+/', '', $term));
+                    return $builder->whereRaw("LOWER(REPLACE(JSON_EXTRACT(data, '$.service_center'), ' ', '')) LIKE ?", ['%' . $normalized . '%']);
+                }),
+
             Column::make("Comments", "comments")
                 ->sortable()
                 ->searchable(),
@@ -266,6 +280,8 @@ class TodayDialerReportTable extends DataTableComponent
             'Call Status Option',
             'Call Status',
             'Rate',
+            'Customer Name',
+            'Service Center',
             'Comments',
             'Campaign',
             'Agent',
@@ -283,6 +299,8 @@ class TodayDialerReportTable extends DataTableComponent
                 $record->call_status_option_id ?: 'N/A',
                 $this->statusLabel($record->status) ?: 'N/A',
                 $record->rate ?? 'N/A',
+                data_get(json_decode((string) $record->data, true) ?: [], 'customer_name') ?? 'N/A',
+                data_get(json_decode((string) $record->data, true) ?: [], 'service_center') ?? 'N/A',
                 $record->comments ?? 'N/A',
                 optional($record->campaign)->name ?? 'N/A',
                 optional($record->updater)->name ?? 'N/A',

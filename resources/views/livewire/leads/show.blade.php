@@ -442,11 +442,11 @@
                                             class="w-24 bg-green-300 font-bold hover:bg-green-400 p-2 rounded-md shadow-md ">
                                             Make a call</button> --}}
                                             
-                                        {{-- <button type="button"
+                                        <button type="button"
                                             wire:click="$emit('openSkipContactModal', '{{ $lead->contact_number }}','{{ $lead->contact_number_2 }}', '{{ $feed_id }}', '{{ $service_type }}', '{{ $loadedContactIds->implode(',') }}')"
                                             class="w-24 bg-orange-300 font-bold hover:bg-orange-400 p-2 rounded-md shadow-md">
                                             Skip
-                                        </button> --}}
+                                        </button>
 
                                         {{-- @if ($service_type == 'satisfaction')
                                         <button type="button"
@@ -828,6 +828,9 @@
                         <th class="p-2 border font-semibold">Customer Address</th> 
                         {{-- <th class="p-2 border font-semibold">Contact 01</th>
                         <th class="p-2 border font-semibold">Contact 02</th> --}}
+                        @if($surveyContacts && $surveyContacts->count() > 1)
+                            <th class="p-2 border font-semibold text-center">Apply to All</th>
+                        @endif
                     </tr>
                 </thead>
                 <tbody>
@@ -844,6 +847,8 @@
                                 $reasonOptions = $cancelAnsweredReasons;
                             } elseif ($rating === 'cancel' && $callStatus === 'not_answered') {
                                 $reasonOptions = $cancelNotAnsweredReasons;
+                            } elseif ($rating === 'not_answered') {
+                                $reasonOptions = $dissatisfactionReasons;
                             } else {
                                 $reasonOptions = [];
                             }
@@ -851,12 +856,34 @@
                             $moreData = json_decode($ticket->more_data ?? '{}', true) ?: [];
 
                             $isSubmitted = in_array($ticket->status, ['Rated', 'Canceled', 'Change Request'], true);
+                            $isSkipped = $ticket->status === 'Skipped';
                             $isNotAnswered = $ticket->status == 'Skip';
+                            $feedContactIdStatus = (string) ($ticket->feed_contact_status ?? '');
+                            $isNotAnsweredStatus = str_starts_with($feedContactIdStatus, '2');
+                            $notAnsweredCount = $isNotAnsweredStatus ? strlen($feedContactIdStatus) : 0;
+                            if ($isNotAnsweredStatus || $feedContactIdStatus === '6' || $isSkipped) {
+                                $isSubmitted = true;
+                            }
                         @endphp
                         <tr class="align-top border-b hover:bg-gray-50">
                             <td class="p-2 border font-semibold">
                                 {{ $ticket->work_order_no ?? '--' }}
-                                @if($isSubmitted)
+                                @if($isNotAnsweredStatus)
+                                    <div class="mt-1 flex items-center gap-1">
+                                        <span class="px-2 py-0.5 text-xs font-semibold text-white bg-yellow-600 rounded-full">
+                                            Not Answered
+                                        </span>
+                                        <span class="px-2 py-0.5 text-xs font-bold text-white bg-red-700 rounded-full">
+                                            {{ $notAnsweredCount }}
+                                        </span>
+                                    </div>
+                                @elseif($isSkipped)
+                                    <div class="mt-1">
+                                        <span class="px-2 py-0.5 text-xs font-semibold text-white bg-orange-600 rounded-full">
+                                            Skipped
+                                        </span>
+                                    </div>
+                                @elseif($isSubmitted)
                                     <div class="mt-1">
                                         <span class="px-2 py-0.5 text-xs font-semibold text-white bg-green-600 rounded-full">
                                             Submitted
@@ -909,8 +936,10 @@
     <option value="3" class="text-yellow-700 bg-yellow-50">3</option>
     <option value="4" class="text-lime-700 bg-lime-50">4</option>
     <option value="5" class="text-green-700 bg-green-50">5</option>
-    <option value="cancel" class="text-gray-700 bg-gray-50">Cancel</option>
-    <option value="change_request" class="text-blue-700 bg-blue-50">Change Request</option>
+                                    <option value="cancel" class="text-gray-700 bg-gray-50">Cancel</option>
+                                    <option value="change_request" class="text-blue-700 bg-blue-50">Change Request</option>
+                                    <option value="not_answered" class="text-red-700 bg-red-50">Not Answered</option>
+                                    <option value="not_in_use" class="text-gray-700 bg-gray-50">Not In Use</option>
                                 </select>
                             </td>
 
@@ -1006,6 +1035,16 @@
                             <td class="p-2 border">{{ $ticket->customer_address ?? '--' }}</td>
                             {{-- <td class="p-2 border">{{ $ticket->customer_contact_01 ?? '--' }}</td>
                             <td class="p-2 border">{{ $ticket->customer_contact_02 ?? '--' }}</td> --}}
+                            @if($surveyContacts && $surveyContacts->count() > 1)
+                                <td class="p-2 border text-center">
+                                    @if(($miniCallStatus[$id] ?? null) !== null && !$isSubmitted)
+                                        <input type="checkbox"
+                                            @checked($miniApplyToAll == $id)
+                                            wire:click="$set('miniApplyToAll', {{ $miniApplyToAll == $id ? 'null' : $id }})"
+                                            class="rounded cursor-pointer">
+                                    @endif
+                                </td>
+                            @endif
                         </tr>
                     @endforeach
                 </tbody>

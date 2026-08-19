@@ -71,6 +71,7 @@ class Show extends Component
     public $miniCallStatus = [];
     public $miniSelectedReasons = [];
     public $miniComments = [];
+    public $miniApplyToAll = null;
 
     public array $satisfactionReasons = [];
     public array $dissatisfactionReasons = [];
@@ -78,7 +79,7 @@ class Show extends Component
     public array $cancelNotAnsweredReasons = [];
     public $miniCampaignId = null;
 
-    protected $listeners = ['refreshCard' => 'refreshCard', 'FeedCompleted' => 'refreshFeedContactStatus'];
+    protected $listeners = ['refreshCard' => 'refreshCard', 'FeedCompleted' => 'refreshFeedContactStatus', 'refreshSatisfaction' => 'refreshSatisfaction'];
 
     protected $rules = [
         'lead.contact_number' => 'required',
@@ -763,6 +764,17 @@ class Show extends Component
         $this->refreshTimeline();
     }
 
+    public function refreshSatisfaction()
+    {
+        if (in_array($this->service_type, ['satisfaction', 'satisfaction-mini'])) {
+            $phone = $this->lead->contact_number;
+            $phone2 = $this->phone2;
+            $this->surveyContacts = $this->buildSatisfactionWorkOrders($phone, $phone2, $this->feed_id);
+            $this->refreshSatisfactionNotAnsweredCounts();
+        }
+        $this->refreshTimeline();
+    }
+
     protected function refreshSatisfactionNotAnsweredCounts()
     {
         $this->satisfactionNotAnsweredCounts = [];
@@ -833,7 +845,9 @@ class Show extends Component
                 $status = 'Change Request';
             } elseif (in_array($contactStatus, ['4', '41', '42'])) {
                 $status = 'Canceled';
-            } elseif ($contactStatus === '3' || in_array($contactStatus, ['2', '22', '222'])) {
+            } elseif ($contactStatus === '3') {
+                $status = 'Skipped';
+            } elseif (in_array($contactStatus, ['2', '22', '222'])) {
                 $status = 'Skip';
             } elseif ($contactStatus === '1') {
                 $status = 'Rated';
@@ -864,8 +878,9 @@ class Show extends Component
             $ticket->satisfaction_reasons = $status === 'Rated' ? $skippedReasons : null;
             $ticket->dis_satisfaction_reasons = null;
             $ticket->cancelling_reasons = $status === 'Canceled' ? $skippedReasons : null;
-            $ticket->skipped_reasons = $status === 'Skip' ? $skippedReasons : null;
+            $ticket->skipped_reasons = in_array($status, ['Skip', 'Skipped']) ? $skippedReasons : null;
             $ticket->feed_contact_id = $contact->id;
+            $ticket->feed_contact_status = $contactStatus;
             $ticket->more_data = json_encode(array_diff_key($data, array_flip($cxTicketColumns)));
 
             return $ticket;
@@ -917,6 +932,29 @@ class Show extends Component
 
         $submitted = 0;
         $skipped = 0;
+
+        // Apply-to-all: copy selected row's values to all other rows
+        if ($this->miniApplyToAll !== null) {
+            $sourceId = $this->miniApplyToAll;
+            $sourceRating = $this->miniRatings[$sourceId] ?? null;
+            $sourceCallStatus = $this->miniCallStatus[$sourceId] ?? null;
+            $sourceReasons = $this->miniSelectedReasons[$sourceId] ?? [];
+            $sourceComment = $this->miniComments[$sourceId] ?? '';
+
+            if ($sourceRating !== null && $sourceRating !== '') {
+                foreach ($this->surveyContacts as $ticket) {
+                    $ticket = (object) $ticket;
+                    $tid = $ticket->feed_contact_id;
+                    if ($tid == $sourceId) {
+                        continue;
+                    }
+                    $this->miniRatings[$tid] = $sourceRating;
+                    $this->miniCallStatus[$tid] = $sourceCallStatus;
+                    $this->miniSelectedReasons[$tid] = $sourceReasons;
+                    $this->miniComments[$tid] = $sourceComment;
+                }
+            }
+        }
 
         foreach ($this->surveyContacts as $ticket) {
             $ticket = (object) $ticket;
@@ -991,6 +1029,41 @@ class Show extends Component
                 $feed->save();
                 CampaignAgentDialLimit::incrementForFeed((int) $feed->feed_id, (int) Auth::id());
                 $submitted++;
+            } elseif ($rating === 'not_answered') {
+                $optionTypes = $this->miniSelectedReasonTypes($reasons);
+                if (empty($optionTypes)) {
+                    $optionTypes = ['2'];
+                }
+                $existingStatus = (string) ($feed->status ?? '');
+                if (str_starts_with($existingStatus, '2')) {
+                    $feed->status = (int) ($existingStatus . '2');
+                } else {
+                    $feed->status = 2;
+                }
+                $feed->call_status_option_id = implode(',', $reasons);
+                $feed->call_status_option_type = implode(',', $optionTypes);
+                $feed->rate = null;
+                $feed->comments = $comment;
+                $feed->campaign_id = $this->miniCampaignId;
+                $feed->updated_by = Auth::id();
+                $feed->attempted_at = now();
+                $feed->next_available_at = now()->addDay();
+                $feed->save();
+                CampaignAgentDialLimit::incrementForFeed((int) $feed->feed_id, (int) Auth::id());
+                $submitted++;
+            } elseif ($rating === 'not_in_use') {
+                $feed->call_status_option_id = '';
+                $feed->call_status_option_type = '';
+                $feed->rate = null;
+                $feed->comments = $comment;
+                $feed->campaign_id = $this->miniCampaignId;
+                $feed->updated_by = Auth::id();
+                $feed->attempted_at = now();
+                $feed->status = 6;
+                $feed->next_available_at = null;
+                $feed->save();
+                CampaignAgentDialLimit::incrementForFeed((int) $feed->feed_id, (int) Auth::id());
+                $submitted++;
             }
         }
 
@@ -1007,6 +1080,7 @@ class Show extends Component
                 );
             }
 
+            $this->miniApplyToAll = null;
             $this->surveyContacts = $this->buildSatisfactionWorkOrders($this->lead->contact_number, $this->phone2, $this->feed_id);
 
             $message = "{$submitted} record(s) submitted successfully.";

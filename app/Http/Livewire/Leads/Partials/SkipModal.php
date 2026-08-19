@@ -61,8 +61,9 @@ class SkipModal extends Component
             $feed->save();
         }
         $this->reset('comment');
+        $this->SkipContactModal = false;
+        $this->emitTo('leads.show', 'refreshSatisfaction');
         $this->emitTo('dashboard.partials.dialer.call-panel', 'contactSkipped');
-        $this->dispatchBrowserEvent('close-skipped-tab');
 
     }
 

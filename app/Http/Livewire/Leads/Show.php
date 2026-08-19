@@ -881,6 +881,7 @@ class Show extends Component
             $ticket->skipped_reasons = in_array($status, ['Skip', 'Skipped']) ? $skippedReasons : null;
             $ticket->feed_contact_id = $contact->id;
             $ticket->feed_contact_status = $contactStatus;
+            $ticket->next_available_at = $contact->next_available_at;
             $ticket->more_data = json_encode(array_diff_key($data, array_flip($cxTicketColumns)));
 
             return $ticket;

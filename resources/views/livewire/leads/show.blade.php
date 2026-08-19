@@ -417,7 +417,7 @@
                                 @endphp
 
                                 <div class="flex justify-between">
-                                    <h2 class="font-bold text-sm mb-2">All Work Orders</h2>
+                                    <h2 class="font-bold text-sm mb-2">All Work Orders{{ $loadedContactIds->count() > 1 ? ' ('.$loadedContactIds->count().')' : '' }}</h2>
                                     <div class="pr-4 space-x-4">
                                         {{-- <div class="relative group">
                                             <svg wire:click="makeCall('{{ $lead->contact_number }}')"
@@ -861,7 +861,13 @@
                             $feedContactIdStatus = (string) ($ticket->feed_contact_status ?? '');
                             $isNotAnsweredStatus = str_starts_with($feedContactIdStatus, '2');
                             $notAnsweredCount = $isNotAnsweredStatus ? strlen($feedContactIdStatus) : 0;
-                            if ($isNotAnsweredStatus || $feedContactIdStatus === '6' || $isSkipped) {
+
+                            if ($isNotAnsweredStatus) {
+                                $nextAvailable = $ticket->next_available_at ? \Carbon\Carbon::parse($ticket->next_available_at) : null;
+                                if ($nextAvailable && $nextAvailable->isFuture()) {
+                                    $isSubmitted = true;
+                                }
+                            } elseif ($feedContactIdStatus === '6' || $isSkipped) {
                                 $isSubmitted = true;
                             }
                         @endphp

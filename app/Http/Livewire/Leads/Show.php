@@ -452,8 +452,7 @@ class Show extends Component
         $feedId = $this->feed_id;
         $phoneVariants = $this->dialerPhoneCandidates($phone);
         $this->feedContacts = FeedContactValid::where(function ($query) use ($phoneVariants) {
-            $query->whereIn('contact_no_01', $phoneVariants)
-                ->orWhereIn('contact_no_02', $phoneVariants);
+            $query->whereIn('contact_no_01', $phoneVariants);
         })
             ->when($feedId, function ($query, $feedId) {
                 $query->where('feed_id', $feedId); // filter by feed_id if present
@@ -482,18 +481,11 @@ class Show extends Component
 
         if ($boundType && $boundType == 'dialer' && !in_array($this->service_type, ['satisfaction', 'satisfaction-mini'])) {
             $phone = $this->lead->contact_number;
-            $phone2 = $this->phone2;
             $this->selectedContact = $phone;
             // $this->feedContacts = FeedContactValid::where('contact_no_01', $phone)->orWhere('contact_no_02', $phone)->get();
             $feedId = $this->feed_id;
-            $this->feedContacts = FeedContactValid::where(function ($query) use ($phone, $phone2) {
-                $query->whereIn('contact_no_01', $this->dialerPhoneCandidates($phone))
-                    ->orWhereIn('contact_no_02', $this->dialerPhoneCandidates($phone));
-
-                if (!empty($phone2)) {
-                    $query->orWhereIn('contact_no_01', $this->dialerPhoneCandidates($phone2))
-                        ->orWhereIn('contact_no_02', $this->dialerPhoneCandidates($phone2));
-                }
+            $this->feedContacts = FeedContactValid::where(function ($query) use ($phone) {
+                $query->whereIn('contact_no_01', $this->dialerPhoneCandidates($phone));
             })
                 ->when($feedId, fn($query) => $query->where('feed_id', $feedId))
                 ->where(function ($q) use ($userLanguageNames) {
@@ -580,13 +572,7 @@ class Show extends Component
             // dd($this->feedContactId);
 
             $query = FeedContactValid::where(function ($query) use ($phone) {
-                $query->whereIn('contact_no_01', $this->dialerPhoneCandidates($phone))
-                    ->orWhereIn('contact_no_02', $this->dialerPhoneCandidates($phone));
-
-                if ($this->phone2) {
-                    $query->orWhereIn('contact_no_01', $this->dialerPhoneCandidates($this->phone2))
-                        ->orWhereIn('contact_no_02', $this->dialerPhoneCandidates($this->phone2));
-                }
+                $query->whereIn('contact_no_01', $this->dialerPhoneCandidates($phone));
             })
                 ->when($feedId, function ($query, $feedId) {
                     $query->where('feed_id', $feedId);
@@ -806,14 +792,8 @@ class Show extends Component
 
     protected function buildSatisfactionWorkOrders($phone, $phone2, $feedId)
     {
-        $contacts = FeedContactValid::where(function ($query) use ($phone, $phone2) {
-            $query->whereIn('contact_no_01', $this->dialerPhoneCandidates($phone))
-                ->orWhereIn('contact_no_02', $this->dialerPhoneCandidates($phone));
-
-            if (!empty($phone2)) {
-                $query->orWhereIn('contact_no_01', $this->dialerPhoneCandidates($phone2))
-                    ->orWhereIn('contact_no_02', $this->dialerPhoneCandidates($phone2));
-            }
+        $contacts = FeedContactValid::where(function ($query) use ($phone) {
+            $query->whereIn('contact_no_01', $this->dialerPhoneCandidates($phone));
         })
             ->when($feedId, function ($query, $feedId) {
                 $query->where('feed_id', $feedId);

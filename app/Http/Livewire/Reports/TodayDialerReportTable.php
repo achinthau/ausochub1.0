@@ -304,7 +304,7 @@ class TodayDialerReportTable extends DataTableComponent
                 $record->comments ?? 'N/A',
                 optional($record->campaign)->name ?? 'N/A',
                 optional($record->updater)->name ?? 'N/A',
-                $record->attempted_at ? $record->attempted_at->toDateTimeString() : 'N/A',
+                $record->attempted_at ? Carbon::parse($record->attempted_at)->toDateTimeString() : 'N/A',
             ];
 
             $csvData[] = $row;

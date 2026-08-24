@@ -114,24 +114,15 @@ class CallPanel extends Component
         if ($record) {
             $userId = Auth::id();
             $phone = $record->contact_no_01 ?? $record->contact_no_02;
-            $phone2 = $record->contact_no_02 ?? $record->contact_no_01;
             $feedId = $record->feed_id;
 
             // Assign only the loaded record to the current agent
             $record->update(['assigned_to' => $userId]);
 
-            // Assign all related work orders with the same contact number(s) to this
-            // agent too, so different work orders from the same customer go to the
-            // same agent (matches the Next Customer logic in leads.show).
-            $relatedContacts = FeedContactValid::where(function ($query) use ($phone, $phone2) {
-                $query->where('contact_no_01', $phone)
-                    ->orWhere('contact_no_02', $phone);
-
-                if (!empty($phone2) && $phone2 !== $phone) {
-                    $query->orWhere('contact_no_01', $phone2)
-                        ->orWhere('contact_no_02', $phone2);
-                }
-            })
+            // Assign all related work orders with the same primary contact number to
+            // this agent too, so different work orders from the same customer go to
+            // the same agent (matches the Next Customer logic in leads.show).
+            $relatedContacts = FeedContactValid::where('contact_no_01', $phone)
                 ->when($feedId, fn($query) => $query->where('feed_id', $feedId))
                 ->where(function ($q) use ($userLanguageNames) {
                     $q->whereNull('lang')
@@ -174,29 +165,18 @@ class CallPanel extends Component
         // dd($this->feed_id);
         // dd($this->campaignName);
         $number = !empty($phone) ? $phone : $phone2;
-        $number2 = !empty($phone) ? $phone2 : $phone;
 
         // dd($this->addressLine2);
-
-        // If it's only 9 digits, add the 0
-        // if (!empty($number) && strlen($number) === 9) {
-        //     $number = '0' . $number;
-        // }
 
         // Try to find lead
         // $lead = Lead::where('contact_number', $number)->first();
         // $lead = Lead::where('contact_number', 'LIKE', "%{$number}%")->first();
-        $lead = Lead::where(function ($query) use ($number, $number2) {
-        if (!empty($number)) {
-            $query->where('contact_number', 'LIKE', "%{$number}%")
-                  ->orWhere('contact_number_2', 'LIKE', "%{$number}%");
-        }
-
-        if (!empty($number2)) {
-            $query->orWhere('contact_number', 'LIKE', "%{$number2}%")
-                  ->orWhere('contact_number_2', 'LIKE', "%{$number2}%");
-        }
-    })->first();
+        $lead = Lead::where(function ($query) use ($number) {
+            if (!empty($number)) {
+                $query->where('contact_number', 'LIKE', "%{$number}%")
+                      ->orWhere('contact_number_2', 'LIKE', "%{$number}%");
+            }
+        })->first();
 
 
         if (!$lead) {

@@ -31,6 +31,7 @@ class Index extends Component
 
         $this->campaigns = CampaignMetric::with('types')
             ->whereNotIn('status', [3, 4])
+            ->orderBy('created_at', 'desc')
             ->get();
 
         $this->dispatchBrowserEvent('notify', 'Campaign status updated!');
@@ -86,6 +87,7 @@ class Index extends Component
     $this->campaigns = CampaignMetric::with('types')
             ->whereIn('company_id', $contextIds)
             // ->whereNotIn('status', [3, 4])
+            ->orderBy('created_at', 'desc')
             ->get();
     }
     public function render()

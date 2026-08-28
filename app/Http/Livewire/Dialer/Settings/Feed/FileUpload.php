@@ -86,8 +86,6 @@ class FileUpload extends Component
 //     Log::info("Processing Feed ID: {$feed->id}");
 
     FeedContact::where('feed_id', $feed->id)->delete();
-    FeedContactValid::where('feed_id', $feed->id)->delete();
-    FeedContactInValid::where('feed_id', $feed->id)->delete();
 
     // Import Excel file and insert into FeedContact
     Excel::import(new class($feed->id, $batchSize) implements OnEachRow, WithChunkReading {

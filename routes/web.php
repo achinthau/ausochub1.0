@@ -274,3 +274,25 @@ Route::get('/db-check', function () {
         return response()->json(['error' => $e->getMessage()]);
     }
 });
+
+// ─── Phone (WebRTC softphone) ──────────────────────────────────────────────
+// Session-auth (cookie) endpoints used by the browser <auso-phone> element,
+// so they live on the web routes with web+auth middleware (no /api prefix).
+use App\Http\Controllers\Api\PhoneCallController;
+use App\Http\Controllers\Api\PhoneCredentialController;
+
+Route::middleware(['web', 'auth'])->group(function () {
+    Route::get('/api/phone/credentials', [PhoneCredentialController::class, 'show'])
+        ->name('api.phone.credentials');
+    Route::delete('/api/phone/credentials', [PhoneCredentialController::class, 'destroy'])
+        ->name('api.phone.credentials.revoke');
+
+    Route::get('/api/customers/lookup', [PhoneCallController::class, 'lookup'])
+        ->name('api.customers.lookup');
+    Route::post('/api/phone/call-records', [PhoneCallController::class, 'storeCallRecord'])
+        ->name('api.phone.call-records');
+
+    // Manual SIP credentials save (used when auto-login is unavailable).
+    Route::post('/api/phone/credentials/manual', [PhoneCredentialController::class, 'store'])
+        ->name('api.phone.credentials.manual');
+});

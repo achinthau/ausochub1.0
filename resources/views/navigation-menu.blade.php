@@ -99,6 +99,7 @@
                     @livewire('chat.chat-nav-button')
                     @livewire('whatsapp.whatsapp-nav-button')
                     @livewire('messenger.messenger-nav-button')
+                    @livewire('phone.phone-nav-button')
                 @endcan
 
                 @canany(['is-admin', 'is-agent', 'nps-user'])

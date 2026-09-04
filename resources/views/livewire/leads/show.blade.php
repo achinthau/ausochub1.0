@@ -408,8 +408,16 @@
 
                             @if(collect($feedContacts)->isNotEmpty() || collect($surveyContacts)->isNotEmpty())
 
+                                @php
+                                    $loadedContactIds = collect($feedContacts)->pluck('id')
+                                        ->merge(collect($surveyContacts)->pluck('feed_contact_id'))
+                                        ->filter()
+                                        ->unique()
+                                        ->values();
+                                @endphp
+
                                 <div class="flex justify-between">
-                                    <h2 class="font-bold text-sm mb-2">All Work Orders</h2>
+                                    <h2 class="font-bold text-sm mb-2">All Work Orders{{ $loadedContactIds->count() > 1 ? ' ('.$loadedContactIds->count().')' : '' }}</h2>
                                     <div class="pr-4 space-x-4">
                                         {{-- <div class="relative group">
                                             <svg wire:click="makeCall('{{ $lead->contact_number }}')"
@@ -433,19 +441,20 @@
                                         {{-- <button type="button" wire:click="makeCall('{{ $lead->contact_number }}')"
                                             class="w-24 bg-green-300 font-bold hover:bg-green-400 p-2 rounded-md shadow-md ">
                                             Make a call</button> --}}
+                                            
                                         <button type="button"
-                                            wire:click="$emit('openSkipContactModal', '{{ $lead->contact_number }}','{{ $lead->contact_number_2 }}', '{{ $feed_id }}', '{{ $service_type }}')"
+                                            wire:click="$emit('openSkipContactModal', '{{ $lead->contact_number }}','{{ $lead->contact_number_2 }}', '{{ $feed_id }}', '{{ $service_type }}', '{{ $loadedContactIds->implode(',') }}')"
                                             class="w-24 bg-orange-300 font-bold hover:bg-orange-400 p-2 rounded-md shadow-md">
                                             Skip
                                         </button>
 
-                                        @if ($service_type == 'satisfaction')
+                                        {{-- @if ($service_type == 'satisfaction')
                                         <button type="button"
                                             wire:click="$emit('openUpdateContactModal', '{{ $lead->contact_number }}','{{ $lead->contact_number_2 }}', '{{ $feed_id }}', '{{ $service_type }}')"
                                             class="w-32 bg-orange-300 font-bold hover:bg-orange-400 p-2 rounded-md shadow-md">
                                             Change Request
                                         </button>
-                                        @endif
+                                        @endif --}}
 
                                     </div>
 
@@ -502,7 +511,10 @@
 
     @foreach ($surveyContacts as $ticket)
     @php
-        $contactData = json_decode($ticket->data ?? '{}', true);
+        $ticket = (object) $ticket;
+        $contactData = json_decode($ticket->more_data ?? '{}', true);
+
+        $campaignId = \App\Models\Campaign::where('name', $campaign)->value('id');
 
         // Status classifications
         $isAnswered = $ticket->status == 'Rated'; 
@@ -516,13 +528,13 @@
         // $hideNotAnsweredButtons = $notAnswered && $lastUpdated->isToday();
         // $hideNotAnsweredButtons = $notAnswered && $lastUpdated->greaterThan(now()->startOfDay());
         $hideNotAnsweredButtons = ($ticket->status == 'ReOpened') || ($ticket->status == 'Canceled') || ($ticket->status == 'Skip' && $lastUpdated->greaterThan(\Carbon\Carbon::now()->subMinutes(1)));
-        $notAnsweredCount = strlen( $feedContactIdStatus);
+        $notAnsweredCount = $satisfactionNotAnsweredCounts[trim($ticket->work_order_no)] ?? strlen((string) $feedContactIdStatus);
     @endphp
 
     <details class="border rounded-lg shadow-sm p-2
         @if($isAnswered)
             bg-green-50 border-green-300
-        @elseif($isNotAnswered == 'Skip' || $isNotAnswered == 'ReOpened' || $isNotAnswered == 'Canceled')
+        @elseif($isNotAnswered == 'Skip' || $isNotAnswered == 'ReOpened' || $isNotAnswered == 'Canceled' || $isNotAnswered == 'Change Request')
             bg-yellow-50 border-yellow-300
         @else
             bg-gray-50 border-gray-200
@@ -533,7 +545,7 @@
         <summary class="flex justify-between items-center cursor-pointer px-2 py-2 text-lg font-semibold rounded-t-lg
             @if($isAnswered)
                 text-green-700 hover:bg-green-100
-            @elseif($isNotAnswered == 'Skip' || $isNotAnswered == 'ReOpened' || $isNotAnswered == 'Canceled')
+            @elseif($isNotAnswered == 'Skip' || $isNotAnswered == 'ReOpened' || $isNotAnswered == 'Canceled' || $isNotAnswered == 'Change Request')
                 text-yellow-700 hover:bg-yellow-100
             @else
                 text-gray-700 hover:bg-gray-100
@@ -559,6 +571,10 @@
                 @elseif($isNotAnswered == 'Canceled')
                     <span class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-yellow-600 rounded-full">
                         Canceled
+                    </span>
+                @elseif($isNotAnswered == 'Change Request')
+                    <span class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-yellow-600 rounded-full">
+                        Change Request
                     </span>
                 @endif
 
@@ -633,7 +649,7 @@
             </div>
 
             {{-- Technician Details --}}
-            <div class="border p-2 rounded-lg shadow-md mt-4">
+            {{-- <div class="border p-2 rounded-lg shadow-md mt-4">
                 <h1 class="p-1 pl-0 font-bold text-lg">Technician Details</h1>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -657,7 +673,56 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> --}}
+
+            {{-- More Data --}}
+            @if(!empty($contactData))
+                <div class="border p-3 rounded-lg shadow-md mt-4">
+                    <h1 class="p-1 pl-0 font-bold text-lg">More Data</h1>
+                    <ul class="grid grid-cols-2 gap-x-4 gap-y-1 text-base">
+                        @foreach($contactData as $key => $value)
+                            @if(!empty($key))
+                                @if(is_array($value))
+                                    <li class="col-span-2">
+                                        <span class="font-medium text-base">
+                                            {{ ucfirst(str_replace('_', ' ', $key)) }}:
+                                        </span>
+                                        <div class="mt-2 ml-4 space-y-2">
+                                            @foreach($value as $item)
+                                                @if(is_array($item))
+                                                    <div class="border rounded p-2 bg-gray-50">
+                                                        <ul class="grid grid-cols-2 gap-x-4 gap-y-1">
+                                                            @foreach($item as $itemKey => $itemValue)
+                                                                @if(!is_array($itemValue))
+                                                                    <li>
+                                                                        <span class="font-medium">
+                                                                            {{ ucfirst(str_replace('_', ' ', $itemKey)) }}:
+                                                                        </span>
+                                                                        {{ $itemValue }}
+                                                                    </li>
+                                                                @endif
+                                                            @endforeach
+                                                        </ul>
+                                                    </div>
+                                                @else
+                                                    <div class="ml-2">{{ $item }}</div>
+                                                @endif
+                                            @endforeach
+                                        </div>
+                                    </li>
+                                @else
+                                    <li>
+                                        <span class="font-bold text-base">
+                                            {{ ucfirst(str_replace('_', ' ', $key)) }}:
+                                        </span>
+                                        {{ $value }}
+                                    </li>
+                                @endif
+                            @endif
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
 
             {{-- Skipped Reasons --}}
             @if($isNotAnswered == 'Skip')
@@ -676,7 +741,7 @@
             <div class="flex pt-4 space-x-3 pb-2">
                 <div class="group relative inline-flex">
                     <a href="#"
-                       wire:click.prevent="$emitTo('cx-tickets.survey.rating-panel','showCxTicketRatingModal', {{ $ticket->id }}, false, '{{ $ticket->work_order_no }}')"
+                       wire:click.prevent="$emitTo('cx-tickets.survey.satisfaction-rating-panel','showCxTicketRating', {{ $ticket->feed_contact_id }}, false, {{ $campaignId }})"
                        class="p-2 bg-teal-500 hover:bg-teal-600 text-black rounded-md">
                         <svg class="w-8 h-8" fill="currentColor" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"> <path d="M313.4 32.9c26 5.2 42.9 30.5 37.7 56.5l-2.3 11.4c-5.3 26.7-15.1 52.1-28.8 75.2l144 0c26.5 0 48 21.5 48 48c0 18.5-10.5 34.6-25.9 42.6C497 275.4 504 288.9 504 304c0 23.4-16.8 42.9-38.9 47.1c4.4 7.3 6.9 15.8 6.9 24.9c0 21.3-13.9 39.4-33.1 45.6c.7 3.3 1.1 6.8 1.1 10.4c0 26.5-21.5 48-48 48l-97.5 0c-19 0-37.5-5.6-53.3-16.1l-38.5-25.7C176 420.4 160 390.4 160 358.3l0-38.3 0-48 0-24.9c0-29.2 13.3-56.7 36-75l7.4-5.9c26.5-21.2 44.6-51 51.2-84.2l2.3-11.4c5.2-26 30.5-42.9 56.5-37.7zM32 192l64 0c17.7 0 32 14.3 32 32l0 224c0 17.7-14.3 32-32 32l-64 0c-17.7 0-32-14.3-32-32L0 224c0-17.7 14.3-32 32-32z"/> </svg>
                     </a>
@@ -686,7 +751,7 @@
                 {{-- CANCEL --}}
                 <div class="group relative inline-flex">
                     <a href="#"
-                       wire:click.prevent="$emitTo('cx-tickets.survey.rating-panel','showCxTicketRatingModal', {{ $ticket->id }}, true, '{{ $ticket->work_order_no }}')"
+                       wire:click.prevent="$emitTo('cx-tickets.survey.satisfaction-rating-panel','showCxTicketRating', {{ $ticket->feed_contact_id }}, true, {{ $campaignId }})"
                        class="p-2 bg-red-400 hover:bg-red-500 text-black rounded-md">
                         <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"> <path d="M12 2C6.47 2 2 6.47 2 12s4.47 10 10 10 10-4.47 10-10S17.53 2 12 2zm5 13.59L15.59 17 12 13.41 8.41 17 7 15.59 10.59 12 7 8.41 8.41 7 12 10.59 15.59 7 17 8.41 13.41 12 17 15.59z"/> </svg>
                     </a>
@@ -694,19 +759,19 @@
                 </div>
 
                 {{-- REOPEN --}}
-                <div class="group relative inline-flex">
+                {{-- <div class="group relative inline-flex">
                     <a href="#"
-                       wire:click.prevent="$emitTo('cx-tickets.survey.reopen-panel','showReOpenPanel', {{ $ticket->id }}, 'reopen', '{{ $ticket->work_order_no }}')"
+                       wire:click.prevent="$emitTo('cx-tickets.survey.satisfaction-reopen-panel','showReOpenPanel', {{ $ticket->feed_contact_id }}, 'reopen', {{ $campaignId }})"
                        class="p-2 bg-orange-400 hover:bg-orange-500 text-black rounded-md">
-                        <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"> <path d="M5 4a2 2 0 0 0-2 2v6H0l4 4 4-4H5V6h7l2-2H5zm10 4h-3l4-4 4 4h-3v6a2 2 0 0 1-2 2H6l2-2h7V8z"/> </svg>
+                        <svg class="w-8 h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"> <path d="M5 4a2 2 0 0 0-2 2v6H0l4 4-4-4H5V6h7l2-2H5zm10 4h-3l4-4 4 4h-3v6a2 2 0 0 1-2 2H6l2-2h7V8z"/> </svg>
                     </a>
                     <span class="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 px-2 py-1 rounded bg-gray-800 text-white text-xs opacity-0 group-hover:opacity-100 transition">ReOpen</span>
-                </div>
+                </div> --}}
 
                 {{-- Not Answered --}}
                 
                     <button type="button"
-                        wire:click="$emit('openCallStatusModal', '{{ $ticket->work_order_no }}', 'not_answered', {{$surveyContacts->count()}}, {{ $ticket->id }})"
+                        wire:click="$emit('openCallStatusModal', '{{ $ticket->work_order_no }}', 'not_answered', {{$surveyContacts->count()}}, {{ $ticket->feed_contact_id }}, {{ $campaignId }})"
                         class="bg-gray-500 text-white font-bold py-2 px-4 rounded-md hover:bg-gray-600 transition-colors duration-200">
                         Not Answered
                     </button>
@@ -718,8 +783,288 @@
     </details>
 @endforeach
 
+    @elseif($service_type == 'satisfaction-mini' && $surveyContacts && $surveyContacts->count() > 0)
 
-    
+    @php
+        $miniFirst = (object) collect($surveyContacts)->first();
+    @endphp
+
+    <div class="bg-white p-4 rounded-lg shadow-md space-y-3">
+
+        @if($miniFirst)
+            <div class="flex flex-wrap justify-between gap-x-8 gap-y-1 text-base">
+                <div class="flex gap-2">
+                    <label class="font-bold">Customer Name:</label>
+                    <span>{{ $miniFirst->customer_name ?? '--' }}</span>
+                </div>
+                <div class="flex gap-2">
+                    <label class="font-bold">Service Center:</label>
+                    <span>{{ $miniFirst->service_center ?? '--' }}</span>
+                </div>
+            </div>
+        @endif
+
+        <hr>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-sm border-collapse min-w-max">
+                <thead>
+                    <tr class="bg-gray-100 text-left">
+                        <th class="p-2 border font-semibold">Priority</th>
+                        <th class="p-2 border font-semibold">Call Status</th>
+                        <th class="p-2 border font-semibold">Rate</th>
+                        <th class="p-2 border font-semibold">Reasons</th>
+                        <th class="p-2 border font-semibold">Comment</th>
+                        {{-- <th class="p-2 border font-semibold">Sold Date</th> --}}
+                        {{-- <th class="p-2 border font-semibold">Product</th> --}}
+                        <th class="p-2 border font-semibold">Product Description</th>
+                        <th class="p-2 border font-semibold">Model</th>
+                        <th class="p-2 border font-semibold">Model Description</th>
+                        <th class="p-2 border font-semibold">Work Type</th>
+                        <th class="p-2 border font-semibold">Real Completion Date</th>
+                        <th class="p-2 border font-semibold">Warranty Status</th>
+                        {{-- <th class="p-2 border font-semibold">More Data</th> --}}
+                        <th class="p-2 border font-semibold">Customer Name</th>
+                        <th class="p-2 border font-semibold">Customer Address</th> 
+                        {{-- <th class="p-2 border font-semibold">Contact 01</th>
+                        <th class="p-2 border font-semibold">Contact 02</th> --}}
+                        @if($surveyContacts && $surveyContacts->count() > 1)
+                            <th class="p-2 border font-semibold text-center">Apply to All</th>
+                        @endif
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($surveyContacts as $ticket)
+                        @php
+                            $ticket = (object) $ticket;
+                            $id = $ticket->feed_contact_id;
+                            $rating = $miniRatings[$id] ?? null;
+                            $callStatus = $miniCallStatus[$id] ?? null;
+
+                            if (is_numeric($rating) && (int) $rating >= 1 && (int) $rating <= 5) {
+                                $reasonOptions = array_merge($satisfactionReasons, $dissatisfactionReasons);
+                            } elseif ($rating === 'cancel' && $callStatus === 'answered') {
+                                $reasonOptions = $cancelAnsweredReasons;
+                            } elseif ($rating === 'cancel' && $callStatus === 'not_answered') {
+                                $reasonOptions = $cancelNotAnsweredReasons;
+                            } elseif ($rating === 'not_answered') {
+                                $reasonOptions = $dissatisfactionReasons;
+                            } else {
+                                $reasonOptions = [];
+                            }
+
+                            $moreData = json_decode($ticket->more_data ?? '{}', true) ?: [];
+
+                            $isSubmitted = in_array($ticket->status, ['Rated', 'Canceled', 'Change Request'], true);
+                            $isSkipped = $ticket->status === 'Skipped';
+                            $isNotAnswered = $ticket->status == 'Skip';
+                            $feedContactIdStatus = (string) ($ticket->feed_contact_status ?? '');
+                            $isNotAnsweredStatus = str_starts_with($feedContactIdStatus, '2');
+                            $notAnsweredCount = $isNotAnsweredStatus ? strlen($feedContactIdStatus) : 0;
+
+                            if ($isNotAnsweredStatus) {
+                                $nextAvailable = $ticket->next_available_at ? \Carbon\Carbon::parse($ticket->next_available_at) : null;
+                                if ($nextAvailable && $nextAvailable->isFuture()) {
+                                    $isSubmitted = true;
+                                }
+                            } elseif ($feedContactIdStatus === '6' || $isSkipped) {
+                                $isSubmitted = true;
+                            }
+                        @endphp
+                        <tr class="align-top border-b hover:bg-gray-50">
+                            <td class="p-2 border font-semibold">
+                                {{ $ticket->work_order_no ?? '--' }}
+                                @if($isNotAnsweredStatus)
+                                    <div class="mt-1 flex items-center gap-1">
+                                        <span class="px-2 py-0.5 text-xs font-semibold text-white bg-yellow-600 rounded-full">
+                                            Not Answered
+                                        </span>
+                                        <span class="px-2 py-0.5 text-xs font-bold text-white bg-red-700 rounded-full">
+                                            {{ $notAnsweredCount }}
+                                        </span>
+                                    </div>
+                                @elseif($isSkipped)
+                                    <div class="mt-1">
+                                        <span class="px-2 py-0.5 text-xs font-semibold text-white bg-orange-600 rounded-full">
+                                            Skipped
+                                        </span>
+                                    </div>
+                                @elseif($isSubmitted)
+                                    <div class="mt-1">
+                                        <span class="px-2 py-0.5 text-xs font-semibold text-white bg-green-600 rounded-full">
+                                            Submitted
+                                        </span>
+                                    </div>
+                                @endif
+                            </td>
+
+                            <td class="p-2 border">
+                                <div x-data="{ open: false }" class="relative">
+                                    <button type="button" @click="open = !open" @disabled($isSubmitted)
+                                        class="border p-1 rounded w-full text-xs flex items-center justify-center {{ $isSubmitted ? 'bg-gray-100' : 'bg-white' }}">
+                                        @if(($miniCallStatus[$id] ?? '') === 'answered')
+                                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-green-500">
+                                                {{-- <svg class="w-5 h-5 text-white" style="transform: rotate(180deg);" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"></path></svg> --}}
+                                                <svg class="w-5 h-5 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"></path><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"></path></svg>
+                                            </span>
+                                        @elseif(($miniCallStatus[$id] ?? '') === 'not_answered')
+                                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-red-500">
+                                                <svg class="w-5 h-5 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"></path></svg>
+                                            </span>
+                                        @else
+                                            <span class="text-gray-400">-- Select --</span>
+                                        @endif
+                                    </button>
+                                    <div x-show="open" x-cloak x-on:click.away="open = false"
+                                        class="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded shadow-xl text-xs">
+                                        <button type="button" wire:click="$set('miniCallStatus.{{ $id }}', 'answered')" @click="open = false"
+                                            class="w-full px-2 py-1 text-left hover:bg-gray-50 flex items-center justify-center gap-1">
+                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-500">
+                                                <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M0 0h24v24H0z" fill="none"></path><path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z"></path></svg>
+                                            </span>
+                                        </button>
+                                        <button type="button" wire:click="$set('miniCallStatus.{{ $id }}', 'not_answered')" @click="open = false"
+                                            class="w-full px-2 py-1 text-left hover:bg-gray-50 flex items-center justify-center gap-1">
+                                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-500">
+                                                <svg class="w-4 h-4 text-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 9c-1.6 0-3.15.25-4.6.72v3.1c0 .39-.23.74-.56.9-.98.49-1.87 1.12-2.66 1.85-.18.18-.43.28-.7.28-.28 0-.53-.11-.71-.29L.29 13.08c-.18-.17-.29-.42-.29-.7 0-.28.11-.53.29-.71C3.34 8.78 7.46 7 12 7s8.66 1.78 11.71 4.67c.18.18.29.43.29.71 0 .28-.11.53-.29.71l-2.48 2.48c-.18.18-.43.29-.71.29-.27 0-.52-.11-.7-.28-.79-.74-1.69-1.36-2.67-1.85-.33-.16-.56-.5-.56-.9v-3.1C15.15 9.25 13.6 9 12 9z"></path></svg>
+                                            </span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <td class="p-2 border">
+                                <select wire:model="miniRatings.{{ $id }}" @disabled($isSubmitted)
+                                    class="border p-1 rounded w-full text-xs text-center {{ $isSubmitted ? 'bg-gray-100' : '' }}">
+                                    <option value="">-- Select --</option>
+                                    <option value="1" class="text-red-700 bg-red-50">1</option>
+    <option value="2" class="text-orange-700 bg-orange-50">2</option>
+    <option value="3" class="text-yellow-700 bg-yellow-50">3</option>
+    <option value="4" class="text-lime-700 bg-lime-50">4</option>
+    <option value="5" class="text-green-700 bg-green-50">5</option>
+                                    <option value="cancel" class="text-gray-700 bg-gray-50">Cancel</option>
+                                    <option value="change_request" class="text-blue-700 bg-blue-50">Change Request</option>
+                                    <option value="not_answered" class="text-red-700 bg-red-50">Not Answered</option>
+                                    <option value="not_in_use" class="text-gray-700 bg-gray-50">Not In Use</option>
+                                </select>
+                            </td>
+
+                            <td class="p-2 border">
+                                @if($reasonOptions)
+                                    <div x-data="{ open: false }" class="relative inline-block">
+                                        <button type="button" @click="open = !open" @disabled($isSubmitted)
+                                            class="w-44 border p-1 rounded text-xs flex items-center justify-between {{ $isSubmitted ? 'bg-gray-100' : 'bg-white' }}">
+                                            <span class="truncate">
+                                                {{ count((array) ($miniSelectedReasons[$id] ?? [])) }} selected
+                                            </span>
+                                            <svg class="w-3 h-3 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                            </svg>
+                                        </button>
+                                        <div x-show="open" x-cloak x-on:click.away="open = false"
+                                            class="absolute z-50 mt-1 w-64 max-h-48 overflow-y-auto border border-gray-200 bg-white rounded shadow-xl p-1">
+                                            @foreach($reasonOptions as $reason)
+                                                <label class="flex items-center gap-1 p-1 hover:bg-gray-50 cursor-pointer text-xs whitespace-nowrap">
+                                                    <input type="checkbox" value="{{ $reason }}"
+                                                        @checked(in_array($reason, (array) ($miniSelectedReasons[$id] ?? [])))
+                                                        wire:click.prevent="toggleMiniReason({{ $id }}, '{{ addslashes($reason) }}')"
+                                                        class="rounded">
+                                                    {{ $reason }}
+                                                </label>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @else
+                                    <span class="text-gray-400 text-xs">No reasons</span>
+                                @endif
+                            </td>
+
+                            <td class="p-2 border">
+                                <textarea wire:model="miniComments.{{ $id }}" rows="2"
+                                    @disabled($isSubmitted)
+                                    class="w-40 border p-1 rounded text-xs {{ $isSubmitted ? 'bg-gray-100' : '' }}"
+                                    placeholder="Add comment"></textarea>
+                            </td>
+
+                            {{-- <td class="p-2 border">{{ $ticket->sold_date ?? '--' }}</td> --}}
+                            
+                            @php
+                                $normalizeKey = function ($k) { return strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $k)); };
+                                $targetFields = [
+                                    'realcompletiondate' => 'Real Completion Date',
+                                    'productdescription' => 'Product Description',
+                                    'modeldescription' => 'Model Description',
+                                    'worktype' => 'Work Type',
+                                ];
+                                $matched = [];
+                                $matchedKeys = [];
+                                foreach ($moreData as $k => $v) {
+                                    $nk = $normalizeKey($k);
+                                    if (isset($targetFields[$nk])) {
+                                        $matched[$nk] = $v;
+                                        $matchedKeys[] = $k;
+                                    }
+                                }
+                                $remainingData = array_diff_key($moreData, array_flip($matchedKeys));
+                            @endphp
+
+                            {{-- <td class="p-2 border">{{ $ticket->product ?? '--' }}</td> --}}
+                            <td class="p-2 border text-xs">{{ $matched['productdescription'] ?? '--' }}</td>
+                            <td class="p-2 border">{{ $ticket->model ?? '--' }}</td>
+                            <td class="p-2 border text-xs">{{ $matched['modeldescription'] ?? '--' }}</td>
+                            <td class="p-2 border text-xs">{{ $matched['worktype'] ?? '--' }}</td>          
+                            <td class="p-2 border text-xs">{{ $matched['realcompletiondate'] ?? '--' }}</td>
+
+
+                            <td class="p-2 border">{{ $ticket->warranty_status ?? '--' }}</td>
+
+
+                            {{-- <td class="p-2 border">
+                                @if($remainingData)
+                                    <div class="text-xs space-y-0.5">
+                                        @foreach($remainingData as $key => $value)
+                                            @if($value === null || $value === '' || $key === '')
+                                                @continue
+                                            @endif
+                                            <div class="whitespace-nowrap">
+                                                <span class="font-semibold">{{ ucfirst(str_replace('_', ' ', $key)) }}:</span>
+                                                {{ is_array($value) ? json_encode($value) : $value }}
+                                            </div>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <span class="text-gray-400 text-xs">--</span>
+                                @endif
+                            </td> --}}
+
+                            <td class="p-2 border">{{ $ticket->customer_name ?? '--' }}</td>
+                            <td class="p-2 border">{{ $ticket->customer_address ?? '--' }}</td>
+                            {{-- <td class="p-2 border">{{ $ticket->customer_contact_01 ?? '--' }}</td>
+                            <td class="p-2 border">{{ $ticket->customer_contact_02 ?? '--' }}</td> --}}
+                            @if($surveyContacts && $surveyContacts->count() > 1)
+                                <td class="p-2 border text-center">
+                                    @if(($miniCallStatus[$id] ?? null) !== null && !$isSubmitted)
+                                        <input type="checkbox"
+                                            @checked($miniApplyToAll == $id)
+                                            wire:click="$set('miniApplyToAll', {{ $miniApplyToAll == $id ? 'null' : $id }})"
+                                            class="rounded cursor-pointer">
+                                    @endif
+                                </td>
+                            @endif
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        <div class="flex justify-start pt-2">
+            <button type="button" wire:click="submitSatisfactionMini" wire:loading.attr="disabled"
+                class="bg-teal-500 text-white font-bold py-2 px-6 rounded-md hover:bg-teal-600 transition-colors duration-200">
+                Submit
+            </button>
+        </div>
+    </div>
+
     @elseif($service_type == 'follow-up' && $feedContacts && $feedContacts->count() > 0)
 
                                 @foreach($feedContacts as $contact)
@@ -995,4 +1340,6 @@
 
     @livewire('cx-tickets.survey.rating-panel')
     @livewire('cx-tickets.survey.reopen-panel')
+    @livewire('cx-tickets.survey.satisfaction-rating-panel')
+    @livewire('cx-tickets.survey.satisfaction-reopen-panel')
 @endpush

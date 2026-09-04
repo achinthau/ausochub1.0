@@ -24,6 +24,8 @@
     option-value="name"
 />
 
+        <x-select label="Languages" placeholder="Select languages" multiselect :options="$languages"
+            wire:model.defer="selectedLanguages" option-label="name" option-value="id" />
 
 
         @if (($user && $user->agent) || ($user && $user->user_type_id > 2))

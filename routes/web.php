@@ -14,6 +14,7 @@ use App\Http\Livewire\Reports\BreakSummary;
 use App\Http\Livewire\Reports\AgentCallSummary;
 use App\Http\Livewire\Reports\AgentLoginLogoutReport;
 use App\Http\Livewire\Reports\DialerContactAttemptReport;
+use App\Http\Livewire\Reports\TodayDialerReport;
 use App\Http\Livewire\Reports\NuisanceCustomers;
 use App\Http\Livewire\Reports\UnsatisfiedCustomers;
 // use App\Http\Livewire\Reports\CallDetail;
@@ -122,6 +123,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/nuisance-customers-report', NuisanceCustomers::class)->name('reports.nuisance-customers-report')->can('is-admin');
         Route::get('/unsatisfied-customers-report', UnsatisfiedCustomers::class)->name('reports.unsatisfied-customers-report')->can('is-admin');
         Route::get('/dialer-contact-attempt-report', DialerContactAttemptReport::class)->name('reports.dialer-contact-attempt-report')->middleware('can:can-view-cdr-reports');
+        Route::get('/today-dialer-report', TodayDialerReport::class)->name('reports.today-dialer-report')->middleware('can:can-view-leads');
         Route::get('/agent-performance-report', AgentPerformanceReport::class)->name('reports.agent-performance-report')->middleware('can:can-view-cdr-reports');
         Route::get('/agent-performance-report-analytics', \App\Http\Livewire\Reports\AgentPerformanceAnalytics::class)->name('reports.agent-performance-report-analytics')->middleware('can:can-view-cdr-reports');
         Route::get('/agent-performance-metrics-report', AgentPerformanceMetricsReport::class)->name('reports.agent-performance-metrics-report')->middleware('can:can-view-cdr-reports');

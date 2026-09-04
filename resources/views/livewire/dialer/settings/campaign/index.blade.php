@@ -24,4 +24,6 @@
 
 @push('modals')
     @livewire('dialer.settings.campaign.create')
+    @livewire('dialer.settings.campaign.status-option')
+    @livewire('dialer.settings.campaign.max-dial-count')
 @endpush

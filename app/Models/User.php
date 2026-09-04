@@ -193,4 +193,9 @@ public function extensionData()
     {
         return $this->hasMany(CxTicket::class, 'technician_name', 'name');
     }
+
+    public function languages()
+    {
+        return $this->belongsToMany(Language::class, 'language_user', 'user_id', 'language_id');
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Livewire\Dashboard\Partials\Dialer;
 
 use App\Models\Campaign;
+use App\Models\CampaignAgentDialLimit;
 use App\Models\FeedContactValid;
 use App\Models\Lead;
 use Illuminate\Support\Facades\Auth;
@@ -63,18 +64,32 @@ class CallPanel extends Component
         //     });
         $campaigns = Campaign::where('status', 1)
             ->whereIn('name', $currentSkills)
-            ->get();
+            ->get()
+            ->filter(function ($campaign) use ($userId) {
+                return !CampaignAgentDialLimit::hasReachedLimit((int) $campaign->id, (int) $userId);
+            });
 
         // dd($campaigns);
         //status and name index 
 
-
-
+        if ($campaigns->isEmpty()) {
+            $this->phone = null;
+            $this->reason = 'No available contacts in your assigned campaigns.';
+            return;
+        }
 
         // 2. Collect feed IDs from these campaigns
         $feedIds = $campaigns->flatMap->feed_ids->unique()->toArray();
 
+        if (empty($feedIds)) {
+            $this->phone = null;
+            $this->reason = 'No available contacts in your assigned campaigns.';
+            return;
+        }
+
         // 3. Find first available contact for those feeds
+        $userLanguageNames = Auth::user()->languages->pluck('name')->toArray();
+
         $record = FeedContactValid::whereIn('feed_id', $feedIds)
             ->where(function ($query) {
                 $query->whereNull('status') // Fresh ones
@@ -88,6 +103,10 @@ class CallPanel extends Component
                 $query->whereNull('assigned_to')        // unassigned
                     ->orWhere('assigned_to', $userId); // or already assigned to this user
             })
+            ->where(function ($q) use ($userLanguageNames) {
+                $q->whereNull('lang')
+                    ->orWhereIn('lang', $userLanguageNames);
+            })
             ->first();
 
             // indexes for feed_id, status
@@ -95,21 +114,27 @@ class CallPanel extends Component
         if ($record) {
             $userId = Auth::id();
             $phone = $record->contact_no_01 ?? $record->contact_no_02;
-            $phone2 = $record->contact_no_02 ?? $record->contact_no_01;
             $feedId = $record->feed_id;
 
-            // 1. Find all rows with this number across all feeds
-            $relatedContacts = FeedContactValid::where(function ($query) use ($phone,$phone2) {
-                $query->where('contact_no_01', $phone)
-                    ->orWhere('contact_no_02', $phone)
-                    ->orWhere('contact_no_01', $phone2)
-                    ->orWhere('contact_no_02', $phone2);
-            })
-                ->whereNull('status');
-            // ->where('feed_id',$feedId); 
+            // Assign only the loaded record to the current agent
+            $record->update(['assigned_to' => $userId]);
 
-            // 2. Assign all of them to the current agent
-            $relatedContacts->update(['assigned_to' => $userId]);
+            // Assign all related work orders with the same primary contact number to
+            // this agent too, so different work orders from the same customer go to
+            // the same agent (matches the Next Customer logic in leads.show).
+            $relatedContacts = FeedContactValid::where('contact_no_01', $phone)
+                ->when($feedId, fn($query) => $query->where('feed_id', $feedId))
+                ->where(function ($q) use ($userLanguageNames) {
+                    $q->whereNull('lang')
+                        ->orWhereIn('lang', $userLanguageNames);
+                })
+                ->get();
+
+            if ($relatedContacts->isNotEmpty()) {
+                FeedContactValid::whereIn('id', $relatedContacts->pluck('id')->unique()->values())
+                    ->update(['assigned_to' => $userId]);
+            }
+
             $this->contact = $record;
             $this->phone = !empty($record->contact_no_01) ? $record->contact_no_01 : $record->contact_no_02;
             $this->phone2 = !empty($record->contact_no_02) ? $record->contact_no_02 : $record->contact_no_01;
@@ -140,29 +165,18 @@ class CallPanel extends Component
         // dd($this->feed_id);
         // dd($this->campaignName);
         $number = !empty($phone) ? $phone : $phone2;
-        $number2 = !empty($phone) ? $phone2 : $phone;
 
         // dd($this->addressLine2);
-
-        // If it's only 9 digits, add the 0
-        // if (!empty($number) && strlen($number) === 9) {
-        //     $number = '0' . $number;
-        // }
 
         // Try to find lead
         // $lead = Lead::where('contact_number', $number)->first();
         // $lead = Lead::where('contact_number', 'LIKE', "%{$number}%")->first();
-        $lead = Lead::where(function ($query) use ($number, $number2) {
-        if (!empty($number)) {
-            $query->where('contact_number', 'LIKE', "%{$number}%")
-                  ->orWhere('contact_number_2', 'LIKE', "%{$number}%");
-        }
-
-        if (!empty($number2)) {
-            $query->orWhere('contact_number', 'LIKE', "%{$number2}%")
-                  ->orWhere('contact_number_2', 'LIKE', "%{$number2}%");
-        }
-    })->first();
+        $lead = Lead::where(function ($query) use ($number) {
+            if (!empty($number)) {
+                $query->where('contact_number', 'LIKE', "%{$number}%")
+                      ->orWhere('contact_number_2', 'LIKE', "%{$number}%");
+            }
+        })->first();
 
 
         if (!$lead) {

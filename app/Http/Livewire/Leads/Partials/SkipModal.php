@@ -2,9 +2,6 @@
 
 namespace App\Http\Livewire\Leads\Partials;
 
-use App\Models\CxTicket;
-use App\Models\DialerCallStatusOption;
-use App\Models\FeedContactAttempt;
 use App\Models\FeedContactValid;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -14,17 +11,21 @@ class SkipModal extends Component
     public $SkipContactModal = false;
     public $feedId;
     public $serviceType;
+    public $feedContactIds = [];
     public $comment = '';
 
     protected $listeners = ['openSkipContactModal' => 'openModal'];
 
-    public function openModal($phone,$phone2, $feed_id, $service)
+    public function openModal($phone,$phone2, $feed_id, $service, $feedContactIds = [])
     {
         $this->serviceType = $service;
         $this->SkipContactModal = true;
         $this->phone = $phone;
         $this->phone2 = $phone2;
         $this->feedId = $feed_id;
+        $this->feedContactIds = is_array($feedContactIds)
+            ? array_values(array_filter($feedContactIds))
+            : array_values(array_filter(array_map('trim', explode(',', (string) $feedContactIds))));
     }
 
     protected $rules = [
@@ -33,57 +34,36 @@ class SkipModal extends Component
     public function skipContact()
     {
         $this->validate();
-        $phone = $this->phone;
-        $phone2 = $this->phone2;
 
-        if ($this->serviceType == 'satisfaction') {
-            $surveyTickets = CxTicket::where(function ($query) use ($phone,$phone2) {
-                $query->where('customer_contact_01', $phone)
-                    ->orWhere('customer_contact_02', $phone)
-                    ->orWhere('customer_contact_01', $phone2)
-                    ->orWhere('customer_contact_02', $phone2);
-            })
-                ->where('status', 'Closed')
-                ->get();
+        $query = FeedContactValid::query();
 
-            foreach ($surveyTickets as $surveyTicket) {
-                $surveyTicket->status = 'Skip';
-                $surveyTicket->skipped_reasons = $this->comment;
-                $surveyTicket->skipped_by = Auth::user()->name;
-                $surveyTicket->save();
-            }
-        } 
-        
-            $feeds = FeedContactValid::where('feed_id', $this->feedId)
+        if (!empty($this->feedContactIds)) {
+            $query->whereIn('id', $this->feedContactIds);
+        } else {
+            $query->where('feed_id', $this->feedId)
                 ->where(function ($q) {
                     $q->where('contact_no_01', $this->phone)
                         ->orWhere('contact_no_02', $this->phone)
-                    ->orWhere('contact_no_01', $this->phone2)
-                    ->orWhere('contact_no_02', $this->phone2);
-                })
-                ->get();
+                        ->orWhere('contact_no_01', $this->phone2)
+                        ->orWhere('contact_no_02', $this->phone2);
+                });
+        }
 
-            foreach ($feeds as $feed) {
-                $feed->status = 3; // skipped
-                $feed->save();
+        $feeds = $query->get();
 
-                $option = DialerCallStatusOption::where('option', 'Skip')->first();
-                // dd($option);
-
-                FeedContactAttempt::create([
-                    'feed_contact_valid_id' => $feed->id,
-                    'call_status_option_id' => $option ? $option->id : '0',
-                    'comments' => $this->comment,
-                    'updated_by' => Auth::id(),
-                ]);
-            }
-        
-
-
-        $this->SkipContactModal = false;
+        foreach ($feeds as $feed) {
+            $feed->status = 3; // skipped
+            $feed->call_status_option_id = null;
+            $feed->call_status_option_type = 'skip';
+            $feed->comments = $this->comment;
+            $feed->updated_by = Auth::id();
+            $feed->attempted_at = now();
+            $feed->save();
+        }
         $this->reset('comment');
+        $this->SkipContactModal = false;
+        $this->emitTo('leads.show', 'refreshSatisfaction');
         $this->emitTo('dashboard.partials.dialer.call-panel', 'contactSkipped');
-        $this->dispatchBrowserEvent('close-skipped-tab');
 
     }
 

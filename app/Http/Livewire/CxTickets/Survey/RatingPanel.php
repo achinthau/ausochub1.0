@@ -5,6 +5,7 @@ namespace App\Http\Livewire\CxTickets\Survey;
 use App\Models\CxDisSatisReason;
 use App\Models\CxSatisReason;
 use App\Models\CxTicket;
+use App\Models\CampaignAgentDialLimit;
 use App\Models\FeedContactValid;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -36,6 +37,7 @@ class RatingPanel extends Component
 
     public $isCancel = false;
     public $CancelComment = '' ;
+    public $cancelCallResult = '';
 
     public function mount()
     {
@@ -78,15 +80,34 @@ class RatingPanel extends Component
         $this->selectedReasons = array_filter($this->selectedReasons, fn($r) => $r !== $reason);
     }
 
+    protected function hasChangeRequestReason(): bool
+    {
+        return collect($this->selectedReasons)
+            ->map(fn ($reason) => str_replace(['_', ' '], '', strtolower((string) trim($reason))))
+            ->contains('changerequest');
+    }
+
     public function cancelRatings()
     {
+        if (empty($this->selectedReasons)) {
+            $this->addError('selectedReasons', 'Please select at least one cancelling reason.');
+            return;
+        }
+
+        if (empty($this->cancelCallResult)) {
+            $this->addError('cancelCallResult', 'Please select answered or not answered.');
+            return;
+        }
+
+        $isChangeRequest = $this->hasChangeRequestReason();
+
         $ticket = CxTicket::find($this->ticket_id);
         if ($ticket) {
 
             $cancelReasons = array_intersect($this->selectedReasons, $this->cancelReasons);
 
             $ticket->update([
-                'status' => "Canceled",
+                'status' => $isChangeRequest ? 'Change Request' : "Canceled",
                 'cancelling_reasons' => implode(',', $cancelReasons),
                 'surveyed_by' => Auth::user()->name,
                 'cancelling_comment' => $this->CancelComment,
@@ -95,8 +116,14 @@ class RatingPanel extends Component
 
         if($this->feed)
         {
-            $this->feed->status = 1;
-        $this->feed->save();
+            if ($isChangeRequest) {
+                $this->feed->status = $this->cancelCallResult === 'answered' ? 51 : 52;
+            } else {
+                $this->feed->status = $this->cancelCallResult === 'answered' ? 41 : 42;
+            }
+            $this->feed->call_status_option_type = $isChangeRequest ? 'change_request' : $this->feed->call_status_option_type;
+            $this->feed->save();
+            CampaignAgentDialLimit::incrementForFeed((int) $this->feed->feed_id, (int) Auth::id());
         }
 
         $this->emit('cxTicketSurveyUpdated');
@@ -105,21 +132,29 @@ class RatingPanel extends Component
     }
 
 
-    public function showCxTicketRating($id, $isCancel, $validContact=null)
+    public function showCxTicketRating($id, $isCancel, $validContact=null, $feedContactId=null)
     {
         $this->ticket_id = $id;
         $this->cxTicketRatingModal = true;
         // dd($validContact);
-        if($validContact)
+        if($validContact || $feedContactId)
         {
             // $this->feed = FeedContactValid::find($validContact);
-            $this->feed = FeedContactValid::where('priority_field',$validContact)->first();
+            $this->feed = $feedContactId
+                ? FeedContactValid::find($feedContactId)
+                : FeedContactValid::whereRaw('TRIM(priority_field) = ?', [trim($validContact)])->first();
             // dd($this->feed);
         }
 
         $this->isCancel = $isCancel;
 
         $ticket = CxTicket::find($id);
+
+        $this->cancelCallResult = '';
+
+        if ($isCancel && $this->feed && in_array((string) $this->feed->status, ['41', '42', '51', '52'])) {
+            $this->cancelCallResult = in_array((string) $this->feed->status, ['41', '51']) ? 'answered' : 'not_answered';
+        }
 
         
             if ($ticket) {
@@ -217,6 +252,7 @@ class RatingPanel extends Component
             $this->feed->status = 1;
             $this->feed->next_available_at = NULL;
             $this->feed->save();
+            CampaignAgentDialLimit::incrementForFeed((int) $this->feed->feed_id, (int) Auth::id());
         }
 
             $this->cxTicketRatingModal = false;

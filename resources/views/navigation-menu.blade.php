@@ -60,7 +60,7 @@
                     </div>
                 @endcan
 
-                @canany(['can-view-reports', 'can-view-cdr-reports', 'can-view-dialer-reports'])
+                @canany(['can-view-reports', 'can-view-cdr-reports', 'can-view-dialer-reports', 'can-view-leads'])
                     <a href="{{ route('reports.index') }}" class="flex items-center rounded-xl px-4 py-3 text-sm font-medium transition {{ request()->routeIs('reports.index') ? 'bg-slate-900 text-white shadow-sm' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900' }}">
                         {{ __('Reports') }}
                     </a>

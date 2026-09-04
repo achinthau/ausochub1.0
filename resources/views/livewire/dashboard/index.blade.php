@@ -109,9 +109,28 @@
                         </div>
 
                         <div class="grid grid-cols-3 space-x-4">
-                            <a href="{{ route('chat.index') }}">
-                                <x-dashboard.box title="Messages" :value="$messagesCount" iconBackground="bg-red-100"
-                                    name='message' iconColor="text-red-400" /> </a>
+                            @if($boundType == 'dialer')
+                                @if($hasStartedCampaign)
+                                    <div class="bg-white p-6 rounded-md shadow-md space-y-2">
+                                        <h1 class="text-xs text-gray-400 font-semibold">Statistics</h1>
+                                        <hr>
+                                        <div class="flex space-x-4 mt-4">
+                                            <div class="flex-1">
+                                                <div class="text-gray-500 text-sm">Dialed Today</div>
+                                                <div class="text-xl font-bold">{{ number_format($dialedCallsToday, 0) }}</div>
+                                            </div>
+                                            <div class="flex-1">
+                                                <div class="text-gray-500 text-sm">Completed Today</div>
+                                                <div class="text-xl font-bold">{{ number_format($answeredCallsToday, 0) }}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endif
+                            @else
+                                <a href="{{ route('chat.index') }}">
+                                    <x-dashboard.box title="Messages" :value="$messagesCount" iconBackground="bg-red-100"
+                                        name='message' iconColor="text-red-400" /> </a>
+                            @endif
                             <div class="bg-white p-6 rounded-md shadow-md space-y-2">
                                 <h1 class="text-xs text-gray-400 font-semibold">Skills</h1>
                                 <hr>

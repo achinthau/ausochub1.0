@@ -103,17 +103,6 @@ class Create extends Component
         $this->createCampaignModal = true;
         $this->savedSchedule = json_encode($this->formatSchedule(), JSON_PRETTY_PRINT);
         $this->dispatchBrowserEvent('refresh-modal');
-
-//         \Log::debug('Create Campaign Modal Opened', [
-//             'campaign_id' => $this->campaignId,
-//             'name' => $this->name,
-//             'company_id' => $this->company_id,
-//             'user_ids' => $this->user_ids,
-//             'feed_ids' => $this->feed_ids,
-//             'users' => $this->users->toArray(),
-//             'feeds' => $this->feeds->toArray(),
-//             'schedule' => $this->schedule,
-//         ]);
     }
 
     public function showUpdateCampaignModal($campaign_id)
@@ -128,21 +117,6 @@ class Create extends Component
         $campaign = Campaign::find($campaign_id);
         if ($campaign) {
             $this->loadCampaign($campaign);
-//             \Log::debug('Campaign Data Loaded', [
-//                 'campaign_id' => $this->campaignId,
-//                 'name' => $this->name,
-//                 'company_id' => $this->company_id,
-//                 'user_ids' => $this->user_ids,
-//                 'feed_ids' => $this->feed_ids,
-//                 'users' => $this->users->toArray(),
-//                 'feeds' => $this->feeds->toArray(),
-//                 'schedule' => $this->schedule,
-//                 'raw_assigned_users' => $campaign->assigned_users,
-//                 'raw_assigned_feeds' => $campaign->assigned_feeds,
-//                 'raw_schedule' => $campaign->schedule,
-//             ]);
-        } else {
-//             \Log::error('Campaign not found', ['campaign_id' => $campaign_id]);
         }
         $this->createCampaignModal = true;
         $this->dispatchBrowserEvent('refresh-modal');
@@ -153,7 +127,6 @@ class Create extends Component
         if (!$value) {
             $this->users = collect();
             $this->user_ids = [];
-//             \Log::debug('No company selected', ['company_id' => $value]);
             return;
         }
 
@@ -161,7 +134,6 @@ class Create extends Component
         if (!$company) {
             $this->users = collect();
             $this->user_ids = [];
-//             \Log::error('Company not found', ['company_id' => $value]);
             return;
         }
 
@@ -191,36 +163,14 @@ class Create extends Component
         } else {
             $this->user_ids = [];
         }
-
-//         \Log::debug('Users fetched for company', [
-//             'company_id' => $value,
-//             'company_name' => $companyName,
-//             'users' => $this->users->toArray(),
-//             'user_ids' => $this->user_ids,
-//         ]);
     }
 
     public function save()
     {
         $validated = $this->validate([
-            'name' => 'required|string|max:255|unique:campaigns,name',
-            //     'company_id' => 'required|exists:companies,id',
-            //     'user_ids' => 'array|exists:users,id',
-            //     'feed_ids' => 'array|exists:feeds,id',
-            //     'schedule.monday.start' => 'nullable|date_format:h:i A',
-            //     'schedule.monday.end' => 'nullable|date_format:h:i A|after:schedule.monday.start',
-            //     'schedule.tuesday.start' => 'nullable|date_format:h:i A',
-            //     'schedule.tuesday.end' => 'nullable|date_format:h:i A|after:schedule.tuesday.start',
-            //     'schedule.wednesday.start' => 'nullable|date_format:h:i A',
-            //     'schedule.wednesday.end' => 'nullable|date_format:h:i A|after:schedule.wednesday.start',
-            //     'schedule.thursday.start' => 'nullable|date_format:h:i A',
-            //     'schedule.thursday.end' => 'nullable|date_format:h:i A|after:schedule.thursday.start',
-            //     'schedule.friday.start' => 'nullable|date_format:h:i A',
-            //     'schedule.friday.end' => 'nullable|date_format:h:i A|after:schedule.friday.start',
-            //     'schedule.saturday.start' => 'nullable|date_format:h:i A',
-            //     'schedule.saturday.end' => 'nullable|date_format:h:i A|after:schedule.saturday.start',
-            //     'schedule.sunday.start' => 'nullable|date_format:h:i A',
-            //     'schedule.sunday.end' => 'nullable|date_format:h:i A|after:schedule.sunday.start',
+            'name' => $this->campaignId
+                ? 'required|string|max:255|unique:campaigns,name,' . $this->campaignId
+                : 'required|string|max:255|unique:campaigns,name',
         ]);
 
         $formattedSchedule = $this->formatSchedule();
@@ -244,15 +194,10 @@ class Create extends Component
             $data['status'] = $this->status;
             $campaign = Campaign::findOrFail($this->campaignId);
             $campaign->update($data);
-//             \Log::debug('Campaign Updated', ['data' => $data]);
         } else {
             $data['status'] = '0';
             $data['created_by'] = Auth::user()->id;
             Campaign::create($data);
-//             \Log::debug('Campaign Created', ['data' => $data]);
-
-
-
 
             $data2 = [
                 ['name' => 'queueName', 'contents' => $this->name],
@@ -298,18 +243,9 @@ class Create extends Component
 
         }
 
-
-
         $this->createCampaignModal = false;
         $this->emit('campaignTableUpdated');
     }
-
-    //status
-    //['0'=>'inactive'] not started
-    //['1'=>'active'] running
-    //['2'=>'hold']
-    //['3'=>'completed']
-    //['4'=>'canceled']
 
     private function formatSchedule()
     {

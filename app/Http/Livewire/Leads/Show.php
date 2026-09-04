@@ -5,7 +5,9 @@ namespace App\Http\Livewire\Leads;
 use App\Models\CallbackCustomer;
 use App\Models\CallCount;
 use App\Models\Campaign;
+use App\Models\CampaignAgentDialLimit;
 use App\Models\CxTicket;
+use App\Models\DialerCallStatusOption;
 use App\Models\FeedContactValid;
 use App\Models\Lead;
 use App\Models\QueueCount;
@@ -54,6 +56,7 @@ class Show extends Component
     public $surveyContacts;
     public $feedContactId;
     public $feedContactIdStatus;
+    public $satisfactionNotAnsweredCounts = [];
     public $phone_numbers = [];
     public $whatsappModal = false;
     public $whatsappMessage = '';
@@ -64,7 +67,19 @@ class Show extends Component
     public $attachment;
     public $attachmentResetKey = 0;
 
-    protected $listeners = ['refreshCard' => 'refreshCard', 'FeedCompleted' => '$refresh'];
+    public $miniRatings = [];
+    public $miniCallStatus = [];
+    public $miniSelectedReasons = [];
+    public $miniComments = [];
+    public $miniApplyToAll = null;
+
+    public array $satisfactionReasons = [];
+    public array $dissatisfactionReasons = [];
+    public array $cancelAnsweredReasons = [];
+    public array $cancelNotAnsweredReasons = [];
+    public $miniCampaignId = null;
+
+    protected $listeners = ['refreshCard' => 'refreshCard', 'FeedCompleted' => 'refreshFeedContactStatus', 'refreshSatisfaction' => 'refreshSatisfaction'];
 
     protected $rules = [
         'lead.contact_number' => 'required',
@@ -284,8 +299,7 @@ class Show extends Component
     }
 
     protected function resolveLeadForContact(FeedContactValid $contact): Lead
-    {
-        $phone = $this->normalizePhoneNumber($contact->contact_no_01);
+    {        $phone = $this->normalizePhoneNumber($contact->contact_no_01);
         $phone2 = $this->normalizePhoneNumber($contact->contact_no_02);
 
         $lead = Lead::where(function ($query) use ($phone, $phone2) {
@@ -319,6 +333,11 @@ class Show extends Component
         return $lead;
     }
 
+    protected function hasReachedDialLimit($campaignId, $userId): bool
+    {
+        return CampaignAgentDialLimit::hasReachedLimit((int) $campaignId, (int) $userId);
+    }
+
     protected function getCurrentDialerPanelContact(): array
     {
         $userId = Auth::id();
@@ -326,7 +345,14 @@ class Show extends Component
 
         $campaigns = Campaign::where('status', 1)
             ->whereIn('name', $currentSkills)
-            ->get();
+            ->get()
+            ->filter(fn($campaign) => !$this->hasReachedDialLimit($campaign->id, $userId));
+
+        if ($campaigns->isEmpty()) {
+            return [null, null];
+        }
+
+        $userLanguageNames = Auth::user()->languages->pluck('name')->toArray();
 
         $feedIds = $campaigns->flatMap->feed_ids->unique()->toArray();
 
@@ -346,6 +372,10 @@ class Show extends Component
             ->where(function ($query) use ($userId) {
                 $query->whereNull('assigned_to')
                     ->orWhere('assigned_to', $userId);
+            })
+            ->where(function ($q) use ($userLanguageNames) {
+                $q->whereNull('lang')
+                    ->orWhereIn('lang', $userLanguageNames);
             })
             ->first();
 
@@ -376,15 +406,18 @@ class Show extends Component
             return;
         }
 
+        $currentContact->update(['assigned_to' => Auth::id()]);
+
         $this->selectedFeedContact = $currentContact;
         $this->feedContactId = $currentContact->id;
         $this->feedContactIdStatus = $currentContact->status;
 
         $lead = $this->resolveLeadForContact($currentContact);
+        $feedId = $currentContact->feed_id;
 
         return redirect()->route('leads.show', [
             'lead' => $lead->id,
-            'feed' => $currentContact->feed_id,
+            'feed' => $feedId,
             'cmp' => $campaignName ?? $this->campaign,
         ]);
     }
@@ -411,16 +444,22 @@ class Show extends Component
         $boundType = Redis::get("user:{$userId}:bound_type");
         $this->boundType = $boundType;
 
+        $userLanguageNames = Auth::user()->languages->pluck('name')->toArray();
+
         $phone = $this->lead->contact_number;
         $this->selectedContact = $phone;
         // $this->feedContacts = FeedContactValid::where('contact_no_01', $phone)->orWhere('contact_no_02', $phone)->get();
         $feedId = $this->feed_id;
-        $this->feedContacts = FeedContactValid::where(function ($query) use ($phone) {
-            $query->where('contact_no_01', $phone)
-                ->orWhere('contact_no_02', $phone);
+        $phoneVariants = $this->dialerPhoneCandidates($phone);
+        $this->feedContacts = FeedContactValid::where(function ($query) use ($phoneVariants) {
+            $query->whereIn('contact_no_01', $phoneVariants);
         })
             ->when($feedId, function ($query, $feedId) {
                 $query->where('feed_id', $feedId); // filter by feed_id if present
+            })
+            ->where(function ($q) use ($userLanguageNames) {
+                $q->whereNull('lang')
+                    ->orWhereIn('lang', $userLanguageNames);
             })
             ->get();
 
@@ -440,23 +479,25 @@ class Show extends Component
             $this->phone2 = null;
         }
 
-        if ($boundType && $boundType == 'dialer' && $this->service_type != 'satisfaction') {
+        if ($boundType && $boundType == 'dialer' && !in_array($this->service_type, ['satisfaction', 'satisfaction-mini'])) {
             $phone = $this->lead->contact_number;
-            $phone2 = $this->phone2;
             $this->selectedContact = $phone;
             // $this->feedContacts = FeedContactValid::where('contact_no_01', $phone)->orWhere('contact_no_02', $phone)->get();
             $feedId = $this->feed_id;
-            $this->feedContacts = FeedContactValid::where(function ($query) use ($phone, $phone2) {
-                $query->where('contact_no_01', $phone)
-                    ->orWhere('contact_no_02', $phone);
-
-                if (!empty($phone2)) {
-                    $query->orWhere('contact_no_01', $phone2)
-                        ->orWhere('contact_no_02', $phone2);
-                }
+            $this->feedContacts = FeedContactValid::where(function ($query) use ($phone) {
+                $query->whereIn('contact_no_01', $this->dialerPhoneCandidates($phone));
             })
                 ->when($feedId, fn($query) => $query->where('feed_id', $feedId))
+                ->where(function ($q) use ($userLanguageNames) {
+                    $q->whereNull('lang')
+                        ->orWhereIn('lang', $userLanguageNames);
+                })
                 ->get();
+
+            if ($this->feedContacts->isNotEmpty()) {
+                FeedContactValid::whereIn('id', $this->feedContacts->pluck('id')->unique()->values())
+                    ->update(['assigned_to' => Auth::id()]);
+            }
 
 
             if ($this->feedContacts->isNotEmpty()) {
@@ -515,7 +556,7 @@ class Show extends Component
 
 
 
-        if ($boundType && $boundType == 'dialer' && $this->service_type == 'satisfaction') {
+        if ($boundType && $boundType == 'dialer' && in_array($this->service_type, ['satisfaction', 'satisfaction-mini'])) {
             $phone = $this->lead->contact_number;
             $this->selectedContact = $phone;
 
@@ -531,13 +572,7 @@ class Show extends Component
             // dd($this->feedContactId);
 
             $query = FeedContactValid::where(function ($query) use ($phone) {
-                $query->where('contact_no_01', $phone)
-                    ->orWhere('contact_no_02', $phone);
-
-                if ($this->phone2) {
-                    $query->orWhere('contact_no_01', $this->phone2)
-                        ->orWhere('contact_no_02', $this->phone2);
-                }
+                $query->whereIn('contact_no_01', $this->dialerPhoneCandidates($phone));
             })
                 ->when($feedId, function ($query, $feedId) {
                     $query->where('feed_id', $feedId);
@@ -549,18 +584,9 @@ class Show extends Component
 
             $phone2 = $this->phone2;
 
-            $this->surveyContacts = CxTicket::where(function ($query) use ($phone, $phone2) {
+            $this->surveyContacts = $this->buildSatisfactionWorkOrders($phone, $phone2, $feedId);
 
-                $query->where('customer_contact_01', $phone)
-                    ->orWhere('customer_contact_02', $phone);
-
-                if (!empty($phone2)) {
-                    $query->orWhere('customer_contact_01', $phone2)
-                        ->orWhere('customer_contact_02', $phone2);
-                }
-            })
-                ->whereIn('status', ['Closed', 'Skip'])
-                ->get();
+            $this->refreshSatisfactionNotAnsweredCounts();
 
             // $this->phone_numbers = [$phone];
 
@@ -622,9 +648,9 @@ class Show extends Component
             $this->phone_numbers = [$this->lead->contact_number];
 
             if ($this->surveyContacts->isNotEmpty()) {
-                // Collect all customer_contact_01 and customer_contact_02 values
+                // Collect all contact_no_01 and contact_no_02 values
                 $allContacts = $this->surveyContacts->flatMap(function ($contact) {
-                    return [$contact->customer_contact_01, $contact->customer_contact_02];
+                    return [$contact->contact_no_01, $contact->contact_no_02];
                 });
 
                 // Normalize numbers: remove spaces, remove leading 0 if 10 digits
@@ -649,14 +675,40 @@ class Show extends Component
             }
 
         }
+
+        if ($this->service_type == 'satisfaction-mini') {
+            $this->loadSatisfactionMiniReasons();
+        }
     }
 
-    public function updated($propertyName)
+    public function updated($propertyName, $value)
     {
 //         \Log::info('Property updated', ['property' => $propertyName, 'value' => $this->$propertyName]);
 
         if ($propertyName === 'attachment' && $this->attachment) {
             $this->notifyPhone = false;
+        }
+
+        if (str_starts_with($propertyName, 'miniRatings.')) {
+            $id = substr($propertyName, strlen('miniRatings.'));
+            $this->miniSelectedReasons[$id] = [];
+        } elseif (str_starts_with($propertyName, 'miniCallStatus.')) {
+            $id = substr($propertyName, strlen('miniCallStatus.'));
+            if (($this->miniRatings[$id] ?? null) === 'cancel') {
+                $this->miniSelectedReasons[$id] = [];
+            }
+        }
+    }
+
+    public function toggleMiniReason($id, $reason)
+    {
+        $current = (array) ($this->miniSelectedReasons[$id] ?? []);
+
+        if (in_array($reason, $current, true)) {
+            $this->miniSelectedReasons[$id] = array_values(array_diff($current, [$reason]));
+        } else {
+            $current[] = $reason;
+            $this->miniSelectedReasons[$id] = array_values($current);
         }
     }
 
@@ -669,6 +721,357 @@ class Show extends Component
     {
         $this->lead->refresh();
         $this->refreshTimeline();
+    }
+
+    public function refreshFeedContactStatus()
+    {
+        if ($this->feedContactId) {
+            $contact = FeedContactValid::find($this->feedContactId);
+            if ($contact) {
+                $this->feedContactId = $contact->id;
+                $this->feedContactIdStatus = $contact->status;
+            }
+        }
+
+        if ($this->feedContacts && $this->feedContacts->isNotEmpty()) {
+            $ids = $this->feedContacts->pluck('id')->toArray();
+            $this->feedContacts = FeedContactValid::whereIn('id', $ids)->get();
+        }
+
+        if (in_array($this->service_type, ['satisfaction', 'satisfaction-mini'])) {
+            $phone = $this->lead->contact_number;
+            $phone2 = $this->phone2;
+
+            $this->surveyContacts = $this->buildSatisfactionWorkOrders($phone, $phone2, $this->feed_id);
+
+            $this->refreshSatisfactionNotAnsweredCounts();
+        }
+
+        $this->refreshTimeline();
+    }
+
+    public function refreshSatisfaction()
+    {
+        if (in_array($this->service_type, ['satisfaction', 'satisfaction-mini'])) {
+            $phone = $this->lead->contact_number;
+            $phone2 = $this->phone2;
+            $this->surveyContacts = $this->buildSatisfactionWorkOrders($phone, $phone2, $this->feed_id);
+            $this->refreshSatisfactionNotAnsweredCounts();
+        }
+        $this->refreshTimeline();
+    }
+
+    protected function refreshSatisfactionNotAnsweredCounts()
+    {
+        $this->satisfactionNotAnsweredCounts = [];
+
+        if (!in_array($this->service_type, ['satisfaction', 'satisfaction-mini']) || empty($this->surveyContacts)) {
+            return;
+        }
+
+        $workOrderNos = $this->surveyContacts->pluck('work_order_no')
+            ->filter()
+            ->map(fn ($no) => trim($no))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (empty($workOrderNos)) {
+            return;
+        }
+
+        $this->satisfactionNotAnsweredCounts = FeedContactValid::whereRaw("TRIM(priority_field) IS NOT NULL AND TRIM(priority_field) <> ''")
+            ->whereIn(DB::raw('TRIM(priority_field)'), $workOrderNos)
+            ->get(['priority_field', 'status'])
+            ->mapWithKeys(function ($row) {
+                return [trim($row->priority_field) => strlen((string) $row->status)];
+            })
+            ->all();
+    }
+
+    protected function buildSatisfactionWorkOrders($phone, $phone2, $feedId)
+    {
+        $contacts = FeedContactValid::where(function ($query) use ($phone) {
+            $query->whereIn('contact_no_01', $this->dialerPhoneCandidates($phone));
+        })
+            ->when($feedId, function ($query, $feedId) {
+                $query->where('feed_id', $feedId);
+            })
+            ->get();
+
+        if ($contacts->isEmpty()) {
+            return collect();
+        }
+
+        if ($this->boundType === 'dialer') {
+            FeedContactValid::whereIn('id', $contacts->pluck('id')->unique()->values())
+                ->update(['assigned_to' => Auth::id()]);
+        }
+
+        $cxTicketColumns = ['category', 'product', 'model', 'work_order_no', 'service_center', 'warranty_status', 'sold_date', 'customer_name', 'customer_address', 'customer_contact_01', 'customer_contact_02', 'technician_name', 'technician_contact', 'supervisor_name', 'supervisor_contact', 'status', 'creator', 'satisfaction_rate', 'satisfaction_reasons', 'dis_satisfaction_reasons', 'cancelling_reasons', 'closed_by', 'surveyed_by', 'company', 'reopened_by', 'reopened_reasons', 'skipped_reasons', 'skipped_by', 'cancelling_comment', 'change_request'];
+
+        return $contacts->map(function ($contact) use ($cxTicketColumns) {
+            $data = json_decode((string) $contact->data, true) ?: [];
+
+            $status = 'Closed';
+            $satisfactionRate = $contact->rate;
+            $skippedReasons = $contact->comments;
+            $latest = null;
+
+            $contactStatus = (string) $contact->status;
+
+            if (in_array($contactStatus, ['5', '51', '52'])) {
+                $status = 'Change Request';
+            } elseif (in_array($contactStatus, ['4', '41', '42'])) {
+                $status = 'Canceled';
+            } elseif ($contactStatus === '3') {
+                $status = 'Skipped';
+            } elseif (in_array($contactStatus, ['2', '22', '222'])) {
+                $status = 'Skip';
+            } elseif ($contactStatus === '1') {
+                $status = 'Rated';
+            }
+
+            if ($contactStatus !== '' && $contactStatus !== '0') {
+                $latest = $contact;
+            }
+
+            $ticket = (object) $data;
+            foreach (['category', 'product', 'model', 'service_center', 'warranty_status', 'sold_date', 'customer_name', 'customer_address', 'customer_contact_01', 'customer_contact_02', 'technician_name', 'technician_contact', 'supervisor_name', 'supervisor_contact'] as $field) {
+                if (!property_exists($ticket, $field) || $ticket->$field === null || $ticket->$field === '') {
+                    $ticket->$field = null;
+                }
+            }
+            $ticket->work_order_no = trim((string) $contact->priority_field);
+            $ticket->status = $status;
+            $ticket->updated_at = $latest ? $latest->attempted_at : $contact->updated_at;
+            $ticket->contact_no_01 = $contact->contact_no_01;
+            $ticket->contact_no_02 = $contact->contact_no_02;
+            if (empty($ticket->customer_contact_01)) {
+                $ticket->customer_contact_01 = $contact->contact_no_01;
+            }
+            if (empty($ticket->customer_contact_02)) {
+                $ticket->customer_contact_02 = $contact->contact_no_02;
+            }
+            $ticket->satisfaction_rate = $satisfactionRate;
+            $ticket->satisfaction_reasons = $status === 'Rated' ? $skippedReasons : null;
+            $ticket->dis_satisfaction_reasons = null;
+            $ticket->cancelling_reasons = $status === 'Canceled' ? $skippedReasons : null;
+            $ticket->skipped_reasons = in_array($status, ['Skip', 'Skipped']) ? $skippedReasons : null;
+            $ticket->feed_contact_id = $contact->id;
+            $ticket->feed_contact_status = $contactStatus;
+            $ticket->next_available_at = $contact->next_available_at;
+            $ticket->more_data = json_encode(array_diff_key($data, array_flip($cxTicketColumns)));
+
+            return $ticket;
+        });
+    }
+
+    protected function loadSatisfactionMiniReasons()
+    {
+        $campaignId = Campaign::where('name', $this->campaign)->value('id');
+        $this->miniCampaignId = $campaignId ?: null;
+
+        $this->satisfactionReasons = [];
+        $this->dissatisfactionReasons = [];
+        $this->cancelAnsweredReasons = [];
+        $this->cancelNotAnsweredReasons = [];
+
+        if (!$this->miniCampaignId) {
+            return;
+        }
+
+        $options = DialerCallStatusOption::where('campaign_id', $this->miniCampaignId)->get();
+
+        $this->satisfactionReasons = $options->where('type', 1)->pluck('option')->values()->toArray();
+        $this->dissatisfactionReasons = $options->where('type', 2)->pluck('option')->values()->toArray();
+        $this->cancelAnsweredReasons = $options->where('type', 41)->pluck('option')->values()->toArray();
+        $this->cancelNotAnsweredReasons = $options->where('type', 42)->pluck('option')->values()->toArray();
+    }
+
+    protected function miniSelectedReasonTypes(array $reasons): array
+    {
+        if (empty($reasons) || empty($this->miniCampaignId)) {
+            return [];
+        }
+
+        return DialerCallStatusOption::where('campaign_id', $this->miniCampaignId)
+            ->whereIn('option', $reasons)
+            ->pluck('type')
+            ->map(fn ($type) => (string) $type)
+            ->unique()
+            ->values()
+            ->toArray();
+    }
+
+    public function submitSatisfactionMini()
+    {
+        if (empty($this->surveyContacts)) {
+            return;
+        }
+
+        $submitted = 0;
+        $skipped = 0;
+
+        // Apply-to-all: copy selected row's values to all other rows
+        if ($this->miniApplyToAll !== null) {
+            $sourceId = $this->miniApplyToAll;
+            $sourceRating = $this->miniRatings[$sourceId] ?? null;
+            $sourceCallStatus = $this->miniCallStatus[$sourceId] ?? null;
+            $sourceReasons = $this->miniSelectedReasons[$sourceId] ?? [];
+            $sourceComment = $this->miniComments[$sourceId] ?? '';
+
+            if ($sourceRating !== null && $sourceRating !== '') {
+                foreach ($this->surveyContacts as $ticket) {
+                    $ticket = (object) $ticket;
+                    $tid = $ticket->feed_contact_id;
+                    if ($tid == $sourceId) {
+                        continue;
+                    }
+                    $this->miniRatings[$tid] = $sourceRating;
+                    $this->miniCallStatus[$tid] = $sourceCallStatus;
+                    $this->miniSelectedReasons[$tid] = $sourceReasons;
+                    $this->miniComments[$tid] = $sourceComment;
+                }
+            }
+        }
+
+        foreach ($this->surveyContacts as $ticket) {
+            $ticket = (object) $ticket;
+            $id = $ticket->feed_contact_id;
+            $rating = $this->miniRatings[$id] ?? null;
+            $callStatus = $this->miniCallStatus[$id] ?? null;
+            $reasons = array_values(array_unique(array_filter(
+                is_array($this->miniSelectedReasons[$id] ?? null) ? $this->miniSelectedReasons[$id] : []
+            )));
+            $comment = trim((string) ($this->miniComments[$id] ?? ''));
+
+            if ($rating === null || $rating === '' || $rating === 0) {
+                continue;
+            }
+
+            $feed = FeedContactValid::find($id);
+            if (!$feed) {
+                continue;
+            }
+
+            if (is_numeric($rating) && (int) $rating >= 1 && (int) $rating <= 5) {
+                $feed->call_status_option_id = implode(',', $reasons);
+                $feed->call_status_option_type = '1';
+                $feed->rate = (int) $rating;
+                $feed->comments = '';
+                $feed->campaign_id = $this->miniCampaignId;
+                $feed->updated_by = Auth::id();
+                $feed->attempted_at = now();
+                $feed->status = 1;
+                $feed->next_available_at = null;
+                $feed->save();
+                CampaignAgentDialLimit::incrementForFeed((int) $feed->feed_id, (int) Auth::id());
+                $submitted++;
+            } elseif (in_array($rating, ['cancel', 'change_request'], true)) {
+                if (!in_array($callStatus, ['answered', 'not_answered'], true)) {
+                    $skipped++;
+                    continue;
+                }
+
+                if ($rating === 'change_request') {
+                    $status = $callStatus === 'answered' ? 51 : 52;
+                    $types = ['change_request'];
+                } else {
+                    if (empty($reasons)) {
+                        $skipped++;
+                        continue;
+                    }
+                    $isChangeRequest = collect($reasons)
+                        ->map(fn ($r) => str_replace(['_', ' '], '', strtolower((string) trim($r))))
+                        ->contains('changerequest');
+
+                    if ($isChangeRequest) {
+                        $status = $callStatus === 'answered' ? 51 : 52;
+                        $types = array_values(array_unique(array_merge($this->miniSelectedReasonTypes($reasons), ['change_request'])));
+                    } else {
+                        $types = $this->miniSelectedReasonTypes($reasons);
+                        if (empty($types)) {
+                            $types = [$callStatus === 'answered' ? '41' : '42'];
+                        }
+                        $status = $callStatus === 'answered' ? 41 : 42;
+                    }
+                }
+
+                $feed->call_status_option_id = implode(',', $reasons);
+                $feed->call_status_option_type = implode(',', $types);
+                $feed->rate = null;
+                $feed->comments = $comment;
+                $feed->campaign_id = $this->miniCampaignId;
+                $feed->updated_by = Auth::id();
+                $feed->attempted_at = now();
+                $feed->status = $status;
+                $feed->save();
+                CampaignAgentDialLimit::incrementForFeed((int) $feed->feed_id, (int) Auth::id());
+                $submitted++;
+            } elseif ($rating === 'not_answered') {
+                $optionTypes = $this->miniSelectedReasonTypes($reasons);
+                if (empty($optionTypes)) {
+                    $optionTypes = ['2'];
+                }
+                $existingStatus = (string) ($feed->status ?? '');
+                if (str_starts_with($existingStatus, '2')) {
+                    $feed->status = (int) ($existingStatus . '2');
+                } else {
+                    $feed->status = 2;
+                }
+                $feed->call_status_option_id = implode(',', $reasons);
+                $feed->call_status_option_type = implode(',', $optionTypes);
+                $feed->rate = null;
+                $feed->comments = $comment;
+                $feed->campaign_id = $this->miniCampaignId;
+                $feed->updated_by = Auth::id();
+                $feed->attempted_at = now();
+                $feed->next_available_at = now()->addDay();
+                $feed->save();
+                CampaignAgentDialLimit::incrementForFeed((int) $feed->feed_id, (int) Auth::id());
+                $submitted++;
+            } elseif ($rating === 'not_in_use') {
+                $feed->call_status_option_id = '';
+                $feed->call_status_option_type = '';
+                $feed->rate = null;
+                $feed->comments = $comment;
+                $feed->campaign_id = $this->miniCampaignId;
+                $feed->updated_by = Auth::id();
+                $feed->attempted_at = now();
+                $feed->status = 6;
+                $feed->next_available_at = null;
+                $feed->save();
+                CampaignAgentDialLimit::incrementForFeed((int) $feed->feed_id, (int) Auth::id());
+                $submitted++;
+            }
+        }
+
+        if ($submitted > 0) {
+            $this->emit('FeedCompleted');
+
+            foreach ($this->surveyContacts as $ticket) {
+                $id = ((object) $ticket)->feed_contact_id;
+                unset(
+                    $this->miniRatings[$id],
+                    $this->miniCallStatus[$id],
+                    $this->miniSelectedReasons[$id],
+                    $this->miniComments[$id]
+                );
+            }
+
+            $this->miniApplyToAll = null;
+            $this->surveyContacts = $this->buildSatisfactionWorkOrders($this->lead->contact_number, $this->phone2, $this->feed_id);
+
+            $message = "{$submitted} record(s) submitted successfully.";
+            if ($skipped > 0) {
+                $message .= " {$skipped} record(s) skipped (incomplete).";
+            }
+            $this->notification()->success('Success', $message);
+        } else {
+            $this->notification()->error('Error', $skipped > 0 ? 'No complete records to submit.' : 'No records to submit.');
+        }
     }
 
     public function refreshTimeline()

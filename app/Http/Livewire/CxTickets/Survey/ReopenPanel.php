@@ -4,6 +4,7 @@ namespace App\Http\Livewire\CxTickets\Survey;
 
 use App\Models\CallbackCustomer;
 use App\Models\FeedContactValid;
+use App\Models\CampaignAgentDialLimit;
 use Livewire\Component;
 use App\Models\CxTicket;
 use Carbon\Carbon;
@@ -65,16 +66,18 @@ class ReopenPanel extends Component
         $this->selectedReasons = array_filter($this->selectedReasons, fn($r) => $r !== $reason);
     }
 
-    public function showReOpenModal($id, $value, $validContact=null)
+    public function showReOpenModal($id, $value, $validContact=null, $feedContactId=null)
     {
         $this->ticket_id = $id;
         $this->isReOpen = $value;        // value: 'reopen', 'skip', 'remind'
         $this->cxTicketReOpenModal = true;
         $this->callBack = $value === 'remind';
-        if($validContact)
+        if($validContact || $feedContactId)
         {
             // $this->feed = FeedContactValid::find($validContact);
-            $this->feed = FeedContactValid::where('priority_field',$validContact)->first();
+            $this->feed = $feedContactId
+                ? FeedContactValid::find($feedContactId)
+                : FeedContactValid::whereRaw('TRIM(priority_field) = ?', [trim($validContact)])->first();
         }
     }
 
@@ -93,6 +96,7 @@ class ReopenPanel extends Component
         {
             $this->feed->status = 1;
             $this->feed->save();
+            CampaignAgentDialLimit::incrementForFeed((int) $this->feed->feed_id, (int) Auth::id());
             $this->emit('FeedCompleted');
         }
             }

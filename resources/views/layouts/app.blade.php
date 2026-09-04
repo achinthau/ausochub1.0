@@ -115,6 +115,13 @@
         </div>
     </div>
 
+    @auth
+        @can('can-view-leads')
+            <script src="{{ asset('ausophone/auso-phone.min.js') }}" defer></script>
+            <x-phone.widget />
+        @endcan
+    @endauth
+
     @stack('modals')
 
     @livewireScripts

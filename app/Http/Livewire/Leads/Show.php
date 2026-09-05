@@ -367,7 +367,7 @@ class Show extends Component
             })
             ->where(function ($query) {
                 $query->whereNull('next_available_at')
-                    ->orWhere('next_available_at', '<=', now());
+                    ->orWhere('next_available_at', '<=', now()->endOfDay());
             })
             ->where(function ($query) use ($userId) {
                 $query->whereNull('assigned_to')

@@ -826,6 +826,7 @@
                         {{-- <th class="p-2 border font-semibold">More Data</th> --}}
                         <th class="p-2 border font-semibold">Customer Name</th>
                         <th class="p-2 border font-semibold">Customer Address</th> 
+                        <th class="p-2 border font-semibold">Service Center</th> 
                         {{-- <th class="p-2 border font-semibold">Contact 01</th>
                         <th class="p-2 border font-semibold">Contact 02</th> --}}
                         @if($surveyContacts && $surveyContacts->count() > 1)
@@ -862,11 +863,11 @@
                             $isNotAnsweredStatus = str_starts_with($feedContactIdStatus, '2');
                             $notAnsweredCount = $isNotAnsweredStatus ? strlen($feedContactIdStatus) : 0;
 
-                            if ($isNotAnsweredStatus) {
-                                $nextAvailable = $ticket->next_available_at ? \Carbon\Carbon::parse($ticket->next_available_at) : null;
-                                if ($nextAvailable && $nextAvailable->isFuture()) {
-                                    $isSubmitted = true;
-                                }
+                            $nextAvailable = $ticket->next_available_at ? \Carbon\Carbon::parse($ticket->next_available_at) : null;
+                            $isLockedUntilNextAvailable = $nextAvailable && $nextAvailable->isFuture();
+
+                            if ($isLockedUntilNextAvailable) {
+                                $isSubmitted = true;
                             } elseif ($feedContactIdStatus === '6' || $isSkipped) {
                                 $isSubmitted = true;
                             }
@@ -995,6 +996,7 @@
                                     'productdescription' => 'Product Description',
                                     'modeldescription' => 'Model Description',
                                     'worktype' => 'Work Type',
+                                    'servicecenter' => 'Service Center'
                                 ];
                                 $matched = [];
                                 $matchedKeys = [];
@@ -1039,6 +1041,7 @@
 
                             <td class="p-2 border">{{ $ticket->customer_name ?? '--' }}</td>
                             <td class="p-2 border">{{ $ticket->customer_address ?? '--' }}</td>
+                            <td class="p-2 border">{{ $ticket->service_center ?? $matched['servicecenter'] ?? '--' }}</td>
                             {{-- <td class="p-2 border">{{ $ticket->customer_contact_01 ?? '--' }}</td>
                             <td class="p-2 border">{{ $ticket->customer_contact_02 ?? '--' }}</td> --}}
                             @if($surveyContacts && $surveyContacts->count() > 1)

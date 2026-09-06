@@ -232,13 +232,13 @@ class Index extends Component
         $this->dialedCallsToday = FeedContactValid::whereIn('feed_id', $feedIds)
             ->where('updated_by', $userId)
             ->whereNotNull('status')
-            ->whereDate('updated_at', today())
+            ->whereDate('attempted_at', today())
             ->count();
 
         $this->answeredCallsToday = FeedContactValid::whereIn('feed_id', $feedIds)
             ->where('updated_by', $userId)
             ->whereIn('status', [1, 41])
-            ->whereDate('updated_at', today())
+            ->whereDate('attempted_at', today())
             ->count();
     }
 

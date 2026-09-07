@@ -868,7 +868,7 @@
 
                             if ($isLockedUntilNextAvailable) {
                                 $isSubmitted = true;
-                            } elseif ($feedContactIdStatus === '6' || $isSkipped) {
+                            } elseif ($feedContactIdStatus === '6' || ($isSkipped && !$nextAvailable)) {
                                 $isSubmitted = true;
                             }
                         @endphp

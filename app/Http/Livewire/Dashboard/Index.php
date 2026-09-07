@@ -6,6 +6,7 @@ use App\Models\AgentBreakSummary;
 use App\Models\Campaign;
 use App\Models\CampaignMetric;
 use App\Models\FeedContactValid;
+use App\Models\FeedContactValidReport;
 use App\Models\Skill;
 use App\Models\User;
 use App\Repositories\ApiManager;
@@ -229,13 +230,13 @@ class Index extends Component
 
         $userId = Auth::id();
 
-        $this->dialedCallsToday = FeedContactValid::whereIn('feed_id', $feedIds)
+        $this->dialedCallsToday = FeedContactValidReport::whereIn('feed_id', $feedIds)
             ->where('updated_by', $userId)
             ->whereNotNull('status')
             ->whereDate('attempted_at', today())
             ->count();
 
-        $this->answeredCallsToday = FeedContactValid::whereIn('feed_id', $feedIds)
+        $this->answeredCallsToday = FeedContactValidReport::whereIn('feed_id', $feedIds)
             ->where('updated_by', $userId)
             ->whereIn('status', [1, 41])
             ->whereDate('attempted_at', today())

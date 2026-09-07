@@ -864,7 +864,12 @@
                             $notAnsweredCount = $isNotAnsweredStatus ? strlen($feedContactIdStatus) : 0;
 
                             $nextAvailable = $ticket->next_available_at ? \Carbon\Carbon::parse($ticket->next_available_at) : null;
-                            $isLockedUntilNextAvailable = $nextAvailable && $nextAvailable->isFuture();
+
+                            if ($isNotAnsweredStatus) {
+                                $isLockedUntilNextAvailable = $nextAvailable && $nextAvailable->isAfter(now()->endOfDay());
+                            } else {
+                                $isLockedUntilNextAvailable = $nextAvailable && $nextAvailable->isFuture();
+                            }
 
                             if ($isLockedUntilNextAvailable) {
                                 $isSubmitted = true;

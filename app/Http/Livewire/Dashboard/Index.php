@@ -230,7 +230,7 @@ class Index extends Component
 
         $userId = Auth::id();
 
-        $this->dialedCallsToday = FeedContactValidReport::whereIn('feed_id', $feedIds)
+        $this->dialedCallsToday = FeedContactValid::whereIn('feed_id', $feedIds)
             ->where('updated_by', $userId)
             ->whereNotNull('status')
             ->whereDate('attempted_at', today())
@@ -241,6 +241,8 @@ class Index extends Component
             ->whereIn('status', [1, 41])
             ->whereDate('attempted_at', today())
             ->count();
+
+        $this->dialedCallsToday = $this->dialedCallsToday + $this->answeredCallsToday ;
     }
 
     public function updatedSelectedSkills($type, $value)

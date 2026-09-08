@@ -417,6 +417,16 @@ class Show extends Component
 
         $currentContact->update(['assigned_to' => Auth::id()]);
 
+        $phone = $currentContact->contact_no_01 ?? $currentContact->contact_no_02;
+        $relatedContacts = FeedContactValid::where('contact_no_01', $phone)
+            ->when($currentContact->feed_id, fn($query) => $query->where('feed_id', $currentContact->feed_id))
+            ->get();
+
+        if ($relatedContacts->isNotEmpty()) {
+            FeedContactValid::whereIn('id', $relatedContacts->pluck('id')->unique()->values())
+                ->update(['assigned_to' => Auth::id()]);
+        }
+
         $this->selectedFeedContact = $currentContact;
         $this->feedContactId = $currentContact->id;
         $this->feedContactIdStatus = $currentContact->status;
@@ -1358,6 +1368,8 @@ class Show extends Component
                     'attempted_at' => now(),
                 ]);
         }
+
+        $this->refreshFeedContactStatus();
 
         session()->flash('messagedialog', 'Callback saved successfully.');
 

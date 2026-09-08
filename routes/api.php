@@ -651,7 +651,7 @@ Route::post('/get-missed-call-number', function (Request $request) {
         $record = FeedContactValid::whereIn('feed_id', $feedIds)
             ->where(function ($query) {
                 $query->whereNull('status')
-                    ->orWhereIn('status', [2, 22, 222]);
+                    ->orWhereIn('status', [2, 22]);
             })
             ->where(function ($query) use ($phone) {
                 $query->where('contact_no_01', 'LIKE', '%' . $phone)

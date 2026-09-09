@@ -5,9 +5,11 @@ namespace App\Http\Livewire\Reports;
 use App\Models\Campaign;
 use App\Models\Company;
 use App\Models\FeedContactValid;
+use App\Models\FeedContactValidReport;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
@@ -27,7 +29,7 @@ class TodayDialerReportTable extends DataTableComponent
 
     public function configure(): void
     {
-        $this->setPrimaryKey('id')
+        $this->setPrimaryKey('row_key')
             ->setDefaultSort('id', 'desc')
             ->setSearchEnabled()
             ->setColumnSelectEnabled()
@@ -63,11 +65,9 @@ class TodayDialerReportTable extends DataTableComponent
         return $query->pluck('id')->toArray();
     }
 
-    public function builder(): Builder
+    protected function applyCommonFilters(Builder $query): void
     {
-        $query = FeedContactValid::query()
-            ->with(['updater', 'campaign', 'campaign.types'])
-            ->whereDate('attempted_at', Carbon::today());
+        $query->whereDate('attempted_at', Carbon::today());
 
         if ($this->selectedCampaign) {
             $query->where('campaign_id', $this->selectedCampaign);
@@ -83,8 +83,55 @@ class TodayDialerReportTable extends DataTableComponent
         if (! $this->isAdmin()) {
             $query->where('updated_by', auth()->id());
         }
+    }
 
-        return $query;
+    public function builder(): Builder
+    {
+        $valid = FeedContactValid::query()
+            ->select(
+                'id',
+                'priority_field',
+                'data',
+                'status',
+                'call_status_option_id',
+                'rate',
+                'comments',
+                'campaign_id',
+                'updated_by',
+                'attempted_at'
+            )
+            ->addSelect(DB::raw("CONCAT('v-', id) as row_key"))
+            ->where(function ($query) {
+                $this->applyCommonFilters($query);
+            });
+
+        $report = FeedContactValidReport::query()
+            ->select(
+                'id',
+                'priority_field',
+                'data',
+                'status',
+                'call_status_option_id',
+                'rate',
+                'comments',
+                'campaign_id',
+                'updated_by',
+                'attempted_at'
+            )
+            ->addSelect(DB::raw("CONCAT('r-', id) as row_key"))
+            ->where(function ($query) {
+                $this->applyCommonFilters($query);
+            });
+
+        $merged = $valid->unionAll($report)->toBase();
+
+        $mergedModel = new FeedContactValid;
+        $mergedModel->setTable('merged');
+
+        return $mergedModel->newQuery()
+            ->fromSub($merged, 'merged')
+            ->select('merged.*')
+            ->with(['updater', 'campaign', 'campaign.types']);
     }
 
     protected function statusLabel($status): string
@@ -262,15 +309,42 @@ class TodayDialerReportTable extends DataTableComponent
 
     public function exportSelected()
     {
-        $selectedIds = $this->getSelected();
+        $selectedKeys = $this->getSelected();
 
-        if (empty($selectedIds)) {
+        if (empty($selectedKeys)) {
             return;
         }
 
-        $records = FeedContactValid::with(['updater', 'campaign'])
-            ->whereIn('id', $selectedIds)
-            ->get();
+        $validIds = [];
+        $reportIds = [];
+
+        foreach ($selectedKeys as $key) {
+            $key = (string) $key;
+
+            if (str_starts_with($key, 'v-')) {
+                $validIds[] = (int) substr($key, 2);
+            } elseif (str_starts_with($key, 'r-')) {
+                $reportIds[] = (int) substr($key, 2);
+            }
+        }
+
+        $records = collect();
+
+        if (! empty($validIds)) {
+            $records = $records->merge(
+                FeedContactValid::with(['updater', 'campaign'])
+                    ->whereIn('id', $validIds)
+                    ->get()
+            );
+        }
+
+        if (! empty($reportIds)) {
+            $records = $records->merge(
+                FeedContactValidReport::with(['updater', 'campaign'])
+                    ->whereIn('id', $reportIds)
+                    ->get()
+            );
+        }
 
         $headers = [
             'ID',

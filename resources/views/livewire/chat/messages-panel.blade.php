@@ -13,7 +13,7 @@
         @if ($receiver)
 
             <span class="block text-center cursor-pointer font-italic"
-                wire:click="getOlderMessages({{ auth()->id() }}, {{ $receiver }})">older</span>
+                wire:click="getOlderMessages({{ auth()->id() }}, {{ $receiver->id }})">older</span>
 
             @if (!empty($messages) && is_array($messages))
                 @php
@@ -151,25 +151,29 @@
 
 
     <script>
-        // const socket = io('http://localhost:3000');
-        const socket = io({
-            path: "/socket.io",
-            transports: ['websocket'],
-        });
-        const loggedInUserId = "{{ auth()->id() }}";
+        // Define listeners/socket OUTSIDE the Livewire component so they are NOT
+        // removed when Livewire re-renders (morph) this component. A single
+        // persistent socket + global sendMessage() keep both sending and realtime
+        // working across re-renders.
+        if (!window.__chatInitialized) {
+            window.__chatInitialized = true;
 
-        // Listen for incoming messages
-        document.addEventListener("DOMContentLoaded", function () {
-            if (!window.socketInitialized) {
-                window.socketInitialized = true; // Prevent duplicate bindings
+            const loggedInUserId = "{{ auth()->id() }}";
 
-                // const socket = io('http://localhost:3000');
-                const loggedInUserId = "{{ auth()->id() }}";
+            const socketOptions = { path: "/socket.io", transports: ['websocket'] };
 
-                socket.on('receive_message', (data) => {
-                    console.log('Received:', data);
-                    console.log('Logged-in user:', loggedInUserId);
+            // Connect directly to the Socket.IO server (server.js) first, then
+            // fall back to same-origin when it is reverse-proxied (nginx).
+            const directUrl = "{{ env('SOCKET_SERVER_URL', '') }}";
+            window.__chatSocket = null;
+            window.__chatUserId = loggedInUserId;
 
+            const bindChatSocket = (sock) => {
+                if (window.__chatSocket) return;
+                window.__chatSocket = sock;
+
+                // Listen for incoming messages
+                sock.on('receive_message', (data) => {
                     const sender = data.from;
                     const receiverElement = document.getElementById('receiver');
                     const receiver = receiverElement ? receiverElement.value : null;
@@ -178,28 +182,30 @@
                         if (data.from !== loggedInUserId && data.from == receiver) {
                             displayMessage_1(data.from, data.text, "received");
                         } else {
-                            Livewire.emitTo("chat.users-panel", "highlightUser", sender);
+                            window.Livewire.emitTo("chat.users-panel", "highlightUser", sender);
                         }
                     }
                 });
-            }
-        });
+            };
 
+            const socket = directUrl ? io(directUrl, socketOptions) : io(socketOptions);
+            socket.on('connect', () => bindChatSocket(socket));
 
+            socket.on('connect_error', () => {
+                if (window.__chatSocket || window.__chatSocketFallbackTried) return;
+
+                // Fallback to same-origin (nginx /socket.io proxy)
+                window.__chatSocketFallbackTried = true;
+                const fallback = io(socketOptions);
+                fallback.on('connect', () => bindChatSocket(fallback));
+            });
+        }
 
         async function displayMessage_1(sender, text, type) {
-            const messagesDiv = document.getElementById('messagesContainer');
-
-            console.log(sender, text, type);
-            // console.trace("Function called from:");
-
-            // Fetch user details from the database
             try {
-
                 const messageWrapper = document.createElement("div"); // Create a wrapper div
                 messageWrapper.style.marginBottom = "4px"; // Adds spacing between messages
 
-                // Create the message element
                 const messageElement = document.createElement("span");
                 if (type == "received") {
                     messageWrapper.classList.add("text-left")
@@ -213,16 +219,13 @@
 
                 messageElement.style.display = "inline-block";
 
-                // Create the message text span
                 const messageText = document.createElement("span");
                 messageText.innerText = text;
                 messageText.style.paddingBottom = "2px";
 
-                // Create the timestamp span
                 const timestampElement = document.createElement("span");
                 timestampElement.classList.add("text-[9px]", "pl-4", "italic");
 
-                // Format timestamp to "h:i A" (12-hour format)
                 const formattedTime = new Date().toLocaleTimeString("en-US", {
                     hour: "2-digit",
                     minute: "2-digit",
@@ -231,26 +234,22 @@
 
                 timestampElement.innerText = formattedTime;
 
-                // Append elements
                 messageElement.appendChild(messageText);
                 messageElement.appendChild(timestampElement);
                 messageWrapper.appendChild(messageElement);
 
-                // Append to container
                 document.getElementById("messagesContainer").appendChild(messageWrapper);
 
-                // Auto-scroll to the latest message
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
 
             } catch (error) {
                 console.error('Error fetching user details:', error);
             }
         }
 
-        // Send a message
-        function sendMessage() {
-            const username = loggedInUserId;
+        // Send a message (global so the Enter/click handlers keep working after re-renders)
+        window.sendMessage = function sendMessage() {
+            const username = window.__chatUserId;
             const receiverElement = document.getElementById('receiver');
             const receiver = receiverElement ? receiverElement.value : '';
             const messageInput = document.getElementById('messageInput');
@@ -266,17 +265,19 @@
                 text
             };
 
-
-
-            socket.emit('send_message', message);
+            if (window.__chatSocket) {
+                window.__chatSocket.emit('send_message', message);
+            }
             displayMessage_1("Me", text, "sent"); // Show message instantly for sender
-            // Livewire.emitTo("chat.messages-panel", "saveData", username, receiver, text);
-            Livewire.emitTo("chat.messages", "saveData", username, receiver, text);
+            // Use window.Livewire: Livewire v2 evals component scripts on every
+            // morph inside its own module scope, where bare `Livewire` is the
+            // class constructor (no emitTo). window.Livewire is the instance.
+            if (window.Livewire && typeof window.Livewire.emitTo === 'function') {
+                window.Livewire.emitTo("chat.messages", "saveData", username, receiver, text);
+            }
 
             messageInput.value = '';
-
-
-        }
+        };
     </script>
 
     <style>

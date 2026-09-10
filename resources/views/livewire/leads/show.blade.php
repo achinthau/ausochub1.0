@@ -683,23 +683,23 @@
                         @foreach($contactData as $key => $value)
                             @if(!empty($key))
                                 @if(is_array($value))
-                                    <li class="col-span-2">
-                                        <span class="font-medium text-base">
-                                            {{ ucfirst(str_replace('_', ' ', $key)) }}:
-                                        </span>
-                                        <div class="mt-2 ml-4 space-y-2">
+<li class="col-span-2">
+                                                                    <span class="font-bold text-base">
+                                                                        {{ ucfirst(str_replace('_', ' ', $key)) }}:
+                                                                    </span>
+                                                                    <div class="mt-2 ml-4 space-y-2">
                                             @foreach($value as $item)
                                                 @if(is_array($item))
                                                     <div class="border rounded p-2 bg-gray-50">
                                                         <ul class="grid grid-cols-2 gap-x-4 gap-y-1">
                                                             @foreach($item as $itemKey => $itemValue)
                                                                 @if(!is_array($itemValue))
-                                                                    <li>
-                                                                        <span class="font-medium">
-                                                                            {{ ucfirst(str_replace('_', ' ', $itemKey)) }}:
-                                                                        </span>
-                                                                        {{ $itemValue }}
-                                                                    </li>
+<li>
+                                                            <span class="font-bold">
+                                                                {{ ucfirst(str_replace('_', ' ', $itemKey)) }}:
+                                                            </span>
+                                                            {{ $itemValue }}
+                                                        </li>
                                                                 @endif
                                                             @endforeach
                                                         </ul>
@@ -826,6 +826,7 @@
                         {{-- <th class="p-2 border font-semibold">More Data</th> --}}
                         <th class="p-2 border font-semibold">Customer Name</th>
                         <th class="p-2 border font-semibold">Customer Address</th> 
+                        <th class="p-2 border font-semibold">Service Center</th> 
                         {{-- <th class="p-2 border font-semibold">Contact 01</th>
                         <th class="p-2 border font-semibold">Contact 02</th> --}}
                         @if($surveyContacts && $surveyContacts->count() > 1)
@@ -862,12 +863,17 @@
                             $isNotAnsweredStatus = str_starts_with($feedContactIdStatus, '2');
                             $notAnsweredCount = $isNotAnsweredStatus ? strlen($feedContactIdStatus) : 0;
 
+                            $nextAvailable = $ticket->next_available_at ? \Carbon\Carbon::parse($ticket->next_available_at) : null;
+
                             if ($isNotAnsweredStatus) {
-                                $nextAvailable = $ticket->next_available_at ? \Carbon\Carbon::parse($ticket->next_available_at) : null;
-                                if ($nextAvailable && $nextAvailable->isFuture()) {
-                                    $isSubmitted = true;
-                                }
-                            } elseif ($feedContactIdStatus === '6' || $isSkipped) {
+                                $isLockedUntilNextAvailable = $nextAvailable && $nextAvailable->isAfter(now()->endOfDay());
+                            } else {
+                                $isLockedUntilNextAvailable = $nextAvailable && $nextAvailable->isFuture();
+                            }
+
+                            if ($isLockedUntilNextAvailable) {
+                                $isSubmitted = true;
+                            } elseif ($feedContactIdStatus === '6' || ($isSkipped && !$nextAvailable)) {
                                 $isSubmitted = true;
                             }
                         @endphp
@@ -995,6 +1001,7 @@
                                     'productdescription' => 'Product Description',
                                     'modeldescription' => 'Model Description',
                                     'worktype' => 'Work Type',
+                                    'servicecenter' => 'Service Center'
                                 ];
                                 $matched = [];
                                 $matchedKeys = [];
@@ -1039,6 +1046,7 @@
 
                             <td class="p-2 border">{{ $ticket->customer_name ?? '--' }}</td>
                             <td class="p-2 border">{{ $ticket->customer_address ?? '--' }}</td>
+                            <td class="p-2 border">{{ $ticket->service_center ?? $matched['servicecenter'] ?? '--' }}</td>
                             {{-- <td class="p-2 border">{{ $ticket->customer_contact_01 ?? '--' }}</td>
                             <td class="p-2 border">{{ $ticket->customer_contact_02 ?? '--' }}</td> --}}
                             @if($surveyContacts && $surveyContacts->count() > 1)
@@ -1067,20 +1075,48 @@
 
     @elseif($service_type == 'follow-up' && $feedContacts && $feedContacts->count() > 0)
 
+                            @php
+                                $followUpFirst = $feedContacts->first();
+                                $followUpFirstData = $followUpFirst ? (json_decode($followUpFirst->data, true) ?: []) : [];
+                            @endphp
+
+                            <div class="bg-white p-4 rounded-lg shadow-md space-y-3 mb-3">
+                                @if($followUpFirst)
+                                    <div class="flex flex-wrap justify-between gap-x-8 gap-y-1 text-base">
+                                        <div class="flex gap-2">
+                                            <label class="font-bold">Customer Name:</label>
+                                            <span>{{ $followUpFirstData['cust_name'] ?? $followUpFirstData['customer_name'] ?? '--' }}</span>
+                                        </div>
+                                        <div class="flex gap-2">
+                                            <label class="font-bold">Service Center:</label>
+                                            <span>{{ $followUpFirstData['service_center'] ?? $followUpFirstData['servicecenter'] ?? '--' }}</span>
+                                        </div>
+                                    </div>
+                                @endif
+                            </div>
+
                                 @foreach($feedContacts as $contact)
                                                         @php
                                                             $contactData = json_decode($contact->data, true);
 
                                                             // Status classifications
                                                             $isAnswered = $contact->status == 1;
-                                                            // $isNotAnswered = in_array($contact->status, [2, 22, 222]); 
                                                             $isNotAnswered = str_starts_with((string)$contact->status, '2');
+                                                            $isSkipped = $contact->status == 3;
                                                             $isNew = is_null($contact->status);
-
-                                                            // Check if Not Answered was submitted today
-                                                            $lastUpdated = \Carbon\Carbon::parse($contact->updated_at);
-                                                            $hideNotAnsweredButtons = $isNotAnswered && $lastUpdated->greaterThan(\Carbon\Carbon::now()->subMinutes(1));
                                                             $notAnsweredCount = strlen((string) $contact->status);
+
+                                                            // Date-based locking (same as satisfaction mini)
+                                                            $nextAvailable = $contact->next_available_at ? \Carbon\Carbon::parse($contact->next_available_at) : null;
+
+                                                            if ($isNotAnswered) {
+                                                                $isLockedUntilNextAvailable = $nextAvailable && $nextAvailable->isAfter(\Carbon\Carbon::now()->endOfDay());
+                                                            } else {
+                                                                $isLockedUntilNextAvailable = $nextAvailable && $nextAvailable->isFuture();
+                                                            }
+
+                                                            $hideNotAnsweredButtons = $isLockedUntilNextAvailable;
+                                                            $isSkippedPermanently = $isSkipped && is_null($contact->next_available_at);
                                                         @endphp
 
                                                         <details class="border rounded-lg shadow-sm
@@ -1088,6 +1124,8 @@
                                             bg-green-50 border-green-300
                                         @elseif($isNotAnswered)
                                             bg-yellow-50 border-yellow-300
+                                        @elseif($isSkipped)
+                                            bg-orange-50 border-orange-300
                                         @else
                                             bg-gray-50 border-gray-200
                                         @endif
@@ -1098,6 +1136,8 @@
                                                 text-green-700 hover:bg-green-100
                                             @elseif($isNotAnswered)
                                                 text-yellow-700 hover:bg-yellow-100
+                                            @elseif($isSkipped)
+                                                text-orange-700 hover:bg-orange-100
                                             @else
                                                 text-gray-700 hover:bg-gray-100
                                             @endif
@@ -1119,6 +1159,11 @@
                                                                         <span
                                                                             class="ml-2 px-2 py-0.5 text-xs font-bold text-white bg-red-700 rounded-full">
                                                                              {{ $notAnsweredCount }}
+                                                                        </span>
+                                                                    @elseif($isSkipped)
+                                                                        <span
+                                                                            class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-orange-600 rounded-full">
+                                                                            Skipped
                                                                         </span>
                                                                     @endif
                                                                 </span>
@@ -1158,7 +1203,7 @@
                                                                                 </li>
                                                                             @else
                                                                                 <li>
-                                                                                    <span class="font-medium text-base">
+                                                                                    <span class="font-bold text-base">
                                                                                         {{ ucfirst(str_replace('_', ' ', $key)) }}:
                                                                                     </span>
                                                                                     {{ $value }}
@@ -1170,7 +1215,7 @@
                                                             </div>
 
                                                             {{-- Action buttons --}}
-                                                            @if(!$isAnswered && !$hideNotAnsweredButtons)
+                                                            @if(!$isAnswered && !$isSkippedPermanently && !$hideNotAnsweredButtons)
                                                                 <div class="px-4 py-3 flex justify-between gap-2 border-t mt-4">
                                                                     <button type="button"
                                                                         wire:click="$emit('openCallStatusModal', '{{ $contact->id }}', 'answered', '{{ $feedContacts->count() }}')"

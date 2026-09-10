@@ -362,12 +362,21 @@ class Show extends Component
 
         $record = FeedContactValid::whereIn('feed_id', $feedIds)
             ->where(function ($query) {
-                $query->whereNull('status')
-                    ->orWhereIn('status', [2, 22]);
-            })
-            ->where(function ($query) {
-                $query->whereNull('next_available_at')
-                    ->orWhere('next_available_at', '<=', now());
+                $query->where(function ($q) {
+                    $q->where(function ($qq) {
+                        $qq->whereNull('status')
+                            ->orWhereIn('status', [2, 22]);
+                    })
+                    ->where(function ($qq) {
+                        $qq->whereNull('next_available_at')
+                            ->orWhere('next_available_at', '<=', now()->endOfDay());
+                    });
+                })
+                ->orWhere(function ($q) {
+                    $q->where('status', 3)
+                        ->whereNotNull('next_available_at')
+                        ->where('next_available_at', '<=', now());
+                });
             })
             ->where(function ($query) use ($userId) {
                 $query->whereNull('assigned_to')
@@ -407,6 +416,16 @@ class Show extends Component
         }
 
         $currentContact->update(['assigned_to' => Auth::id()]);
+
+        $phone = $currentContact->contact_no_01 ?? $currentContact->contact_no_02;
+        $relatedContacts = FeedContactValid::where('contact_no_01', $phone)
+            ->when($currentContact->feed_id, fn($query) => $query->where('feed_id', $currentContact->feed_id))
+            ->get();
+
+        if ($relatedContacts->isNotEmpty()) {
+            FeedContactValid::whereIn('id', $relatedContacts->pluck('id')->unique()->values())
+                ->update(['assigned_to' => Auth::id()]);
+        }
 
         $this->selectedFeedContact = $currentContact;
         $this->feedContactId = $currentContact->id;
@@ -1325,20 +1344,35 @@ class Show extends Component
             $cmpName = 'inbound';
         }
 
+        $callbackAt = Carbon::parse("{$this->callbackDate} {$this->callbackTime}");
+
         CallbackCustomer::create([
             'agent_id' => auth()->id(),
             'lead_id' => $this->lead->id,
             'unique_id' => $this->lead->unique_id,
             'contact_number' => $this->lead->contact_number,
             'src' => 'lead',
-            'callback_at' => Carbon::parse("{$this->callbackDate} {$this->callbackTime}"),
+            'callback_at' => $callbackAt,
             'comment' => $this->callbackComment,
             'campaign' => $cmpName
         ]);
 
+        if ($this->boundType && $this->boundType == 'dialer' && !empty($this->feedContacts)) {
+            FeedContactValid::whereIn('id', $this->feedContacts->pluck('id')->unique()->values())
+                ->update([
+                    'status' => 3,
+                    'next_available_at' => $callbackAt,
+                    'call_status_option_type' => 'skip',
+                    'comments' => $this->callbackComment,
+                    'updated_by' => Auth::id(),
+                    'attempted_at' => now(),
+                ]);
+        }
+
+        $this->refreshFeedContactStatus();
+
         session()->flash('messagedialog', 'Callback saved successfully.');
 
-        // Optionally reset
         $this->reset(['callBack', 'callbackDate', 'callbackTime', 'callbackComment']);
     }
 

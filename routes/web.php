@@ -280,6 +280,7 @@ Route::get('/db-check', function () {
 // so they live on the web routes with web+auth middleware (no /api prefix).
 use App\Http\Controllers\Api\PhoneCallController;
 use App\Http\Controllers\Api\PhoneCredentialController;
+use App\Http\Controllers\Api\PhoneEventController;
 
 Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/api/phone/credentials', [PhoneCredentialController::class, 'show'])
@@ -295,4 +296,19 @@ Route::middleware(['web', 'auth'])->group(function () {
     // Manual SIP credentials save (used when auto-login is unavailable).
     Route::post('/api/phone/credentials/manual', [PhoneCredentialController::class, 'store'])
         ->name('api.phone.credentials.manual');
+
+    // Phone events — one endpoint per browser-softphone event (spec §3). The
+    // receiver stores the event and forwards the call-affecting ones onto the
+    // SAME call-server endpoints the desk softphones trigger, so CRM behaviour
+    // is identical whether PHONE=webrtc or PHONE=other.
+    Route::prefix('api/phone/events')->group(function () {
+        Route::post('/', [PhoneEventController::class, 'store'])
+            ->name('api.phone.events');
+
+        foreach (PhoneEventController::EVENTS as $event) {
+            Route::post("/{$event}", [PhoneEventController::class, 'handle'])
+                ->defaults('event', $event)
+                ->name("api.phone.events.{$event}");
+        }
+    });
 });

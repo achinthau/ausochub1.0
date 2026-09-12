@@ -149,3 +149,51 @@
     widget.style.top = '120px';
 })();
 </script>
+
+<script>
+/**
+ * WebRTC phone → CRM event bridge (runs only when PHONE=webrtc).
+ *
+ * Every event the browser softphone fires is reported to the CRM's
+ * /api/phone/events/* receiver. The receiver forwards the call-affecting ones
+ * onto the SAME call-server endpoints the desk softphones trigger
+ * (/api/call-dialed, /api/call-answered, /api/call-disconnected, ...), so the
+ * CRM behaves identically no matter which phone type is in use.
+ */
+(function () {
+    if (window.__ausoPhoneEventBridge) return;
+    window.__ausoPhoneEventBridge = true;
+
+    // Mirrors PhoneEventController::EVENTS.
+    var EVENT_NAMES = [
+        'incoming', 'dialing', 'ringing', 'answered', 'hold', 'unhold',
+        'mute', 'unmute', 'transfer_started', 'transfer_completed',
+        'transfer_failed', 'hangup', 'registered', 'unregistered',
+        'registration_failed', 'connecting', 'connected', 'disconnected'
+    ];
+
+    function extension() {
+        try {
+            return (window.AusoPhone && window.AusoPhone.status().extension) || null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    EVENT_NAMES.forEach(function (name) {
+        window.addEventListener('ausophone:' + name, function (ev) {
+            var payload = Object.assign({}, ev.detail || {});
+            payload.extension = payload.extension || extension();
+            try {
+                fetch('/api/phone/events/' + name, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    keepalive: true,
+                    body: JSON.stringify(payload)
+                }).catch(function () {});
+            } catch (e) {}
+        });
+    });
+})();
+</script>

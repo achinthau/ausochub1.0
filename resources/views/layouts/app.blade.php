@@ -117,8 +117,10 @@
 
     @auth
         @can('can-view-leads')
-            <script src="{{ asset('ausophone/auso-phone.min.js') }}" defer></script>
-            <x-phone.widget />
+            @if (config('auso.phone') === 'webrtc')
+                <script src="{{ asset('ausophone/auso-phone.min.js') }}" defer></script>
+                <x-phone.widget />
+            @endif
         @endcan
     @endauth
 

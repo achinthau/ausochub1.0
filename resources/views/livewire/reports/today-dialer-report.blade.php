@@ -23,7 +23,9 @@
                         </option>
                     @endforeach
                 </select>
-                <p class="text-xs text-gray-400 mt-1">{{ __('Only today\'s dialer data is shown.') }}</p>
+                @unless(auth()->user()->user_type_id === 1)
+                    <p class="text-xs text-gray-400 mt-1">{{ __('Only today\'s dialer data is shown.') }}</p>
+                @endunless
             </div>
 
             @livewire('reports.today-dialer-report-table')

@@ -13,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
+use Rappasoft\LaravelLivewireTables\Views\Filters\DateFilter;
 use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
 use Rappasoft\LaravelLivewireTables\Views\Filters\TextFilter;
 
@@ -48,6 +49,11 @@ class TodayDialerReportTable extends DataTableComponent
         return auth()->user()->can('is-admin');
     }
 
+    protected function isSuperAdmin(): bool
+    {
+        return auth()->user()->user_type_id === 1;
+    }
+
     protected function accessibleCampaignIds(): array
     {
         $user = auth()->user();
@@ -67,7 +73,9 @@ class TodayDialerReportTable extends DataTableComponent
 
     protected function applyCommonFilters(Builder $query): void
     {
-        $query->whereDate('attempted_at', Carbon::today());
+        if (! $this->isSuperAdmin()) {
+            $query->whereDate('attempted_at', Carbon::today());
+        }
 
         if ($this->selectedCampaign) {
             $query->where('campaign_id', $this->selectedCampaign);
@@ -275,6 +283,26 @@ class TodayDialerReportTable extends DataTableComponent
                     }
                 }),
         ];
+
+        if ($this->isSuperAdmin()) {
+            array_splice($filters, 1, 0, [
+                DateFilter::make('Called At (From)')
+                    ->filter(function (Builder $builder, string $value) {
+                        if ($value !== '') {
+                            $builder->whereDate('attempted_at', '>=', $value);
+                        }
+                    }),
+            ]);
+
+            array_splice($filters, 2, 0, [
+                DateFilter::make('Called At (To)')
+                    ->filter(function (Builder $builder, string $value) {
+                        if ($value !== '') {
+                            $builder->whereDate('attempted_at', '<=', $value);
+                        }
+                    }),
+            ]);
+        }
 
         if ($this->isAdmin()) {
             $agentIds = Campaign::whereIn('id', $this->accessibleCampaignIds())

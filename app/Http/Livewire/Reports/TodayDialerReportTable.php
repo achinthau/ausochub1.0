@@ -2,7 +2,6 @@
 
 namespace App\Http\Livewire\Reports;
 
-use App\Http\Livewire\Reports\Filters\DateRangeFilter;
 use App\Models\Campaign;
 use App\Models\Company;
 use App\Models\FeedContactValid;
@@ -14,6 +13,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Rappasoft\LaravelLivewireTables\DataTableComponent;
 use Rappasoft\LaravelLivewireTables\Views\Column;
+use Rappasoft\LaravelLivewireTables\Views\Filters\DateFilter;
 use Rappasoft\LaravelLivewireTables\Views\Filters\SelectFilter;
 use Rappasoft\LaravelLivewireTables\Views\Filters\TextFilter;
 
@@ -286,17 +286,19 @@ class TodayDialerReportTable extends DataTableComponent
 
         if ($this->isSuperAdmin()) {
             array_splice($filters, 1, 0, [
-                DateRangeFilter::make('Called At')
-                    ->filter(function (Builder $builder, array $value) {
-                        $from = $value['from'] ?? '';
-                        $to = $value['to'] ?? '';
-
-                        if ($from !== '') {
-                            $builder->whereDate('attempted_at', '>=', $from);
+                DateFilter::make('Called At (From)')
+                    ->filter(function (Builder $builder, string $value) {
+                        if ($value !== '') {
+                            $builder->whereDate('attempted_at', '>=', $value);
                         }
+                    }),
+            ]);
 
-                        if ($to !== '') {
-                            $builder->whereDate('attempted_at', '<=', $to);
+            array_splice($filters, 2, 0, [
+                DateFilter::make('Called At (To)')
+                    ->filter(function (Builder $builder, string $value) {
+                        if ($value !== '') {
+                            $builder->whereDate('attempted_at', '<=', $value);
                         }
                     }),
             ]);

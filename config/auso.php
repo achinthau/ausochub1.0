@@ -10,6 +10,7 @@ return [
     'ticket_sla_enabled' => env('TICKET_SLA_ENABLED', true),
     'external_extension_url' => env('EXTERNAL_EXTENSION_URL',false ),
     'phone_type' => env('PHONE_TYPE', 'microsip'),
+    'phone' => env('PHONE', 'other'), // 'webrtc' uses the /Phone browser softphone, 'other' uses desk softphones via the call server
     'phone_auto_register' => env('PHONE_AUTO_REGISTER', false),
     'softphone_server' => env('SOFTPHONE_SERVER', '123.231.74.22'),
     'softphone_password' => env('SOFTPHONE_PASSWORD', '@u5051p'),

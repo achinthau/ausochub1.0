@@ -1131,7 +1131,7 @@
                                         @endif
                                     " open>
 
-                                                            <summary class="flex items-center justify-between cursor-pointer px-4 py-2 text-lg font-semibold rounded-t-lg
+                                                            <summary class="group relative flex items-center justify-between cursor-pointer px-4 py-2 text-lg font-semibold rounded-t-lg
                                             @if($isAnswered)
                                                 text-green-700 hover:bg-green-100
                                             @elseif($isNotAnswered)
@@ -1142,6 +1142,9 @@
                                                 text-gray-700 hover:bg-gray-100
                                             @endif
                                         ">
+                                                                @if(!empty(trim((string) ($contact->comments ?? ''))))
+                                                                    <span class="absolute bottom-full left-0 mb-1 z-50 max-w-xs px-3 py-1.5 rounded-lg bg-gray-800 text-white text-xs font-normal shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 break-words pointer-events-none">{!! nl2br(e(trim((string) $contact->comments))) !!}</span>
+                                                                @endif
                                                                 <span>
                                                                     {{ $contact->priority_field ?? 'No Title' }}
 

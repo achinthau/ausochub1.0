@@ -883,6 +883,10 @@ class Show extends Component
             $ticket->next_available_at = $contact->next_available_at;
             $ticket->more_data = json_encode(array_diff_key($data, array_flip($cxTicketColumns)));
 
+            if ($this->service_type === 'satisfaction-mini') {
+                $this->miniComments[$contact->id] = $contact->comments ?? '';
+            }
+
             return $ticket;
         });
     }

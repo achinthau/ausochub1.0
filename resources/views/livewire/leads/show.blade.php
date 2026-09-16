@@ -448,6 +448,12 @@
                                             Skip
                                         </button>
 
+                                        <button type="button"
+                                            wire:click="$emit('openChangeLangModal', '{{ $loadedContactIds->implode(',') }}')"
+                                            class="w-28 bg-orange-300 font-bold hover:bg-orange-400 p-2 rounded-md shadow-md">
+                                            Change Lan
+                                        </button>
+
                                         {{-- @if ($service_type == 'satisfaction')
                                         <button type="button"
                                             wire:click="$emit('openUpdateContactModal', '{{ $lead->contact_number }}','{{ $lead->contact_number_2 }}', '{{ $feed_id }}', '{{ $service_type }}')"
@@ -1382,6 +1388,7 @@
     @livewire('tickets.create', ['leadId' => $lead->id])
     @livewire('orders.create', ['leadId' => $lead->id])
     @livewire('leads.partials.skip-modal', ['leadId' => $lead->contact_number])
+    @livewire('leads.partials.change-lang-modal', ['leadId' => $lead->contact_number])
     @livewire('leads.partials.update-contact', ['leadId' => $lead->contact_number])
     @livewire('leads.partials.submit-call-status')
 

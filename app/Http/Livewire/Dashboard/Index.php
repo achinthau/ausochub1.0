@@ -263,7 +263,7 @@ class Index extends Component
             ->count();
 
         $this->dialedCallsToday = $this->dialedCallsToday + $this->answeredCallsToday + $this->notAnsweredCallsToday;
-        $this->notAnsweredCallsToday = $this->dialedCallsToday - $this->answeredCallsToda;
+        $this->notAnsweredCallsToday = $this->dialedCallsToday - $this->answeredCallsToday;
     }
 
     public function updatedSelectedSkills($type, $value)

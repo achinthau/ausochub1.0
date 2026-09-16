@@ -238,6 +238,18 @@ class Index extends Component
             ->whereDate('attempted_at', today())
             ->count();
 
+        $notCompleted = FeedContactValid::whereIn('feed_id', $feedIds)
+            ->where('updated_by', $userId)
+            ->whereIn('status', [3,5,51,52,6])
+            ->whereDate('attempted_at', today())
+            ->count();
+
+        $finishedNotcompleted = FeedContactValidReport::whereIn('feed_id', $feedIds)
+            ->where('updated_by', $userId)
+            ->whereIn('status', [42])
+            ->whereDate('attempted_at', today())
+            ->count();
+
         $this->answeredCallsToday = FeedContactValidReport::whereIn('feed_id', $feedIds)
             ->where('updated_by', $userId)
             ->whereIn('status', [1, 41])
@@ -251,6 +263,7 @@ class Index extends Component
             ->count();
 
         $this->dialedCallsToday = $this->dialedCallsToday + $this->answeredCallsToday + $this->notAnsweredCallsToday ;
+        $this->notAnsweredCallsToday = $this->notAnsweredCallsToday + $notCompleted + $finishedNotcompleted ;
     }
 
     public function updatedSelectedSkills($type, $value)

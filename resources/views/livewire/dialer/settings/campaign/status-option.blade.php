@@ -14,9 +14,10 @@
                 <x-select label="Type" wire:model="newType">
                     <x-select.option label="{{ $isSatisfaction ? 'Satisfied' : 'Answered' }}" :value="1" />
                     <x-select.option label="{{ $isSatisfaction ? 'Dissatisfied' : 'Not Answered' }}" :value="2" />
-                    @if($isSatisfaction)
-                        <x-select.option label="Answered Cancel" :value="41" />
+                    <x-select.option label="Answered Cancel" :value="41" />
                         <x-select.option label="Not Answered Cancel" :value="42" />
+                    @if($isSatisfaction)
+                        
                         <x-select.option label="Not Answered" :value="4" />
                     @else
                         <x-select.option label="Skip" :value="3" />

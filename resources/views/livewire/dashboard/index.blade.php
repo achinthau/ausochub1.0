@@ -131,7 +131,7 @@
                                         </div>
                                         <div class="flex justify-between">
                                             <div><span class="text-gray-500 text-sm">Completed :</span> <span class="text-xl font-bold">{{ number_format($answeredCallsToday, 0) }}</span> </div>
-                                            <div><span class="text-gray-500 text-sm">Dropped :</span> <span class="text-xl font-bold pr-8">{{ number_format($answeredCallsToday, 0) }}</span></div>
+                                            <div><span class="text-gray-500 text-sm">Dropped :</span> <span class="text-xl font-bold pr-8">{{ number_format($notAnsweredCallsToday, 0) }}</span></div>
                                         </div>
                                     </div>
                                 @endif

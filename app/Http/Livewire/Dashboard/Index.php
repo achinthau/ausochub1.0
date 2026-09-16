@@ -34,6 +34,7 @@ class Index extends Component
     public $hasStartedCampaign = false;
     public $dialedCallsToday = 0;
     public $answeredCallsToday = 0;
+    public $notAnsweredCallsToday = 0;
 
     protected $listeners = ['hideBreak' => 'hideBreak', 'showBreak' => 'showBreak', 'setOutbound' => 'setOutbound', 'setInbound' => 'setInbound'];
 
@@ -198,6 +199,7 @@ class Index extends Component
         $this->hasStartedCampaign = false;
         $this->dialedCallsToday = 0;
         $this->answeredCallsToday = 0;
+        $this->notAnsweredCallsToday = 0;
 
         if ($this->boundType != 'dialer') {
             return;
@@ -242,13 +244,13 @@ class Index extends Component
             ->whereDate('attempted_at', today())
             ->count();
 
-        $notAnsweredCallsToday = FeedContactValidReport::whereIn('feed_id', $feedIds)
+        $this->notAnsweredCallsToday = FeedContactValidReport::whereIn('feed_id', $feedIds)
             ->where('updated_by', $userId)
             ->whereIn('status', [222, 42])
             ->whereDate('attempted_at', today())
             ->count();
 
-        $this->dialedCallsToday = $this->dialedCallsToday + $this->answeredCallsToday + $notAnsweredCallsToday ;
+        $this->dialedCallsToday = $this->dialedCallsToday + $this->answeredCallsToday + $this->notAnsweredCallsToday ;
     }
 
     public function updatedSelectedSkills($type, $value)

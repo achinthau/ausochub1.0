@@ -13698,6 +13698,7 @@ var MediaManager = class {
     this.ringtoneVolume = options.ringtoneVolume ?? 0.5;
     this.enableTones = options.enableTones !== false;
     this.remoteAudio = null;
+    this.ringtoneAudio = null;
     this.toneContext = null;
     this.activeTone = null;
     this.devices = { inputs: [], outputs: [] };
@@ -13705,6 +13706,9 @@ var MediaManager = class {
     this._dsp = null;
     this._micProxyInstalled = false;
     this._originalGetUserMedia = null;
+    this._dspKeepAliveTimer = null;
+    this._dspVisibilityBound = false;
+    this._dspVisibilityListener = () => this._onDspVisibilityChanged();
     this._onDeviceChange = () => {
       this.enumerate().catch((err) => log5.warn("device enumeration failed", err));
     };
@@ -13743,6 +13747,8 @@ var MediaManager = class {
     this._teardownDsp();
     this.remoteAudio?.remove();
     this.remoteAudio = null;
+    this.ringtoneAudio?.pause();
+    this.ringtoneAudio = null;
   }
   /**
    * Ask for the microphone up-front so the browser permission prompt happens at
@@ -13833,6 +13839,7 @@ var MediaManager = class {
       highpass.connect(worklet);
       worklet.connect(destination);
       this._dsp = { context, source, raw, destination };
+      this._startDspKeepAlive();
       return destination.stream;
     } catch (err) {
       log5.warn("noise-gate setup failed \u2014 falling back to raw mic", err);
@@ -13842,6 +13849,7 @@ var MediaManager = class {
   }
   _teardownDsp() {
     if (!this._dsp) return;
+    this._stopDspKeepAlive();
     try {
       this._dsp.source?.disconnect();
       this._dsp.raw?.getTracks().forEach((t) => t.stop());
@@ -13849,6 +13857,50 @@ var MediaManager = class {
     } catch (err) {
     }
     this._dsp = null;
+  }
+  /** Keep the DSP AudioContext alive while the tab is hidden, and resume it the
+   *  moment the tab is visible again. See the notes at construction for why. */
+  _startDspKeepAlive() {
+    if (typeof document === "undefined") return;
+    if (this._dspVisibilityBound) return;
+    document.addEventListener("visibilitychange", this._dspVisibilityListener);
+    this._dspVisibilityBound = true;
+    this._syncDspAlive();
+  }
+  _stopDspKeepAlive() {
+    if (typeof document !== "undefined" && this._dspVisibilityBound) {
+      document.removeEventListener("visibilitychange", this._dspVisibilityListener);
+      this._dspVisibilityBound = false;
+    }
+    if (this._dspKeepAliveTimer) {
+      clearInterval(this._dspKeepAliveTimer);
+      this._dspKeepAliveTimer = null;
+    }
+  }
+  _onDspVisibilityChanged() {
+    this._syncDspAlive();
+  }
+  _syncDspAlive() {
+    if (!this._dsp) return;
+    const hidden = typeof document !== "undefined" && document.hidden;
+    if (hidden) {
+      if (!this._dspKeepAliveTimer) {
+        this._dspKeepAliveTimer = setInterval(() => this._resumeDspContext(), 1e4);
+      }
+    } else {
+      if (this._dspKeepAliveTimer) {
+        clearInterval(this._dspKeepAliveTimer);
+        this._dspKeepAliveTimer = null;
+      }
+      this._resumeDspContext();
+    }
+  }
+  _resumeDspContext() {
+    const ctx = this._dsp?.context;
+    if (!ctx) return;
+    if (ctx.state !== "running") {
+      ctx.resume().catch((err) => log5.warn("could not resume DSP audio context", err));
+    }
   }
   async enumerate() {
     const all = await navigator.mediaDevices.enumerateDevices();
@@ -13920,9 +13972,22 @@ var MediaManager = class {
     });
     return this.toneContext;
   }
-  /** Inbound ring: two tones, 2s on / 4s off (UK-style double ring). */
+  /** Inbound ring: plays the custom WAV ringtone file in a loop. */
   startRingtone() {
-    this._startTone([440, 480], { onMs: 2e3, offMs: 4e3 });
+    if (!this.enableTones) return;
+    this.stopTone();
+    if (!this.ringtoneAudio) {
+      this.ringtoneAudio = new Audio("/ausophone/phone_ringtone.wav");
+      this.ringtoneAudio.loop = true;
+      this.ringtoneAudio.preload = "auto";
+    }
+    this.ringtoneAudio.volume = this.ringtoneVolume;
+    this.ringtoneAudio.currentTime = 0;
+    this.ringtoneAudio.play().catch((err) => {
+      log5.warn("ringtone playback failed", err);
+      this._startTone([440, 480], { onMs: 2e3, offMs: 4e3 });
+    });
+    this.activeTone = { ringtone: this.ringtoneAudio };
   }
   /** Outbound ringback heard by the agent while the far end rings. */
   startRingback() {
@@ -13955,14 +14020,19 @@ var MediaManager = class {
   }
   stopTone() {
     if (!this.activeTone) return;
-    const { oscillators, master, timer } = this.activeTone;
-    clearInterval(timer);
-    try {
-      master.gain.value = 0;
-      oscillators.forEach((o) => o.stop());
-      master.disconnect();
-    } catch (err) {
-      log5.debug("tone teardown", err);
+    if (this.activeTone.ringtone) {
+      this.activeTone.ringtone.pause();
+      this.activeTone.ringtone.currentTime = 0;
+    } else {
+      const { oscillators, master, timer } = this.activeTone;
+      clearInterval(timer);
+      try {
+        master.gain.value = 0;
+        oscillators.forEach((o) => o.stop());
+        master.disconnect();
+      } catch (err) {
+        log5.debug("tone teardown", err);
+      }
     }
     this.activeTone = null;
   }

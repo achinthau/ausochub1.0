@@ -29,6 +29,10 @@
 })();
 </script>
 
+@php
+    $userExtension = (string) (auth()->user()->extension ?? auth()->user()->agent?->extension ?? '');
+@endphp
+
 <style>
     #phone-widget { display: none; }
     #phone-widget.phone-open { display: flex; }
@@ -69,7 +73,7 @@
             company-name="{{ config('ausophone.branding.company_name') }}"
             logo="{{ config('ausophone.branding.logo') }}"
             primary-color="{{ config('ausophone.branding.primary_color') }}"
-            auto-login
+            extension="{{ $userExtension }}"
         ></auso-phone>
     </div>
 </div>
@@ -147,6 +151,58 @@
     }
     widget.style.left = Math.max(16, window.innerWidth - 400) + 'px';
     widget.style.top = '120px';
+})();
+</script>
+
+<script>
+/**
+ * Automatic registration on login.
+ *
+ * Registers the browser softphone with the agent's extension the moment a page
+ * loads (i.e. right after sign-in), using the extension + its password from the
+ * Extensions table (resolved server-side by /api/phone/credentials). Retries
+ * when a registration attempt fails so a transient WSS/network hiccup never
+ * leaves the phone unregistered.
+ */
+(function () {
+    if (window.__ausoPhoneAutoRegister) return;
+    window.__ausoPhoneAutoRegister = true;
+
+    var maxAttempts = 3;
+    var attempts = 0;
+
+    function canLogin() {
+        return Boolean(window.AusoPhone && typeof window.AusoPhone.login === 'function');
+    }
+
+    function statusRef() {
+        try { return canLogin() ? window.AusoPhone.status() : null; } catch (e) { return null; }
+    }
+
+    function doLogin() {
+        if (attempts >= maxAttempts) return;
+        var s = statusRef();
+        if (s && (s.registered || s.registration === 'registering')) return;
+
+        attempts++;
+        window.AusoPhone.login({ extension: @json($userExtension) || undefined })
+            .catch(function () { setTimeout(doLogin, 4000); });
+    }
+
+    function boot() {
+        if (!canLogin()) { setTimeout(boot, 300); return; }
+        setTimeout(doLogin, 500);
+    }
+
+    window.addEventListener('ausophone:registration_failed', function () {
+        setTimeout(doLogin, 4000);
+    });
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', boot);
+    } else {
+        boot();
+    }
 })();
 </script>
 

@@ -13743,6 +13743,9 @@ Duration=${duration}`
       this._dsp = null;
       this._micProxyInstalled = false;
       this._originalGetUserMedia = null;
+      this._dspKeepAliveTimer = null;
+      this._dspVisibilityBound = false;
+      this._dspVisibilityListener = () => this._onDspVisibilityChanged();
       this._onDeviceChange = () => {
         this.enumerate().catch((err) => log5.warn("device enumeration failed", err));
       };
@@ -13873,6 +13876,7 @@ Duration=${duration}`
         highpass.connect(worklet);
         worklet.connect(destination);
         this._dsp = { context, source, raw, destination };
+        this._startDspKeepAlive();
         return destination.stream;
       } catch (err) {
         log5.warn("noise-gate setup failed \u2014 falling back to raw mic", err);
@@ -13882,6 +13886,7 @@ Duration=${duration}`
     }
     _teardownDsp() {
       if (!this._dsp) return;
+      this._stopDspKeepAlive();
       try {
         this._dsp.source?.disconnect();
         this._dsp.raw?.getTracks().forEach((t) => t.stop());
@@ -13889,6 +13894,50 @@ Duration=${duration}`
       } catch (err) {
       }
       this._dsp = null;
+    }
+    /** Keep the DSP AudioContext alive while the tab is hidden, and resume it the
+     *  moment the tab is visible again. See the notes at construction for why. */
+    _startDspKeepAlive() {
+      if (typeof document === "undefined") return;
+      if (this._dspVisibilityBound) return;
+      document.addEventListener("visibilitychange", this._dspVisibilityListener);
+      this._dspVisibilityBound = true;
+      this._syncDspAlive();
+    }
+    _stopDspKeepAlive() {
+      if (typeof document !== "undefined" && this._dspVisibilityBound) {
+        document.removeEventListener("visibilitychange", this._dspVisibilityListener);
+        this._dspVisibilityBound = false;
+      }
+      if (this._dspKeepAliveTimer) {
+        clearInterval(this._dspKeepAliveTimer);
+        this._dspKeepAliveTimer = null;
+      }
+    }
+    _onDspVisibilityChanged() {
+      this._syncDspAlive();
+    }
+    _syncDspAlive() {
+      if (!this._dsp) return;
+      const hidden = typeof document !== "undefined" && document.hidden;
+      if (hidden) {
+        if (!this._dspKeepAliveTimer) {
+          this._dspKeepAliveTimer = setInterval(() => this._resumeDspContext(), 1e4);
+        }
+      } else {
+        if (this._dspKeepAliveTimer) {
+          clearInterval(this._dspKeepAliveTimer);
+          this._dspKeepAliveTimer = null;
+        }
+        this._resumeDspContext();
+      }
+    }
+    _resumeDspContext() {
+      const ctx = this._dsp?.context;
+      if (!ctx) return;
+      if (ctx.state !== "running") {
+        ctx.resume().catch((err) => log5.warn("could not resume DSP audio context", err));
+      }
     }
     async enumerate() {
       const all = await navigator.mediaDevices.enumerateDevices();

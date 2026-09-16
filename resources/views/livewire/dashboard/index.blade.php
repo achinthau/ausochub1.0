@@ -111,18 +111,27 @@
                         <div class="grid grid-cols-3 space-x-4">
                             @if($boundType == 'dialer')
                                 @if($hasStartedCampaign)
-                                    <div class="bg-white p-6 rounded-md shadow-md space-y-2">
-                                        <h1 class="text-xs text-gray-400 font-semibold">Statistics</h1>
+                                    <div class="bg-white p-6 px-4 pl rounded-md shadow-md space-y-2">
+                                        <div class="flex justify-between ">
+                                        <div>
+                                        <span class="text-xs text-gray-400 font-semibold">Dialed</span></div><div><span class="text-xl font-bold mr-8">{{ number_format($dialedCallsToday, 0) }}</span>
+                                        </div>
+                                        </div>
                                         <hr>
-                                        <div class="flex space-x-4 mt-4">
-                                            <div class="flex-1">
+                                        <div class="flex justify-center space-x-4 mt-4">
+                                            {{-- <div class="flex-1 text-center">
                                                 <div class="text-gray-500 text-sm">Dialed Today</div>
                                                 <div class="text-xl font-bold">{{ number_format($dialedCallsToday, 0) }}</div>
-                                            </div>
-                                            <div class="flex-1">
+                                            </div> --}}
+
+                                            {{-- <div class="flex-1">
                                                 <div class="text-gray-500 text-sm">Completed Today</div>
                                                 <div class="text-xl font-bold">{{ number_format($answeredCallsToday, 0) }}</div>
-                                            </div>
+                                            </div> --}}
+                                        </div>
+                                        <div class="flex justify-between">
+                                            <div><span class="text-gray-500 text-sm">Completed :</span> <span class="text-xl font-bold">{{ number_format($answeredCallsToday, 0) }}</span> </div>
+                                            <div><span class="text-gray-500 text-sm">Dropped :</span> <span class="text-xl font-bold pr-8">{{ number_format($answeredCallsToday, 0) }}</span></div>
                                         </div>
                                     </div>
                                 @endif

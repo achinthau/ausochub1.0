@@ -244,7 +244,7 @@ class Index extends Component
 
         $notAnsweredCallsToday = FeedContactValidReport::whereIn('feed_id', $feedIds)
             ->where('updated_by', $userId)
-            ->whereIn('status', [222])
+            ->whereIn('status', [222, 42])
             ->whereDate('attempted_at', today())
             ->count();
 

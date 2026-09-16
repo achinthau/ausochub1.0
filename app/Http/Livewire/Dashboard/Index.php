@@ -262,8 +262,8 @@ class Index extends Component
             ->whereDate('attempted_at', today())
             ->count();
 
-        $this->dialedCallsToday = $this->dialedCallsToday + $this->answeredCallsToday + $this->notAnsweredCallsToday ;
-        $this->notAnsweredCallsToday = $this->dialedCallsToday - $this->answeredCallsToda  ;
+        $this->dialedCallsToday = $this->dialedCallsToday + $this->answeredCallsToday + $this->notAnsweredCallsToday;
+        $this->notAnsweredCallsToday = $this->dialedCallsToday - $this->answeredCallsToda;
     }
 
     public function updatedSelectedSkills($type, $value)

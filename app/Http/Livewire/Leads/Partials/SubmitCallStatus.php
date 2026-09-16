@@ -59,20 +59,22 @@ class SubmitCallStatus extends Component
         $this->status = $status;
         $this->isSatisfaction = Campaign::find($this->campaign)?->service_type === 'satisfaction';
 
-        if ($this->isSatisfaction && $status === 'not_answered') {
-            $statusType = 4;
+if ($status === 'answered') {
+            $statusTypes = [1, 41];
+        } elseif ($this->isSatisfaction) {
+            $statusTypes = [4, 42];
         } else {
-            $statusType = $status === 'answered' ? 1 : 2;
+            $statusTypes = [2, 42];
         }
         $campaignOptions = DialerCallStatusOption::where('campaign_id', $this->campaign)
-            ->where('type', $statusType)
+            ->whereIn('type', $statusTypes)
             ->get();
 
         if ($campaignOptions->isNotEmpty()) {
             $this->options = $campaignOptions;
         } else {
             $this->options = DialerCallStatusOption::whereNull('campaign_id')
-                ->where('type', $statusType)
+                ->whereIn('type', $statusTypes)
                 ->get();
         }
 
@@ -161,6 +163,24 @@ class SubmitCallStatus extends Component
             ->map(fn ($name) => str_replace(['_', ' '], '', strtolower((string) trim($name))))
             ->contains('changerequest');
 
+        $optionTypes = collect(explode(',', (string) $optionTypeString))
+            ->map(fn ($type) => (string) trim($type))
+            ->filter()
+            ->unique()
+            ->values();
+
+        if ($isChangeRequest) {
+            $targetStatus = 5;
+        } elseif ($optionTypes->contains('41')) {
+            $targetStatus = 41; // Answered cancel
+        } elseif ($optionTypes->contains('42')) {
+            $targetStatus = 42; // Not answered cancel
+        } elseif ($this->status == 'answered') {
+            $targetStatus = 1; // Answered
+        } else {
+            $targetStatus = null; // Not answered - uses per-feed retry logic
+        }
+
         $phones = collect([$this->feed->contact_no_01, $this->feed->contact_no_02])
             ->map(function ($phone) {
                 return trim((string) $phone);
@@ -190,10 +210,8 @@ class SubmitCallStatus extends Component
                 ->get();
 
             foreach ($feeds as $feed) {
-                if ($isChangeRequest) {
-                    $feed->status = 5;
-                } elseif ($this->status == 'answered') {
-                    $feed->status = 1; // Answered
+                if ($targetStatus !== null) {
+                    $feed->status = $targetStatus;
                 } else {
                     if (str_starts_with((string) $feed->status, '2')) {
                         $feed->status = (int) ($feed->status . '2');
@@ -216,10 +234,8 @@ class SubmitCallStatus extends Component
 
         } else {
             // ✅ Update only the current feed
-            if ($isChangeRequest) {
-                $this->feed->status = 5;
-            } elseif ($this->status == 'answered') {
-                $this->feed->status = 1; // Answered
+            if ($targetStatus !== null) {
+                $this->feed->status = $targetStatus;
             } else {
                 if (str_starts_with((string) $this->feed->status, '2')) {
                     $this->feed->status = (int) ($this->feed->status . '2');

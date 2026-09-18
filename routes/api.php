@@ -23,6 +23,54 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Campaign;
 use App\Http\Controllers\Api\WhatsappWebhookController;
 
+if (!function_exists('ausoPhoneCandidates')) {
+    function ausoPhoneCandidates($phone): array
+    {
+        $digits = preg_replace('/\D+/', '', (string) $phone);
+
+        if ($digits === '') {
+            return [];
+        }
+
+        $candidates = [$digits];
+
+        if (strlen($digits) === 9) {
+            $local = '0' . $digits;
+            $candidates[] = $local;
+            $candidates[] = '94' . $digits;
+            $candidates[] = '9' . $local;
+        } elseif (strlen($digits) === 10 && str_starts_with($digits, '0')) {
+            $local = substr($digits, 1);
+            $candidates[] = $local;
+            $candidates[] = '94' . $local;
+            $candidates[] = '9' . $digits;
+        } elseif (strlen($digits) === 11 && str_starts_with($digits, '94')) {
+            $local = substr($digits, 2);
+            $candidates[] = $local;
+            $candidates[] = '0' . $local;
+            $candidates[] = '9' . '0' . $local;
+        }
+
+        return array_values(array_unique(array_filter($candidates)));
+    }
+}
+
+if (!function_exists('ausoFindLeadByPhone')) {
+    function ausoFindLeadByPhone($phone): ?Lead
+    {
+        $candidates = ausoPhoneCandidates($phone);
+
+        if ($candidates === []) {
+            return null;
+        }
+
+        return Lead::where(function ($query) use ($candidates) {
+            $query->whereIn('contact_number', $candidates)
+                ->orWhereIn('contact_number_2', $candidates);
+        })->orderBy('id')->first();
+    }
+}
+
 
 
 /*
@@ -70,9 +118,7 @@ Route::post('/call-answered', function (StoreAnsweredCall $request) {
 
     // $withZero    = str_starts_with($number, '0') ? $number : '0'.$number;
     // $withoutZero = ltrim($number, '0');
-    $lead = Lead::where('contact_number', $number)
-        // ->orWhere('contact_number', $withZero)
-        ->first();
+    $lead = ausoFindLeadByPhone($number);
     $agent = Agent::where('extension', $request['agent'])->first();
     $skill = Skill::where('skillname', $request['queuename'])->first();
 
@@ -263,8 +309,7 @@ Route::post('/call-dialed', function (StoreAnsweredCall $request) {
     // if (!empty($number) && strlen($number) === 9) {
     //     $number = '0' . $number;
     // }
-    $lead = Lead::where('contact_number', $number)
-        ->first();
+    $lead = ausoFindLeadByPhone($number);
     $agent = Agent::where('extension', $request['agent'])->first();
     $skill = Skill::where('skillname', $request['queuename'])->first();
 
@@ -465,7 +510,7 @@ Route::post('/get-number', function (Request $request) {
         ], 422); // HTTP 422 Unprocessable Entity
     } else {
         $phoneNumber = $request->input('phone_number');
-        $lead = Lead::where('contact_number', $phoneNumber)->first();
+        $lead = ausoFindLeadByPhone($phoneNumber);
 
         if (!$lead) {
             $feedContact = FeedContactValid::where('phone', $phoneNumber)->first();
@@ -537,7 +582,7 @@ Route::post('/get-answered-number', function (Request $request) {
         $phoneNumber = $request->input('phone_number');
         $extention = $request->input('extention');
         $skill = $request->input('queuename');
-        $lead = Lead::where('contact_number', $phoneNumber)->first();
+        $lead = ausoFindLeadByPhone($phoneNumber);
         $agent = Agent::where('extension', $extention)->first();
         $skill = Skill::where('skillname', $skill)->first();
 

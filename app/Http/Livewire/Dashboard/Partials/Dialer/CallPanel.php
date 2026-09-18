@@ -178,20 +178,12 @@ class CallPanel extends Component
         // dd($this->addressLine2);
 
         // Try to find lead
-        // $lead = Lead::where('contact_number', $number)->first();
-        // $lead = Lead::where('contact_number', 'LIKE', "%{$number}%")->first();
-        $lead = Lead::where(function ($query) use ($number) {
-            if (!empty($number)) {
-                $query->where('contact_number', 'LIKE', "%{$number}%")
-                      ->orWhere('contact_number_2', 'LIKE', "%{$number}%");
-            }
-        })->first();
-
+        $lead = $this->findLeadByPhone($number);
 
         if (!$lead) {
             // If not found, create new one
             $lead = new Lead();
-            $lead->contact_number = $number;
+            $lead->contact_number = $this->canonicalPhone($number);
             $lead->first_name = $this->customerName;
             $lead->address_line_1 = $this->addressLine1;
             $lead->address_line_2 = $this->addressLine2;
@@ -210,6 +202,61 @@ class CallPanel extends Component
             'feed_id' => $this->feed_id,
             'cmp' => $this->campaignName,
         ]);
+    }
+
+    protected function canonicalPhone($phone): string
+    {
+        $digits = preg_replace('/\D+/', '', (string) $phone);
+
+        if (strlen($digits) === 10 && str_starts_with($digits, '0')) {
+            return substr($digits, 1);
+        }
+
+        return $digits;
+    }
+
+    protected function phoneCandidates($phone): array
+    {
+        $digits = preg_replace('/\D+/', '', (string) $phone);
+
+        if ($digits === '') {
+            return [];
+        }
+
+        $candidates = [$digits];
+
+        if (strlen($digits) === 9) {
+            $local = '0' . $digits;
+            $candidates[] = $local;
+            $candidates[] = '94' . $digits;
+            $candidates[] = '9' . $local;
+        } elseif (strlen($digits) === 10 && str_starts_with($digits, '0')) {
+            $local = substr($digits, 1);
+            $candidates[] = $local;
+            $candidates[] = '94' . $local;
+            $candidates[] = '9' . $digits;
+        } elseif (strlen($digits) === 11 && str_starts_with($digits, '94')) {
+            $local = substr($digits, 2);
+            $candidates[] = $local;
+            $candidates[] = '0' . $local;
+            $candidates[] = '9' . '0' . $local;
+        }
+
+        return array_values(array_unique(array_filter($candidates)));
+    }
+
+    protected function findLeadByPhone($phone): ?Lead
+    {
+        $candidates = $this->phoneCandidates($phone);
+
+        if ($candidates === []) {
+            return null;
+        }
+
+        return Lead::where(function ($query) use ($candidates) {
+            $query->whereIn('contact_number', $candidates)
+                ->orWhereIn('contact_number_2', $candidates);
+        })->orderBy('id')->first();
     }
 
 

@@ -299,20 +299,11 @@ class Show extends Component
     }
 
     protected function resolveLeadForContact(FeedContactValid $contact): Lead
-    {        $phone = $this->normalizePhoneNumber($contact->contact_no_01);
+    {
+        $phone = $this->normalizePhoneNumber($contact->contact_no_01);
         $phone2 = $this->normalizePhoneNumber($contact->contact_no_02);
 
-        $lead = Lead::where(function ($query) use ($phone, $phone2) {
-            if ($phone !== '') {
-                $query->where('contact_number', 'LIKE', "%{$phone}%")
-                    ->orWhere('contact_number_2', 'LIKE', "%{$phone}%");
-            }
-
-            if ($phone2 !== '') {
-                $query->orWhere('contact_number', 'LIKE', "%{$phone2}%")
-                    ->orWhere('contact_number_2', 'LIKE', "%{$phone2}%");
-            }
-        })->first();
+        $lead = $this->findLeadByPhones([$phone, $phone2]);
 
         if (!$lead) {
             $data = json_decode($contact->data ?? '{}', true);
@@ -331,6 +322,26 @@ class Show extends Component
         }
 
         return $lead;
+    }
+
+    protected function findLeadByPhones(array $phones): ?Lead
+    {
+        $candidates = [];
+
+        foreach ($phones as $phone) {
+            $candidates = array_merge($candidates, $this->dialerPhoneCandidates($phone));
+        }
+
+        $candidates = array_values(array_unique(array_filter($candidates)));
+
+        if ($candidates === []) {
+            return null;
+        }
+
+        return Lead::where(function ($query) use ($candidates) {
+            $query->whereIn('contact_number', $candidates)
+                ->orWhereIn('contact_number_2', $candidates);
+        })->orderBy('id')->first();
     }
 
     protected function hasReachedDialLimit($campaignId, $userId): bool
@@ -431,7 +442,16 @@ class Show extends Component
         $this->feedContactId = $currentContact->id;
         $this->feedContactIdStatus = $currentContact->status;
 
-        $lead = $this->resolveLeadForContact($currentContact);
+        try {
+            $lead = $this->resolveLeadForContact($currentContact);
+        } catch (\Throwable $e) {
+            \Log::error('nextContact: failed to resolve lead', [
+                'feed_contact_id' => $currentContact->id,
+                'error' => $e->getMessage(),
+            ]);
+            return null;
+        }
+
         $feedId = $currentContact->feed_id;
 
         return redirect()->route('leads.show', [
@@ -512,12 +532,6 @@ class Show extends Component
                         ->orWhereIn('lang', $userLanguageNames);
                 })
                 ->get();
-
-            if ($this->feedContacts->isNotEmpty()) {
-                FeedContactValid::whereIn('id', $this->feedContacts->pluck('id')->unique()->values())
-                    ->update(['assigned_to' => Auth::id()]);
-            }
-
 
             if ($this->feedContacts->isNotEmpty()) {
                 $foundContact = $this->feedContacts->first();
@@ -821,11 +835,6 @@ class Show extends Component
 
         if ($contacts->isEmpty()) {
             return collect();
-        }
-
-        if ($this->boundType === 'dialer') {
-            FeedContactValid::whereIn('id', $contacts->pluck('id')->unique()->values())
-                ->update(['assigned_to' => Auth::id()]);
         }
 
         $cxTicketColumns = ['category', 'product', 'model', 'work_order_no', 'service_center', 'warranty_status', 'sold_date', 'customer_name', 'customer_address', 'customer_contact_01', 'customer_contact_02', 'technician_name', 'technician_contact', 'supervisor_name', 'supervisor_contact', 'status', 'creator', 'satisfaction_rate', 'satisfaction_reasons', 'dis_satisfaction_reasons', 'cancelling_reasons', 'closed_by', 'surveyed_by', 'company', 'reopened_by', 'reopened_reasons', 'skipped_reasons', 'skipped_by', 'cancelling_comment', 'change_request'];

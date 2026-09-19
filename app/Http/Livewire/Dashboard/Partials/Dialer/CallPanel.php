@@ -18,6 +18,7 @@ class CallPanel extends Component
     public $addressLine2;
     public $feed_id;
     public $campaignName;
+    public $contactId;
     public $reason = null;
 
     public $displayNumber = false;
@@ -90,7 +91,7 @@ class CallPanel extends Component
         // 3. Find first available contact for those feeds
         $userLanguageNames = Auth::user()->languages->pluck('name')->toArray();
 
-        $record = FeedContactValid::whereIn('feed_id', $feedIds)
+        $query = FeedContactValid::whereIn('feed_id', $feedIds)
             ->where(function ($query) {
                 $query->where(function ($q) {
                     $q->where(function ($qq) {
@@ -115,36 +116,82 @@ class CallPanel extends Component
             ->where(function ($q) use ($userLanguageNames) {
                 $q->whereNull('lang')
                     ->orWhereIn('lang', $userLanguageNames);
-            })
-            ->first();
+            });
 
-            // indexes for feed_id, status
+        // If the currently shown contact still exists, keep showing it.
+        // If it was moved/deleted by the backend script, advance to a different number.
+        if ($this->contactId) {
+            $currentContactStillExists = FeedContactValid::whereKey($this->contactId)->exists();
+
+            if ($currentContactStillExists) {
+                $query->whereKey($this->contactId);
+            } else {
+                $stalePhone = $this->phone;
+                $this->contactId = null;
+                $this->phone = null;
+                $this->phone2 = null;
+
+                if (!empty($stalePhone)) {
+                    $query->where(function ($q) use ($stalePhone) {
+                        $q->where(function ($qq) use ($stalePhone) {
+                            $qq->where('contact_no_01', '!=', $stalePhone)
+                                ->orWhereNull('contact_no_01');
+                        });
+                        $q->where(function ($qq) use ($stalePhone) {
+                            $qq->where('contact_no_02', '!=', $stalePhone)
+                                ->orWhereNull('contact_no_02');
+                        });
+                    });
+                }
+            }
+        }
+
+        $record = $query->orderBy('id')->first();
 
         if ($record) {
             $userId = Auth::id();
             $phone = $record->contact_no_01 ?? $record->contact_no_02;
             $feedId = $record->feed_id;
 
-            // Assign only the loaded record to the current agent
-            $record->update(['assigned_to' => $userId]);
+            try {
+                // Assign only the loaded record to the current agent
+                $record->update(['assigned_to' => $userId]);
 
-            // Assign all related work orders with the same primary contact number to
-            // this agent too, so different work orders from the same customer go to
-            // the same agent (matches the Next Customer logic in leads.show).
-            $relatedContacts = FeedContactValid::where('contact_no_01', $phone)
-                ->when($feedId, fn($query) => $query->where('feed_id', $feedId))
-                ->where(function ($q) use ($userLanguageNames) {
-                    $q->whereNull('lang')
-                        ->orWhereIn('lang', $userLanguageNames);
-                })
-                ->get();
+                // Assign all related work orders with the same primary contact number to
+                // this agent too, so different work orders from the same customer go to
+                // the same agent (matches the Next Customer logic in leads.show).
+                $relatedContacts = FeedContactValid::where('contact_no_01', $phone)
+                    ->when($feedId, fn($query) => $query->where('feed_id', $feedId))
+                    ->where(function ($q) use ($userLanguageNames) {
+                        $q->whereNull('lang')
+                            ->orWhereIn('lang', $userLanguageNames);
+                    })
+                    ->get();
 
-            if ($relatedContacts->isNotEmpty()) {
-                FeedContactValid::whereIn('id', $relatedContacts->pluck('id')->unique()->values())
-                    ->update(['assigned_to' => $userId]);
+                if ($relatedContacts->isNotEmpty()) {
+                    FeedContactValid::whereIn('id', $relatedContacts->pluck('id')->unique()->values())
+                        ->update(['assigned_to' => $userId]);
+                }
+            } catch (\Throwable $e) {
+                \Log::warning('CallPanel: failed to claim contact', [
+                    'feed_contact_id' => $this->contactId,
+                    'phone' => $phone,
+                    'error' => $e->getMessage(),
+                ]);
+
+                $this->contactId = null;
+                $this->phone = null;
+                $this->phone2 = null;
+                $this->customerName = null;
+                $this->addressLine1 = null;
+                $this->addressLine2 = null;
+                $this->feed_id = null;
+                $this->campaignName = null;
+                $this->reason = 'No available contacts in your assigned campaigns.';
+                return;
             }
 
-            $this->contact = $record;
+            $this->contactId = $record->id;
             $this->phone = !empty($record->contact_no_01) ? $record->contact_no_01 : $record->contact_no_02;
             $this->phone2 = !empty($record->contact_no_02) ? $record->contact_no_02 : $record->contact_no_01;
             $this->feed_id = $record->feed_id;
@@ -153,7 +200,6 @@ class CallPanel extends Component
             $this->customerName = $data['cust_name'] ?? null;
             $this->addressLine1 = $data['add1'] ?? null;
             $this->addressLine2 = $data['add2'] ?? null;
-            // $this->addressLine2 = $data;
 
             $campaignForNumber = $campaigns->first(function ($campaign) use ($feedId) {
                 // Assuming $campaign->feed_ids is array
@@ -164,7 +210,14 @@ class CallPanel extends Component
             $this->campaignName = $campaignForNumber ? $campaignForNumber->name : null;
 
         } else {
+            $this->contactId = null;
             $this->phone = null;
+            $this->phone2 = null;
+            $this->customerName = null;
+            $this->addressLine1 = null;
+            $this->addressLine2 = null;
+            $this->feed_id = null;
+            $this->campaignName = null;
             $this->reason = 'No available contacts in your assigned campaigns.';
         }
     }

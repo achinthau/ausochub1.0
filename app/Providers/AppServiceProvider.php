@@ -4,7 +4,9 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Support\Facades\DB;
+use Livewire\Livewire;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -26,6 +28,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         $this->registerQueryBuilderMacros();
+
+        $this->configureLivewirePersistentMiddleware();
 
         \Filament\Facades\Filament::registerRenderHook(
             'body.start',
@@ -66,6 +70,19 @@ class AppServiceProvider extends ServiceProvider
         }
 
         return '';
+    }
+
+
+    protected function configureLivewirePersistentMiddleware()
+    {
+        $persistentMiddleware = Livewire::getPersistentMiddleware();
+
+        Livewire::setPersistentMiddleware(
+            array_values(array_filter(
+                $persistentMiddleware,
+                fn ($middleware) => $middleware !== SubstituteBindings::class
+            ))
+        );
     }
 
 

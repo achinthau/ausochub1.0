@@ -2,10 +2,8 @@
 
 namespace App\Http\Livewire\Dashboard\Partials\Dialer;
 
-use App\Models\Campaign;
-use App\Models\CampaignAgentDialLimit;
-use App\Models\FeedContactValid;
 use App\Models\Lead;
+use App\Repositories\DialerNumberService;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
 
@@ -23,227 +21,142 @@ class CallPanel extends Component
 
     public $displayNumber = false;
 
-    protected $listeners = ['contactSkipped' => 'loadContact', 'updateSkill' => 'displayPhone'];
+    public $skippedContactId = null;
+
+    protected $listeners = ['contactSkipped' => 'handleContactSkipped', 'updateSkill' => 'displayPhone'];
 
     public function mount()
     {
-        $currentSkills = Auth::user()->currentQueues()->active()->get();
+        $this->displayNumber = $this->resolveDisplayNumber();
 
-        if ($currentSkills->isNotEmpty()) {
-            $this->displayNumber = true;
-        } else {
-            $this->displayNumber = false;
-        }
-        // dd($currentSkills);
         $this->loadContact();
     }
+
     public function displayPhone()
     {
         $this->loadContact();
     }
 
+    public function handleContactSkipped()
+    {
+        // Remember the skipped contact so a stale Redis payload for it is not
+        // rendered again before the dispatcher refreshes the key.
+        $this->skippedContactId = $this->contactId;
+
+        $this->loadContact();
+    }
+
     public function loadContact()
     {
-        $currentSkills = Auth::user()->currentQueues()->active()->pluck('skill')->unique();
+        $this->displayNumber = $this->resolveDisplayNumber();
 
-        if ($currentSkills->isNotEmpty()) {
-            $this->displayNumber = true;
+        $userId = (int) Auth::id();
+
+        // The dispatcher service is the only writer of the assigned number.
+        // This panel just renders whatever is published, so no per-second
+        // MySQL query is needed to pick a contact.
+        $payload = app(DialerNumberService::class)->getShown($userId);
+
+        if ($this->skippedContactId !== null
+            && $payload
+            && (int) ($payload['contact_id'] ?? 0) === (int) $this->skippedContactId) {
+            $payload = null;
         } else {
-            $this->displayNumber = false;
+            $this->skippedContactId = null;
         }
-        // dd($currentSkills);
-        $userId = Auth::id();
 
-        // 1. Find active campaigns where user is assigned
-        // $campaigns = Campaign::where('status', 1)
-        //     ->get()
-        //     ->filter(function ($campaign) use ($userId) {
-        //         $assignedUsers = $campaign->assigned_users
-        //             ? array_filter(explode(',', $campaign->assigned_users))
-        //             : [];
-        //         return in_array($userId, $assignedUsers);
-        //     });
-        $campaigns = Campaign::where('status', 1)
-            ->whereIn('name', $currentSkills)
-            ->get()
-            ->filter(function ($campaign) use ($userId) {
-                return !CampaignAgentDialLimit::hasReachedLimit((int) $campaign->id, (int) $userId);
-            });
+        if ($payload && !empty($payload['phone'])) {
+            $this->fillFromPayload($payload);
+        } elseif ($payload) {
+            $this->clearContact();
+            $this->reason = $payload['reason'] ?? 'No available contacts in your assigned campaigns.';
+        } else {
+            // The dispatcher has not published anything yet (e.g. it is not
+            // running). Fall back to picking directly from MySQL so the agent
+            // is never stuck on "Fetching...". Once the dispatcher is up it
+            // takes over the Redis key and this branch stops running.
+            $this->fallbackPick();
+        }
+    }
 
-        // dd($campaigns);
-        //status and name index 
+    protected function fallbackPick(): void
+    {
+        if (!$this->displayNumber) {
+            $this->clearContact();
+            $this->reason = 'Please Login to a campaign';
 
-        if ($campaigns->isEmpty()) {
-            $this->phone = null;
-            $this->reason = 'No available contacts in your assigned campaigns.';
             return;
         }
 
-        // 2. Collect feed IDs from these campaigns
-        $feedIds = $campaigns->flatMap->feed_ids->unique()->toArray();
+        // Same selection as the lead window's Next Customer, so the dashboard
+        // and the lead window always show the same contact.
+        $next = app(DialerNumberService::class)->resolveCurrentContact(Auth::user());
 
-        if (empty($feedIds)) {
-            $this->phone = null;
-            $this->reason = 'No available contacts in your assigned campaigns.';
-            return;
-        }
-
-        // 3. Find first available contact for those feeds
-        $userLanguageNames = Auth::user()->languages->pluck('name')->toArray();
-
-        $query = FeedContactValid::whereIn('feed_id', $feedIds)
-            ->where(function ($query) {
-                $query->where(function ($q) {
-                    $q->where(function ($qq) {
-                        $qq->whereNull('status')
-                            ->orWhereIn('status', [2, 22]);
-                    })
-                    ->where(function ($qq) {
-                        $qq->whereNull('next_available_at')
-                            ->orWhere('next_available_at', '<=', now()->endOfDay());
-                    });
-                })
-                ->orWhere(function ($q) {
-                    $q->where('status', 3)
-                        ->whereNotNull('next_available_at')
-                        ->where('next_available_at', '<=', now());
-                });
-            })
-            ->where(function ($query) use ($userId) {
-                $query->whereNull('assigned_to')        // unassigned
-                    ->orWhere('assigned_to', $userId); // or already assigned to this user
-            })
-            ->where(function ($q) use ($userLanguageNames) {
-                $q->whereNull('lang')
-                    ->orWhereIn('lang', $userLanguageNames);
-            });
-
-        // If the currently shown contact still exists, keep showing it.
-        // If it was moved/deleted by the backend script, advance to a different number.
-        if ($this->contactId) {
-            $currentContactStillExists = FeedContactValid::whereKey($this->contactId)->exists();
-
-            if ($currentContactStillExists) {
-                $query->whereKey($this->contactId);
-            } else {
-                $stalePhone = $this->phone;
-                $this->contactId = null;
-                $this->phone = null;
-                $this->phone2 = null;
-
-                if (!empty($stalePhone)) {
-                    $query->where(function ($q) use ($stalePhone) {
-                        $q->where(function ($qq) use ($stalePhone) {
-                            $qq->where('contact_no_01', '!=', $stalePhone)
-                                ->orWhereNull('contact_no_01');
-                        });
-                        $q->where(function ($qq) use ($stalePhone) {
-                            $qq->where('contact_no_02', '!=', $stalePhone)
-                                ->orWhereNull('contact_no_02');
-                        });
-                    });
-                }
-            }
-        }
-
-        $record = $query->orderBy('id')->first();
-
-        if ($record) {
-            $userId = Auth::id();
-            $phone = $record->contact_no_01 ?? $record->contact_no_02;
-            $feedId = $record->feed_id;
-
-            try {
-                // Assign only the loaded record to the current agent
-                $record->update(['assigned_to' => $userId]);
-
-                // Assign all related work orders with the same primary contact number to
-                // this agent too, so different work orders from the same customer go to
-                // the same agent (matches the Next Customer logic in leads.show).
-                $relatedContacts = FeedContactValid::where('contact_no_01', $phone)
-                    ->when($feedId, fn($query) => $query->where('feed_id', $feedId))
-                    ->where(function ($q) use ($userLanguageNames) {
-                        $q->whereNull('lang')
-                            ->orWhereIn('lang', $userLanguageNames);
-                    })
-                    ->get();
-
-                if ($relatedContacts->isNotEmpty()) {
-                    FeedContactValid::whereIn('id', $relatedContacts->pluck('id')->unique()->values())
-                        ->update(['assigned_to' => $userId]);
-                }
-            } catch (\Throwable $e) {
-                \Log::warning('CallPanel: failed to claim contact', [
-                    'feed_contact_id' => $this->contactId,
-                    'phone' => $phone,
-                    'error' => $e->getMessage(),
-                ]);
-
-                $this->contactId = null;
-                $this->phone = null;
-                $this->phone2 = null;
-                $this->customerName = null;
-                $this->addressLine1 = null;
-                $this->addressLine2 = null;
-                $this->feed_id = null;
-                $this->campaignName = null;
-                $this->reason = 'No available contacts in your assigned campaigns.';
-                return;
-            }
-
-            $this->contactId = $record->id;
-            $this->phone = !empty($record->contact_no_01) ? $record->contact_no_01 : $record->contact_no_02;
-            $this->phone2 = !empty($record->contact_no_02) ? $record->contact_no_02 : $record->contact_no_01;
-            $this->feed_id = $record->feed_id;
-
-            $data = json_decode($record->data, true);
-            $this->customerName = $data['cust_name'] ?? null;
-            $this->addressLine1 = $data['add1'] ?? null;
-            $this->addressLine2 = $data['add2'] ?? null;
-
-            $campaignForNumber = $campaigns->first(function ($campaign) use ($feedId) {
-                // Assuming $campaign->feed_ids is array
-                $feedIds = is_array($campaign->feed_ids) ? $campaign->feed_ids : json_decode($campaign->feed_ids, true);
-                return in_array($feedId, $feedIds);
-            });
-
-            $this->campaignName = $campaignForNumber ? $campaignForNumber->name : null;
-
+        if ($next && !empty($next['phone'])) {
+            $this->fillFromPayload($next);
         } else {
-            $this->contactId = null;
-            $this->phone = null;
-            $this->phone2 = null;
-            $this->customerName = null;
-            $this->addressLine1 = null;
-            $this->addressLine2 = null;
-            $this->feed_id = null;
-            $this->campaignName = null;
-            $this->reason = 'No available contacts in your assigned campaigns.';
+            $this->clearContact();
+            $this->reason = $next['reason'] ?? 'No available contacts in your assigned campaigns.';
         }
+    }
+
+    protected function fillFromPayload(array $payload): void
+    {
+        $this->contactId = $payload['contact_id'] ?? null;
+        $this->phone = $payload['phone'] ?? null;
+        $this->phone2 = $payload['phone2'] ?? null;
+        $this->customerName = $payload['customer_name'] ?? null;
+        $this->addressLine1 = $payload['address_line_1'] ?? null;
+        $this->addressLine2 = $payload['address_line_2'] ?? null;
+        $this->feed_id = $payload['feed_id'] ?? null;
+        $this->campaignName = $payload['campaign_name'] ?? null;
+        $this->reason = null;
+    }
+
+    protected function clearContact(): void
+    {
+        $this->contactId = null;
+        $this->phone = null;
+        $this->phone2 = null;
+        $this->customerName = null;
+        $this->addressLine1 = null;
+        $this->addressLine2 = null;
+        $this->feed_id = null;
+        $this->campaignName = null;
+    }
+
+    /**
+     * Whether the panel should show a number. Uses the dispatcher's cached
+     * "has active queued skill" flag; falls back to a direct check the first
+     * time the dispatcher has not published anything yet.
+     */
+    protected function resolveDisplayNumber(): bool
+    {
+        $queued = app(DialerNumberService::class)->hasQueued((int) Auth::id());
+
+        if ($queued !== null) {
+            return $queued;
+        }
+
+        return Auth::user()->currentQueues()->active()->exists();
     }
 
     public function openProfile($phone, $phone2)
     {
-        // dd($this->feed_id);
-        // dd($this->campaignName);
         $number = !empty($phone) ? $phone : $phone2;
 
-        // dd($this->addressLine2);
-
-        // Try to find lead
         $lead = $this->findLeadByPhone($number);
 
         if (!$lead) {
-            // If not found, create new one
             $lead = new Lead();
             $lead->contact_number = $this->canonicalPhone($number);
             $lead->first_name = $this->customerName;
             $lead->address_line_1 = $this->addressLine1;
             $lead->address_line_2 = $this->addressLine2;
-            $lead->status_id = 1; // new lead status (same as in your old code)
-            $lead->agent_id = auth()->user()->id ?? null; // if user has agent
+            $lead->status_id = 1;
+            $lead->agent_id = auth()->user()->id ?? null;
             $lead->extension = auth()->user()->extension ?? null;
-            $lead->skill_id = 0; // or detect skill like in your old code
+            $lead->skill_id = 0;
             $lead->save();
         }
 
@@ -311,6 +224,4 @@ class CallPanel extends Component
                 ->orWhereIn('contact_number_2', $candidates);
         })->orderBy('id')->first();
     }
-
-
 }

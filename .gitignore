@@ -26,3 +26,4 @@ server.log
 whatsapp.log
 
 storage/app/google-cloud-key.json
+/deploy

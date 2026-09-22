@@ -12,6 +12,7 @@ use App\Models\FeedContactValid;
 use App\Models\Lead;
 use App\Models\QueueCount;
 use App\Models\Ticket;
+use App\Repositories\DialerNumberService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -344,74 +345,19 @@ class Show extends Component
         })->orderBy('id')->first();
     }
 
-    protected function hasReachedDialLimit($campaignId, $userId): bool
-    {
-        return CampaignAgentDialLimit::hasReachedLimit((int) $campaignId, (int) $userId);
-    }
-
     protected function getCurrentDialerPanelContact(): array
     {
-        $userId = Auth::id();
-        $currentSkills = Auth::user()->currentQueues()->active()->pluck('skill')->unique();
+        $user = Auth::user();
 
-        $campaigns = Campaign::where('status', 1)
-            ->whereIn('name', $currentSkills)
-            ->get()
-            ->filter(fn($campaign) => !$this->hasReachedDialLimit($campaign->id, $userId));
-
-        if ($campaigns->isEmpty()) {
-            return [null, null];
-        }
-
-        $userLanguageNames = Auth::user()->languages->pluck('name')->toArray();
-
-        $feedIds = $campaigns->flatMap->feed_ids->unique()->toArray();
-
-        if (empty($feedIds)) {
-            return [null, null];
-        }
-
-        $record = FeedContactValid::whereIn('feed_id', $feedIds)
-            ->where(function ($query) {
-                $query->where(function ($q) {
-                    $q->where(function ($qq) {
-                        $qq->whereNull('status')
-                            ->orWhereIn('status', [2, 22]);
-                    })
-                    ->where(function ($qq) {
-                        $qq->whereNull('next_available_at')
-                            ->orWhere('next_available_at', '<=', now()->endOfDay());
-                    });
-                })
-                ->orWhere(function ($q) {
-                    $q->where('status', 3)
-                        ->whereNotNull('next_available_at')
-                        ->where('next_available_at', '<=', now());
-                });
-            })
-            ->where(function ($query) use ($userId) {
-                $query->whereNull('assigned_to')
-                    ->orWhere('assigned_to', $userId);
-            })
-            ->where(function ($q) use ($userLanguageNames) {
-                $q->whereNull('lang')
-                    ->orWhereIn('lang', $userLanguageNames);
-            })
-            ->first();
+        // Single source of truth for "the agent's current contact", shared
+        // with the dashboard dispatcher so both always agree.
+        $record = app(DialerNumberService::class)->resolveCurrentContactRecord($user);
 
         if (!$record) {
             return [null, null];
         }
 
-        $campaignForNumber = $campaigns->first(function ($campaign) use ($record) {
-            $campaignFeedIds = is_array($campaign->feed_ids)
-                ? $campaign->feed_ids
-                : json_decode($campaign->feed_ids, true);
-
-            return in_array($record->feed_id, $campaignFeedIds ?: []);
-        });
-
-        return [$record, $campaignForNumber ? $campaignForNumber->name : null];
+        return [$record, app(DialerNumberService::class)->campaignNameForFeed($user, $record->feed_id)];
     }
 
     public function nextContact()

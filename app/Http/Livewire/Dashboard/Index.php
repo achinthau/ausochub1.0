@@ -5,8 +5,6 @@ namespace App\Http\Livewire\Dashboard;
 use App\Models\AgentBreakSummary;
 use App\Models\Campaign;
 use App\Models\CampaignMetric;
-use App\Models\FeedContactValid;
-use App\Models\FeedContactValidReport;
 use App\Models\Skill;
 use App\Models\User;
 use App\Repositories\ApiManager;
@@ -172,11 +170,18 @@ class Index extends Component
 //         Log::info('$isVisible:', [$this->isVisible]);
         $extension = $this->user->extension;
 
+        // The "Answered (In | Out)" box keeps its original all-time callcount
+        // semantics; only the Dialed/Completed/Dropped cards read the new
+        // Redis counters (see loadStartedCampaignStatistics()).
         $this->dialerCallCounts = DB::connection('mysql-old')
             ->table('callcount')
             ->whereNotNull('app')
             ->where('callcount', $extension)
             ->count();
+
+        // Read dialer counters while the default Redis DB (0) is still
+        // selected; the chat block below switches this connection to DB 5.
+        $this->loadStartedCampaignStatistics();
 
         $loggedUserId = Auth::id();
         $redisKey = "highlighted_users:$loggedUserId";
@@ -188,8 +193,6 @@ class Index extends Component
         $messagesCountIds = $messagesCountIds ? json_decode($messagesCountIds, true) : [];
         // $this->messagesCount = count($messagesCountIds) - 1 ;
         $this->messagesCount = count($messagesCountIds);
-
-        $this->loadStartedCampaignStatistics();
 
         return view('livewire.dashboard.index');
     }
@@ -230,40 +233,15 @@ class Index extends Component
 
         $this->hasStartedCampaign = true;
 
-        $userId = Auth::id();
+        // Dialed/answered/failed today are aggregated by the continuous
+        // dialer:counts:sync service; this poll only reads the Redis counter.
+        $today = now()->format('Y-m-d');
+        $countsRaw = Redis::get("dialer:counts:{$today}:" . Auth::id());
+        $counts = $countsRaw ? json_decode($countsRaw, true) : [];
 
-        $this->dialedCallsToday = FeedContactValid::whereIn('feed_id', $feedIds)
-            ->where('updated_by', $userId)
-            ->whereNotNull('status')
-            ->whereDate('attempted_at', today())
-            ->count();
-
-        // $notCompleted = FeedContactValid::whereIn('feed_id', $feedIds)
-        //     ->where('updated_by', $userId)
-        //     ->whereIn('status', [3,5,51,52,6])
-        //     ->whereDate('attempted_at', today())
-        //     ->count();
-
-        // $finishedNotcompleted = FeedContactValidReport::whereIn('feed_id', $feedIds)
-        //     ->where('updated_by', $userId)
-        //     ->whereIn('status', [42])
-        //     ->whereDate('attempted_at', today())
-        //     ->count();
-
-        $this->answeredCallsToday = FeedContactValidReport::whereIn('feed_id', $feedIds)
-            ->where('updated_by', $userId)
-            ->whereIn('status', [1, 41])
-            ->whereDate('attempted_at', today())
-            ->count();
-
-        $this->notAnsweredCallsToday = FeedContactValidReport::whereIn('feed_id', $feedIds)
-            ->where('updated_by', $userId)
-            ->whereIn('status', [222, 42])
-            ->whereDate('attempted_at', today())
-            ->count();
-
-        $this->dialedCallsToday = $this->dialedCallsToday + $this->answeredCallsToday + $this->notAnsweredCallsToday;
-        $this->notAnsweredCallsToday = $this->dialedCallsToday - $this->answeredCallsToday;
+        $this->dialedCallsToday = (int) ($counts['dialed'] ?? 0);
+        $this->answeredCallsToday = (int) ($counts['answered'] ?? 0);
+        $this->notAnsweredCallsToday = (int) ($counts['failed'] ?? 0);
     }
 
     public function updatedSelectedSkills($type, $value)

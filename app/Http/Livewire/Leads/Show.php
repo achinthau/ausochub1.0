@@ -9,6 +9,7 @@ use App\Models\CampaignAgentDialLimit;
 use App\Models\CxTicket;
 use App\Models\DialerCallStatusOption;
 use App\Models\FeedContactValid;
+use App\Models\FeedContactValidReport;
 use App\Models\Lead;
 use App\Models\QueueCount;
 use App\Models\Ticket;
@@ -374,10 +375,27 @@ class Show extends Component
 
         $currentContact->update(['assigned_to' => Auth::id()]);
 
-        $phone = $currentContact->contact_no_01 ?? $currentContact->contact_no_02;
-        $relatedContacts = FeedContactValid::where('contact_no_01', $phone)
-            ->when($currentContact->feed_id, fn($query) => $query->where('feed_id', $currentContact->feed_id))
-            ->get();
+        // $phone = $currentContact->contact_no_01 ?? $currentContact->contact_no_02;
+        // $relatedContacts = FeedContactValid::where('contact_no_01', $phone)
+        //     ->when($currentContact->feed_id, fn($query) => $query->where('feed_id', $currentContact->feed_id))
+        //     ->get();
+        $phones = array_filter([
+    $currentContact->contact_no_01,
+    $currentContact->contact_no_02,
+]);
+
+$relatedContacts = FeedContactValid::query()
+    ->when(!empty($phones), function ($query) use ($phones) {
+        $query->where(function ($q) use ($phones) {
+            $q->whereIn('contact_no_01', $phones)
+              ->orWhereIn('contact_no_02', $phones);
+        });
+    })
+    ->when($currentContact->feed_id, function ($query, $feedId) {
+        $query->where('feed_id', $feedId);
+    })
+    ->get();
+
 
         if ($relatedContacts->isNotEmpty()) {
             FeedContactValid::whereIn('id', $relatedContacts->pluck('id')->unique()->values())
@@ -387,13 +405,19 @@ class Show extends Component
         // The contact that was just completed is archived to the report table
         // at submit (SubmitCallStatus::copyCompletedToReport); its active row
         // is removed here, when the agent moves to the next customer.
-        if ($this->feedContactId) {
-            $leavingContact = FeedContactValid::find($this->feedContactId);
+        // if ($this->feedContactId) {
+        //     $leavingContact = FeedContactValid::find($this->feedContactId);
 
-            if ($leavingContact && in_array((string) $leavingContact->status, ['1', '41', '42', '222'])) {
-                $leavingContact->delete();
-            }
-        }
+        //     if ($leavingContact && in_array((string) $leavingContact->status, ['1', '41', '42', '222'])) {
+        //         $leavingContact->delete();
+        //     }
+        // }
+        // if ($this->feedContactId) {
+    FeedContactValid::
+        where('assigned_to', auth()->id()) // Ensure ownership
+        ->whereIn('status', ['1', '41', '42', '222']) // Match allowed statuses
+        ->delete();
+// }
 
         $this->selectedFeedContact = $currentContact;
         $this->feedContactId = $currentContact->id;
@@ -443,12 +467,19 @@ class Show extends Component
         $userLanguageNames = Auth::user()->languages->pluck('name')->toArray();
 
         $phone = $this->lead->contact_number;
+        $phone2 = $this->lead->contact_number_2;
         $this->selectedContact = $phone;
         // $this->feedContacts = FeedContactValid::where('contact_no_01', $phone)->orWhere('contact_no_02', $phone)->get();
         $feedId = $this->feed_id;
         $phoneVariants = $this->dialerPhoneCandidates($phone);
+        $phoneVariants = array_unique(array_merge(
+        !empty($phone) ? $this->dialerPhoneCandidates($phone) : [],
+        !empty($phone2) ? $this->dialerPhoneCandidates($phone2) : []
+        ));
         $this->feedContacts = FeedContactValid::where(function ($query) use ($phoneVariants) {
-            $query->whereIn('contact_no_01', $phoneVariants);
+            $query->whereIn('contact_no_01', $phoneVariants)
+            ->orWhereIn('contact_no_02', $phoneVariants)
+            ;
         })
             ->when($feedId, function ($query, $feedId) {
                 $query->where('feed_id', $feedId); // filter by feed_id if present
@@ -457,7 +488,10 @@ class Show extends Component
                 $q->whereNull('lang')
                     ->orWhereIn('lang', $userLanguageNames);
             })
+            ->where('assigned_to', auth()->id())
             ->get();
+
+
 
 
         if ($this->feedContacts->isNotEmpty()) {
@@ -477,17 +511,29 @@ class Show extends Component
 
         if ($boundType && $boundType == 'dialer' && !in_array($this->service_type, ['satisfaction', 'satisfaction-mini'])) {
             $phone = $this->lead->contact_number;
+            $phone2 = $this->lead->contact_number_2;
             $this->selectedContact = $phone;
             // $this->feedContacts = FeedContactValid::where('contact_no_01', $phone)->orWhere('contact_no_02', $phone)->get();
-            $feedId = $this->feed_id;
-            $this->feedContacts = FeedContactValid::where(function ($query) use ($phone) {
-                $query->whereIn('contact_no_01', $this->dialerPhoneCandidates($phone));
-            })
+            // $feedId = $this->feed_id;
+            // $this->feedContacts = FeedContactValid::where(function ($query) use ($phone) {
+            //     $query->whereIn('contact_no_01', $this->dialerPhoneCandidates($phone));
+            // })
+            $phoneVariants = $this->dialerPhoneCandidates($phone);
+        $phoneVariants = array_unique(array_merge(
+        !empty($phone) ? $this->dialerPhoneCandidates($phone) : [],
+        !empty($phone2) ? $this->dialerPhoneCandidates($phone2) : []
+        ));
+        $this->feedContacts = FeedContactValid::where(function ($query) use ($phoneVariants) {
+            $query->whereIn('contact_no_01', $phoneVariants)
+            ->orWhereIn('contact_no_02', $phoneVariants)
+            ;
+        })
                 ->when($feedId, fn($query) => $query->where('feed_id', $feedId))
                 ->where(function ($q) use ($userLanguageNames) {
                     $q->whereNull('lang')
                         ->orWhereIn('lang', $userLanguageNames);
                 })
+                ->where('assigned_to', auth()->id())
                 ->get();
 
             if ($this->feedContacts->isNotEmpty()) {
@@ -548,6 +594,7 @@ class Show extends Component
 
         if ($boundType && $boundType == 'dialer' && in_array($this->service_type, ['satisfaction', 'satisfaction-mini'])) {
             $phone = $this->lead->contact_number;
+            $phone2 = $this->lead->contact_number_2;
             $this->selectedContact = $phone;
 
             $feedId = $this->feed_id;
@@ -561,18 +608,31 @@ class Show extends Component
             //     ->value('id');
             // dd($this->feedContactId);
 
-            $query = FeedContactValid::where(function ($query) use ($phone) {
-                $query->whereIn('contact_no_01', $this->dialerPhoneCandidates($phone));
-            })
+            // $query = FeedContactValid::where(function ($query) use ($phone) {
+            //     $query->whereIn('contact_no_01', $this->dialerPhoneCandidates($phone));
+            // })
+            $phoneVariants = $this->dialerPhoneCandidates($phone);
+        $phoneVariants = array_unique(array_merge(
+        !empty($phone) ? $this->dialerPhoneCandidates($phone) : [],
+        !empty($phone2) ? $this->dialerPhoneCandidates($phone2) : []
+        ));
+        $query = FeedContactValid::where(function ($query) use ($phoneVariants) {
+            $query->whereIn('contact_no_01', $phoneVariants)
+            ->orWhereIn('contact_no_02', $phoneVariants)
+            ;
+        })
                 ->when($feedId, function ($query, $feedId) {
                     $query->where('feed_id', $feedId);
                 })
+                ->where('assigned_to', auth()->id())
                 ->first();
 
             $this->feedContactId = $query ? $query->id : null;
             $this->feedContactIdStatus = $query ? $query->status : null;
 
-            $phone2 = $this->phone2;
+            // $phone2 = $this->phone2;
+            $phone = $this->lead->contact_number;
+            $phone2 = $this->lead->contact_number_2;
 
             $this->surveyContacts = $this->buildSatisfactionWorkOrders($phone, $phone2, $feedId);
 
@@ -730,7 +790,7 @@ class Show extends Component
 
         if (in_array($this->service_type, ['satisfaction', 'satisfaction-mini'])) {
             $phone = $this->lead->contact_number;
-            $phone2 = $this->phone2;
+            $phone2 = $this->lead->contact_number_2;
 
             $this->surveyContacts = $this->buildSatisfactionWorkOrders($phone, $phone2, $this->feed_id);
 
@@ -744,7 +804,7 @@ class Show extends Component
     {
         if (in_array($this->service_type, ['satisfaction', 'satisfaction-mini'])) {
             $phone = $this->lead->contact_number;
-            $phone2 = $this->phone2;
+            $phone2 = $this->lead->contact_number_2;
             $this->surveyContacts = $this->buildSatisfactionWorkOrders($phone, $phone2, $this->feed_id);
             $this->refreshSatisfactionNotAnsweredCounts();
         }
@@ -782,13 +842,27 @@ class Show extends Component
 
     protected function buildSatisfactionWorkOrders($phone, $phone2, $feedId)
     {
-        $contacts = FeedContactValid::where(function ($query) use ($phone) {
-            $query->whereIn('contact_no_01', $this->dialerPhoneCandidates($phone));
+        // $contacts = FeedContactValid::where(function ($query) use ($phone) {
+        //     $query->whereIn('contact_no_01', $this->dialerPhoneCandidates($phone));
+        // })
+        //     ->when($feedId, function ($query, $feedId) {
+        //         $query->where('feed_id', $feedId);
+        //     })
+        //     ->get();
+        $phoneVariants = array_unique(array_merge(
+        !empty($phone) ? $this->dialerPhoneCandidates($phone) : [],
+        !empty($phone2) ? $this->dialerPhoneCandidates($phone2) : []
+    ));
+
+    $contacts = FeedContactValid::where(function ($query) use ($phoneVariants) {
+            $query->whereIn('contact_no_01', $phoneVariants)
+                  ->orWhereIn('contact_no_02', $phoneVariants);
         })
-            ->when($feedId, function ($query, $feedId) {
-                $query->where('feed_id', $feedId);
-            })
-            ->get();
+        ->when($feedId, function ($query, $feedId) {
+            $query->where('feed_id', $feedId);
+        })
+        ->where('assigned_to', auth()->id())
+        ->get();
 
         if ($contacts->isEmpty()) {
             return collect();
@@ -894,6 +968,28 @@ class Show extends Component
             ->toArray();
     }
 
+    protected function copyCompletedToReport(FeedContactValid $feed): void
+    {
+        $completedStatuses = [1, 41, 42, 222];
+
+        if (!in_array((int) $feed->status, $completedStatuses, true)) {
+            return;
+        }
+
+        $attributes = [];
+
+        foreach ($feed->getAttributes() as $attribute => $value) {
+            if (in_array($attribute, (new FeedContactValidReport())->getFillable(), true)) {
+                $attributes[$attribute] = $value;
+            }
+        }
+
+        FeedContactValidReport::updateOrCreate(
+            ['priority_field' => trim((string) $feed->priority_field)],
+            $attributes
+        );
+    }
+
     public function submitSatisfactionMini()
     {
         if (empty($this->surveyContacts)) {
@@ -956,6 +1052,7 @@ class Show extends Component
                 $feed->status = 1;
                 $feed->next_available_at = null;
                 $feed->save();
+                $this->copyCompletedToReport($feed);
                 CampaignAgentDialLimit::incrementForFeed((int) $feed->feed_id, (int) Auth::id());
                 $submitted++;
             } elseif (in_array($rating, ['cancel', 'change_request'], true)) {
@@ -1051,7 +1148,7 @@ class Show extends Component
             }
 
             $this->miniApplyToAll = null;
-            $this->surveyContacts = $this->buildSatisfactionWorkOrders($this->lead->contact_number, $this->phone2, $this->feed_id);
+            $this->surveyContacts = $this->buildSatisfactionWorkOrders($this->lead->contact_number, $this->lead->contact_number_2, $this->feed_id);
 
             $message = "{$submitted} record(s) submitted successfully.";
             if ($skipped > 0) {

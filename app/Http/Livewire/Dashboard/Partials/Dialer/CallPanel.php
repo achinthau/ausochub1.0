@@ -149,7 +149,8 @@ class CallPanel extends Component
 
         if (!$lead) {
             $lead = new Lead();
-            $lead->contact_number = $this->canonicalPhone($number);
+            $lead->contact_number = !empty($phone) ? $this->canonicalPhone($phone) : null;
+            $lead->contact_number_2 = !empty($phone2) ? $this->canonicalPhone($phone2) : null;
             $lead->first_name = $this->customerName;
             $lead->address_line_1 = $this->addressLine1;
             $lead->address_line_2 = $this->addressLine2;
@@ -157,6 +158,11 @@ class CallPanel extends Component
             $lead->agent_id = auth()->user()->id ?? null;
             $lead->extension = auth()->user()->extension ?? null;
             $lead->skill_id = 0;
+            $lead->save();
+        }
+        else{
+            $lead->contact_number = !empty($phone) ? $this->canonicalPhone($phone) : null;
+            $lead->contact_number_2 = !empty($phone2) ? $this->canonicalPhone($phone2) : null;
             $lead->save();
         }
 

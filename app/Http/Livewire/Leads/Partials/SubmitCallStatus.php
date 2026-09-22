@@ -128,15 +128,18 @@ if ($status === 'answered') {
             return;
         }
 
-        $report = new FeedContactValidReport();
+        $attributes = [];
 
         foreach ($feed->getAttributes() as $attribute => $value) {
-            if (in_array($attribute, $report->getFillable(), true)) {
-                $report->{$attribute} = $value;
+            if (in_array($attribute, (new FeedContactValidReport())->getFillable(), true)) {
+                $attributes[$attribute] = $value;
             }
         }
 
-        $report->save();
+        FeedContactValidReport::updateOrCreate(
+            ['priority_field' => trim((string) $feed->priority_field)],
+            $attributes
+        );
     }
 
     public function submit()

@@ -226,23 +226,42 @@ class DialerNumberService
     {
         $userId = (int) $user->id;
 
-        if ((int) $record->assigned_to === $userId) {
-            return;
-        }
-
         try {
-            $record->update(['assigned_to' => $userId]);
+            if ((int) $record->assigned_to !== $userId) {
+                $record->update(['assigned_to' => $userId]);
+            }
 
-            $phone = !empty($record->contact_no_01) ? $record->contact_no_01 : $record->contact_no_02;
+            
             $userLanguageNames = $user->languages->pluck('name')->toArray();
+            // $phone = !empty($record->contact_no_01) ? $record->contact_no_01 : $record->contact_no_02;
+            // $relatedContacts = FeedContactValid::where('contact_no_01', $phone)
+            //     ->when($record->feed_id, fn($query) => $query->where('feed_id', $record->feed_id))
+            //     ->where(function ($q) use ($userLanguageNames) {
+            //         $q->whereNull('lang')
+            //             ->orWhereIn('lang', $userLanguageNames);
+            //     })
+            //     ->get();
+            $phones = array_filter([
+    $record->contact_no_01,
+    $record->contact_no_02,
+]);
 
-            $relatedContacts = FeedContactValid::where('contact_no_01', $phone)
-                ->when($record->feed_id, fn($query) => $query->where('feed_id', $record->feed_id))
-                ->where(function ($q) use ($userLanguageNames) {
-                    $q->whereNull('lang')
-                        ->orWhereIn('lang', $userLanguageNames);
-                })
-                ->get();
+$relatedContacts = FeedContactValid::query()
+    // Match records where either contact number matches any of the available phones
+    ->when(!empty($phones), function ($query) use ($phones) {
+        $query->where(function ($q) use ($phones) {
+            $q->whereIn('contact_no_01', $phones)
+              ->orWhereIn('contact_no_02', $phones);
+        });
+    })
+    // Filter by feed_id if present
+    ->when($record->feed_id, fn($query) => $query->where('feed_id', $record->feed_id))
+    // Filter by language criteria
+    ->where(function ($q) use ($userLanguageNames) {
+        $q->whereNull('lang')
+          ->orWhereIn('lang', $userLanguageNames);
+    })
+    ->get();
 
             if ($relatedContacts->isNotEmpty()) {
                 FeedContactValid::whereIn('id', $relatedContacts->pluck('id')->unique()->values())

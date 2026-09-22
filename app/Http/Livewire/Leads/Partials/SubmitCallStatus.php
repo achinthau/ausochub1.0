@@ -6,6 +6,7 @@ use App\Models\Campaign;
 use App\Models\CampaignAgentDialLimit;
 use App\Models\DialerCallStatusOption;
 use App\Models\FeedContactValid;
+use App\Models\FeedContactValidReport;
 use Hamcrest\Type\IsInteger;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -112,6 +113,30 @@ if ($status === 'answered') {
     protected function incrementDialCount()
     {
         CampaignAgentDialLimit::incrementCount((int) $this->campaign, (int) Auth::id());
+    }
+
+    /**
+     * When a contact reaches a terminal status it is archived into the report
+     * table. The active valid row is left in place here and removed later by
+     * the "Next Customer" action. Any other status keeps current behaviour.
+     */
+    protected function copyCompletedToReport(FeedContactValid $feed): void
+    {
+        $completedStatuses = [1, 41, 42, 222];
+
+        if (!in_array((int) $feed->status, $completedStatuses, true)) {
+            return;
+        }
+
+        $report = new FeedContactValidReport();
+
+        foreach ($feed->getAttributes() as $attribute => $value) {
+            if (in_array($attribute, $report->getFillable(), true)) {
+                $report->{$attribute} = $value;
+            }
+        }
+
+        $report->save();
     }
 
     public function submit()
@@ -230,6 +255,8 @@ if ($status === 'answered') {
                 $feed->updated_by = Auth::id();
                 $feed->attempted_at = now();
                 $feed->save();
+
+                $this->copyCompletedToReport($feed);
             }
 
         } else {
@@ -254,6 +281,8 @@ if ($status === 'answered') {
             $this->feed->updated_by = Auth::id();
             $this->feed->attempted_at = now();
             $this->feed->save();
+
+            $this->copyCompletedToReport($this->feed);
         }
 
         if ($this->status == 'answered') {

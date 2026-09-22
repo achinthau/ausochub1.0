@@ -384,6 +384,17 @@ class Show extends Component
                 ->update(['assigned_to' => Auth::id()]);
         }
 
+        // The contact that was just completed is archived to the report table
+        // at submit (SubmitCallStatus::copyCompletedToReport); its active row
+        // is removed here, when the agent moves to the next customer.
+        if ($this->feedContactId) {
+            $leavingContact = FeedContactValid::find($this->feedContactId);
+
+            if ($leavingContact && in_array((string) $leavingContact->status, ['1', '41', '42', '222'])) {
+                $leavingContact->delete();
+            }
+        }
+
         $this->selectedFeedContact = $currentContact;
         $this->feedContactId = $currentContact->id;
         $this->feedContactIdStatus = $currentContact->status;

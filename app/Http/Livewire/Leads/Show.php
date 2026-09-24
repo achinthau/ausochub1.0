@@ -984,8 +984,10 @@ $relatedContacts = FeedContactValid::query()
             }
         }
 
+        $attributes['feed_contact_id'] = $feed->id;
+
         FeedContactValidReport::updateOrCreate(
-            ['priority_field' => trim((string) $feed->priority_field)],
+            ['feed_contact_id' => $feed->id],
             $attributes
         );
     }

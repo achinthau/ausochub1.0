@@ -44,7 +44,7 @@ public function export()
             'inbound' => $item->inbound,
             'outbound' => $item->outbound,
             'queued' => $item->queued,
-            'abandoned' => $item->abandoned,
+            'abandoned' => $item->abandent,
             'answered' => $item->answered,
         ];
     })->toArray();

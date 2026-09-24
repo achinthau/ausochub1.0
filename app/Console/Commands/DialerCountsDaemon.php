@@ -132,7 +132,7 @@ class DialerCountsDaemon extends Command
      *   answered = FeedContactValidReport (status 1, 41)
      *   failed   = FeedContactValidReport (status 222, 42)  [and dialed - answered]
      *
-     * The agent is taken from updated_by instead of an extension match against
+     * The agent is taken from assigned_to instead of an extension match against
      * the Asterisk callcount table.
      */
     protected function queryCounts(): array
@@ -142,25 +142,25 @@ class DialerCountsDaemon extends Command
         $validDialed = FeedContactValid::query()
             ->whereDate('attempted_at', $today)
             ->whereNotNull('status')
-            ->whereNotNull('updated_by')
-            ->selectRaw('updated_by as agent_id, COUNT(*) as total')
-            ->groupBy('updated_by')
+            ->whereNotNull('assigned_to')
+            ->selectRaw('assigned_to as agent_id, COUNT(*) as total')
+            ->groupBy('assigned_to')
             ->pluck('total', 'agent_id');
 
         $answered = FeedContactValidReport::query()
             ->whereDate('attempted_at', $today)
-            ->whereNotNull('updated_by')
+            ->whereNotNull('assigned_to')
             ->whereIn('status', [1, 41])
-            ->selectRaw('updated_by as agent_id, COUNT(*) as total')
-            ->groupBy('updated_by')
+            ->selectRaw('assigned_to as agent_id, COUNT(*) as total')
+            ->groupBy('assigned_to')
             ->pluck('total', 'agent_id');
 
         $notAnswered = FeedContactValidReport::query()
             ->whereDate('attempted_at', $today)
-            ->whereNotNull('updated_by')
+            ->whereNotNull('assigned_to')
             ->whereIn('status', [222, 42])
-            ->selectRaw('updated_by as agent_id, COUNT(*) as total')
-            ->groupBy('updated_by')
+            ->selectRaw('assigned_to as agent_id, COUNT(*) as total')
+            ->groupBy('assigned_to')
             ->pluck('total', 'agent_id');
 
         $agentIds = $validDialed->keys()

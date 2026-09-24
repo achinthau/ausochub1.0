@@ -18,6 +18,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Redis;
 use Livewire\Component;
@@ -1054,6 +1055,10 @@ $relatedContacts = FeedContactValid::query()
                 $feed->status = 1;
                 $feed->next_available_at = null;
                 $feed->save();
+
+                Log::build(['driver' => 'single', 'path' => storage_path('logs/verify.log')])
+    ->info('feed saved', ['id' => $feed->id, 'attrs' => $feed->getAttributes()]);
+
                 $this->copyCompletedToReport($feed);
                 CampaignAgentDialLimit::incrementForFeed((int) $feed->feed_id, (int) Auth::id());
                 $submitted++;

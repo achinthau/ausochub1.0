@@ -9,6 +9,7 @@ use App\Models\FeedContactValid;
 use App\Models\FeedContactValidReport;
 use Hamcrest\Type\IsInteger;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Livewire\Component;
 
 class SubmitCallStatus extends Component
@@ -260,6 +261,9 @@ if ($status === 'answered') {
                 $feed->updated_by = Auth::id();
                 $feed->attempted_at = now();
                 $feed->save();
+
+                Log::build(['driver' => 'single', 'path' => storage_path('logs/verify.log')])
+    ->info('feed saved', ['id' => $feed->id, 'attrs' => $feed->getAttributes()]);
 
                 $this->copyCompletedToReport($feed);
             }

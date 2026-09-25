@@ -350,75 +350,167 @@ class Show extends Component
     protected function getCurrentDialerPanelContact(): array
     {
         $user = Auth::user();
+        $context = [
+            'agent_id' => $user?->id,
+        ];
 
-        // Single source of truth for "the agent's current contact", shared
-        // with the dashboard dispatcher so both always agree.
-        $record = app(DialerNumberService::class)->resolveCurrentContactRecord($user);
+        try {
+            $service = app(DialerNumberService::class);
+            $record = $service->resolveCurrentContactRecord($user);
 
-        if (!$record) {
-            return [null, null];
+            if (!$record) {
+                $this->dialerLog()->info('dialer.next_contact.current_contact_not_returned', $context);
+                return [null, null];
+            }
+
+            $campaignName = $service->campaignNameForFeed($user, $record->feed_id);
+        } catch (\Throwable $e) {
+            $this->logDatabaseError('dialer.next_contact.current_contact_lookup_failed', $context, $e);
+            throw $e;
         }
 
-        return [$record, app(DialerNumberService::class)->campaignNameForFeed($user, $record->feed_id)];
+        $this->dialerLog()->info('dialer.next_contact.current_contact_returned', array_merge($context, [
+            'feed_contact_id' => $record->id,
+            'feed_id' => $record->feed_id,
+            'status' => $record->status,
+            'campaign_name' => $campaignName,
+        ]));
+
+        return [$record, $campaignName];
     }
 
     public function nextContact()
     {
+        $context = [
+            'agent_id' => Auth::id(),
+            'bound_type' => $this->boundType,
+            'selected_feed_contact_id' => $this->feedContactId,
+            'campaign' => $this->campaign,
+        ];
+
+        $this->dialerLog()->info('dialer.next_contact.started', $context);
+
         if ($this->boundType !== 'dialer') {
+            $this->dialerLog()->warning('dialer.next_contact.skipped', array_merge($context, [
+                'reason' => 'not_dialer',
+            ]));
             return;
         }
 
         [$currentContact, $campaignName] = $this->getCurrentDialerPanelContact();
 
         if (!$currentContact) {
+            $this->dialerLog()->warning('dialer.next_contact.skipped', array_merge($context, [
+                'reason' => 'no_current_contact',
+            ]));
             return;
         }
 
-        $currentContact->update(['assigned_to' => Auth::id()]);
+        $context = array_merge($context, [
+            'current_feed_contact_id' => $currentContact->id,
+            'current_feed_id' => $currentContact->feed_id,
+            'current_status' => $currentContact->status,
+            'campaign_name' => $campaignName,
+        ]);
 
-        // $phone = $currentContact->contact_no_01 ?? $currentContact->contact_no_02;
-        // $relatedContacts = FeedContactValid::where('contact_no_01', $phone)
-        //     ->when($currentContact->feed_id, fn($query) => $query->where('feed_id', $currentContact->feed_id))
-        //     ->get();
-        $phones = array_filter([
-    $currentContact->contact_no_01,
-    $currentContact->contact_no_02,
-]);
+        $this->dialerLog()->info('dialer.next_contact.current_contact_selected', $context);
 
-$relatedContacts = FeedContactValid::query()
-    ->when(!empty($phones), function ($query) use ($phones) {
-        $query->where(function ($q) use ($phones) {
-            $q->whereIn('contact_no_01', $phones)
-              ->orWhereIn('contact_no_02', $phones);
-        });
-    })
-    ->when($currentContact->feed_id, function ($query, $feedId) {
-        $query->where('feed_id', $feedId);
-    })
-    ->get();
-
-
-        if ($relatedContacts->isNotEmpty()) {
-            FeedContactValid::whereIn('id', $relatedContacts->pluck('id')->unique()->values())
-                ->update(['assigned_to' => Auth::id()]);
+        try {
+            $returned = $currentContact->update(['assigned_to' => Auth::id()]);
+            $this->dialerLog()->info('dialer.next_contact.assignment_returned', array_merge($context, [
+                'returned' => $returned,
+                'assigned_to' => $currentContact->assigned_to,
+            ]));
+        } catch (\Throwable $e) {
+            $this->logDatabaseError('dialer.next_contact.assignment_failed', $context, $e);
+            throw $e;
         }
 
-        // The contact that was just completed is archived to the report table
-        // at submit (SubmitCallStatus::copyCompletedToReport); its active row
-        // is removed here, when the agent moves to the next customer.
-        // if ($this->feedContactId) {
-        //     $leavingContact = FeedContactValid::find($this->feedContactId);
+        $phones = array_filter([
+            $currentContact->contact_no_01,
+            $currentContact->contact_no_02,
+        ]);
 
-        //     if ($leavingContact && in_array((string) $leavingContact->status, ['1', '41', '42', '222'])) {
-        //         $leavingContact->delete();
-        //     }
-        // }
-        // if ($this->feedContactId) {
-    FeedContactValid::
-        where('assigned_to', auth()->id()) // Ensure ownership
-        ->whereIn('status', ['1', '41', '42', '222']) // Match allowed statuses
-        ->delete();
-// }
+        try {
+            $relatedContacts = FeedContactValid::query()
+                ->when(!empty($phones), function ($query) use ($phones) {
+                    $query->where(function ($q) use ($phones) {
+                        $q->whereIn('contact_no_01', $phones)
+                            ->orWhereIn('contact_no_02', $phones);
+                    });
+                })
+                ->when($currentContact->feed_id, function ($query, $feedId) {
+                    $query->where('feed_id', $feedId);
+                })
+                ->get();
+        } catch (\Throwable $e) {
+            $this->logDatabaseError('dialer.next_contact.related_contacts_query_failed', $context, $e);
+            throw $e;
+        }
+
+        $this->dialerLog()->info('dialer.next_contact.related_contacts_returned', array_merge($context, [
+            'returned' => [
+                'count' => $relatedContacts->count(),
+                'ids' => $relatedContacts->pluck('id')->all(),
+            ],
+        ]));
+
+        if ($relatedContacts->isNotEmpty()) {
+            try {
+                $returned = FeedContactValid::whereIn('id', $relatedContacts->pluck('id')->unique()->values())
+                    ->update(['assigned_to' => Auth::id()]);
+                $this->dialerLog()->info('dialer.next_contact.related_assignment_returned', array_merge($context, [
+                    'returned' => $returned,
+                    'feed_contact_ids' => $relatedContacts->pluck('id')->all(),
+                ]));
+            } catch (\Throwable $e) {
+                $this->logDatabaseError('dialer.next_contact.related_assignment_failed', $context, $e);
+                throw $e;
+            }
+        }
+
+        try {
+            $deleteCandidates = FeedContactValid::query()
+                ->where('assigned_to', auth()->id())
+                ->whereIn('status', ['1', '41', '42', '222'])
+                ->get(['id', 'feed_id', 'status']);
+            $candidateIds = $deleteCandidates->pluck('id')->map(fn ($id) => (int) $id)->all();
+            $reportIds = empty($candidateIds)
+                ? []
+                : FeedContactValidReport::query()
+                    ->whereIn('feed_contact_id', $candidateIds)
+                    ->pluck('feed_contact_id')
+                    ->map(fn ($id) => (int) $id)
+                    ->all();
+            $missingReportIds = array_values(array_diff($candidateIds, $reportIds));
+
+            $this->dialerLog()->info('dialer.next_contact.delete_candidates_returned', array_merge($context, [
+                'candidates' => $deleteCandidates->map(fn ($feed) => [
+                    'feed_contact_id' => $feed->id,
+                    'feed_id' => $feed->feed_id,
+                    'status' => $feed->status,
+                ])->all(),
+                'report_feed_contact_ids' => $reportIds,
+                'missing_report_feed_contact_ids' => $missingReportIds,
+            ]));
+        } catch (\Throwable $e) {
+            $this->logDatabaseError('dialer.next_contact.delete_diagnostics_failed', $context, $e);
+        }
+
+        try {
+            $deleted = FeedContactValid::
+                where('assigned_to', auth()->id())
+                ->whereIn('status', ['1', '41', '42', '222'])
+                ->delete();
+            $this->dialerLog()->info('dialer.next_contact.valid_rows_delete_returned', array_merge($context, [
+                'returned' => $deleted,
+                'deleted_count' => (int) $deleted,
+                'statuses' => ['1', '41', '42', '222'],
+            ]));
+        } catch (\Throwable $e) {
+            $this->logDatabaseError('dialer.next_contact.valid_rows_delete_failed', $context, $e);
+            throw $e;
+        }
 
         $this->selectedFeedContact = $currentContact;
         $this->feedContactId = $currentContact->id;
@@ -427,12 +519,17 @@ $relatedContacts = FeedContactValid::query()
         try {
             $lead = $this->resolveLeadForContact($currentContact);
         } catch (\Throwable $e) {
-            \Log::error('nextContact: failed to resolve lead', [
-                'feed_contact_id' => $currentContact->id,
+            $this->dialerLog()->error('dialer.next_contact.lead_resolution_failed', array_merge($context, [
+                'exception' => get_class($e),
                 'error' => $e->getMessage(),
-            ]);
+                'trace' => $e->getTraceAsString(),
+            ]));
             return null;
         }
+
+        $this->dialerLog()->info('dialer.next_contact.redirect_returned', array_merge($context, [
+            'lead_id' => $lead->id,
+        ]));
 
         $feedId = $currentContact->feed_id;
 
@@ -969,33 +1066,141 @@ $relatedContacts = FeedContactValid::query()
             ->toArray();
     }
 
+    protected function dialerLog()
+    {
+        return Log::build([
+            'driver' => 'single',
+            'path' => storage_path('logs/verify.log'),
+            'level' => 'debug',
+        ]);
+    }
+
+    protected function logDatabaseError(string $operation, array $context, \Throwable $exception): void
+    {
+        $this->dialerLog()->error($operation, array_merge($context, [
+            'exception' => get_class($exception),
+            'error' => $exception->getMessage(),
+            'trace' => $exception->getTraceAsString(),
+        ]));
+    }
+
+    protected function saveFeedWithLogging(FeedContactValid $feed, string $operation): bool
+    {
+        $context = [
+            'operation' => $operation,
+            'feed_contact_id' => $feed->id,
+            'feed_id' => $feed->feed_id,
+            'status' => $feed->status,
+        ];
+
+        $this->dialerLog()->info('dialer.feed_contact_table.save_started', $context);
+
+        try {
+            $returned = $feed->save();
+
+            $this->dialerLog()->info('dialer.feed_contact_table.save_returned', array_merge($context, [
+                'returned' => $returned,
+                'exists' => $feed->exists,
+                'status' => $feed->status,
+            ]));
+
+            if (!$returned) {
+                $this->dialerLog()->warning('dialer.feed_contact_table.save_returned_false', array_merge($context, [
+                    'returned' => $returned,
+                ]));
+            }
+
+            return $returned;
+        } catch (\Throwable $e) {
+            $this->logDatabaseError('dialer.feed_contact_table.save_failed', $context, $e);
+            throw $e;
+        }
+    }
+
+    protected function incrementDialLimitWithLogging(FeedContactValid $feed, string $operation): void
+    {
+        $context = [
+            'operation' => $operation,
+            'feed_contact_id' => $feed->id,
+            'feed_id' => $feed->feed_id,
+            'agent_id' => Auth::id(),
+        ];
+
+        try {
+            CampaignAgentDialLimit::incrementForFeed((int) $feed->feed_id, (int) Auth::id());
+            $this->dialerLog()->info('dialer.dial_count.increment_returned', $context);
+        } catch (\Throwable $e) {
+            $this->logDatabaseError('dialer.dial_count.increment_failed', $context, $e);
+            throw $e;
+        }
+    }
+
     protected function copyCompletedToReport(FeedContactValid $feed): void
     {
         $completedStatuses = [1, 41, 42, 222];
+        $status = (int) $feed->status;
+        $context = [
+            'component' => 'leads_show',
+            'feed_contact_id' => $feed->id,
+            'feed_id' => $feed->feed_id,
+            'status' => $status,
+        ];
 
-        if (!in_array((int) $feed->status, $completedStatuses, true)) {
+        $this->dialerLog()->info('dialer.report.copy_called', $context);
+
+        if (!in_array($status, $completedStatuses, true)) {
+            $this->dialerLog()->info('dialer.report.copy_skipped', array_merge($context, [
+                'completed_statuses' => $completedStatuses,
+            ]));
             return;
         }
 
-        $attributes = [];
+        try {
+            $attributes = [];
 
-        foreach ($feed->getAttributes() as $attribute => $value) {
-            if (in_array($attribute, (new FeedContactValidReport())->getFillable(), true)) {
-                $attributes[$attribute] = $value;
+            foreach ($feed->getAttributes() as $attribute => $value) {
+                if (in_array($attribute, (new FeedContactValidReport())->getFillable(), true)) {
+                    $attributes[$attribute] = $value;
+                }
             }
+
+            $attributes['feed_contact_id'] = $feed->id;
+
+            $report = FeedContactValidReport::updateOrCreate(
+                ['feed_contact_id' => $feed->id],
+                $attributes
+            );
+
+            $this->dialerLog()->info('dialer.report.copy_returned', array_merge($context, [
+                'returned' => [
+                    'id' => $report->id,
+                    'feed_contact_id' => $report->feed_contact_id,
+                    'status' => $report->status,
+                    'exists' => $report->exists,
+                    'was_recently_created' => $report->wasRecentlyCreated,
+                    'was_changed' => $report->wasChanged(),
+                ],
+            ]));
+        } catch (\Throwable $e) {
+            $this->logDatabaseError('dialer.report.copy_failed', $context, $e);
+            throw $e;
         }
-
-        $attributes['feed_contact_id'] = $feed->id;
-
-        FeedContactValidReport::updateOrCreate(
-            ['feed_contact_id' => $feed->id],
-            $attributes
-        );
     }
 
     public function submitSatisfactionMini()
     {
+        $this->dialerLog()->info('dialer.satisfaction_mini.submit_started', [
+            'agent_id' => Auth::id(),
+            'lead_id' => $this->lead->id,
+            'campaign_id' => $this->miniCampaignId,
+            'survey_contact_count' => is_countable($this->surveyContacts) ? count($this->surveyContacts) : null,
+        ]);
+
         if (empty($this->surveyContacts)) {
+            $this->dialerLog()->warning('dialer.satisfaction_mini.submit_skipped', [
+                'reason' => 'no_survey_contacts',
+                'lead_id' => $this->lead->id,
+            ]);
             return;
         }
 
@@ -1009,6 +1214,12 @@ $relatedContacts = FeedContactValid::query()
             $sourceCallStatus = $this->miniCallStatus[$sourceId] ?? null;
             $sourceReasons = $this->miniSelectedReasons[$sourceId] ?? [];
             $sourceComment = $this->miniComments[$sourceId] ?? '';
+
+            $this->dialerLog()->info('dialer.satisfaction_mini.apply_to_all', [
+                'source_feed_contact_id' => $sourceId,
+                'source_rating' => $sourceRating,
+                'source_call_status' => $sourceCallStatus,
+            ]);
 
             if ($sourceRating !== null && $sourceRating !== '') {
                 foreach ($this->surveyContacts as $ticket) {
@@ -1035,16 +1246,44 @@ $relatedContacts = FeedContactValid::query()
             )));
             $comment = trim((string) ($this->miniComments[$id] ?? ''));
 
+            $this->dialerLog()->info('dialer.satisfaction_mini.contact_processing', [
+                'feed_contact_id' => $id,
+                'rating' => $rating,
+                'call_status' => $callStatus,
+                'reason_count' => count($reasons),
+            ]);
+
             if ($rating === null || $rating === '' || $rating === 0) {
+                $this->dialerLog()->info('dialer.satisfaction_mini.contact_skipped', [
+                    'feed_contact_id' => $id,
+                    'reason' => 'missing_rating',
+                ]);
                 continue;
             }
 
-            $feed = FeedContactValid::find($id);
+            try {
+                $feed = FeedContactValid::find($id);
+            } catch (\Throwable $e) {
+                $this->logDatabaseError('dialer.feed_contact_table.lookup_failed', [
+                    'feed_contact_id' => $id,
+                ], $e);
+                throw $e;
+            }
+
             if (!$feed) {
+                $this->dialerLog()->warning('dialer.satisfaction_mini.contact_skipped', [
+                    'feed_contact_id' => $id,
+                    'reason' => 'feed_contact_not_found',
+                ]);
                 continue;
             }
 
             if (is_numeric($rating) && (int) $rating >= 1 && (int) $rating <= 5) {
+                $this->dialerLog()->info('dialer.satisfaction_mini.branch_selected', [
+                    'feed_contact_id' => $id,
+                    'branch' => 'numeric_rating',
+                ]);
+
                 $feed->call_status_option_id = implode(',', $reasons);
                 $feed->call_status_option_type = '1';
                 $feed->rate = (int) $rating;
@@ -1054,16 +1293,30 @@ $relatedContacts = FeedContactValid::query()
                 $feed->attempted_at = now();
                 $feed->status = 1;
                 $feed->next_available_at = null;
-                $feed->save();
+                $saved = $this->saveFeedWithLogging($feed, 'satisfaction_mini.numeric_rating');
 
-                Log::build(['driver' => 'single', 'path' => storage_path('logs/verify.log')])
-    ->info('feed saved', ['id' => $feed->id, 'attrs' => $feed->getAttributes()]);
+                $this->dialerLog()->info('feed saved', [
+                    'id' => $feed->id,
+                    'returned' => $saved,
+                    'attrs' => $feed->getAttributes(),
+                ]);
 
                 $this->copyCompletedToReport($feed);
-                CampaignAgentDialLimit::incrementForFeed((int) $feed->feed_id, (int) Auth::id());
+                $this->incrementDialLimitWithLogging($feed, 'satisfaction_mini.numeric_rating');
                 $submitted++;
             } elseif (in_array($rating, ['cancel', 'change_request'], true)) {
+                $this->dialerLog()->info('dialer.satisfaction_mini.branch_selected', [
+                    'feed_contact_id' => $id,
+                    'branch' => 'cancel_or_change_request',
+                    'rating' => $rating,
+                    'call_status' => $callStatus,
+                ]);
+
                 if (!in_array($callStatus, ['answered', 'not_answered'], true)) {
+                    $this->dialerLog()->info('dialer.satisfaction_mini.contact_skipped', [
+                        'feed_contact_id' => $id,
+                        'reason' => 'missing_cancel_call_status',
+                    ]);
                     $skipped++;
                     continue;
                 }
@@ -1100,10 +1353,21 @@ $relatedContacts = FeedContactValid::query()
                 $feed->updated_by = Auth::id();
                 $feed->attempted_at = now();
                 $feed->status = $status;
-                $feed->save();
-                CampaignAgentDialLimit::incrementForFeed((int) $feed->feed_id, (int) Auth::id());
+                $saved = $this->saveFeedWithLogging($feed, 'satisfaction_mini.cancel_or_change_request');
+                $this->dialerLog()->info('dialer.report.copy_not_called', [
+                    'feed_contact_id' => $feed->id,
+                    'branch' => 'cancel_or_change_request',
+                    'status' => $feed->status,
+                    'save_returned' => $saved,
+                ]);
+                $this->incrementDialLimitWithLogging($feed, 'satisfaction_mini.cancel_or_change_request');
                 $submitted++;
             } elseif ($rating === 'not_answered') {
+                $this->dialerLog()->info('dialer.satisfaction_mini.branch_selected', [
+                    'feed_contact_id' => $id,
+                    'branch' => 'not_answered',
+                ]);
+
                 $optionTypes = $this->miniSelectedReasonTypes($reasons);
                 if (empty($optionTypes)) {
                     $optionTypes = ['2'];
@@ -1122,10 +1386,21 @@ $relatedContacts = FeedContactValid::query()
                 $feed->updated_by = Auth::id();
                 $feed->attempted_at = now();
                 $feed->next_available_at = now()->addDay();
-                $feed->save();
-                CampaignAgentDialLimit::incrementForFeed((int) $feed->feed_id, (int) Auth::id());
+                $saved = $this->saveFeedWithLogging($feed, 'satisfaction_mini.not_answered');
+                $this->dialerLog()->info('dialer.report.copy_not_called', [
+                    'feed_contact_id' => $feed->id,
+                    'branch' => 'not_answered',
+                    'status' => $feed->status,
+                    'save_returned' => $saved,
+                ]);
+                $this->incrementDialLimitWithLogging($feed, 'satisfaction_mini.not_answered');
                 $submitted++;
             } elseif ($rating === 'not_in_use') {
+                $this->dialerLog()->info('dialer.satisfaction_mini.branch_selected', [
+                    'feed_contact_id' => $id,
+                    'branch' => 'not_in_use',
+                ]);
+
                 $feed->call_status_option_id = '';
                 $feed->call_status_option_type = '';
                 $feed->rate = null;
@@ -1135,11 +1410,23 @@ $relatedContacts = FeedContactValid::query()
                 $feed->attempted_at = now();
                 $feed->status = 6;
                 $feed->next_available_at = null;
-                $feed->save();
-                CampaignAgentDialLimit::incrementForFeed((int) $feed->feed_id, (int) Auth::id());
+                $saved = $this->saveFeedWithLogging($feed, 'satisfaction_mini.not_in_use');
+                $this->dialerLog()->info('dialer.report.copy_not_called', [
+                    'feed_contact_id' => $feed->id,
+                    'branch' => 'not_in_use',
+                    'status' => $feed->status,
+                    'save_returned' => $saved,
+                ]);
+                $this->incrementDialLimitWithLogging($feed, 'satisfaction_mini.not_in_use');
                 $submitted++;
             }
         }
+
+        $this->dialerLog()->info('dialer.satisfaction_mini.submit_completed', [
+            'submitted' => $submitted,
+            'skipped' => $skipped,
+            'campaign_id' => $this->miniCampaignId,
+        ]);
 
         if ($submitted > 0) {
             $this->emit('FeedCompleted');

@@ -13,6 +13,7 @@ class FeedContactValidReport extends Model
     protected $table = 'feed_contact_valids_report';
 
     protected $fillable = [
+        'feed_contact_id',
         'feed_id', 'contact_no_01', 'contact_no_02', 'priority_field', 'lang', 'data', 'status', 'assigned_to',
         'next_available_at', 'attempt_count', 'in_queue',
         'call_status_option_id', 'call_status_option_type', 'rate', 'comments',

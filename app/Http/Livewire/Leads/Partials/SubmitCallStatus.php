@@ -255,6 +255,9 @@ if ($status === 'answered') {
                     'was_changed' => $report->wasChanged(),
                 ],
             ]));
+
+            $feed->copied_at = now();
+            $feed->save();
         } catch (\Throwable $e) {
             $this->logDatabaseError('dialer.report.copy_failed', $context, $e);
             throw $e;

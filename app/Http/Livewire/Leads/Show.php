@@ -473,6 +473,7 @@ class Show extends Component
             $deleteCandidates = FeedContactValid::query()
                 ->where('assigned_to', auth()->id())
                 ->whereIn('status', ['1', '41', '42', '222'])
+                ->whereNotNull('copied_at')
                 ->get(['id', 'feed_id', 'status']);
             $candidateIds = $deleteCandidates->pluck('id')->map(fn ($id) => (int) $id)->all();
             $reportIds = empty($candidateIds)
@@ -501,6 +502,7 @@ class Show extends Component
             $deleted = FeedContactValid::
                 where('assigned_to', auth()->id())
                 ->whereIn('status', ['1', '41', '42', '222'])
+                ->whereNotNull('copied_at')
                 ->delete();
             $this->dialerLog()->info('dialer.next_contact.valid_rows_delete_returned', array_merge($context, [
                 'returned' => $deleted,
@@ -1181,6 +1183,9 @@ class Show extends Component
                     'was_changed' => $report->wasChanged(),
                 ],
             ]));
+
+            $feed->copied_at = now();
+            $feed->save();
         } catch (\Throwable $e) {
             $this->logDatabaseError('dialer.report.copy_failed', $context, $e);
             throw $e;
@@ -1354,12 +1359,7 @@ class Show extends Component
                 $feed->attempted_at = now();
                 $feed->status = $status;
                 $saved = $this->saveFeedWithLogging($feed, 'satisfaction_mini.cancel_or_change_request');
-                $this->dialerLog()->info('dialer.report.copy_not_called', [
-                    'feed_contact_id' => $feed->id,
-                    'branch' => 'cancel_or_change_request',
-                    'status' => $feed->status,
-                    'save_returned' => $saved,
-                ]);
+                $this->copyCompletedToReport($feed);
                 $this->incrementDialLimitWithLogging($feed, 'satisfaction_mini.cancel_or_change_request');
                 $submitted++;
             } elseif ($rating === 'not_answered') {
@@ -1387,12 +1387,7 @@ class Show extends Component
                 $feed->attempted_at = now();
                 $feed->next_available_at = now()->addDay();
                 $saved = $this->saveFeedWithLogging($feed, 'satisfaction_mini.not_answered');
-                $this->dialerLog()->info('dialer.report.copy_not_called', [
-                    'feed_contact_id' => $feed->id,
-                    'branch' => 'not_answered',
-                    'status' => $feed->status,
-                    'save_returned' => $saved,
-                ]);
+                $this->copyCompletedToReport($feed);
                 $this->incrementDialLimitWithLogging($feed, 'satisfaction_mini.not_answered');
                 $submitted++;
             } elseif ($rating === 'not_in_use') {

@@ -12681,6 +12681,13 @@ var PhoneEvents = Object.freeze({
   RECORDING_UPLOADED: "recording_uploaded",
   CALL_UPDATED: "call_updated",
   DEVICES_CHANGED: "devices_changed",
+  /**
+   * Cross-tab session. `session_state` fires in a companion tab whenever the
+   * owning tab publishes a new phone state; `session_role` fires when this tab
+   * becomes the owner or starts mirroring another one.
+   */
+  SESSION_STATE: "session_state",
+  SESSION_ROLE: "session_role",
   ERROR: "error"
 });
 var TRANSFER_UMBRELLA = "transfer";
@@ -14409,8 +14416,300 @@ var EventManager = class {
   }
 };
 
+// src/SessionCoordinator.js
+var log8 = createLogger("SessionCoordinator");
+var HEARTBEAT_MS = 1e3;
+var STALE_MS = 4e3;
+var SETTLE_MS = 300;
+var COMMAND_TIMEOUT_MS = 5e3;
+var SessionRole = Object.freeze({
+  OWNER: "owner",
+  COMPANION: "companion"
+});
+function readLease(key) {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(key) ?? "null");
+    return typeof parsed?.id === "string" ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+function writeLease(key, id) {
+  try {
+    localStorage.setItem(key, JSON.stringify({ id, ts: Date.now() }));
+    return true;
+  } catch {
+    return false;
+  }
+}
+function clearLease(key, id) {
+  try {
+    const current = readLease(key);
+    if (!current || current.id === id) localStorage.removeItem(key);
+  } catch {
+  }
+}
+var sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+function newTabId() {
+  try {
+    if (globalThis.crypto?.randomUUID) return globalThis.crypto.randomUUID();
+  } catch {
+  }
+  return `tab-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+}
+var SessionCoordinator = class {
+  /**
+   * @param {object} options
+   * @param {string} options.extension scopes the channel and lease, so two
+   *   agents sharing one browser profile never contend for the same owner slot
+   * @param {() => object} options.getStatus owner-only: the state to publish
+   * @param {(action: string, args: unknown[]) => unknown} options.onCommand
+   *   owner-only: run a command relayed by a companion
+   * @param {(state: object) => void} [options.onState] companion-only
+   * @param {(role: string) => void} [options.onRole] fires on every role change
+   */
+  constructor({ extension, getStatus, onCommand, onState, onRole }) {
+    this.extension = extension ?? null;
+    this.getStatus = getStatus;
+    this.onCommand = onCommand;
+    this.onState = onState ?? (() => {
+    });
+    this.onRole = onRole ?? (() => {
+    });
+    this.id = newTabId();
+    this.role = null;
+    this.ownerId = null;
+    this.mirrored = null;
+    this.peers = /* @__PURE__ */ new Set();
+    this.enabled = typeof BroadcastChannel === "function";
+    this._name = "auso-phone";
+    this._channel = null;
+    this._heartbeat = null;
+    this._watchdog = null;
+    this._pending = /* @__PURE__ */ new Map();
+    this._cmdSeq = 0;
+  }
+  get isCompanion() {
+    return this.role === SessionRole.COMPANION;
+  }
+  get isOwner() {
+    return this.role === SessionRole.OWNER;
+  }
+  get leaseKey() {
+    return `${this._name}.owner:${this.extension}`;
+  }
+  /**
+   * Join the session and settle on a role. Resolves once the tab knows whether
+   * it owns the SIP transport or is mirroring another tab's.
+   *
+   * @param {string} channelName base name for the channel/lease
+   */
+  async join(channelName) {
+    this._name = channelName;
+    this.enabled = this.enabled && Boolean(this.extension);
+    if (!this.enabled) {
+      this._setRole(SessionRole.OWNER);
+      return this.role;
+    }
+    this._channel = new BroadcastChannel(this.leaseKey);
+    this._channel.onmessage = (ev) => this._receive(ev.data);
+    this._post({ t: "probe" });
+    await this._elect();
+    return this.role;
+  }
+  /** Owner-only. Republish state and refresh the lease. */
+  startPublishing() {
+    if (!this.enabled || !this.isOwner) return;
+    this._stopTimers();
+    this._heartbeat = setInterval(() => {
+      writeLease(this.leaseKey, this.id);
+      this.publish();
+    }, HEARTBEAT_MS);
+    this.publish();
+  }
+  stopPublishing() {
+    this._stopTimers();
+  }
+  /** Push the current state out to every companion immediately. */
+  publish() {
+    if (!this.isOwner) return;
+    this._post({ t: "state", state: this.getStatus() });
+  }
+  /**
+   * Companion-only. Hand a command to the owning tab and wait for its result.
+   *
+   * @returns {Promise<unknown>} rejects if the owner never answers, so a stale
+   *   companion surfaces an error rather than hanging on a promise forever.
+   */
+  command(action, args = []) {
+    if (!this.isCompanion) return Promise.resolve(void 0);
+    const id = `${this.id}:${++this._cmdSeq}`;
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        this._pending.delete(id);
+        reject(new Error("The tab holding this call is not responding."));
+      }, COMMAND_TIMEOUT_MS);
+      this._pending.set(id, { resolve, reject, timer });
+      this._post({ t: "cmd", id, action, args });
+    });
+  }
+  /** Leave the session. A call in progress dies with the tab; nothing can move it. */
+  leave() {
+    if (!this.enabled) return;
+    this._post({ t: "bye" });
+    this._stopTimers();
+    for (const { reject, timer } of this._pending.values()) {
+      clearTimeout(timer);
+      reject(new Error("This tab left the call."));
+    }
+    this._pending.clear();
+    clearLease(this.leaseKey, this.id);
+    try {
+      this._channel?.close();
+    } catch {
+    }
+    this._channel = null;
+  }
+  // ---- Election ----------------------------------------------------------
+  async _elect() {
+    const held = readLease(this.leaseKey);
+    if (held && held.id !== this.id && Date.now() - (held.ts ?? 0) < STALE_MS) {
+      this.ownerId = held.id;
+      this._setRole(SessionRole.COMPANION);
+      this._startWatchdog();
+      return;
+    }
+    writeLease(this.leaseKey, this.id);
+    await sleep(SETTLE_MS);
+    const winner = readLease(this.leaseKey);
+    if (winner?.id === this.id) {
+      this._setRole(SessionRole.OWNER);
+      return;
+    }
+    log8.info("lost the lease race \u2014 mirroring the tab that won");
+    this.ownerId = winner?.id ?? null;
+    this._setRole(SessionRole.COMPANION);
+    this._startWatchdog();
+  }
+  /** Companion-only: notice the owner stop publishing, and take over. */
+  _startWatchdog() {
+    this._stopTimers();
+    this._watchdog = setInterval(() => {
+      if (this.isOwner) return;
+      const held = readLease(this.leaseKey);
+      const alive = held && held.id !== this.id && Date.now() - (held.ts ?? 0) < STALE_MS;
+      if (alive) return;
+      this._promote();
+    }, HEARTBEAT_MS);
+  }
+  /**
+   * Take over after the owner goes away. A call that was in progress cannot be
+   * recovered — its peer connection died with the tab that owned it — so the
+   * caller re-registers and reports the phone as idle.
+   */
+  _promote() {
+    log8.warn("the owning tab went away \u2014 taking over");
+    writeLease(this.leaseKey, this.id);
+    this.ownerId = this.id;
+    this._stopTimers();
+    this._setRole(SessionRole.OWNER);
+  }
+  // ---- Messaging ---------------------------------------------------------
+  _post(message) {
+    if (!this._channel) return;
+    try {
+      this._channel.postMessage({ ...message, from: this.id, ext: this.extension });
+    } catch (err) {
+      log8.warn("could not post to the session channel", err);
+    }
+  }
+  _receive(message) {
+    if (!message || message.ext !== this.extension || message.from === this.id) return;
+    this.peers.add(message.from);
+    switch (message.t) {
+      case "probe":
+        if (this.isOwner) this.publish();
+        return;
+      case "state":
+        if (this.isOwner) return;
+        this.ownerId = message.from;
+        this.mirrored = message.state;
+        this.onState(message.state);
+        return;
+      case "cmd":
+        if (this.isOwner) this._runCommand(message);
+        return;
+      case "cmdResult":
+        this._settle(message);
+        return;
+      case "bye":
+        this.peers.delete(message.from);
+        if (!this.isOwner && message.from === this.ownerId) this._promote();
+        return;
+      default:
+    }
+  }
+  _runCommand({ id, action, args }) {
+    let result;
+    try {
+      result = this.onCommand(action, args ?? []);
+    } catch (err) {
+      this._post({ t: "cmdResult", id, ok: false, error: err.message });
+      return;
+    }
+    Promise.resolve(result).then(
+      (value) => this._post({ t: "cmdResult", id, ok: true, value }),
+      (err) => this._post({ t: "cmdResult", id, ok: false, error: err?.message ?? String(err) })
+    );
+  }
+  _settle({ id, ok, value, error }) {
+    const entry = this._pending.get(id);
+    if (!entry) return;
+    this._pending.delete(id);
+    clearTimeout(entry.timer);
+    if (ok) entry.resolve(value);
+    else entry.reject(new Error(error ?? "The command failed in the other tab."));
+  }
+  _stopTimers() {
+    if (this._heartbeat) clearInterval(this._heartbeat);
+    if (this._watchdog) clearInterval(this._watchdog);
+    this._heartbeat = null;
+    this._watchdog = null;
+  }
+  _setRole(role) {
+    if (this.role === role) return;
+    this.role = role;
+    this.onRole(role);
+  }
+};
+
 // src/AusoPhone.js
-var log8 = createLogger("AusoPhone");
+var log9 = createLogger("AusoPhone");
+var RELAYABLE_COMMANDS = /* @__PURE__ */ new Set([
+  "call",
+  "answer",
+  "reject",
+  "hangup",
+  "hold",
+  "unhold",
+  "toggleHold",
+  "mute",
+  "unmute",
+  "toggleMute",
+  "sendDTMF",
+  "transfer",
+  "completeTransfer",
+  "cancelTransfer",
+  "swapTransferLegs",
+  "startRecording",
+  "stopRecording",
+  "listDevices",
+  "setInputDevice",
+  "setOutputDevice",
+  "setVolume",
+  "setAutoAnswer",
+  "attachCustomer"
+]);
 var DEFAULT_CONFIG = {
   /** Laravel endpoint that returns short-lived SIP credentials (spec §2). */
   credentialsUrl: "/api/phone/credentials",
@@ -14438,6 +14737,15 @@ var DEFAULT_CONFIG = {
    * SIP.js timers we would otherwise rely on.
    */
   resumeMinHiddenMs: 3e4,
+  /**
+   * Coordinate tabs so only one of them registers the extension and the rest
+   * mirror it. Without this every tab opens its own socket, and since the AOR
+   * is `max_contacts=1` / `remove_existing=yes`, the newest tab's REGISTER
+   * silently evicts the older one.
+   */
+  sessionSync: true,
+  /** BroadcastChannel name; the extension is appended to scope it per agent. */
+  sessionChannel: "auso-phone",
   autoAnswer: false,
   autoAnswerDelayMs: 0,
   /** Extra Web Audio noise gate. ON by default so background noise is actually
@@ -14474,6 +14782,10 @@ var AusoPhone = class {
     this._hiddenAt = 0;
     this._recovering = false;
     this._lifecycleHandlers = null;
+    this.session = null;
+    this._companion = false;
+    this._mirrored = null;
+    this._electing = false;
     this.events = new EventManager({ domTarget: typeof window !== "undefined" ? window : null });
     this.media = new MediaManager();
     this.sip = new SIPClient({ events: this.events });
@@ -14500,8 +14812,9 @@ var AusoPhone = class {
     this.media.setNoiseGate(Boolean(this.config.noiseGate));
     this.calls.setAutoAnswer(this.config.autoAnswer, { delayMs: this.config.autoAnswerDelayMs });
     this._installLifecycleWatch();
+    this._installSession();
     this.initialised = true;
-    log8.info("initialised", { credentialsUrl: this.config.credentialsUrl });
+    log9.info("initialised", { credentialsUrl: this.config.credentialsUrl });
     return this;
   }
   /**
@@ -14515,6 +14828,33 @@ var AusoPhone = class {
    */
   async login(opts = {}) {
     if (!this.initialised) this.init();
+    const credentials = opts.credentials ?? await this.fetchCredentials(opts);
+    this.credentials = credentials;
+    this.config.sip_domain = credentials.sip_domain;
+    this.agent = credentials.agent ?? { extension: credentials.extension };
+    if (credentials.branding) this.config.branding = mergeDeep(this.config.branding, credentials.branding);
+    if (typeof credentials.auto_answer === "boolean") this.setAutoAnswer(credentials.auto_answer);
+    if (this.session) {
+      if (this.session.role === null) {
+        this.session.extension = credentials.extension;
+        this._electing = true;
+        try {
+          await this.session.join(this.config.sessionChannel);
+        } finally {
+          this._electing = false;
+        }
+      }
+      if (this._companion) {
+        this._adoptMirroredIdentity(credentials);
+        log9.info("another tab owns this extension \u2014 mirroring it instead of registering");
+        this.events.emit(PhoneEvents.SESSION_ROLE, { role: SessionRole.COMPANION });
+        return this.status();
+      }
+    }
+    return this._register(credentials, opts);
+  }
+  /** The half of `login()` that actually owns a socket and a registration. */
+  async _register(credentials, opts = {}) {
     if (opts.requestMedia !== false) {
       try {
         await this.media.requestPermission();
@@ -14527,12 +14867,6 @@ var AusoPhone = class {
         });
       }
     }
-    const credentials = opts.credentials ?? await this.fetchCredentials(opts);
-    this.credentials = credentials;
-    this.config.sip_domain = credentials.sip_domain;
-    this.agent = credentials.agent ?? { extension: credentials.extension };
-    if (credentials.branding) this.config.branding = mergeDeep(this.config.branding, credentials.branding);
-    if (typeof credentials.auto_answer === "boolean") this.setAutoAnswer(credentials.auto_answer);
     const userAgent = await this.sip.connect(credentials, {
       iceServers: credentials.ice_servers ?? this.config.iceServers,
       iceGatheringTimeout: this.config.iceGatheringTimeout,
@@ -14545,12 +14879,20 @@ var AusoPhone = class {
       extension: credentials.extension
     });
     this._scheduleCredentialRefresh(credentials);
+    this.session?.startPublishing();
     return this.status();
   }
   /** Spec §13: logout → unregister → WSS disconnect. */
   async logout() {
+    if (this._companion) {
+      this.session?.leave();
+      this._companion = false;
+      this._mirrored = null;
+      return this.status();
+    }
     clearTimeout(this._refreshTimer);
     this._refreshTimer = null;
+    this.session?.stopPublishing();
     await this.recorder.abortAll();
     await this.calls.hangupAll();
     await this.registration.unregister();
@@ -14563,8 +14905,11 @@ var AusoPhone = class {
   /** Free every browser resource. Call from a beforeunload handler. */
   async destroy() {
     this._removeLifecycleWatch();
+    this._removeSessionWatch();
     await this.logout().catch(() => {
     });
+    this.session?.leave();
+    this.session = null;
     this.calls.destroy();
     this.media.destroy();
     this.events.removeAll();
@@ -14584,6 +14929,7 @@ var AusoPhone = class {
    */
   async _ensureRegistration({ force = false } = {}) {
     if (!this.credentials) return this.status();
+    if (this._companion) return this.status();
     if (!force && this.sip.isConnected && this.registration.isRegistered) return this.status();
     let userAgent = this.sip.userAgent;
     if (force || !this.sip.isConnected || !this.registration.isBoundTo(userAgent)) {
@@ -14653,23 +14999,114 @@ var AusoPhone = class {
   async _resumeFromHidden() {
     if (this._recovering) return;
     if (!this.credentials) return;
+    if (this._companion) return;
     if (typeof document !== "undefined" && document.hidden) return;
     const hiddenMs = this._hiddenAt ? Date.now() - this._hiddenAt : 0;
     this._hiddenAt = 0;
     if (hiddenMs < this.config.resumeMinHiddenMs) return;
     if (this.calls.list().length > 0) {
-      log8.info(`resumed after ${Math.round(hiddenMs / 1e3)}s with a call in progress \u2014 transport left alone`);
+      log9.info(`resumed after ${Math.round(hiddenMs / 1e3)}s with a call in progress \u2014 transport left alone`);
       return;
     }
     this._recovering = true;
     try {
-      log8.info(`resumed after ${Math.round(hiddenMs / 1e3)}s hidden \u2014 revalidating registration`);
+      log9.info(`resumed after ${Math.round(hiddenMs / 1e3)}s hidden \u2014 revalidating registration`);
       await this._ensureRegistration({ force: true });
     } catch (err) {
-      log8.error("resume re-registration failed", err);
+      log9.error("resume re-registration failed", err);
     } finally {
       this._recovering = false;
     }
+  }
+  // ---- Cross-tab session -------------------------------------------------
+  /**
+   * Build the coordinator that stops every tab registering the same extension.
+   *
+   * Only one tab can hold a WebRTC call, so the rest mirror it: the owner
+   * publishes `status()` once a second and on every state change, and a
+   * companion relays control commands back to it. Registration itself still
+   * happens in `login()`, once the role is known.
+   */
+  _installSession() {
+    if (!this.config.sessionSync || this.session) return;
+    this.session = new SessionCoordinator({
+      extension: this.config.extension ?? null,
+      getStatus: () => this._localStatus(),
+      onCommand: (action, args) => this._runRelayed(action, args),
+      onState: (state) => {
+        this._mirrored = state;
+        this.events.emit(PhoneEvents.SESSION_STATE, { status: state });
+      },
+      onRole: (role) => this._onSessionRole(role)
+    });
+    this._installSessionWatch();
+  }
+  /**
+   * Release the lease when the tab goes away, so peers promote straight away
+   * instead of waiting out the stale timeout.
+   *
+   * A `pagehide` carrying `persisted` means the page is going into the bfcache
+   * and will come back with its sockets and heap intact, so the lease has to
+   * stay put. A real close means the socket is gone, and any call on it died
+   * with it — there is no way to hand a peer connection to another tab.
+   */
+  _installSessionWatch() {
+    if (typeof window === "undefined" || this._sessionPageHide) return;
+    this._sessionPageHide = (ev) => {
+      if (ev.persisted) return;
+      if (this.calls.list().length > 0) {
+        log9.warn("tab closing with a call in progress \u2014 the call cannot survive it");
+      }
+      this.session?.leave();
+    };
+    window.addEventListener("pagehide", this._sessionPageHide);
+  }
+  _removeSessionWatch() {
+    if (typeof window === "undefined" || !this._sessionPageHide) return;
+    window.removeEventListener("pagehide", this._sessionPageHide);
+    this._sessionPageHide = null;
+  }
+  /**
+   * A companion took over because the owning tab died. Register properly so the
+   * phone is usable again; whatever call was up is gone and cannot be restored.
+   */
+  async _onSessionRole(role) {
+    this._companion = role === SessionRole.COMPANION;
+    this._mirrored = null;
+    this.events.emit(PhoneEvents.SESSION_ROLE, { role, recovered: true });
+    this.session?.publish();
+    if (this._companion || !this.credentials) return;
+    if (this._electing) return;
+    try {
+      await this._register(this.credentials);
+    } catch (err) {
+      log9.error("could not register after taking over from the closed tab", err);
+      this.events.emit(PhoneEvents.ERROR, { scope: "session", message: err.message, fatal: false });
+    }
+  }
+  /** A companion still needs the extension and branding to render like the owner. */
+  _adoptMirroredIdentity(credentials) {
+    this.credentials = { ...credentials };
+    this.config.sip_domain = credentials.sip_domain;
+    this.agent = credentials.agent ?? { extension: credentials.extension };
+    if (credentials.branding) this.config.branding = mergeDeep(this.config.branding, credentials.branding);
+  }
+  /**
+   * Hand a command to the owning tab when this one is only mirroring.
+   *
+   * @returns {Promise<unknown>|null} null when this tab is the owner and should
+   *   run the command itself
+   */
+  _relay(action, args) {
+    if (!this._companion) return null;
+    return this.session.command(action, args);
+  }
+  /** Owner-side execution of a companion's command. */
+  _runRelayed(action, args) {
+    if (!RELAYABLE_COMMANDS.has(action)) {
+      throw new Error(`"${action}" cannot be run from another tab`);
+    }
+    return this[action](...args);
   }
   /**
    * Ask Laravel for short-lived SIP credentials.
@@ -14697,48 +15134,60 @@ var AusoPhone = class {
   // ---- Commands (spec §4 / §12) -----------------------------------------
   /** `AusoPhone.call("0772615908")` */
   call(number, opts) {
+    return this._relay("call", [number, opts]) ?? this._callLocal(number, opts);
+  }
+  _callLocal(number, opts) {
     this._requireRegistered();
     return this.calls.call(this.sip.userAgent, number, opts);
   }
   answer(callId) {
-    return this.calls.answer(callId);
+    return this._relay("answer", [callId]) ?? this.calls.answer(callId);
   }
   reject(callId, opts) {
-    return this.calls.reject(callId, opts);
+    return this._relay("reject", [callId, opts]) ?? this.calls.reject(callId, opts);
   }
   hangup(callId) {
-    return this.calls.hangup(callId);
+    return this._relay("hangup", [callId]) ?? this.calls.hangup(callId);
   }
   hold(callId) {
-    return this.calls.hold(callId, true);
+    return this._relay("hold", [callId]) ?? this.calls.hold(callId, true);
   }
   unhold(callId) {
-    return this.calls.hold(callId, false);
+    return this._relay("unhold", [callId]) ?? this.calls.hold(callId, false);
   }
   toggleHold(callId) {
+    return this._relay("toggleHold", [callId]) ?? this._toggleHoldLocal(callId);
+  }
+  _toggleHoldLocal(callId) {
     const call = callId ? this.calls.calls.get(callId) : this.calls.activeCall;
     if (!call) throw new Error("No active call");
     return this.calls.hold(call.id, !call.held);
   }
   mute(callId) {
-    return this.calls.mute(callId, true);
+    return this._relay("mute", [callId]) ?? this.calls.mute(callId, true);
   }
   unmute(callId) {
-    return this.calls.mute(callId, false);
+    return this._relay("unmute", [callId]) ?? this.calls.mute(callId, false);
   }
   toggleMute(callId) {
+    return this._relay("toggleMute", [callId]) ?? this._toggleMuteLocal(callId);
+  }
+  _toggleMuteLocal(callId) {
     const call = callId ? this.calls.calls.get(callId) : this.calls.activeCall;
     if (!call) throw new Error("No active call");
     return this.calls.mute(call.id, !call.muted);
   }
   sendDTMF(tones, opts) {
-    return this.calls.sendDTMF(void 0, tones, opts);
+    return this._relay("sendDTMF", [tones, opts]) ?? this.calls.sendDTMF(void 0, tones, opts);
   }
   /**
    * Spec §12: `AusoPhone.transfer("2005")`.
    * Blind by default; pass `{ type: 'attended' }` to start a consultation.
    */
   transfer(target, opts = {}) {
+    return this._relay("transfer", [target, opts]) ?? this._transferLocal(target, opts);
+  }
+  _transferLocal(target, opts = {}) {
     this._requireRegistered();
     if (opts.type === "attended") {
       return this.transfers.startAttended(this.sip.userAgent, target, opts.callId);
@@ -14749,43 +15198,52 @@ var AusoPhone = class {
     return this.transfer(target, { type: "attended", callId });
   }
   completeTransfer() {
-    return this.transfers.completeAttended();
+    return this._relay("completeTransfer", []) ?? this.transfers.completeAttended();
   }
   cancelTransfer() {
-    return this.transfers.cancelAttended();
+    return this._relay("cancelTransfer", []) ?? this.transfers.cancelAttended();
   }
   swapTransferLegs() {
-    return this.transfers.toggleConsultation();
+    return this._relay("swapTransferLegs", []) ?? this.transfers.toggleConsultation();
   }
   /** Spec §6: `phone.setAutoAnswer(true)`. */
   setAutoAnswer(enabled, opts) {
-    return this.calls.setAutoAnswer(enabled, opts);
+    return this._relay("setAutoAnswer", [enabled, opts]) ?? this.calls.setAutoAnswer(enabled, opts);
   }
   getAutoAnswer() {
-    return this.calls.autoAnswer;
+    return this._companion && this._mirrored ? this._mirrored.auto_answer : this.calls.autoAnswer;
   }
   // ---- Recording (spec §10, optional) ------------------------------------
   startRecording(callId) {
+    return this._relay("startRecording", [callId]) ?? this._startRecordingLocal(callId);
+  }
+  _startRecordingLocal(callId) {
     const call = callId ? this.calls.calls.get(callId) : this.calls.activeCall;
     if (!call) throw new Error("No active call");
     return this.recorder.start(call);
   }
   stopRecording(callId, opts) {
+    return this._relay("stopRecording", [callId, opts]) ?? this._stopRecordingLocal(callId, opts);
+  }
+  _stopRecordingLocal(callId, opts) {
     const call = callId ? this.calls.calls.get(callId) : this.calls.activeCall;
     return this.recorder.stop(call?.id ?? callId, opts);
   }
   // ---- Media -------------------------------------------------------------
+  // Device and volume changes relay to the owning tab as well: the microphone
+  // and speakers in use belong to whoever holds the call, so setting them here
+  // has to be applied there to mean anything.
   listDevices() {
-    return this.media.enumerate();
+    return this._relay("listDevices", []) ?? this.media.enumerate();
   }
   setInputDevice(deviceId) {
-    return this.media.setInputDevice(deviceId);
+    return this._relay("setInputDevice", [deviceId]) ?? this.media.setInputDevice(deviceId);
   }
   setOutputDevice(deviceId) {
-    return this.media.setOutputDevice(deviceId);
+    return this._relay("setOutputDevice", [deviceId]) ?? this.media.setOutputDevice(deviceId);
   }
   setVolume(v) {
-    return this.media.setVolume(v);
+    return this._relay("setVolume", [v]) ?? this.media.setVolume(v);
   }
   // ---- CRM helpers -------------------------------------------------------
   /**
@@ -14807,6 +15265,9 @@ var AusoPhone = class {
   }
   /** Let the CRM decorate a call with whatever it looked up. */
   attachCustomer(callId, customer) {
+    return this._relay("attachCustomer", [callId, customer]) ?? this._attachCustomerLocal(callId, customer);
+  }
+  _attachCustomerLocal(callId, customer) {
     const call = this.calls.calls.get(callId);
     if (!call) return null;
     call.customer = customer;
@@ -14814,8 +15275,19 @@ var AusoPhone = class {
     return call.toJSON();
   }
   // ---- Introspection -----------------------------------------------------
-  /** Everything a Livewire component needs to render, in one plain object. */
+  /**
+   * Everything a Livewire component needs to render, in one plain object.
+   *
+   * A companion tab answers with the owning tab's published state, so the same
+   * view code renders the same call in every tab.
+   */
   status() {
+    if (this._companion && this._mirrored) {
+      return { ...this._mirrored, initialised: true, session: this._sessionInfo() };
+    }
+    return { ...this._localStatus(), session: this._sessionInfo() };
+  }
+  _localStatus() {
     return {
       initialised: this.initialised,
       connection: this.sip.connectionState,
@@ -14833,10 +15305,20 @@ var AusoPhone = class {
       credentials_expire_at: this.credentialsExpireAt
     };
   }
+  _sessionInfo() {
+    return {
+      /** 'owner' holds the socket and the call; 'companion' mirrors it. */
+      role: this._companion ? SessionRole.COMPANION : SessionRole.OWNER,
+      mirrored: this._companion,
+      tab_id: this.session?.id ?? null,
+      enabled: Boolean(this.session?.enabled)
+    };
+  }
   getCalls() {
-    return this.calls.list().map((c) => c.toJSON());
+    return this._companion && this._mirrored ? this._mirrored.calls : this.calls.list().map((c) => c.toJSON());
   }
   getActiveCall() {
+    if (this._companion && this._mirrored) return this._mirrored.active_call;
     return this.calls.activeCall?.toJSON() ?? null;
   }
   eventLog() {
@@ -14855,32 +15337,36 @@ var AusoPhone = class {
   // ---- Internals ---------------------------------------------------------
   _wireInternalPlumbing() {
     this.sip.onInvite = (invitation) => this.calls.handleInvite(invitation);
+    for (const event of ALL_EVENTS) {
+      if (event === PhoneEvents.SESSION_STATE || event === PhoneEvents.SESSION_ROLE) continue;
+      this.events.on(event, () => this.session?.publish());
+    }
     this.sip.onReconnected = () => {
-      log8.info("transport recovered, refreshing registration");
-      this._ensureRegistration().catch((err) => log8.warn("re-registration after reconnect failed", err));
+      log9.info("transport recovered, refreshing registration");
+      this._ensureRegistration().catch((err) => log9.warn("re-registration after reconnect failed", err));
     };
     this.registration.onCredentialsRejected = () => {
-      log8.warn("credentials rejected \u2014 refreshing from Laravel");
+      log9.warn("credentials rejected \u2014 refreshing from Laravel");
       this._refreshCredentials().catch((err) => {
         this.events.emit(PhoneEvents.ERROR, { scope: "auth", message: err.message, fatal: true });
       });
     };
     this.events.on(PhoneEvents.INCOMING, ({ call }) => {
       if (!this.config.lookupUrl) return;
-      this.lookupCustomer(call.cli, call.call_id).catch((err) => log8.warn("lookup failed", err));
+      this.lookupCustomer(call.cli, call.call_id).catch((err) => log9.warn("lookup failed", err));
     });
     this.events.on(PhoneEvents.ANSWERED, ({ call }) => {
       if (!this.config.recording?.enabled || !this.config.recording?.autoStart) return;
       try {
         this.startRecording(call.call_id);
       } catch (err) {
-        log8.warn("auto recording failed to start", err);
+        log9.warn("auto recording failed to start", err);
       }
     });
     this.events.on(PhoneEvents.HANGUP, ({ call }) => {
       this.transfers.notifyCallEnded(call.call_id);
       if (this.recorder.sessions.has(call.call_id)) {
-        this.recorder.stop(call.call_id).catch((err) => log8.warn("recording stop failed", err));
+        this.recorder.stop(call.call_id).catch((err) => log9.warn("recording stop failed", err));
       }
       this._postCallRecord(call);
     });
@@ -14906,7 +15392,7 @@ var AusoPhone = class {
       keepalive: true,
       headers: { "Content-Type": "application/json", ...this.config.headers },
       body: JSON.stringify(body)
-    }).catch((err) => log8.warn("call record post failed", err));
+    }).catch((err) => log9.warn("call record post failed", err));
   }
   _scheduleCredentialRefresh(credentials) {
     clearTimeout(this._refreshTimer);
@@ -14918,9 +15404,9 @@ var AusoPhone = class {
     this.credentialsExpireAt = new Date(Date.now() + ttl * 1e3).toISOString();
     const lead = this.config.credentialRefreshLeadSeconds;
     const delay = Math.max(10, ttl - lead) * 1e3;
-    log8.info(`credentials refresh scheduled in ${Math.round(delay / 1e3)}s`);
+    log9.info(`credentials refresh scheduled in ${Math.round(delay / 1e3)}s`);
     this._refreshTimer = setTimeout(() => {
-      this._refreshCredentials().catch((err) => log8.error("credential refresh failed", err));
+      this._refreshCredentials().catch((err) => log9.error("credential refresh failed", err));
     }, delay);
   }
   /**
@@ -14928,6 +15414,7 @@ var AusoPhone = class {
    * A live call keeps its dialog; only the registration is redone.
    */
   async _refreshCredentials() {
+    if (this._companion) return this.credentials;
     const credentials = await this.fetchCredentials({ extension: this.credentials?.extension });
     this.credentials = credentials;
     if (this.sip.userAgent) {
@@ -14944,7 +15431,7 @@ var AusoPhone = class {
       const ok = await this.registration.refresh();
       this._scheduleCredentialRefresh(credentials);
       if (!ok) {
-        log8.warn("re-register after credential swap failed \u2014 rebuilding transport");
+        log9.warn("re-register after credential swap failed \u2014 rebuilding transport");
         await this._ensureRegistration();
       }
       return credentials;
@@ -15271,6 +15758,9 @@ var AusoPhoneElement = class extends HTMLElement {
       lookupUrl: this.getAttribute("lookup-url") ?? void 0,
       callRecordUrl: this.getAttribute("call-record-url") ?? void 0,
       sipCredentialsUrl: this.getAttribute("sip-credentials-url") ?? void 0,
+      // Scopes the cross-tab channel and lease to this agent, so two agents
+      // sharing a browser profile never contend for the same owner slot.
+      extension: this.getAttribute("extension") ?? void 0,
       autoAnswer: this.hasAttribute("auto-answer"),
       traceSip: this.hasAttribute("trace-sip"),
       branding: this._brandingFromAttributes(),
@@ -15359,6 +15849,8 @@ var AusoPhoneElement = class extends HTMLElement {
       PhoneEvents.RECORDING_STOPPED
     ];
     watched.forEach((e) => this._unsubscribers.push(this.phone.on(e, rerender)));
+    this._unsubscribers.push(this.phone.on(PhoneEvents.SESSION_STATE, rerender));
+    this._unsubscribers.push(this.phone.on(PhoneEvents.SESSION_ROLE, rerender));
     this._unsubscribers.push(
       this.phone.on(PhoneEvents.ERROR, ({ message, fatal }) => {
         if (fatal !== false) this.errorMessage = message;
@@ -15418,9 +15910,11 @@ var AusoPhoneElement = class extends HTMLElement {
       [RegistrationState.UNREGISTERED]: ["", s.connection === "connected" ? "Connected" : "Offline"]
     };
     const [cls, text] = map[s.registration] ?? ["", "Offline"];
+    const mirroring = s.session?.mirrored;
     return `<div class="status">
-      <span class="dot ${cls}"></span><span>${esc(text)}</span>
+      <span class="dot ${cls}"></span><span>${esc(mirroring ? "Mirroring another tab" : text)}</span>
       <span class="spacer"></span>
+      ${mirroring ? '<span class="pill" title="This tab follows the tab holding the call. Its microphone is not in use.">Following</span>' : ""}
       ${s.auto_answer ? '<span class="pill">Auto answer</span>' : ""}
       ${!s.registered ? '<button class="icon-btn" data-action="login" title="Connect" style="color:var(--auso-muted)">' + icons.phone + "</button>" : ""}
     </div>`;
@@ -15756,6 +16250,7 @@ Object.assign(phone, {
   Direction,
   RegistrationState,
   ConnectionState,
+  SessionRole,
   setLogLevel,
   version: "1.0.0"
 });
@@ -15773,6 +16268,7 @@ export {
   Direction,
   PhoneEvents,
   RegistrationState,
+  SessionRole,
   TRANSFER_UMBRELLA,
   index_default as default,
   defineAusoPhoneElement,

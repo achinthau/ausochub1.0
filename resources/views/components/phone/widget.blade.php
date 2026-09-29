@@ -270,8 +270,24 @@
         }
     }
 
+    /*
+     * Only the tab that owns the SIP registration reports to the CRM. A
+     * companion tab is rendering a copy of that call, and the owner already
+     * reported every transition, so posting from both would double-count
+     * answered, hold and hangup against the same call record.
+     */
+    function isOwnerTab() {
+        try {
+            var s = window.AusoPhone && window.AusoPhone.status();
+            return !s || !s.session || !s.session.mirrored;
+        } catch (e) {
+            return true;
+        }
+    }
+
     EVENT_NAMES.forEach(function (name) {
         window.addEventListener('ausophone:' + name, function (ev) {
+            if (!isOwnerTab()) return;
             var payload = Object.assign({}, ev.detail || {});
             payload.extension = payload.extension || extension();
             try {

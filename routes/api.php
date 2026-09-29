@@ -690,32 +690,32 @@ Route::post('/get-missed-call-number', function (Request $request) {
 //         Log::info('Found feedIds: ', ['data' => $feedIds]);
     }
 
-    $record = null;
+    $records = collect();
 
     if (!empty($feedIds)) {
-        $record = FeedContactValid::whereIn('feed_id', $feedIds)
+        $records = FeedContactValid::whereIn('feed_id', $feedIds)
             ->where(function ($query) {
                 $query->whereNull('status')
-                    ->orWhereIn('status', [2, 22]);
+                    ->orWhereIn('status', [2, 22, 222]);
             })
             ->where(function ($query) use ($phone) {
                 $query->where('contact_no_01', 'LIKE', '%' . $phone)
                     ->orWhere('contact_no_02', 'LIKE', '%' . $phone);
             })
-            ->first();
+            ->get();
 
-//         Log::info('Found record: ', ['data' => $record ? $record->toArray() : null]);
+//         Log::info('Found records: ', ['data' => $records->toArray()]);
     }
 
-    if ($record) {
+    foreach ($records as $record) {
         $record->next_available_at = now()->subDay();
         if ($record->status == 222) {
             $record->status = 22;
         }
         $record->save();
-
-//         Log::info('Record saved: ', ['data' => $record->toArray()]);
     }
+
+//     Log::info('Records saved: ', ['data' => $records->toArray()]);
 
     return response()->json([
         'success' => true,
@@ -723,6 +723,7 @@ Route::post('/get-missed-call-number', function (Request $request) {
         'data' => [
             'phone_number' => $phone,
             'hotline' => $dst,
+            'records_updated' => $records->count(),
         ],
     ]);
 });

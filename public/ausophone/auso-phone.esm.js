@@ -12721,7 +12721,17 @@ var SIPClient = class {
     this.userAgent = null;
     this.credentials = null;
     this.connectionState = ConnectionState.DISCONNECTED;
-    this.reconnect = { attempts: 0, timer: null, max: 10, baseMs: 1e3, maxMs: 3e4, enabled: true };
+    this._connectOptions = {};
+    this.reconnect = {
+      attempts: 0,
+      timer: null,
+      max: 10,
+      baseMs: 1e3,
+      maxMs: 3e4,
+      enabled: true,
+      /** Soft attempts tolerated before escalating to a full rebuild. */
+      freshAfter: 2
+    };
     this.onInvite = null;
     this.onReconnected = null;
   }
@@ -12741,10 +12751,13 @@ var SIPClient = class {
    * @param {number} [options.iceGatheringTimeout]
    * @param {string} [options.userAgentString]
    * @param {boolean} [options.traceSip]
+   * @param {number} [options.keepAliveInterval] seconds between CRLF pings
+   * @param {number} [options.keepAliveDebounce]  seconds to await the echo
    */
   async connect(credentials, options = {}) {
     if (this.userAgent) await this.disconnect();
     this.credentials = credentials;
+    this._connectOptions = options;
     const uri = UserAgent.makeURI(`sip:${credentials.extension}@${credentials.sip_domain}`);
     if (!uri) throw new Error(`Invalid SIP URI for extension ${credentials.extension}`);
     this._setConnectionState(ConnectionState.CONNECTING);
@@ -12758,7 +12771,13 @@ var SIPClient = class {
         server: credentials.ws_url,
         traceSip: options.traceSip ?? false,
         // We drive reconnection ourselves so the CRM gets clean events.
-        connectionTimeout: 10
+        connectionTimeout: 10,
+        // SIP.js defaults these to 0, which switches the CRLF keep-alive off
+        // entirely. A backgrounded tab has its timers throttled and its socket
+        // reaped by the OS, so without pings the WSS dies quietly and the phone
+        // keeps claiming to be registered while no call can ever reach it.
+        keepAliveInterval: options.keepAliveInterval ?? 20,
+        keepAliveDebounce: options.keepAliveDebounce ?? 10
       },
       sessionDescriptionHandlerFactoryOptions: {
         iceGatheringTimeout: options.iceGatheringTimeout ?? 2e3,
@@ -12808,6 +12827,53 @@ var SIPClient = class {
     this._setConnectionState(ConnectionState.CONNECTED);
     if (wasReconnecting && this.onReconnected) this.onReconnected();
   }
+  /**
+   * Throw the UserAgent away and build a new one.
+   *
+   * `UserAgent.reconnect()` is only `transport.connect()`, and SIP.js resolves
+   * that as a no-op whenever the transport still *believes* it is Connected —
+   * it never re-checks the WebSocket. A backgrounded tab lands in exactly that
+   * state: the OS reaps the TCP connection, the browser never surfaces a close
+   * event, and the transport keeps saying Connected. Every later "reconnect" is
+   * then a silent no-op, a REGISTER goes into a dead buffer, and the phone is
+   * registered in the UI but deaf at Asterisk. Only a new UserAgent forces a
+   * genuinely new socket.
+   *
+   * Destroys every SIP session on the old UserAgent, so never call this with a
+   * call in progress.
+   *
+   * @param {string} reason for the log line
+   * @param {object} [opts]
+   * @param {boolean} [opts.notify] call onReconnected on success. Pass false
+   *   when the caller intends to re-register itself against the new UserAgent.
+   */
+  async reconnectFresh(reason = "requested", { notify = true } = {}) {
+    if (!this.credentials) throw new Error("reconnectFresh() before connect()");
+    const credentials = this.credentials;
+    const options = this._connectOptions;
+    this.reconnect.enabled = false;
+    clearTimeout(this.reconnect.timer);
+    this.reconnect.timer = null;
+    this.reconnect.attempts = 0;
+    const stale = this.userAgent;
+    this.userAgent = null;
+    if (stale) {
+      try {
+        await stale.stop();
+      } catch (err) {
+        log.warn("userAgent.stop() during rebuild failed", err);
+      }
+    }
+    this._setConnectionState(ConnectionState.DISCONNECTED, { reason, unexpected: true });
+    log.info(`rebuilding transport (${reason})`);
+    try {
+      const userAgent = await this.connect(credentials, options);
+      if (notify && this.onReconnected) this.onReconnected();
+      return userAgent;
+    } finally {
+      this.reconnect.enabled = true;
+    }
+  }
   _handleDisconnect(error) {
     this._setConnectionState(ConnectionState.DISCONNECTED, {
       reason: error ? error.message : "closed",
@@ -12833,6 +12899,16 @@ var SIPClient = class {
     this.reconnect.timer = setTimeout(async () => {
       if (!this.userAgent) return;
       this._setConnectionState(ConnectionState.CONNECTING, { attempt: this.reconnect.attempts });
+      const zombie = this.userAgent.isConnected?.() ?? false;
+      if (zombie || this.reconnect.attempts >= this.reconnect.freshAfter) {
+        try {
+          await this.reconnectFresh(zombie ? "zombie transport" : "backoff");
+        } catch (err) {
+          log.warn("transport rebuild attempt failed", err);
+          this._scheduleReconnect();
+        }
+        return;
+      }
       try {
         await this.userAgent.reconnect();
       } catch (err) {
@@ -12859,6 +12935,7 @@ var RegistrationManager = class {
   constructor({ events }) {
     this.events = events;
     this.registerer = null;
+    this.userAgent = null;
     this.state = RegistrationState.UNREGISTERED;
     this.expires = 300;
     this.extension = null;
@@ -12878,6 +12955,7 @@ var RegistrationManager = class {
     this.expires = opts.expires ?? this.expires;
     this.extension = opts.extension ?? this.extension;
     if (this.registerer) await this.dispose();
+    this.userAgent = userAgent;
     this.registerer = new Registerer(userAgent, {
       expires: this.expires,
       // Asterisk is happy with the default Contact; a stable instance id keeps
@@ -12923,15 +13001,38 @@ var RegistrationManager = class {
       log2.debug("registerer dispose", err);
     }
     this.registerer = null;
+    this.userAgent = null;
     this._setState(RegistrationState.UNREGISTERED);
   }
-  /** Re-REGISTER after the websocket comes back up. */
+  /**
+   * True when the live Registerer still belongs to this UserAgent.
+   *
+   * A Registerer is bound to the UserAgent it was constructed from, so once the
+   * transport has been rebuilt the old one is useless — refreshing it would
+   * REGISTER against an object that is no longer connected to anything and the
+   * registrar would never hear about it.
+   */
+  isBoundTo(userAgent) {
+    return Boolean(this.registerer) && this.userAgent === userAgent;
+  }
+  /**
+   * Re-REGISTER over the existing transport.
+   *
+   * Resolves true only when the registrar actually answered. Over a socket the
+   * OS reaped while the tab was backgrounded the request is written into a dead
+   * buffer and we wait out a full transaction timeout, so swallowing that here is
+   * what leaves the phone "registered" in the UI but unable to receive a call.
+   *
+   * @returns {Promise<boolean>} whether the registrar acknowledged us
+   */
   async refresh() {
-    if (!this.registerer) return;
+    if (!this.registerer) return false;
     try {
       await this.registerer.register();
+      return true;
     } catch (err) {
       log2.warn("re-register failed", err);
+      return false;
     }
   }
   _handleStateChange(state) {
@@ -14325,6 +14426,18 @@ var DEFAULT_CONFIG = {
   iceServers: [],
   iceGatheringTimeout: 2e3,
   registerExpires: 300,
+  /** Seconds between CRLF pings on the WSS. 0 disables them (SIP.js default). */
+  wsKeepAliveInterval: 20,
+  /** Seconds to wait for the server's echo before assuming a ping was lost. */
+  wsKeepAliveDebounce: 10,
+  /**
+   * How long a tab must have been hidden before coming back is treated as a
+   * reason to rebuild the transport. Short absences (an alt-tab, a click into
+   * another window) do not warrant the cost; anything past this is long enough
+   * for the OS to have reaped the socket and the browser to have frozen the
+   * SIP.js timers we would otherwise rely on.
+   */
+  resumeMinHiddenMs: 3e4,
   autoAnswer: false,
   autoAnswerDelayMs: 0,
   /** Extra Web Audio noise gate. ON by default so background noise is actually
@@ -14358,6 +14471,9 @@ var AusoPhone = class {
     this.credentials = null;
     this.credentialsExpireAt = null;
     this._refreshTimer = null;
+    this._hiddenAt = 0;
+    this._recovering = false;
+    this._lifecycleHandlers = null;
     this.events = new EventManager({ domTarget: typeof window !== "undefined" ? window : null });
     this.media = new MediaManager();
     this.sip = new SIPClient({ events: this.events });
@@ -14383,6 +14499,7 @@ var AusoPhone = class {
     this.media.attach();
     this.media.setNoiseGate(Boolean(this.config.noiseGate));
     this.calls.setAutoAnswer(this.config.autoAnswer, { delayMs: this.config.autoAnswerDelayMs });
+    this._installLifecycleWatch();
     this.initialised = true;
     log8.info("initialised", { credentialsUrl: this.config.credentialsUrl });
     return this;
@@ -14419,7 +14536,9 @@ var AusoPhone = class {
     const userAgent = await this.sip.connect(credentials, {
       iceServers: credentials.ice_servers ?? this.config.iceServers,
       iceGatheringTimeout: this.config.iceGatheringTimeout,
-      traceSip: this.config.traceSip
+      traceSip: this.config.traceSip,
+      keepAliveInterval: this.config.wsKeepAliveInterval,
+      keepAliveDebounce: this.config.wsKeepAliveDebounce
     });
     await this.registration.register(userAgent, {
       expires: credentials.register_expires ?? this.config.registerExpires,
@@ -14443,12 +14562,114 @@ var AusoPhone = class {
   }
   /** Free every browser resource. Call from a beforeunload handler. */
   async destroy() {
+    this._removeLifecycleWatch();
     await this.logout().catch(() => {
     });
     this.calls.destroy();
     this.media.destroy();
     this.events.removeAll();
     this.initialised = false;
+  }
+  /**
+   * Bring registration back in line with the transport, rebuilding the socket
+   * only when the transport is genuinely suspect.
+   *
+   * A Registerer belongs to the UserAgent it was made from, so the transport
+   * being rebuilt means the registration has to be rebuilt with it — refreshing
+   * the old one would REGISTER into a disconnected object. When the same
+   * UserAgent is still live a plain re-REGISTER is enough and much cheaper.
+   *
+   * @param {object} [opts]
+   * @param {boolean} [opts.force] rebuild the transport even if it looks healthy
+   */
+  async _ensureRegistration({ force = false } = {}) {
+    if (!this.credentials) return this.status();
+    if (!force && this.sip.isConnected && this.registration.isRegistered) return this.status();
+    let userAgent = this.sip.userAgent;
+    if (force || !this.sip.isConnected || !this.registration.isBoundTo(userAgent)) {
+      userAgent = await this.sip.reconnectFresh(force ? "resumed" : "unhealthy", { notify: false });
+    }
+    if (this.registration.isBoundTo(userAgent) && this.registration.isRegistered) {
+      await this.registration.refresh();
+    } else {
+      await this.registration.register(userAgent, {
+        expires: this.credentials.register_expires ?? this.config.registerExpires,
+        extension: this.credentials.extension
+      });
+      this._scheduleCredentialRefresh(this.credentials);
+    }
+    return this.status();
+  }
+  /**
+   * Watch the tab lifecycle and re-validate the phone when the agent comes back.
+   *
+   * A backgrounded tab has its timers throttled and its socket reaped by the OS.
+   * Every SIP.js timer we would normally rely on — the re-REGISTER refresh, the
+   * transport backoff — is a `setTimeout` that gets frozen along with everything
+   * else, so coming back can leave a registration that exists only in this tab:
+   * Asterisk dropped the contact while the UI still says "registered", and no
+   * call can ever come in. Re-registering over that stale transport is precisely
+   * the "tries to re-register, then disconnects" behaviour we are fixing, so
+   * after a meaningful absence we rebuild the transport outright instead. It
+   * costs one WSS connect plus one REGISTER and needs no liveness guesswork.
+   */
+  _installLifecycleWatch() {
+    if (typeof window === "undefined" || typeof document === "undefined") return;
+    if (this._lifecycleHandlers) return;
+    const handlers = {
+      visibilitychange: () => {
+        if (document.hidden) this._hiddenAt = Date.now();
+        else this._resumeFromHidden();
+      },
+      // A bfcache restore brings the whole JS heap back but every socket and
+      // timer with it is gone, so the page looks alive while the phone is not.
+      pageshow: (ev) => {
+        if (ev.persisted) this._resumeFromHidden();
+      },
+      // Only ever does work after a real absence, since _hiddenAt is what gates
+      // it — clicking into the same tab is a no-op.
+      focus: () => this._resumeFromHidden(),
+      online: () => this._resumeFromHidden()
+    };
+    document.addEventListener("visibilitychange", handlers.visibilitychange);
+    for (const name of ["pageshow", "focus", "online"]) {
+      window.addEventListener(name, handlers[name]);
+    }
+    this._lifecycleHandlers = handlers;
+  }
+  _removeLifecycleWatch() {
+    const handlers = this._lifecycleHandlers;
+    if (!handlers) return;
+    if (typeof document !== "undefined") {
+      document.removeEventListener("visibilitychange", handlers.visibilitychange);
+    }
+    if (typeof window !== "undefined") {
+      for (const name of ["pageshow", "focus", "online"]) {
+        window.removeEventListener(name, handlers[name]);
+      }
+    }
+    this._lifecycleHandlers = null;
+  }
+  async _resumeFromHidden() {
+    if (this._recovering) return;
+    if (!this.credentials) return;
+    if (typeof document !== "undefined" && document.hidden) return;
+    const hiddenMs = this._hiddenAt ? Date.now() - this._hiddenAt : 0;
+    this._hiddenAt = 0;
+    if (hiddenMs < this.config.resumeMinHiddenMs) return;
+    if (this.calls.list().length > 0) {
+      log8.info(`resumed after ${Math.round(hiddenMs / 1e3)}s with a call in progress \u2014 transport left alone`);
+      return;
+    }
+    this._recovering = true;
+    try {
+      log8.info(`resumed after ${Math.round(hiddenMs / 1e3)}s hidden \u2014 revalidating registration`);
+      await this._ensureRegistration({ force: true });
+    } catch (err) {
+      log8.error("resume re-registration failed", err);
+    } finally {
+      this._recovering = false;
+    }
   }
   /**
    * Ask Laravel for short-lived SIP credentials.
@@ -14600,6 +14821,8 @@ var AusoPhone = class {
       connection: this.sip.connectionState,
       registration: this.registration.state,
       registered: this.registration.isRegistered,
+      /** True while a backgrounded-tab recovery is rebuilding the socket. */
+      recovering: this._recovering,
       extension: this.credentials?.extension ?? null,
       agent: this.agent,
       auto_answer: this.calls.autoAnswer,
@@ -14634,7 +14857,7 @@ var AusoPhone = class {
     this.sip.onInvite = (invitation) => this.calls.handleInvite(invitation);
     this.sip.onReconnected = () => {
       log8.info("transport recovered, refreshing registration");
-      this.registration.refresh();
+      this._ensureRegistration().catch((err) => log8.warn("re-registration after reconnect failed", err));
     };
     this.registration.onCredentialsRejected = () => {
       log8.warn("credentials rejected \u2014 refreshing from Laravel");
@@ -14718,7 +14941,13 @@ var AusoPhone = class {
           password: credentials.password
         };
       }
-      await this.registration.refresh();
+      const ok = await this.registration.refresh();
+      this._scheduleCredentialRefresh(credentials);
+      if (!ok) {
+        log8.warn("re-register after credential swap failed \u2014 rebuilding transport");
+        await this._ensureRegistration();
+      }
+      return credentials;
     }
     this._scheduleCredentialRefresh(credentials);
     return credentials;

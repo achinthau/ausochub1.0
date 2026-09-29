@@ -170,6 +170,7 @@
 
     var maxAttempts = 3;
     var attempts = 0;
+    var EXTENSION = @json($userExtension) || undefined;
 
     function canLogin() {
         return Boolean(window.AusoPhone && typeof window.AusoPhone.login === 'function');
@@ -182,10 +183,12 @@
     function doLogin() {
         if (attempts >= maxAttempts) return;
         var s = statusRef();
-        if (s && (s.registered || s.registration === 'registering')) return;
+        // The library rebuilds the socket itself on resume; a competing login()
+        // here would tear down a socket it is in the middle of replacing.
+        if (s && (s.registered || s.recovering || s.registration === 'registering')) return;
 
         attempts++;
-        window.AusoPhone.login({ extension: @json($userExtension) || undefined })
+        window.AusoPhone.login({ extension: EXTENSION })
             .catch(function () { setTimeout(doLogin, 4000); });
     }
 
@@ -196,6 +199,37 @@
 
     window.addEventListener('ausophone:registration_failed', function () {
         setTimeout(doLogin, 4000);
+    });
+
+    /*
+     * The attempt ceiling exists to stop a retry storm on a genuinely bad
+     * credential, not to give up on a network blip. Counting from page load meant
+     * that three failures — exactly what one backgrounded tab produces — left the
+     * phone permanently dead until a hard refresh. Reset it on every success and
+     * every return to the tab, so the ceiling bounds a single outage instead of
+     * the whole session.
+     */
+    function resetAttempts() {
+        attempts = 0;
+    }
+
+    window.addEventListener('ausophone:registered', resetAttempts);
+
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) return;
+        resetAttempts();
+        setTimeout(doLogin, 1500);
+    });
+
+    window.addEventListener('pageshow', function (ev) {
+        if (!ev.persisted) return;
+        resetAttempts();
+        setTimeout(doLogin, 1500);
+    });
+
+    window.addEventListener('online', function () {
+        resetAttempts();
+        setTimeout(doLogin, 1000);
     });
 
     if (document.readyState === 'loading') {

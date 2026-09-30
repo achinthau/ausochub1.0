@@ -833,8 +833,8 @@
                         <th class="p-2 border font-semibold">Customer Name</th>
                         <th class="p-2 border font-semibold">Customer Address</th> 
                         <th class="p-2 border font-semibold">Service Center</th> 
-                        {{-- <th class="p-2 border font-semibold">Contact 01</th>
-                        <th class="p-2 border font-semibold">Contact 02</th> --}}
+                        <th class="p-2 border font-semibold">Contact 01</th>
+                        <th class="p-2 border font-semibold">Contact 02</th>
                         @if($surveyContacts && $surveyContacts->count() > 1)
                             <th class="p-2 border font-semibold text-center">Apply to All</th>
                         @endif
@@ -1053,8 +1053,8 @@
                             <td class="p-2 border">{{ $ticket->customer_name ?? '--' }}</td>
                             <td class="p-2 border">{{ $ticket->customer_address ?? '--' }}</td>
                             <td class="p-2 border">{{ $ticket->service_center ?? $matched['servicecenter'] ?? '--' }}</td>
-                            {{-- <td class="p-2 border">{{ $ticket->customer_contact_01 ?? '--' }}</td>
-                            <td class="p-2 border">{{ $ticket->customer_contact_02 ?? '--' }}</td> --}}
+                            <td class="p-2 border">{{ $ticket->customer_contact_01 ?? '--' }}</td>
+                            <td class="p-2 border">{{ $ticket->customer_contact_02 ?? '--' }}</td>
                             @if($surveyContacts && $surveyContacts->count() > 1)
                                 <td class="p-2 border text-center">
                                     @if(($miniCallStatus[$id] ?? null) !== null && !$isSubmitted)

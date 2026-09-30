@@ -101,7 +101,7 @@
         <div class="pt-16 transition-all duration-300" :class="sidebarOpen ? 'lg:pl-72' : 'lg:pl-0'">
             <!-- Page Heading -->
             @if (isset($header))
-                <header class="bg-white shadow">
+                <header data-spa-region class="bg-white shadow">
                     <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
                         {{ $header }}
                     </div>
@@ -109,7 +109,7 @@
             @endif
 
             <!-- Page Content -->
-            <main>
+            <main data-spa-region>
                 {{ $slot }}
             </main>
         </div>
@@ -127,6 +127,10 @@
     @stack('modals')
 
     @livewireScripts
+    {{-- Keeps the document (and so the WebRTC call) alive across sidebar
+         navigation. Must load after Livewire so it can re-initialise the
+         components it swaps in. --}}
+    <script src="{{ asset('js/spa-navigation.js') }}"></script>
     @stack('scripts')
     @livewire('tickets.show')
     @livewire('orders.show')

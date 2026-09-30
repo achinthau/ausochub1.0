@@ -242,6 +242,62 @@
 
 <script>
 /**
+ * Keep a live call alive across navigation.
+ *
+ * An RTCPeerConnection belongs to the browsing context that created it: a full
+ * page load does not pause the call, it destroys it, and there is no way to
+ * reattach. The SPA shim in js/spa-navigation.js keeps the document alive for
+ * in-app navigation, which is what makes route changes survivable. This covers
+ * what the shim cannot: a refresh, Back past its history, an external link, a
+ * typed URL, a form post.
+ *
+ * So while a call is up, any navigation that genuinely cannot be made soft is
+ * turned into a question rather than a silent drop. The agent gets to decide,
+ * which is the only honest option — the alternative is deciding for them.
+ */
+(function () {
+    if (window.__ausoCallGuardInit) return;
+    window.__ausoCallGuardInit = true;
+
+    /**
+     * Is this tab responsible for a call that is up?
+     *
+     * A companion tab mirrors a call another tab owns, so unloading it costs
+     * nothing. Only the tab holding the SIP socket is protected.
+     */
+    function ownsLiveCall() {
+        try {
+            var phone = window.AusoPhone;
+            if (!phone || typeof phone.status !== 'function') return false;
+
+            var status = phone.status();
+            if (!status) return false;
+            if (status.session && status.session.role === 'companion') return false;
+
+            if (Array.isArray(status.calls)) return status.calls.length > 0;
+            return Boolean(status.active_call);
+        } catch (e) {
+            return false;
+        }
+    }
+
+    // One definition, shared with the navigation shim, so both layers agree on
+    // whether there is a call worth protecting.
+    window.__ausoCallInProgress = ownsLiveCall;
+
+    window.addEventListener('beforeunload', function (event) {
+        if (!ownsLiveCall()) return;
+        event.preventDefault();
+        // Browsers ignore the text and show their own wording; the non-empty
+        // return value is what makes them ask at all.
+        event.returnValue = '';
+        return '';
+    });
+})();
+</script>
+
+<script>
+/**
  * WebRTC phone → CRM event bridge (runs only when PHONE=webrtc).
  *
  * Every event the browser softphone fires is reported to the CRM's

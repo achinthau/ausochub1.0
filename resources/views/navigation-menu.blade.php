@@ -1,4 +1,7 @@
-<nav class="relative z-40">
+{{-- data-spa-nav marks the sidebar as the one place the SPA navigation shim
+     intercepts links, and as a region it re-renders so the active-route
+     highlight follows the page. --}}
+<nav data-spa-nav class="relative z-40">
     <div x-cloak x-show="sidebarOpen" x-transition.opacity class="fixed inset-0 bg-slate-950/40 lg:hidden" @click="sidebarOpen = false"></div>
 
     <aside

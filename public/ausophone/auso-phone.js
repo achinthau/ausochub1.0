@@ -13217,7 +13217,7 @@ var AusoPhoneBundle = (() => {
       this.activeCallId = null;
       this.autoAnswer = false;
       this.autoAnswerDelayMs = 0;
-      this.maxConcurrentCalls = 2;
+      this.maxConcurrentCalls = 1;
       this._durationTimer = null;
     }
     get activeCall() {
@@ -13237,6 +13237,33 @@ var AusoPhoneBundle = (() => {
       log3.info(`auto-answer ${this.autoAnswer ? "enabled" : "disabled"}`);
       return this.autoAnswer;
     }
+    /** One call per extension. Raise it only if a deployment really needs more. */
+    setMaxConcurrentCalls(n) {
+      this.maxConcurrentCalls = Math.max(1, Number(n) || 1);
+      return this.maxConcurrentCalls;
+    }
+    /**
+     * Is the extension already committed to a call that blocks another one?
+     *
+     * A call that has ended logically but whose dialog has not reached
+     * Terminated still occupies the AOR, so it counts too — otherwise a second
+     * INVITE landing in the teardown window would be accepted on top of it, which
+     * is the exact overlap this guard exists to prevent. Ended calls are dropped
+     * from `this.calls` five seconds after they end, so a dialog that somehow
+     * never terminates stops blocking after that rather than wedging the phone.
+     *
+     * @param {object} [opts]
+     * @param {boolean} [opts.addingConsultation] the new leg is a transfer
+     *   consultation, which is allowed to sit alongside the one customer call it
+     *   belongs to, so that customer leg does not count against it
+     */
+    _isExtensionBusy({ addingConsultation = false } = {}) {
+      const occupying = [...this.calls.values()].filter((c) => {
+        if (addingConsultation && !c.consultation) return false;
+        return c.isActive || c.session.state !== SessionState2.Terminated;
+      });
+      return occupying.length >= this.maxConcurrentCalls;
+    }
     // ---- Outbound ----------------------------------------------------------
     /**
      * Spec §4: `phone.call(number)`.
@@ -13247,6 +13274,9 @@ var AusoPhoneBundle = (() => {
      * @param {Record<string,string>} [opts.extraHeaders] e.g. X-Campaign-Id
      */
     async call(userAgent, number, opts = {}) {
+      if (this._isExtensionBusy({ addingConsultation: Boolean(opts.consultation) })) {
+        throw new Error("Already on a call \u2014 hang up before dialling another number");
+      }
       const target = this._makeTarget(userAgent, number);
       if (!target) throw new Error(`Invalid dial target: ${number}`);
       const inviter = new Inviter(userAgent, target, {
@@ -13290,9 +13320,11 @@ var AusoPhoneBundle = (() => {
      * @param {import('sip.js').Invitation} invitation
      */
     handleInvite(invitation) {
-      if (this.list().length >= this.maxConcurrentCalls) {
-        log3.warn("rejecting INVITE \u2014 too many concurrent calls");
-        invitation.reject({ statusCode: 486 }).catch(() => {
+      if (this._isExtensionBusy()) {
+        log3.warn("rejecting INVITE \u2014 extension is already on a call", {
+          on: this.list().map((c) => c.call_id)
+        });
+        invitation.reject({ statusCode: 486, reasonPhrase: "Extension busy" }).catch(() => {
         });
         return;
       }
@@ -14784,6 +14816,15 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
     sessionSync: true,
     /** BroadcastChannel name; the extension is appended to scope it per agent. */
     sessionChannel: "auso-phone",
+    /**
+     * One call per extension. A second simultaneous INVITE is rejected with 486
+     * Busy Here so the caller hears engaged instead of silence, and a second
+     * outbound dial is refused rather than sent to the PBX.
+     *
+     * The attended-transfer consultation leg is exempt either way: it is
+     * deliberately a second leg, with the customer held.
+     */
+    maxConcurrentCalls: 1,
     autoAnswer: false,
     autoAnswerDelayMs: 0,
     /** Extra Web Audio noise gate. ON by default so background noise is actually
@@ -14849,6 +14890,7 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
       this.media.attach();
       this.media.setNoiseGate(Boolean(this.config.noiseGate));
       this.calls.setAutoAnswer(this.config.autoAnswer, { delayMs: this.config.autoAnswerDelayMs });
+      this.calls.setMaxConcurrentCalls(this.config.maxConcurrentCalls);
       this._installLifecycleWatch();
       this._installSession();
       this.initialised = true;

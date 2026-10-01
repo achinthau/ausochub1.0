@@ -22,6 +22,12 @@ class Kernel extends ConsoleKernel
         // for callback notifications
         $schedule->command('callbacks:check')->everyMinute();
 
+        // keep-alive fallback for the continuous dialer services (they are
+        // primarily run as daemons; the scheduled tick only fires when the
+        // daemon is down because both honour the same Redis lock)
+        $schedule->command('dialer:numbers:dispatch', ['--once' => true])->everyMinute()->withoutOverlapping();
+        $schedule->command('dialer:counts:sync', ['--once' => true])->everyMinute()->withoutOverlapping();
+
         //logout users
         $schedule->command('users:auto-logout')
         ->everyMinute()

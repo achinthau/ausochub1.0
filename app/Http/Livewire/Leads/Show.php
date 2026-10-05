@@ -1734,6 +1734,21 @@ class Show extends Component
 
     public function makeCall($phone)
     {
+        /*
+         * Two phones, two ways of placing the call, chosen by PHONE=webrtc.
+         *
+         * 'webrtc' hands the number to the browser softphone, which sends the
+         * SIP INVITE itself and reports 'dialing' back to /api/call-dialed —
+         * so the call server must NOT be told to dial as well, or the customer
+         * gets two calls. 'other' keeps the existing click-to-dial through
+         * dial.php for the desk softphones.
+         */
+        if (config('auso.phone') === 'webrtc') {
+            $this->dispatchBrowserEvent('auso-dial', ['number' => (string) $phone]);
+
+            return;
+        }
+
         $user = Auth::user()->load([
             'agent',
             'agent.extensionDetails',

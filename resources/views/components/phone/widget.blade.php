@@ -298,6 +298,67 @@
 
 <script>
 /**
+ * CRM → WebRTC phone dial bridge (runs only when PHONE=webrtc).
+ *
+ * The counterpart to the event bridge below. The dialer's Call button asks the
+ * browser softphone to place the call, instead of asking the call server to
+ * dial the agent's desk softphone, so the INVITE goes out over WSS and the
+ * softphone's own 'dialing' event reports it to the CRM — exactly like an
+ * agent dialling from the widget's own keypad.
+ *
+ * AusoPhone.call() relays to the tab that owns the SIP registration, so a
+ * click-to-dial from a companion tab lands on the tab holding the socket.
+ */
+(function () {
+    if (window.__ausoCrmDialBridge) return;
+    window.__ausoCrmDialBridge = true;
+
+    function notify(message, icon) {
+        if (typeof Swal !== 'undefined') {
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 5000,
+                timerProgressBar: true,
+                icon: icon || 'info',
+                title: message
+            });
+        } else {
+            console.warn('[ausophone]', message);
+        }
+    }
+
+    window.addEventListener('auso-dial', function (ev) {
+        var number = String((ev.detail && ev.detail.number) || '').trim();
+        if (!number) {
+            notify('Select a phone number to call.', 'warning');
+            return;
+        }
+
+        var phone = window.AusoPhone;
+        if (!phone || typeof phone.call !== 'function') {
+            notify('Phone is still loading. Try again in a moment.', 'error');
+            return;
+        }
+
+        // The call has to be hangup-able, so the softphone cannot stay hidden.
+        if (typeof window.openAusophone === 'function') window.openAusophone();
+
+        try {
+            Promise.resolve(phone.call(number)).catch(function (e) {
+                notify((e && e.message) || 'Could not place the call.', 'error');
+            });
+        } catch (e) {
+            // Thrown synchronously — e.g. not registered, already on a call.
+            notify((e && e.message) || 'Could not place the call.', 'error');
+        }
+    });
+})();
+</script>
+
+<script>
+/**
  * WebRTC phone → CRM event bridge (runs only when PHONE=webrtc).
  *
  * Every event the browser softphone fires is reported to the CRM's

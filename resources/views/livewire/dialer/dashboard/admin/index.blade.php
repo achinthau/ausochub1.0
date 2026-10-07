@@ -167,7 +167,7 @@
                                         </div>
 
                                         <div class="flex justify-between items-center">
-                                            <span class="text-sm font-semibold text-gray-600">Answered Count:</span>
+                                            <span class="text-sm font-semibold text-gray-600">Completed Count:</span>
                                             <span
                                                 class="text-sm text-gray-800 font-medium">{{ $campaign->answered_count ?? '-' }}</span>
                                         </div>

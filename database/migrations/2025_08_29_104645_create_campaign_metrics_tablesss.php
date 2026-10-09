@@ -45,13 +45,13 @@ return new class extends Migration
                          FROM ac_feed_contact_valids fcv
                          WHERE FIND_IN_SET(CAST(fcv.feed_id AS CHAR CHARACTER SET utf8mb3),
                                            CAST(c.assigned_feeds AS CHAR CHARACTER SET utf8mb3))
-                           AND fcv.status IN ('1','2','4','5','22','41','42','222'))
+                           AND fcv.status IN ('1','2','3','4','5','51','52','6','22','41','42','222'))
                         +
                         (SELECT COUNT(fcv2.contact_no_01)
                          FROM ac_feed_contact_valids_report fcv2
                          WHERE FIND_IN_SET(CAST(fcv2.feed_id AS CHAR CHARACTER SET utf8mb3),
                                            CAST(c.assigned_feeds AS CHAR CHARACTER SET utf8mb3))
-                           AND fcv2.status IN ('1','2','4','5','22','41','42','222'))
+                           AND fcv2.status IN ('1','2','3','4','5','51','52','6','22','41','42','222'))
                     ), 0
                 ) AS dialed_count,
                 COALESCE(

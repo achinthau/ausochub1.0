@@ -173,6 +173,12 @@
                                         </div>
 
                                         <div class="flex justify-between items-center">
+                                            <span class="text-sm font-semibold text-gray-600">Pending Count:</span>
+                                            <span
+                                                class="text-sm text-gray-800 font-medium">{{ $campaign->contact_count - $campaign->dialed_count ?? '-' }}</span>
+                                        </div>
+
+                                        <div class="flex justify-between items-center">
                                             <span class="text-sm font-semibold text-gray-600">Agents Count:</span>
                                             <span
                                                 class="text-sm text-gray-800 font-medium">{{ $campaign->agents_count ?? '-' }}</span>

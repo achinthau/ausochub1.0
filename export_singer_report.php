@@ -70,7 +70,7 @@ $stmt->execute(['yesterday' => $yesterday]);
 $rows = $stmt->fetchAll();
 
 if (empty($rows)) {
-    echo "No records found for {$yesterday}\n";
+    // echo "No records found for {$yesterday}\n";
     exit;
 }
 
@@ -105,8 +105,8 @@ try {
     }
     
     $targetPdo->commit();
-    echo "Successfully copied {$count} records from {$yesterday}\n";
+    // echo "Successfully copied {$count} records from {$yesterday}\n";
 } catch (Exception $e) {
     $targetPdo->rollBack();
-    echo "Error: " . $e->getMessage() . "\n";
+    // echo "Error: " . $e->getMessage() . "\n";
 }

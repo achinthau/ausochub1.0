@@ -26,6 +26,7 @@ class SubmitCallStatus extends Component
     public $applyToAll = false;
     public $feedCount = 0;
     public $paymentDate;
+    public $promisedDate;
     public $campaign;
     public $isSatisfaction = false;
     public $selectedReason = null;
@@ -108,6 +109,8 @@ if ($status === 'answered') {
         $this->selectedReason = null;
         $this->selectedReasons = [];
         $this->comment = '';
+        $this->paymentDate = null;
+        $this->promisedDate = null;
     }
 
     public function updatedSelectedReason($value)
@@ -131,6 +134,8 @@ if ($status === 'answered') {
         // 'comment.required' => 'Please select a payment date.',
         'paymentDate.required' => 'The payment date must be a valid date.',
         'paymentDate.after_or_equal' => 'The payment date cannot be in the past.',
+        'promisedDate.required' => 'The promised date must be a valid date.',
+        'promisedDate.after_or_equal' => 'The promised date cannot be in the past.',
         'selectedOption.required' => 'You must select a call status.',
     ];
 
@@ -314,6 +319,7 @@ if ($status === 'answered') {
                     'selectedOption' => 'required',
                 ]);
 
+                $this->promisedDate = $this->paymentDate;
                 // Append payment date to comment
                 $this->comment = $this->comment . ' Payment Date: ' . $this->paymentDate;
             } else {
@@ -416,6 +422,7 @@ if ($status === 'answered') {
                 $feed->call_status_option_id = $optionNameString;
                 $feed->call_status_option_type = $isChangeRequest ? 'change_request' : $optionTypeString;
                 $feed->comments = $this->comment;
+                $feed->promised_date = $this->promisedDate;
                 $feed->campaign_id = $this->campaign;
                 $feed->updated_by = Auth::id();
                 $feed->attempted_at = now();
@@ -448,6 +455,7 @@ if ($status === 'answered') {
             $this->feed->call_status_option_id = $optionNameString;
             $this->feed->call_status_option_type = $isChangeRequest ? 'change_request' : $optionTypeString;
             $this->feed->comments = $this->comment;
+            $this->feed->promised_date = $this->promisedDate;
             $this->feed->campaign_id = $this->campaign;
             $this->feed->updated_by = Auth::id();
             $this->feed->attempted_at = now();

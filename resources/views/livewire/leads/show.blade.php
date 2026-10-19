@@ -188,7 +188,7 @@
                             <!-- Toggle Button -->
                             <div class="flex justify-between">
                                 <div>
-                                    @if(!$isNuisance)
+                                    @if(!$isNuisance && !$isComment)
                                         <button wire:click="toggle"
                                             class="relative inline-flex items-center h-6 rounded-full w-11 focus:outline-none transition-colors duration-200 {{ $moodStatus ? 'bg-red-500' : 'bg-gray-300' }}">
                                             <span
@@ -199,7 +199,7 @@
                                 </div>
 
                                 <div>
-                                    @if(!$moodStatus)
+                                    @if(!$moodStatus && !$isComment)
                                         <button wire:click="nuisance"
                                             class="relative inline-flex items-center h-6 rounded-full w-11 focus:outline-none transition-colors duration-200 {{ $isNuisance ? 'bg-amber-500' : 'bg-gray-300' }}">
                                             <span
@@ -208,10 +208,21 @@
                                         <span class="ml-2 text-sm">Nuisance</span>
                                     @endif
                                 </div>
+
+                                <div>
+                                    @if(!$moodStatus && !$isNuisance)
+                                        <button wire:click="toggleComment"
+                                            class="relative inline-flex items-center h-6 rounded-full w-11 focus:outline-none transition-colors duration-200 {{ $isComment ? 'bg-blue-500' : 'bg-gray-300' }}">
+                                            <span
+                                                class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 {{ $isComment ? 'translate-x-6' : 'translate-x-1' }}"></span>
+                                        </button>
+                                        <span class="ml-2 text-sm">Comment</span>
+                                    @endif
+                                </div>
                             </div>
 
                             <!-- Comment Box: Show only if toggle is on AND no flash message -->
-                            @if (($moodStatus || $isNuisance) && !session()->has('message'))
+                            @if (($moodStatus || $isNuisance || $isComment) && !session()->has('message'))
                                 <div class="mt-3">
 
 

@@ -40,6 +40,7 @@ class Show extends Component
     public $moodStatus = false;
     public $comment = '';
     public $isNuisance = false;
+    public $isComment = false;
 
     public $callBack = false;
     public $callbackDate;
@@ -167,9 +168,16 @@ class Show extends Component
         $this->isNuisance = !$this->isNuisance;
     }
 
+    public function toggleComment()
+    {
+        $this->isComment = !$this->isComment;
+    }
+
 
     public function submitReaction()
     {
+        $reaction = null;
+
         if ($this->isNuisance) {
             $reaction = 2;
         } elseif ($this->moodStatus) {

@@ -16,7 +16,7 @@ class FeedContactValidReport extends Model
         'feed_contact_id',
         'feed_id', 'contact_no_01', 'contact_no_02', 'priority_field', 'lang', 'data', 'status', 'assigned_to',
         'next_available_at', 'attempt_count', 'in_queue',
-        'call_status_option_id', 'call_status_option_type', 'rate', 'comments',
+        'call_status_option_id', 'call_status_option_type', 'rate', 'comments', 'promised_date',
         'campaign_id', 'updated_by', 'attempted_at',
     ];
 

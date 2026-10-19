@@ -63,7 +63,7 @@
                 @endphp
 
                 @if(optional($selected)['value'] === 'Promised to pay')
-                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Payment Date</label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Select Payment/Promised Date</label>
                     <input type="date" wire:model="paymentDate"
                         class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 transition duration-150 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
                     @error('paymentDate')

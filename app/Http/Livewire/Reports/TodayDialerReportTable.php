@@ -223,14 +223,34 @@ class TodayDialerReportTable extends DataTableComponent
             Column::make("Rate", "rate")
                 ->sortable(),
 
+            // Column::make("Customer Name", "data")
+            //     ->format(fn ($value, $row) => trim((string) (data_get(json_decode((string) $row->data, true) ?: [], 'customer_name') ?? ''), '"') ?: 'N/A')
+            //     ->searchable(function ($builder, $term) {
+            //         $normalized = strtolower(preg_replace('/\s+/', '', $term));
+            //         return $builder->whereRaw("LOWER(REPLACE(JSON_EXTRACT(data, '$.customer_name'), ' ', '')) LIKE ?", ['%' . $normalized . '%']);
+            //     }),
             Column::make("Customer Name", "data")
-                ->format(fn ($value, $row) => trim((string) (data_get(json_decode((string) $row->data, true) ?: [], 'customer_name') ?? ''), '"') ?: 'N/A')
-                ->searchable(function ($builder, $term) {
-                    $normalized = strtolower(preg_replace('/\s+/', '', $term));
-                    return $builder->whereRaw("LOWER(REPLACE(JSON_EXTRACT(data, '$.customer_name'), ' ', '')) LIKE ?", ['%' . $normalized . '%']);
-                }),
+    ->format(function ($value, $row) {
+        $decoded = json_decode((string) $row->data, true) ?: [];
+        
+        // Find the key case-insensitively (handling spaces/underscores if needed)
+        $name = null;
+        foreach ($decoded as $key => $val) {
+            $normalizedKey = strtolower(str_replace(['_', ' '], '', $key));
+            if ($normalizedKey === 'customername') {
+                $name = $val;
+                break;
+            }
+        }
 
-            Column::make("Service Center", "data")
+        return trim((string) ($name ?? 'N/A'), '"') ?: 'N/A';
+    })
+    ->searchable(function ($builder, $term) {
+        $normalized = strtolower(preg_replace('/\s+/', '', $term));
+        return $builder->whereRaw("LOWER(REPLACE(data, ' ', '')) LIKE ?", ['%' . $normalized . '%']);
+    }),
+
+            Column::make("Branch", "data")
                 ->format(fn ($value, $row) => trim((string) (data_get(json_decode((string) $row->data, true) ?: [], 'service_center') ?? ''), '"') ?: 'N/A')
                 ->searchable(function ($builder, $term) {
                     $normalized = strtolower(preg_replace('/\s+/', '', $term));

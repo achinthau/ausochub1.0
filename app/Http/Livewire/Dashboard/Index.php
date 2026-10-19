@@ -362,7 +362,7 @@ class Index extends Component
             ApiManager::updateSkill($data);
         }
 
-        return redirect(route('dashboard.index'));
+        // return redirect(route('dashboard.index'));
     }
 
     public function setOutbound()

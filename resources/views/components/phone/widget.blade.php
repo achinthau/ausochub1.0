@@ -100,9 +100,60 @@
     };
     window.openAusophone = show;
 
+    // Resume audio context on user interaction (needed for callback/ringback sounds)
+    function resumePhoneAudio() {
+        try {
+            if (window.AusoPhone && window.AusoPhone.media) {
+                if (window.AusoPhone.media._ctx) {
+                    var ctx = window.AusoPhone.media._ctx();
+                    if (ctx && ctx.state === 'suspended') {
+                        ctx.resume();
+                    }
+                }
+                if (window.AusoPhone.media.toneContext && window.AusoPhone.media.toneContext.state === 'suspended') {
+                    window.AusoPhone.media.toneContext.resume();
+                }
+            }
+        } catch(e) {}
+    }
+    document.addEventListener('click', resumePhoneAudio, { passive: true });
+    document.addEventListener('touchstart', resumePhoneAudio, { passive: true });
+    document.addEventListener('keydown', resumePhoneAudio, { passive: true });
+
     // Listeners for external triggers
     window.addEventListener('toggle-phone-widget', window.toggleAusophone);
-    window.addEventListener('ausophone:incoming', show);
+    
+    // Show widget and notification on incoming calls
+    window.addEventListener('ausophone:incoming', function(ev) {
+        show();
+        resumePhoneAudio();
+        // Show system notification even if tab is in background
+        try {
+            if ('Notification' in window) {
+                if (Notification.permission === 'default') {
+                    Notification.requestPermission();
+                }
+                if (Notification.permission === 'granted') {
+                    var call = ev.detail && ev.detail.call ? ev.detail.call : {};
+                    var cli = call.cli || call.remote_identity || 'Unknown';
+                    var customer = call.customer || {};
+                    var name = customer.name || customer.company || cli;
+                    var n = new Notification('Incoming call - ' + name, {
+                        body: 'From: ' + cli,
+                        icon: '/favicon.ico',
+                        tag: 'incoming-' + (call.call_id || cli),
+                        requireInteraction: true
+                    });
+                    n.onclick = function() {
+                        window.focus();
+                        show();
+                        n.close();
+                    };
+                    setTimeout(function() { n.close(); }, 15000);
+                }
+            }
+        } catch(e) {}
+    });
 
     // Close buttons
     var minimize = document.getElementById('phone-widget-minimize');
@@ -192,7 +243,16 @@
             .catch(function () { setTimeout(doLogin, 4000); });
     }
 
+    function requestNotifPermission() {
+        try {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission().catch(function(){});
+            }
+        } catch(e) {}
+    }
+
     function boot() {
+        requestNotifPermission();
         if (!canLogin()) { setTimeout(boot, 300); return; }
         setTimeout(doLogin, 500);
     }
@@ -222,6 +282,7 @@
     });
 
     window.addEventListener('pageshow', function (ev) {
+        requestNotifPermission();
         if (!ev.persisted) return;
         resetAttempts();
         setTimeout(doLogin, 1500);

@@ -13302,7 +13302,12 @@ var AusoPhoneBundle = (() => {
             const code = response?.message?.statusCode;
             if (call.state === CallState.DIALING && (code === 180 || code === 183)) {
               this._setState(call, CallState.RINGING, PhoneEvents.RINGING);
-              if (code === 180 && !call.consultation) this.media.startRingback();
+              if (code === 180 && !call.consultation) {
+                try {
+                  this.media.startRingback();
+                } catch (e) {
+                }
+              }
             }
           },
           onReject: (response) => {
@@ -14169,32 +14174,51 @@ Duration=${duration}`
     }
     /** Outbound ringback heard by the agent while the far end rings. */
     startRingback() {
+      if (!this.enableTones) return;
+      this.stopTone();
+      try {
+        const ctx = this._ctx();
+        if (ctx && ctx.state === "suspended") {
+          ctx.resume().catch(() => {
+          });
+        }
+      } catch (err) {
+        log5.debug("ringback ctx resume failed", err);
+      }
       this._startTone([400, 450], { onMs: 1500, offMs: 3e3, gain: 0.25 });
     }
     _startTone(freqs, { onMs, offMs, gain = 0.35 }) {
       if (!this.enableTones) return;
       this.stopTone();
-      const ctx = this._ctx();
-      const master = ctx.createGain();
-      master.gain.value = 0;
-      master.connect(ctx.destination);
-      const oscillators = freqs.map((f) => {
-        const osc = ctx.createOscillator();
-        osc.type = "sine";
-        osc.frequency.value = f;
-        osc.connect(master);
-        osc.start();
-        return osc;
-      });
-      const level = gain * this.ringtoneVolume;
-      const cycle = () => {
-        const now = ctx.currentTime;
-        master.gain.setValueAtTime(level, now);
-        master.gain.setValueAtTime(0, now + onMs / 1e3);
-      };
-      cycle();
-      const timer = setInterval(cycle, onMs + offMs);
-      this.activeTone = { oscillators, master, timer };
+      try {
+        const ctx = this._ctx();
+        if (ctx && ctx.state === "suspended") {
+          ctx.resume().catch(() => {
+          });
+        }
+        const master = ctx.createGain();
+        master.gain.value = 0;
+        master.connect(ctx.destination);
+        const oscillators = freqs.map((f) => {
+          const osc = ctx.createOscillator();
+          osc.type = "sine";
+          osc.frequency.value = f;
+          osc.connect(master);
+          osc.start();
+          return osc;
+        });
+        const level = gain * this.ringtoneVolume;
+        const cycle = () => {
+          const now = ctx.currentTime;
+          master.gain.setValueAtTime(level, now);
+          master.gain.setValueAtTime(0, now + onMs / 1e3);
+        };
+        cycle();
+        const timer = setInterval(cycle, onMs + offMs);
+        this.activeTone = { oscillators, master, timer };
+      } catch (err) {
+        log5.warn("tone playback failed", err);
+      }
     }
     stopTone() {
       if (!this.activeTone) return;

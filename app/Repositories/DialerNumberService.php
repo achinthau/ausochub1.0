@@ -25,19 +25,6 @@ class DialerNumberService
     public const QUEUED_PREFIX = 'dialer:queued';
 
     /**
-     * Status of a high priority contact. Contacts on this status jump the
-     * queue and are served before the regular candidates.
-     */
-    public const HIGH_PRIORITY_STATUS = '10';
-
-    /**
-     * Value kept in "assigned_to" for a high priority contact that has not
-     * been claimed by an agent yet. As soon as an agent picks it up the
-     * value is replaced by that agent's id.
-     */
-    public const HIGH_PRIORITY_ASSIGNED_TO = 1000;
-
-    /**
      * Time-to-live for the "shown number" keys (seconds).
      */
     protected int $keyTtl = 90;
@@ -87,9 +74,6 @@ class DialerNumberService
      * either unassigned or already assigned to them. This is the exact same
      * selection the lead window uses for "Next Customer", so the dashboard
      * and the lead window can never disagree on which contact is current.
-     *
-     * High priority contacts (status 10 with assigned_to = 1000) are served
-     * before the regular candidates.
      *
      * Does not claim/assign anything; callers that are allowed to write use
      * resolveCurrentContact() instead.
@@ -169,22 +153,25 @@ class DialerNumberService
             return [null, $campaigns];
         }
 
-        // High priority contacts (status 10 that are still unclaimed, i.e.
-        // assigned_to = 1000) are checked first, so they are handed out as
-        // the next available customer before the regular candidates below.
-        $record = $this->highPriorityQuery($user, $feedIds)
+        $record = $this->candidateQuery($user, $feedIds)
+            ->where(function ($query) use ($user) {
+                $query->whereNull('assigned_to')
+                    ->orWhere('assigned_to', (int) $user->id)
+                    ->orWhere(function ($q) {
+                        $q->where('status', 10)
+                            ->where('assigned_to', 1000);
+                    });
+            })
+            ->orderByRaw(
+                'CASE
+                    WHEN assigned_to = ? THEN 0
+                    WHEN status = 10 AND assigned_to = 1000 THEN 1
+                    ELSE 2
+                END',
+                [(int) $user->id]
+            )
             ->orderBy('id')
             ->first();
-
-        if (!$record) {
-            $record = $this->candidateQuery($user, $feedIds)
-                ->where(function ($query) use ($user) {
-                    $query->whereNull('assigned_to')
-                        ->orWhere('assigned_to', (int) $user->id);
-                })
-                ->orderBy('id')
-                ->first();
-        }
 
         return [$record, $campaigns];
     }
@@ -212,42 +199,22 @@ class DialerNumberService
     }
 
     /**
-     * Contacts in the given feeds that match the user's language preference,
-     * without any availability condition. Shared by the regular candidate
-     * query and the high priority query so both look at the same pool.
-     */
-    protected function scopedQuery(User $user, array $feedIds): Builder
-    {
-        $userLanguageNames = $user->languages->pluck('name')->toArray();
-
-        return FeedContactValid::whereIn('feed_id', $feedIds)
-            ->where(function ($q) use ($userLanguageNames) {
-                $q->whereNull('lang')
-                    ->orWhereIn('lang', $userLanguageNames);
-            });
-    }
-
-    /**
-     * High priority contacts of the given feeds: status 10 and still waiting
-     * in the queue (assigned_to = 1000). They are served before the regular
-     * candidates.
-     */
-    protected function highPriorityQuery(User $user, array $feedIds): Builder
-    {
-        return $this->scopedQuery($user, $feedIds)
-            ->where('status', self::HIGH_PRIORITY_STATUS)
-            ->where('assigned_to', self::HIGH_PRIORITY_ASSIGNED_TO);
-    }
-
-    /**
      * Contacts in the given feeds that are currently callable and match the
      * user's language preference (availability rules from the old panel).
      */
     protected function candidateQuery(User $user, array $feedIds): Builder
     {
-        return $this->scopedQuery($user, $feedIds)
+        $userLanguageNames = $user->languages->pluck('name')->toArray();
+
+        return FeedContactValid::whereIn('feed_id', $feedIds)
             ->where(function ($query) {
+                // New high priority records (status 10, still unclaimed at
+                // assigned_to 1000) are considered before not-answered calls.
                 $query->where(function ($q) {
+                    $q->where('status', 10)
+                        ->where('assigned_to', 1000);
+                })
+                ->orWhere(function ($q) {
                     $q->where(function ($qq) {
                         $qq->whereNull('status')
                             ->orWhereIn('status', [2, 22]);
@@ -262,6 +229,10 @@ class DialerNumberService
                         ->whereNotNull('next_available_at')
                         ->where('next_available_at', '<=', now());
                 });
+            })
+            ->where(function ($q) use ($userLanguageNames) {
+                $q->whereNull('lang')
+                    ->orWhereIn('lang', $userLanguageNames);
             });
     }
 

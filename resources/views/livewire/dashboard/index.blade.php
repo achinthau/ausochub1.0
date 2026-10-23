@@ -162,7 +162,7 @@
                                                 {{ $skill }}
                                             </label>
                                             @if (config('auso.allow_skill_change'))
-                                                <x-toggle lg wire:model="selectedSkills.{{ $skill }}" value="{{ $validCampaignTypes[$skill] ?? '' }}" />
+                                                <x-toggle lg wire:model="selectedSkills.{{ $skill }}" value="{{ $skill }}" />
                                             @endif
                                         </div>
                                     @endforeach

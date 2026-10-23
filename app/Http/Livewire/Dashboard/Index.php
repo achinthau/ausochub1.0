@@ -208,8 +208,14 @@ class Index extends Component
             return;
         }
 
+        // The keys of selectedSkills are always the campaign/skill names
+        // (mount() and the dashboard toggles both key the array by name).
+        // Using the values here meant a just-toggled campaign stored its
+        // type id as the value, so the lookup below matched nothing and the
+        // dialer counts card stayed hidden until the page was refreshed.
         $startedCampaignNames = collect($this->selectedSkills)
             ->filter(fn($value) => !empty($value))
+            ->keys()
             ->values()
             ->toArray();
 

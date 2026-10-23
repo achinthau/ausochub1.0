@@ -71,9 +71,12 @@ class DialerNumberService
 
     /**
      * The agent's current contact: the lowest-id callable contact that is
-     * either unassigned or already assigned to them. This is the exact same
+     * either unassigned, already assigned to them, or an unclaimed high
+     * priority record (status 10, assigned_to 1000). This is the exact same
      * selection the lead window uses for "Next Customer", so the dashboard
      * and the lead window can never disagree on which contact is current.
+     * A status 10 record the agent already claimed stays current until the
+     * agent changes its status, so the dispatcher never moves on mid-call.
      *
      * Does not claim/assign anything; callers that are allowed to write use
      * resolveCurrentContact() instead.
@@ -153,10 +156,12 @@ class DialerNumberService
             return [null, $campaigns];
         }
 
+        $userId = (int) $user->id;
+
         $record = $this->candidateQuery($user, $feedIds)
-            ->where(function ($query) use ($user) {
+            ->where(function ($query) use ($userId) {
                 $query->whereNull('assigned_to')
-                    ->orWhere('assigned_to', (int) $user->id)
+                    ->orWhere('assigned_to', $userId)
                     ->orWhere(function ($q) {
                         $q->where('status', 10)
                             ->where('assigned_to', 1000);
@@ -164,11 +169,12 @@ class DialerNumberService
             })
             ->orderByRaw(
                 'CASE
-                    WHEN assigned_to = ? THEN 0
-                    WHEN status = 10 AND assigned_to = 1000 THEN 1
-                    ELSE 2
+                    WHEN status = 10 AND assigned_to = ? THEN 0
+                    WHEN assigned_to = ? THEN 1
+                    WHEN status = 10 AND assigned_to = 1000 THEN 2
+                    ELSE 3
                 END',
-                [(int) $user->id]
+                [$userId, $userId]
             )
             ->orderBy('id')
             ->first();
@@ -205,14 +211,22 @@ class DialerNumberService
     protected function candidateQuery(User $user, array $feedIds): Builder
     {
         $userLanguageNames = $user->languages->pluck('name')->toArray();
+        $userId = (int) $user->id;
 
         return FeedContactValid::whereIn('feed_id', $feedIds)
-            ->where(function ($query) {
-                // New high priority records (status 10, still unclaimed at
-                // assigned_to 1000) are considered before not-answered calls.
-                $query->where(function ($q) {
+            ->where(function ($query) use ($userId) {
+                // High priority records are callable while unclaimed (the
+                // assigned_to 1000 sentinel) and remain callable for the agent
+                // that already claimed them. Without the second half a claimed
+                // status 10 record would drop out of the pool on the very next
+                // tick and the dispatcher would claim the next record while the
+                // agent is still working this one.
+                $query->where(function ($q) use ($userId) {
                     $q->where('status', 10)
-                        ->where('assigned_to', 1000);
+                        ->where(function ($qq) use ($userId) {
+                            $qq->where('assigned_to', 1000)
+                                ->orWhere('assigned_to', $userId);
+                        });
                 })
                 ->orWhere(function ($q) {
                     $q->where(function ($qq) {
@@ -237,8 +251,9 @@ class DialerNumberService
     }
 
     /**
-     * Claim the contact and all related work orders sharing its primary phone
-     * for the agent, matching the Next Customer logic in leads.show.
+     * Claim the contact and any still-unclaimed work orders that share one of
+     * its phone numbers for the agent, matching the Next Customer logic in
+     * leads.show. Contacts already claimed by another agent are left alone.
      */
     protected function claimContact(FeedContactValid $record, User $user): void
     {
@@ -249,40 +264,47 @@ class DialerNumberService
                 $record->update(['assigned_to' => $userId]);
             }
 
-            
             $userLanguageNames = $user->languages->pluck('name')->toArray();
-            // $phone = !empty($record->contact_no_01) ? $record->contact_no_01 : $record->contact_no_02;
-            // $relatedContacts = FeedContactValid::where('contact_no_01', $phone)
-            //     ->when($record->feed_id, fn($query) => $query->where('feed_id', $record->feed_id))
-            //     ->where(function ($q) use ($userLanguageNames) {
-            //         $q->whereNull('lang')
-            //             ->orWhereIn('lang', $userLanguageNames);
-            //     })
-            //     ->get();
-            $phones = array_filter([
-    $record->contact_no_01,
-    $record->contact_no_02,
-]);
 
-$relatedContacts = FeedContactValid::query()
-    // Match records where either contact number matches any of the available phones
-    ->when(!empty($phones), function ($query) use ($phones) {
-        $query->where(function ($q) use ($phones) {
-            $q->whereIn('contact_no_01', $phones)
-              ->orWhereIn('contact_no_02', $phones);
-        });
-    })
-    // Filter by feed_id if present
-    ->when($record->feed_id, fn($query) => $query->where('feed_id', $record->feed_id))
-    // Filter by language criteria
-    ->where(function ($q) use ($userLanguageNames) {
-        $q->whereNull('lang')
-          ->orWhereIn('lang', $userLanguageNames);
-    })
-    ->get();
+            $phones = collect([$record->contact_no_01, $record->contact_no_02])
+                ->map(fn ($phone) => trim((string) $phone))
+                // Placeholders such as "0" or "0000000000" are not real
+                // numbers and must not be used to group unrelated contacts.
+                ->filter(fn ($phone) => $phone !== '' && trim($phone, '0') !== '')
+                ->unique()
+                ->values()
+                ->all();
 
-            if ($relatedContacts->isNotEmpty()) {
-                FeedContactValid::whereIn('id', $relatedContacts->pluck('id')->unique()->values())
+            // Never fall back to a feed-wide match: when the record has no
+            // usable phone there is nothing to group it with, and an empty
+            // phone list used to assign every contact in the feed.
+            if (empty($phones)) {
+                return;
+            }
+
+            $relatedContactIds = FeedContactValid::query()
+                ->where(function ($query) use ($phones) {
+                    $query->whereIn('contact_no_01', $phones)
+                        ->orWhereIn('contact_no_02', $phones);
+                })
+                ->when($record->feed_id, fn ($query, $feedId) => $query->where('feed_id', $feedId))
+                // Only pick up contacts nobody owns yet (null, or the
+                // unclaimed high priority sentinel). Never overwrite a claim
+                // that belongs to another agent.
+                ->where(function ($query) {
+                    $query->whereNull('assigned_to')
+                        ->orWhere('assigned_to', 1000);
+                })
+                ->where(function ($query) use ($userLanguageNames) {
+                    $query->whereNull('lang')
+                        ->orWhereIn('lang', $userLanguageNames);
+                })
+                ->pluck('id')
+                ->unique()
+                ->values();
+
+            if ($relatedContactIds->isNotEmpty()) {
+                FeedContactValid::whereIn('id', $relatedContactIds)
                     ->update(['assigned_to' => $userId]);
             }
         } catch (\Throwable $e) {

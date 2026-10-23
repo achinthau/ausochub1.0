@@ -415,8 +415,10 @@ class Show extends Component
 
         $this->dialerLog()->info('dialer.next_contact.current_contact_selected', $context);
 
+        $userId = (int) Auth::id();
+
         try {
-            $returned = $currentContact->update(['assigned_to' => Auth::id()]);
+            $returned = $currentContact->update(['assigned_to' => $userId]);
             $this->dialerLog()->info('dialer.next_contact.assignment_returned', array_merge($context, [
                 'returned' => $returned,
                 'assigned_to' => $currentContact->assigned_to,
@@ -426,26 +428,44 @@ class Show extends Component
             throw $e;
         }
 
-        $phones = array_filter([
-            $currentContact->contact_no_01,
-            $currentContact->contact_no_02,
-        ]);
+        $userLanguageNames = Auth::user()->languages->pluck('name')->toArray();
 
-        try {
-            $relatedContacts = FeedContactValid::query()
-                ->when(!empty($phones), function ($query) use ($phones) {
-                    $query->where(function ($q) use ($phones) {
-                        $q->whereIn('contact_no_01', $phones)
+        $phones = collect([$currentContact->contact_no_01, $currentContact->contact_no_02])
+            ->map(fn ($phone) => trim((string) $phone))
+            // Placeholders such as "0" or "0000000000" are not real numbers.
+            ->filter(fn ($phone) => $phone !== '' && trim($phone, '0') !== '')
+            ->unique()
+            ->values()
+            ->all();
+
+        $relatedContacts = collect();
+
+        // Only fan out when there is a real phone to group by. An empty list
+        // used to drop the phone filter entirely and assign the whole feed.
+        if (!empty($phones)) {
+            try {
+                $relatedContacts = FeedContactValid::query()
+                    ->where(function ($query) use ($phones) {
+                        $query->whereIn('contact_no_01', $phones)
                             ->orWhereIn('contact_no_02', $phones);
-                    });
-                })
-                ->when($currentContact->feed_id, function ($query, $feedId) {
-                    $query->where('feed_id', $feedId);
-                })
-                ->get();
-        } catch (\Throwable $e) {
-            $this->logDatabaseError('dialer.next_contact.related_contacts_query_failed', $context, $e);
-            throw $e;
+                    })
+                    ->when($currentContact->feed_id, function ($query, $feedId) {
+                        $query->where('feed_id', $feedId);
+                    })
+                    // Never overwrite a claim that belongs to another agent.
+                    ->where(function ($query) {
+                        $query->whereNull('assigned_to')
+                            ->orWhere('assigned_to', 1000);
+                    })
+                    ->where(function ($query) use ($userLanguageNames) {
+                        $query->whereNull('lang')
+                            ->orWhereIn('lang', $userLanguageNames);
+                    })
+                    ->get(['id']);
+            } catch (\Throwable $e) {
+                $this->logDatabaseError('dialer.next_contact.related_contacts_query_failed', $context, $e);
+                throw $e;
+            }
         }
 
         $this->dialerLog()->info('dialer.next_contact.related_contacts_returned', array_merge($context, [
@@ -458,7 +478,7 @@ class Show extends Component
         if ($relatedContacts->isNotEmpty()) {
             try {
                 $returned = FeedContactValid::whereIn('id', $relatedContacts->pluck('id')->unique()->values())
-                    ->update(['assigned_to' => Auth::id()]);
+                    ->update(['assigned_to' => $userId]);
                 $this->dialerLog()->info('dialer.next_contact.related_assignment_returned', array_merge($context, [
                     'returned' => $returned,
                     'feed_contact_ids' => $relatedContacts->pluck('id')->all(),

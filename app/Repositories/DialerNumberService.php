@@ -169,9 +169,9 @@ class DialerNumberService
             })
             ->orderByRaw(
                 'CASE
-                    WHEN status = 10 AND assigned_to = ? THEN 0
-                    WHEN assigned_to = ? THEN 1
-                    WHEN status = 10 AND assigned_to = 1000 THEN 2
+                    WHEN status = 3 AND next_available_at IS NOT NULL AND next_available_at <= NOW() THEN 0
+                    WHEN status = 10 AND (assigned_to = 1000 OR assigned_to = ?) THEN 1
+                    WHEN assigned_to = ? THEN 2
                     ELSE 3
                 END',
                 [$userId, $userId]

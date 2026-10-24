@@ -58,6 +58,7 @@ class SkipModal extends Component
             $feed->comments = $this->comment;
             $feed->updated_by = Auth::id();
             $feed->attempted_at = now();
+            $feed->next_available_at = null;
             $feed->save();
         }
         $this->reset('comment');

@@ -16037,6 +16037,14 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
           this.transferTarget = "";
         })
       );
+      this._unsubscribers.push(
+        this.phone.on(PhoneEvents.HANGUP, () => {
+          if (this.view === "dtmf") {
+            this.view = "dialpad";
+            this.render();
+          }
+        })
+      );
     }
     render() {
       if (!this._root) return;
@@ -16051,7 +16059,7 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
         '<div class="body">',
         this.errorMessage ? `<div class="error">${esc(this.errorMessage)}</div>` : "",
         incoming ? this._renderIncoming(incoming) : "",
-        !incoming && active ? this._renderActive(active, s) : "",
+        !incoming && active ? this.view === "dtmf" ? this._renderDtmf(active) : this._renderActive(active, s) : "",
         !incoming && !active && this.view === "dialpad" ? this._renderDialPad(s) : "",
         this.view === "transfer" ? this._renderTransferDialog(s) : "",
         this.view === "settings" ? this._renderSettings(s) : "",
@@ -16149,6 +16157,26 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
         </button>
       </div>` : ""}
       ${consulting ? this._renderConsultControls(s) : ""}
+    </div>`;
+    }
+    /** In-call DTMF keypad, shown in place of the call controls so it fits. */
+    _renderDtmf(call) {
+      return `<div class="call-card">
+      <div class="label">${call.held ? "On hold" : "Active call"} \xB7 ${formatDuration(call.duration)}</div>
+      <div class="cli" style="font-size:16px;margin:2px 0 0">${esc(call.cli)}</div>
+      <div class="who">${esc(call.remote_display_name || "")}</div>
+      <div class="controls" style="margin-top:6px">
+        <button class="btn btn-ghost" data-action="close-dtmf">${icons.keypad}Hide keypad</button>
+        <button class="btn btn-danger" data-action="hangup" data-call="${esc(call.call_id)}">${icons.hangup}Hangup</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h4>Keypad</h4>
+      <div class="keys">
+        ${KEYS.map(([d, l]) => `<button class="key" data-action="key" data-key="${d}">
+          <span class="digit">${d}</span><span class="letters">${l}</span>
+        </button>`).join("")}
+      </div>
     </div>`;
     }
     _renderConsultControls(s) {
@@ -16303,12 +16331,14 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
           case "key": {
             const key = el.dataset.key;
             const active = this.phone.getActiveCall();
-            if (active && active.state === CallState.ANSWERED && this.view === "dtmf") {
-              await this.phone.sendDTMF(key);
-            } else {
-              this.dialValue += key;
-              this.render();
+            if (this.view === "dtmf") {
+              if (active && active.state === CallState.ANSWERED) {
+                await this.phone.sendDTMF(key);
+              }
+              return;
             }
+            this.dialValue += key;
+            this.render();
             return;
           }
           case "backspace":
@@ -16334,7 +16364,10 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
             this.view = "transfer";
             return this.render();
           case "open-dtmf":
-            this.view = this.view === "dtmf" ? "dialpad" : "dtmf";
+            this.view = "dtmf";
+            return this.render();
+          case "close-dtmf":
+            this.view = "dialpad";
             return this.render();
           case "transfer-type":
             this.transferType = el.dataset.type;

@@ -39,8 +39,13 @@
     #phone-widget auso-phone { margin: 0 auto; }
     /* While a call is ringing, shrink the frame to the call card so there is no
        empty box under the Answer / Reject buttons. */
-    #phone-widget.phone-incoming { height: auto !important; }
-    #phone-widget.phone-incoming .phone-body { height: auto; }
+    #phone-widget.phone-incoming { height: fit-content !important; min-height: 0 !important; }
+    #phone-widget.phone-incoming .phone-body {
+        height: auto !important;
+        flex: 0 0 auto;
+        overflow: visible;
+        background: #fff;
+    }
 </style>
 
 <div id="phone-widget"
@@ -90,12 +95,34 @@
 
     var widget = document.getElementById('phone-widget');
 
+    var DEFAULT_HEIGHT = '470px';
+
     function show() {
         widget.classList.add('phone-open');
     }
 
     function hide() {
         widget.classList.remove('phone-open');
+    }
+
+    // Shrink the frame to exactly the ringing card (+ title bar) so no empty
+    // phone background is left below the Answer / Reject buttons.
+    function fitIncoming() {
+        if (!widget || !widget.classList.contains('phone-incoming')) return;
+        var body = widget.querySelector('.phone-body');
+        var el = widget.querySelector('auso-phone');
+        var title = document.getElementById('phone-widget-title');
+        if (body) body.style.height = 'auto';
+        if (!el) return;
+        var needed = (title ? title.offsetHeight : 0) + el.offsetHeight;
+        widget.style.height = Math.min(needed, window.innerHeight - 100) + 'px';
+    }
+
+    function restoreHeight() {
+        widget.classList.remove('phone-incoming');
+        var body = widget.querySelector('.phone-body');
+        if (body) body.style.height = '';
+        widget.style.height = DEFAULT_HEIGHT;
     }
 
     // Shared global toggle so the nav button can open/close this.
@@ -137,13 +164,22 @@
         widget.classList.add('phone-incoming');
         show();
         resumePhoneAudio();
+        // The element has already re-rendered by now; fit after paint too in
+        // case fonts/layout settle a frame later.
+        fitIncoming();
+        requestAnimationFrame(fitIncoming);
+        setTimeout(fitIncoming, 60);
+    });
+
+    // The customer lookup adds a card a moment after the INVITE; refit so the
+    // frame grows with it instead of clipping or leaving slack.
+    window.addEventListener('ausophone:call_updated', function() {
+        if (widget.classList.contains('phone-incoming')) fitIncoming();
     });
 
     // Once the call is answered or ends, go back to the full dial-pad height.
     ['answered', 'hangup'].forEach(function(name) {
-        window.addEventListener('ausophone:' + name, function() {
-            widget.classList.remove('phone-incoming');
-        });
+        window.addEventListener('ausophone:' + name, restoreHeight);
     });
 
     // A notification click in this tab should also reveal the widget even if

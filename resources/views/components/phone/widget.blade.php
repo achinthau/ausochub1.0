@@ -36,14 +36,15 @@
 <style>
     #phone-widget { display: none; }
     #phone-widget.phone-open { display: flex; }
+    #phone-widget auso-phone { margin: 0 auto; }
 </style>
 
 <div id="phone-widget"
     class="fixed z-[60] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
-    style="left: 16px; top: 120px; width: 360px; height: 600px; max-height: calc(100vh - 100px);">
+    style="left: 16px; top: 120px; width: 280px; height: 470px; max-height: calc(100vh - 100px);">
 
     {{-- Title bar (drag handle) --}}
-    <div class="flex h-11 shrink-0 cursor-move select-none items-center justify-between border-b border-slate-200 bg-slate-50 px-4"
+    <div class="flex h-9 shrink-0 cursor-move select-none items-center justify-between border-b border-slate-200 bg-slate-50 px-3"
         id="phone-widget-title">
         <div class="flex items-center gap-2">
             <span class="flex h-2 w-2 rounded-full bg-teal-500"></span>
@@ -123,37 +124,17 @@
     // Listeners for external triggers
     window.addEventListener('toggle-phone-widget', window.toggleAusophone);
     
-    // Show widget and notification on incoming calls
-    window.addEventListener('ausophone:incoming', function(ev) {
+    // Reveal the widget on an incoming call. The OS notification itself is
+    // raised by <auso-phone> (AusoPhoneElement) so there is exactly one popup
+    // per call; clicking it focuses this tab and calls openAusophone().
+    window.addEventListener('ausophone:incoming', function() {
         show();
         resumePhoneAudio();
-        // Show system notification even if tab is in background
-        try {
-            if ('Notification' in window) {
-                if (Notification.permission === 'default') {
-                    Notification.requestPermission();
-                }
-                if (Notification.permission === 'granted') {
-                    var call = ev.detail && ev.detail.call ? ev.detail.call : {};
-                    var cli = call.cli || call.remote_identity || 'Unknown';
-                    var customer = call.customer || {};
-                    var name = customer.name || customer.company || cli;
-                    var n = new Notification('Incoming call - ' + name, {
-                        body: 'From: ' + cli,
-                        icon: '/favicon.ico',
-                        tag: 'incoming-' + (call.call_id || cli),
-                        requireInteraction: true
-                    });
-                    n.onclick = function() {
-                        window.focus();
-                        show();
-                        n.close();
-                    };
-                    setTimeout(function() { n.close(); }, 15000);
-                }
-            }
-        } catch(e) {}
     });
+
+    // A notification click in this tab should also reveal the widget even if
+    // the user had minimised it.
+    window.addEventListener('ausophone:notification-click', show);
 
     // Close buttons
     var minimize = document.getElementById('phone-widget-minimize');
@@ -184,7 +165,7 @@
         var cy = e.clientY != null ? e.clientY : (e.touches ? e.touches[0].clientY : 0);
         var dx = cx - startX;
         var dy = cy - startY;
-        var left = Math.max(0, Math.min(window.innerWidth - 380, origX + dx));
+        var left = Math.max(0, Math.min(window.innerWidth - 300, origX + dx));
         var top = Math.max(0, Math.min(window.innerHeight - 80, origY + dy));
         widget.style.left = left + 'px';
         widget.style.top = top + 'px';
@@ -200,7 +181,7 @@
         title.addEventListener('mousedown', onDown);
         title.addEventListener('touchstart', onDown);
     }
-    widget.style.left = Math.max(16, window.innerWidth - 400) + 'px';
+    widget.style.left = Math.max(16, window.innerWidth - 320) + 'px';
     widget.style.top = '120px';
 })();
 </script>

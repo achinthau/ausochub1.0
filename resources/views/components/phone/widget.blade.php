@@ -37,6 +37,10 @@
     #phone-widget { display: none; }
     #phone-widget.phone-open { display: flex; }
     #phone-widget auso-phone { margin: 0 auto; }
+    /* While a call is ringing, shrink the frame to the call card so there is no
+       empty box under the Answer / Reject buttons. */
+    #phone-widget.phone-incoming { height: auto !important; }
+    #phone-widget.phone-incoming .phone-body { height: auto; }
 </style>
 
 <div id="phone-widget"
@@ -64,7 +68,7 @@
         </div>
     </div>
 
-    <div class="h-full min-h-0 overflow-auto bg-slate-50">
+    <div class="phone-body h-full min-h-0 overflow-auto bg-slate-50">
         <auso-phone
             id="auso-phone"
             credentials-url="{{ route('api.phone.credentials') }}"
@@ -128,8 +132,18 @@
     // raised by <auso-phone> (AusoPhoneElement) so there is exactly one popup
     // per call; clicking it focuses this tab and calls openAusophone().
     window.addEventListener('ausophone:incoming', function() {
+        // Fit the frame to the ringing card so no empty area is shown below
+        // the Answer / Reject buttons.
+        widget.classList.add('phone-incoming');
         show();
         resumePhoneAudio();
+    });
+
+    // Once the call is answered or ends, go back to the full dial-pad height.
+    ['answered', 'hangup'].forEach(function(name) {
+        window.addEventListener('ausophone:' + name, function() {
+            widget.classList.remove('phone-incoming');
+        });
     });
 
     // A notification click in this tab should also reveal the widget even if

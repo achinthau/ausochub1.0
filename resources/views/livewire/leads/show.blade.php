@@ -1106,11 +1106,19 @@
                                     <div class="flex flex-wrap justify-between gap-x-8 gap-y-1 text-base">
                                         <div class="flex gap-2">
                                             <label class="font-bold">Customer Name:</label>
-                                            <span>{{ $followUpFirstData['cust_name'] ?? $followUpFirstData['customer_name'] ?? '--' }}</span>
+                                            <span>{{ $followUpFirstData['cust_name'] ?? $followUpFirstData['customer_name'] ?? $followUpFirstData['Customer_Name'] ?? $followUpFirstData['CUSTOMER_NAME'] ?? '--' }}</span>
                                         </div>
                                         <div class="flex gap-2">
-                                            <label class="font-bold">Service Center:</label>
-                                            <span>{{ $followUpFirstData['service_center'] ?? $followUpFirstData['servicecenter'] ?? '--' }}</span>
+                                            <label class="font-bold">
+    {{ (isset($followUpFirstData['shop_name']) || isset($followUpFirstData['SHOP_NAME'])) ? 'Shop Name' : 'Service Center' }}
+</label>
+                                            <span>{{ 
+                                                        $followUpFirstData['service_center'] ?? 
+                                                        $followUpFirstData['SERVICE_CENTER'] ?? 
+                                                        $followUpFirstData['shop_name'] ?? 
+                                                        $followUpFirstData['SHOP_NAME'] ?? 
+                                                        '--' 
+                                                    }}</span>
                                         </div>
                                     </div>
                                 @endif

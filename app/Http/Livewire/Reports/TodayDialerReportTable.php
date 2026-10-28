@@ -106,7 +106,8 @@ class TodayDialerReportTable extends DataTableComponent
                 'comments',
                 'campaign_id',
                 'updated_by',
-                'attempted_at'
+                'attempted_at',
+                'promised_date'
             )
             ->addSelect(DB::raw("CONCAT('v-', id) as row_key"))
             ->where(function ($query) {
@@ -124,7 +125,8 @@ class TodayDialerReportTable extends DataTableComponent
                 'comments',
                 'campaign_id',
                 'updated_by',
-                'attempted_at'
+                'attempted_at',
+                'promised_date'
             )
             ->addSelect(DB::raw("CONCAT('r-', id) as row_key"))
             ->where(function ($query) {
@@ -260,6 +262,10 @@ class TodayDialerReportTable extends DataTableComponent
             Column::make("Comments", "comments")
                 ->sortable()
                 ->searchable(),
+
+            Column::make("Promised Date", "promised_date")
+                ->format(fn ($value, $row) => $row->promised_date ? Carbon::parse($row->promised_date)->toDateString() : 'N/A')
+                ->sortable(),
 
             // Column::make("Campaign", "campaign_id")
             //     ->format(fn ($value, $row) => optional($row->campaign)->name ?? '—')
@@ -411,6 +417,7 @@ class TodayDialerReportTable extends DataTableComponent
             'Customer Name',
             'Service Center',
             'Comments',
+            'Promised Date',
             'Campaign',
             'Agent',
             'Called At',
@@ -430,6 +437,7 @@ class TodayDialerReportTable extends DataTableComponent
                 data_get(json_decode((string) $record->data, true) ?: [], 'customer_name') ?? 'N/A',
                 data_get(json_decode((string) $record->data, true) ?: [], 'service_center') ?? 'N/A',
                 $record->comments ?? 'N/A',
+                $record->promised_date ? Carbon::parse($record->promised_date)->toDateString() : 'N/A',
                 optional($record->campaign)->name ?? 'N/A',
                 optional($record->updater)->name ?? 'N/A',
                 $record->attempted_at ? Carbon::parse($record->attempted_at)->toDateTimeString() : 'N/A',

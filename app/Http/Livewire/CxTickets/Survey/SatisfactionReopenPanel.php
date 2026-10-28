@@ -6,6 +6,7 @@ use App\Models\CallbackCustomer;
 use App\Models\CampaignAgentDialLimit;
 use App\Models\DialerCallStatusOption;
 use App\Models\FeedContactValid;
+use App\Models\FeedContactValidReport;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Livewire\Component;
@@ -32,6 +33,32 @@ class SatisfactionReopenPanel extends Component
     protected $rules = [
         'comment' => 'required|string|min:5',
     ];
+
+    protected function copyCompletedToReport(FeedContactValid $feed): void
+    {
+        $completedStatuses = [1, 41, 42, 222];
+        $status = (int) $feed->status;
+        if (!in_array($status, $completedStatuses, true)) {
+            return;
+        }
+
+        $attributes = [];
+        foreach ($feed->getAttributes() as $attribute => $value) {
+            if (in_array($attribute, (new FeedContactValidReport())->getFillable(), true)) {
+                $attributes[$attribute] = $value;
+            }
+        }
+
+        $attributes['feed_contact_id'] = $feed->id;
+
+        FeedContactValidReport::updateOrCreate(
+            ['feed_contact_id' => $feed->id],
+            $attributes
+        );
+
+        $feed->copied_at = now();
+        $feed->save();
+    }
 
     public function render()
     {
@@ -115,6 +142,25 @@ class SatisfactionReopenPanel extends Component
             CampaignAgentDialLimit::incrementForFeed((int) $this->feed->feed_id, (int) Auth::id());
             $this->emit('FeedCompleted');
         } elseif ($this->isReOpen === 'skip') {
+            $currentStatus = $this->feed->status;
+            $currentAttempt = $this->feed->attempt_count;
+
+            if (is_null($currentStatus)) {
+                $this->feed->attempt_count = 1;
+            } elseif ((string) $currentStatus === '2') {
+                $this->feed->attempt_count = 2;
+            } elseif ((string) $currentStatus === '22') {
+                $this->feed->attempt_count = 3;
+            } elseif ((string) $currentStatus === '3') {
+                if (is_null($currentAttempt)) {
+                    $this->feed->attempt_count = 1;
+                } elseif ((int) $currentAttempt === 1) {
+                    $this->feed->attempt_count = 2;
+                } elseif ((int) $currentAttempt === 2) {
+                    $this->feed->attempt_count = 3;
+                }
+            }
+
             $this->feed->call_status_option_id = implode(',', array_values(array_unique($this->selectedReasons)));
             $this->feed->call_status_option_type = implode(',', $this->selectedSkipReasonTypes());
             $this->feed->rate = null;
@@ -122,8 +168,20 @@ class SatisfactionReopenPanel extends Component
             $this->feed->campaign_id = $this->campaignId;
             $this->feed->updated_by = Auth::id();
             $this->feed->attempted_at = now();
-            $this->feed->status = 3;
+
+            if ((string) $currentStatus === '3' && $currentAttempt !== null && (int) $currentAttempt === 2) {
+                $this->feed->status = 222;
+            } elseif ((string) $this->feed->status === '222') {
+                // keep as 222
+            } else {
+                $this->feed->status = 3;
+            }
+
             $this->feed->save();
+
+            if ((string) $this->feed->status === '222') {
+                $this->copyCompletedToReport($this->feed);
+            }
         }
 
         $this->selectedReasons = [];

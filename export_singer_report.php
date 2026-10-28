@@ -60,6 +60,7 @@ $query = "
         status,
         call_status_option_id,
         comments,
+        promised_date,
         updated_at
     FROM ac_feed_contact_valids_report
     WHERE DATE(updated_at) = :yesterday
@@ -91,6 +92,7 @@ try {
         } else {
             $feedback = $statusMap[$statusKey] ?? $statusKey;
         }
+        $promised_date = $row['promised_date'] ?? null;
         $comment = $row['comments'] ?? null;
         
         $insertStmt->execute([
@@ -99,6 +101,7 @@ try {
             'work_order' => $row['work_order'],
             'feedback' => $feedback,
             'comment' => $comment,
+            'promised_date' => $promised_date,
             'updated_at' => date('Y-m-d H:i:s'),
         ]);
         $count++;

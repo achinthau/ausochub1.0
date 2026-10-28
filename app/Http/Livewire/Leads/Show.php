@@ -941,8 +941,12 @@ class Show extends Component
 
         $this->satisfactionNotAnsweredCounts = FeedContactValid::whereRaw("TRIM(priority_field) IS NOT NULL AND TRIM(priority_field) <> ''")
             ->whereIn(DB::raw('TRIM(priority_field)'), $workOrderNos)
-            ->get(['priority_field', 'status'])
+            ->get(['priority_field', 'status', 'attempt_count'])
             ->mapWithKeys(function ($row) {
+                if (!is_null($row->attempt_count)) {
+                    return [trim($row->priority_field) => (int) $row->attempt_count];
+                }
+
                 return [trim($row->priority_field) => strlen((string) $row->status)];
             })
             ->all();
@@ -1028,6 +1032,7 @@ class Show extends Component
             $ticket->skipped_reasons = in_array($status, ['Skip', 'Skipped']) ? $skippedReasons : null;
             $ticket->feed_contact_id = $contact->id;
             $ticket->feed_contact_status = $contactStatus;
+            $ticket->attempt_count = $contact->attempt_count;
             $ticket->next_available_at = $contact->next_available_at;
             $ticket->more_data = json_encode(array_diff_key($data, array_flip($cxTicketColumns)));
 
@@ -1722,15 +1727,56 @@ class Show extends Component
         ]);
 
         if ($this->boundType && $this->boundType == 'dialer' && !empty($this->feedContacts)) {
-            FeedContactValid::whereIn('id', $this->feedContacts->pluck('id')->unique()->values())
-                ->update([
-                    'status' => 3,
-                    'next_available_at' => $callbackAt,
-                    'call_status_option_type' => 'skip',
-                    'comments' => $this->callbackComment,
-                    'updated_by' => Auth::id(),
-                    'attempted_at' => now(),
-                ]);
+            $feeds = FeedContactValid::whereIn('id', $this->feedContacts->pluck('id')->unique()->values())->get();
+
+            foreach ($feeds as $feed) {
+                $currentStatus = $feed->status;
+                $currentAttempt = $feed->attempt_count;
+
+                if (is_null($currentStatus)) {
+                    $feed->attempt_count = 1;
+                } elseif ((string) $currentStatus === '2') {
+                    $feed->attempt_count = 2;
+                } elseif ((string) $currentStatus === '22') {
+                    $feed->attempt_count = 3;
+                } elseif ((string) $currentStatus === '3') {
+                    if (is_null($currentAttempt)) {
+                        $feed->attempt_count = 1;
+                    } elseif ((int) $currentAttempt === 1) {
+                        $feed->attempt_count = 2;
+                    } elseif ((int) $currentAttempt === 2) {
+                        $feed->attempt_count = 3;
+                        $feed->status = 222;
+                        $feed->next_available_at = $callbackAt;
+                        $feed->call_status_option_type = 'skip';
+                        $feed->comments = $this->callbackComment;
+                        $feed->updated_by = Auth::id();
+                        $feed->attempted_at = now();
+                        $feed->save();
+                        $this->copyCompletedToReport($feed);
+                        continue;
+                    }
+                }
+
+                if ((string) $feed->status === '222') {
+                    $feed->next_available_at = $callbackAt;
+                    $feed->call_status_option_type = 'skip';
+                    $feed->comments = $this->callbackComment;
+                    $feed->updated_by = Auth::id();
+                    $feed->attempted_at = now();
+                    $feed->save();
+                    $this->copyCompletedToReport($feed);
+                    continue;
+                }
+
+                $feed->status = 3;
+                $feed->next_available_at = $callbackAt;
+                $feed->call_status_option_type = 'skip';
+                $feed->comments = $this->callbackComment;
+                $feed->updated_by = Auth::id();
+                $feed->attempted_at = now();
+                $feed->save();
+            }
         }
 
         $this->refreshFeedContactStatus();

@@ -545,7 +545,7 @@
         // $hideNotAnsweredButtons = $notAnswered && $lastUpdated->isToday();
         // $hideNotAnsweredButtons = $notAnswered && $lastUpdated->greaterThan(now()->startOfDay());
         $hideNotAnsweredButtons = ($ticket->status == 'ReOpened') || ($ticket->status == 'Canceled') || ($ticket->status == 'Skip' && $lastUpdated->greaterThan(\Carbon\Carbon::now()->subMinutes(1)));
-        $notAnsweredCount = $satisfactionNotAnsweredCounts[trim($ticket->work_order_no)] ?? strlen((string) $feedContactIdStatus);
+        $notAnsweredCount = $satisfactionNotAnsweredCounts[trim($ticket->work_order_no)] ?? ($ticket->attempt_count ?? (isset($ticket->feed_contact_status) ? strlen((string) $ticket->feed_contact_status) : null));
     @endphp
 
     <details class="border rounded-lg shadow-sm p-2
@@ -578,9 +578,11 @@
                     <span class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-yellow-600 rounded-full">
                         Not Answered
                     </span>
+                    @if(isset($notAnsweredCount) && $notAnsweredCount > 0)
                     <span class="ml-2 px-2 py-0.5 text-xs font-bold text-white bg-red-700 rounded-full">
                         {{ $notAnsweredCount }}
                     </span>
+                    @endif
                 @elseif($isNotAnswered == 'ReOpened')
                     <span class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-yellow-600 rounded-full">
                         ReoPened
@@ -878,7 +880,7 @@
                             $isNotAnswered = $ticket->status == 'Skip';
                             $feedContactIdStatus = (string) ($ticket->feed_contact_status ?? '');
                             $isNotAnsweredStatus = str_starts_with($feedContactIdStatus, '2');
-                            $notAnsweredCount = $isNotAnsweredStatus ? strlen($feedContactIdStatus) : 0;
+                            $notAnsweredCount = $isNotAnsweredStatus ? ($ticket->attempt_count ?? strlen($feedContactIdStatus)) : ($ticket->attempt_count ?? 0);
 
                             $nextAvailable = $ticket->next_available_at ? \Carbon\Carbon::parse($ticket->next_available_at) : null;
 
@@ -902,9 +904,11 @@
                                         <span class="px-2 py-0.5 text-xs font-semibold text-white bg-yellow-600 rounded-full">
                                             Not Answered
                                         </span>
+                                        @if(isset($notAnsweredCount) && $notAnsweredCount > 0)
                                         <span class="px-2 py-0.5 text-xs font-bold text-white bg-red-700 rounded-full">
                                             {{ $notAnsweredCount }}
                                         </span>
+                                        @endif
                                     </div>
                                 @elseif($isSkipped)
                                     <div class="mt-1">
@@ -1121,7 +1125,7 @@
                                                             $isNotAnswered = str_starts_with((string)$contact->status, '2');
                                                             $isSkipped = $contact->status == 3;
                                                             $isNew = is_null($contact->status);
-                                                            $notAnsweredCount = strlen((string) $contact->status);
+                                                            $notAnsweredCount = $contact->attempt_count ?? strlen((string) $contact->status);
 
                                                             // Date-based locking (same as satisfaction mini)
                                                             $nextAvailable = $contact->next_available_at ? \Carbon\Carbon::parse($contact->next_available_at) : null;
@@ -1176,15 +1180,23 @@
                                                                             class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-yellow-600 rounded-full">
                                                                             Not Answered
                                                                         </span>
+                                                                        @if(isset($notAnsweredCount) && $notAnsweredCount > 0)
                                                                         <span
                                                                             class="ml-2 px-2 py-0.5 text-xs font-bold text-white bg-red-700 rounded-full">
                                                                              {{ $notAnsweredCount }}
                                                                         </span>
+                                                                        @endif
                                                                     @elseif($isSkipped)
                                                                         <span
                                                                             class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-orange-600 rounded-full">
                                                                             Skipped
                                                                         </span>
+                                                                        @if(isset($notAnsweredCount) && $notAnsweredCount > 0)
+                                                                        <span
+                                                                            class="ml-2 px-2 py-0.5 text-xs font-bold text-white bg-red-700 rounded-full">
+                                                                             {{ $notAnsweredCount }}
+                                                                        </span>
+                                                                        @endif
                                                                     @endif
                                                                 </span>
                                                             </summary>

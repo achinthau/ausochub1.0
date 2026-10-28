@@ -4,19 +4,19 @@
 $sourceDb = [
     'host' => '127.0.0.1',
     'port' => 3306,
-    'database' => 'auso_crm_demo',
-    'username' => 'viraj',
-    'password' => '1155335577',
-    'charset' => 'utf8mb4'
+    'database' => 'ex',
+    'username' => 'ex',
+    'password' => 'ex',
+    'charset' => 'ex'
 ];
 
 $targetDb = [
     'host' => '127.0.0.1',
     'port' => 3306,
-    'database' => 'auso_data_syncdb',
-    'username' => 'viraj',
-    'password' => '1155335577',
-    'charset' => 'utf8mb4'
+    'database' => 'ex',
+    'username' => 'ex',
+    'password' => 'ex',
+    'charset' => 'ex'
 ];
 
 date_default_timezone_set('Asia/Colombo');

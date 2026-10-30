@@ -884,11 +884,7 @@
 
                             $nextAvailable = $ticket->next_available_at ? \Carbon\Carbon::parse($ticket->next_available_at) : null;
 
-                            if ($isNotAnsweredStatus) {
-                                $isLockedUntilNextAvailable = $nextAvailable && $nextAvailable->isAfter(now()->endOfDay());
-                            } else {
-                                $isLockedUntilNextAvailable = $nextAvailable && $nextAvailable->isFuture();
-                            }
+                            $isLockedUntilNextAvailable = $nextAvailable && $nextAvailable->isFuture();
 
                             if ($isLockedUntilNextAvailable) {
                                 $isSubmitted = true;
@@ -1138,11 +1134,7 @@
                                                             // Date-based locking (same as satisfaction mini)
                                                             $nextAvailable = $contact->next_available_at ? \Carbon\Carbon::parse($contact->next_available_at) : null;
 
-                                                            if ($isNotAnswered) {
-                                                                $isLockedUntilNextAvailable = $nextAvailable && $nextAvailable->isAfter(\Carbon\Carbon::now()->endOfDay());
-                                                            } else {
-                                                                $isLockedUntilNextAvailable = $nextAvailable && $nextAvailable->isFuture();
-                                                            }
+                                                            $isLockedUntilNextAvailable = $nextAvailable && $nextAvailable->isFuture();
 
                                                             $hideNotAnsweredButtons = $isLockedUntilNextAvailable;
                                                             $isSkippedPermanently = $isSkipped && is_null($contact->next_available_at);

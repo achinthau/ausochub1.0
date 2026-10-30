@@ -203,7 +203,7 @@ class DialerNumberService
                     })
                     ->where(function ($qq) {
                         $qq->whereNull('next_available_at')
-                            ->orWhere('next_available_at', '<=', now()->endOfDay());
+                            ->orWhere('next_available_at', '<=', now());
                     });
                 })
                 ->orWhere(function ($q) {

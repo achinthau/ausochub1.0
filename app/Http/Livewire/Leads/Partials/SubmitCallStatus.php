@@ -7,6 +7,7 @@ use App\Models\CampaignAgentDialLimit;
 use App\Models\DialerCallStatusOption;
 use App\Models\FeedContactValid;
 use App\Models\FeedContactValidReport;
+use Carbon\Carbon;
 use Hamcrest\Type\IsInteger;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
@@ -29,6 +30,9 @@ class SubmitCallStatus extends Component
     public $promisedDate;
     public $campaign;
     public $isSatisfaction = false;
+    public $isFollowUp = false;
+    public $nextAvailableDate;
+    public $nextAvailableTime;
     public $selectedReason = null;
     public $selectedReasons = [];
 
@@ -83,8 +87,10 @@ class SubmitCallStatus extends Component
         }
 
         // dd($this->campaign);
+        $campaign = Campaign::find($this->campaign);
         $this->status = $status;
-        $this->isSatisfaction = Campaign::find($this->campaign)?->service_type === 'satisfaction';
+        $this->isSatisfaction = $campaign?->service_type === 'satisfaction';
+        $this->isFollowUp = $campaign?->service_type === 'follow-up';
 
 if ($status === 'answered') {
             $statusTypes = [1, 41];
@@ -111,6 +117,8 @@ if ($status === 'answered') {
         $this->comment = '';
         $this->paymentDate = null;
         $this->promisedDate = null;
+        $this->nextAvailableDate = null;
+        $this->nextAvailableTime = null;
     }
 
     public function updatedSelectedReason($value)
@@ -361,6 +369,23 @@ if ($status === 'answered') {
             'option_name' => $optionNameString,
         ]);
 
+        $nextAvailableAt = null;
+
+        if ($this->isFollowUp && $this->status == 'not_answered'
+            && (!empty($this->nextAvailableDate) || !empty($this->nextAvailableTime))) {
+            $this->validate([
+                'nextAvailableDate' => 'required|date|after_or_equal:today',
+                'nextAvailableTime' => 'required',
+            ]);
+
+            $nextAvailableAt = Carbon::parse(trim($this->nextAvailableDate . ' ' . $this->nextAvailableTime));
+
+            if ($nextAvailableAt->isPast()) {
+                $this->addError('nextAvailableDate', 'The next available date and time must be in the future.');
+                return;
+            }
+        }
+
         $phones = collect([$this->feed->contact_no_01, $this->feed->contact_no_02])
             ->map(function ($phone) {
                 return trim((string) $phone);
@@ -409,7 +434,7 @@ if ($status === 'answered') {
                 if ($targetStatus !== null) {
                     $feed->status = $targetStatus;
                 } else {
-                    $feed->markNotAnswered();
+                    $feed->markNotAnswered($nextAvailableAt);
                 }
 
                 $feed->call_status_option_id = $optionNameString;
@@ -435,7 +460,7 @@ if ($status === 'answered') {
             if ($targetStatus !== null) {
                 $this->feed->status = $targetStatus;
             } else {
-                $this->feed->markNotAnswered();
+                $this->feed->markNotAnswered($nextAvailableAt);
             }
 
             $this->feed->call_status_option_id = $optionNameString;
@@ -456,6 +481,7 @@ if ($status === 'answered') {
 
         $this->emit('FeedCompleted');
         $this->CallStatusModal = false;
+        $this->reset(['nextAvailableDate', 'nextAvailableTime']);
 
         $this->dialerLog()->info('dialer.status.submit_completed', [
             'feed_contact_id' => $this->feed?->id,

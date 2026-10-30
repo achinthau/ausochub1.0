@@ -56,6 +56,30 @@
                 @endif
             </div>
 
+            @if($isFollowUp && $status == 'not_answered')
+                {{-- Optional next available schedule for follow-up campaigns --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Next Available At</label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <input type="date" wire:model="nextAvailableDate"
+                                class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 transition duration-150 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                            @error('nextAvailableDate')
+                                <span class="mt-1 text-red-500 text-sm font-medium">{{ $message }}</span>
+                            @enderror
+                        </div>
+                        <div>
+                            <input type="time" wire:model="nextAvailableTime"
+                                class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 transition duration-150 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                            @error('nextAvailableTime')
+                                <span class="mt-1 text-red-500 text-sm font-medium">{{ $message }}</span>
+                            @enderror
+                        </div>
+                    </div>
+                    <p class="mt-1 text-xs text-gray-500">Optional.(Defaults to tomorrow) </p>
+                </div>
+            @endif
+
             {{-- Comment --}}
             <div>
                 @php

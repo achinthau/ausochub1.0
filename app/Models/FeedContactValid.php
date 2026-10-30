@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -46,8 +47,11 @@ class FeedContactValid extends Model
      * The attempt count is authoritative for skipped/callback (status 3)
      * records, otherwise the current 2/22 status determines the attempt.
      * Progression is 2 (1st) -> 22 (2nd) -> 222 (3rd, terminal).
+     *
+     * @param  Carbon|null  $nextAvailableAt  Optional follow-up schedule. Defaults
+     *                                        to tomorrow at 00:00 for all campaigns.
      */
-    public function markNotAnswered(): void
+    public function markNotAnswered(?Carbon $nextAvailableAt = null): void
     {
         $currentStatus = (string) $this->status;
         $attemptCount = (int) ($this->attempt_count ?? 0);
@@ -65,7 +69,7 @@ class FeedContactValid extends Model
 
         $this->status = (int) str_repeat('2', $attempt);
         $this->attempt_count = $attempt;
-        $this->next_available_at = now()->addDay();
+        $this->next_available_at = $nextAvailableAt ?: now()->addDay()->startOfDay();
     }
 
     //status

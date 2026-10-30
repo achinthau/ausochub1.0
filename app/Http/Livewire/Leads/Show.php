@@ -1385,12 +1385,7 @@ class Show extends Component
                 if (empty($optionTypes)) {
                     $optionTypes = ['2'];
                 }
-                $existingStatus = (string) ($feed->status ?? '');
-                if (str_starts_with($existingStatus, '2')) {
-                    $feed->status = (int) ($existingStatus . '2');
-                } else {
-                    $feed->status = 2;
-                }
+                $feed->markNotAnswered();
                 $feed->call_status_option_id = implode(',', $reasons);
                 $feed->call_status_option_type = implode(',', $optionTypes);
                 $feed->rate = null;
@@ -1398,7 +1393,6 @@ class Show extends Component
                 $feed->campaign_id = $this->miniCampaignId;
                 $feed->updated_by = Auth::id();
                 $feed->attempted_at = now();
-                $feed->next_available_at = now()->addDay();
                 $saved = $this->saveFeedWithLogging($feed, 'satisfaction_mini.not_answered');
                 $this->copyCompletedToReport($feed);
                 $this->incrementDialLimitWithLogging($feed, 'satisfaction_mini.not_answered');

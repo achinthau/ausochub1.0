@@ -409,14 +409,7 @@ if ($status === 'answered') {
                 if ($targetStatus !== null) {
                     $feed->status = $targetStatus;
                 } else {
-                    if (str_starts_with((string) $feed->status, '2')) {
-                        $feed->status = (int) ($feed->status . '2');
-                    } else {
-                        $feed->status = 2; // First time "no answer"
-                    }
-
-                    // Set next date each time for status 2-based
-                    $feed->next_available_at = now()->addDay();
+                    $feed->markNotAnswered();
                 }
 
                 $feed->call_status_option_id = $optionNameString;
@@ -442,14 +435,7 @@ if ($status === 'answered') {
             if ($targetStatus !== null) {
                 $this->feed->status = $targetStatus;
             } else {
-                if (str_starts_with((string) $this->feed->status, '2')) {
-                    $this->feed->status = (int) ($this->feed->status . '2');
-                } else {
-                    $this->feed->status = 2; // First time "no answer"
-                }
-
-                // Set next date each time for status 2-based
-                $this->feed->next_available_at = now()->addDay();
+                $this->feed->markNotAnswered();
             }
 
             $this->feed->call_status_option_id = $optionNameString;

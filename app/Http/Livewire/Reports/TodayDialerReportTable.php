@@ -99,6 +99,8 @@ class TodayDialerReportTable extends DataTableComponent
             ->select(
                 'id',
                 'priority_field',
+                'contact_no_01',
+                'contact_no_02',
                 'data',
                 'status',
                 'call_status_option_id',
@@ -117,6 +119,8 @@ class TodayDialerReportTable extends DataTableComponent
             ->select(
                 'id',
                 'priority_field',
+                'contact_no_01',
+                'contact_no_02',
                 'data',
                 'status',
                 'call_status_option_id',
@@ -174,25 +178,25 @@ class TodayDialerReportTable extends DataTableComponent
                     return $builder->orWhere('priority_field', 'like', '%' . $term . '%');
                 }),
 
-            // Column::make("Contact No 01", "contact_no_01")
-            //     ->format(fn ($value, $row) => $row->contact_no_01 ?? 'N/A')
-            //     ->sortable()
-            //     ->searchable(function ($builder, $term) {
-            //         return $builder->orWhere('contact_no_01', 'like', '%' . $term . '%');
-            //     }),
-
-            // Column::make("Contact No 02", "contact_no_02")
-            //     ->format(fn ($value, $row) => $row->contact_no_02 ?? 'N/A')
-            //     ->sortable()
-            //     ->searchable(function ($builder, $term) {
-            //         return $builder->orWhere('contact_no_02', 'like', '%' . $term . '%');
-            //     }),
-
             // Column::make("Language", "lang")
             //     ->format(fn ($value, $row) => $row->lang ?: 'N/A'),
         ];
 
         if ($this->isAdmin()) {
+            $columns[] = Column::make("Contact No 01", "contact_no_01")
+                ->format(fn ($value, $row) => $row->contact_no_01 ?? 'N/A')
+                ->sortable()
+                ->searchable(function ($builder, $term) {
+                    return $builder->orWhere('contact_no_01', 'like', '%' . $term . '%');
+                });
+
+            $columns[] = Column::make("Contact No 02", "contact_no_02")
+                ->format(fn ($value, $row) => $row->contact_no_02 ?? 'N/A')
+                ->sortable()
+                ->searchable(function ($builder, $term) {
+                    return $builder->orWhere('contact_no_02', 'like', '%' . $term . '%');
+                });
+
             $columns[] = Column::make("Agent", "updated_by")
                 ->format(fn ($value, $row) => optional($row->updater)->name ?? 'N/A')
                 ->sortable()
@@ -380,11 +384,12 @@ class TodayDialerReportTable extends DataTableComponent
             );
         }
 
+        $isAdmin = $this->isAdmin();
+
         $headers = [
             'ID',
             'Priority Field',
-            // 'Contact No 01',
-            // 'Contact No 02',
+            ...($isAdmin ? ['Contact No 01', 'Contact No 02'] : []),
             'Call Status Option',
             'Call Status',
             'Rate',
@@ -402,8 +407,7 @@ class TodayDialerReportTable extends DataTableComponent
             $row = [
                 $record->id,
                 $record->priority_field ?? 'N/A',
-                // $record->contact_no_01 ?? 'N/A',
-                // $record->contact_no_02 ?? 'N/A',
+                ...($isAdmin ? [$record->contact_no_01 ?? 'N/A', $record->contact_no_02 ?? 'N/A'] : []),
                 $record->call_status_option_id ?: 'N/A',
                 $this->statusLabel($record->status) ?: 'N/A',
                 $record->rate ?? 'N/A',

@@ -4,10 +4,12 @@ namespace App\Http\Livewire\Leads\Partials;
 
 use App\Models\CallCount;
 use App\Models\CallCountReport;
+use App\Models\FeedContactValid;
 use App\Models\Lead;
 use App\Models\TicketsDaily;
 use App\Models\QueueCount;
 use App\Models\QueueCountReport;
+use Carbon\Carbon;
 use Livewire\Component;
 
 
@@ -24,9 +26,22 @@ class ActivityLog extends Component
     public  $loadMoreStatus = false;
     public  $fliterStatus = [2];
     public $expandedCallUniqueId = null;
+    public $feedContactIds = [];
+    public $commentLogs;
 
 
-    protected $listeners = ['refreshTimeline' => 'refreshTimeline'];
+    protected $listeners = [
+        'refreshTimeline' => 'refreshTimeline',
+        'updateFeedContactIds' => 'updateFeedContactIds',
+    ];
+
+
+    public function updateFeedContactIds($ids = [])
+    {
+        $ids = is_array($ids) ? $ids : explode(',', (string) $ids);
+
+        $this->feedContactIds = array_values(array_filter(array_map('intval', $ids)));
+    }
 
 
 
@@ -54,8 +69,12 @@ class ActivityLog extends Component
         };
     }
 
-    public function refreshTimeline()
+    public function refreshTimeline($feedContactIds = null)
     {
+        if (is_array($feedContactIds)) {
+            $this->updateFeedContactIds($feedContactIds);
+        }
+
         $timelineLogs = collect([]);
         $lead = $this->lead;
         $dailyTickets = TicketsDaily::with('category', 'status', 'outlet', 'items', 'items.item')
@@ -223,9 +242,115 @@ class ActivityLog extends Component
             }));
         }
 
-        // Sort the merged collection by created_at
-        $this->timelineLogs = $timelineLogs->sortByDesc('created_at')->take(10);
+        // Map the comments log for the follow-up records currently loaded.
+        if (in_array(4, $this->fliterStatus)) {
+            $this->commentLogs = FeedContactValid::with('updater')
+                ->whereIn('id', $this->feedContactIds)
+                ->get();
+
+            $commentEntries = collect();
+
+            foreach ($this->commentLogs as $contact) {
+                foreach ($this->parseCommentEntries($contact) as $entry) {
+                    $commentEntries->push([
+                        'kind' => 'comment',
+                        'feed_contact_id' => $contact->id,
+                        'title' => 'Comment',
+                        'created_at' => $entry['created_at'],
+                        'created_date' => $entry['created_at']->format('F jS, Y'),
+                        'created_time' => $entry['created_at']->format('h:i A'),
+                        'created_by' => $entry['agent_name'],
+                        'icon' => 'icon-comment',
+                        'bg-color' => 'bg-purple-200',
+                        'icon-color' => 'text-purple-600 dark:text-purple-400',
+                        'last-reaction' => null,
+                        'last-comment' => $entry['comment'],
+                    ]);
+                }
+            }
+
+            $timelineLogs = $timelineLogs->merge($commentEntries);
+        }
+
+        // Sort the merged collection by created_at. When the comments log is
+        // selected all comments must be visible, so skip the default truncation.
+        $timelineLogs = $timelineLogs->sortByDesc('created_at');
+
+        if (!in_array(4, $this->fliterStatus)) {
+            $timelineLogs = $timelineLogs->take(10);
+        }
+
+        $this->timelineLogs = $timelineLogs->values();
         $this->isLoad = true;
+    }
+
+    /**
+     * Split a comments string into individual log entries.
+     *
+     * New entries are stored as "[YYYY-MM-DD hh:mm A | Agent <id> - <name>] text".
+     * Anything without that prefix (older comments) is treated as a single
+     * legacy entry using the record's last update details.
+     *
+     * @return array<int, array{created_at: Carbon, agent_name: string, comment: string}>
+     */
+    protected function parseCommentEntries(FeedContactValid $contact): array
+    {
+        $raw = trim((string) $contact->comments);
+
+        if ($raw === '') {
+            return [];
+        }
+
+        $fallbackAt = $contact->attempted_at ?: $contact->updated_at ?: $contact->created_at ?: now();
+        $fallbackAgent = $contact->updater ? $contact->updater->name : 'System Agent';
+
+        if (!$fallbackAt instanceof Carbon) {
+            try {
+                $fallbackAt = Carbon::parse($fallbackAt);
+            } catch (\Throwable $e) {
+                $fallbackAt = now();
+            }
+        }
+
+        $entries = [];
+        $current = null;
+
+        foreach (preg_split('/\r\n|\r|\n/', $raw) as $line) {
+            if (preg_match('/^\[(\d{4}-\d{2}-\d{2} \d{1,2}:\d{2} [AP]M) \| (.*?)\]\s?(.*)$/', $line, $matches)) {
+                if ($current !== null) {
+                    $entries[] = $current;
+                }
+
+                try {
+                    $createdAt = Carbon::parse($matches[1]);
+                } catch (\Throwable $e) {
+                    $createdAt = $fallbackAt;
+                }
+
+                $current = [
+                    'created_at' => $createdAt,
+                    'agent_name' => trim($matches[2]) !== '' ? trim($matches[2]) : $fallbackAgent,
+                    'comment' => $matches[3],
+                ];
+            } elseif ($current !== null) {
+                $current['comment'] .= ($current['comment'] === '' ? '' : PHP_EOL) . $line;
+            } else {
+                $current = [
+                    'created_at' => $fallbackAt,
+                    'agent_name' => $fallbackAgent,
+                    'comment' => $line,
+                ];
+            }
+        }
+
+        if ($current !== null) {
+            $entries[] = $current;
+        }
+
+        return array_values(array_filter(
+            $entries,
+            fn ($entry) => trim((string) $entry['comment']) !== ''
+        ));
     }
 
     public function loadMore()

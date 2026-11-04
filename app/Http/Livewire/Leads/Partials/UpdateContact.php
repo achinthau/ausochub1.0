@@ -46,7 +46,7 @@ class UpdateContact extends Component
                 $surveyFeed->status = 5;
                 $surveyFeed->call_status_option_id = null;
                 $surveyFeed->call_status_option_type = 'change_request';
-                $surveyFeed->comments = $this->comment;
+                $surveyFeed->appendComment($this->comment);
                 $surveyFeed->updated_by = Auth::id();
                 $surveyFeed->attempted_at = now();
                 $surveyFeed->save();
@@ -54,7 +54,7 @@ class UpdateContact extends Component
         } 
         $this->UpdateContactModal = false;
         $this->reset('comment');
-
+        $this->emitTo('leads.show', 'refreshSatisfaction');
     }
 
     public function render()

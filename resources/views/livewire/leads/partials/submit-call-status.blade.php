@@ -43,7 +43,8 @@
                                             <option value="{{ json_encode([
                             'id' => $option->id,
                             'value' => $option->option,
-                            'type' => $option->type
+                            'type' => $option->type,
+                            'status' => $option->status
                         ]) }}">
                                                 {{ $option->option }}
                                             </option>

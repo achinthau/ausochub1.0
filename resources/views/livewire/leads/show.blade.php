@@ -1198,6 +1198,13 @@
                                                                         </span>
                                                                         @endif
                                                                     @endif
+
+                                                                    @if(!empty(trim((string) $contact->call_status_option_id)))
+                                                                        <span
+                                                                            class="ml-2 px-2 py-0.5 text-xs font-semibold text-indigo-800 bg-indigo-100 border border-indigo-300 rounded-full">
+                                                                            {{ $contact->call_status_option_id }}
+                                                                        </span>
+                                                                    @endif
                                                                 </span>
                                                             </summary>
 
@@ -1279,7 +1286,15 @@
 
 
                 </div>
-                @livewire('leads.partials.activity-log', ['lead' => $lead])
+                @php
+                    $activityFeedContactIds = collect($feedContacts)->pluck('id')
+                        ->merge(collect($surveyContacts)->pluck('feed_contact_id'))
+                        ->filter()
+                        ->unique()
+                        ->values()
+                        ->all();
+                @endphp
+                @livewire('leads.partials.activity-log', ['lead' => $lead, 'feedContactIds' => $activityFeedContactIds])
             </div>
 
 

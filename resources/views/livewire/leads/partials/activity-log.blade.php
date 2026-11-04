@@ -15,6 +15,9 @@
             <div>
                 <input type="checkbox" name="" value="1"  wire:model="fliterStatus"> Tickets
             </div>
+            <div>
+                <input type="checkbox" name="" value="4"  wire:model="fliterStatus"> Comments Log
+            </div>
         </div>
         <div>
             <div>
@@ -93,6 +96,16 @@
                                     </path>
                                 </svg>
                             @endif
+                            @if ($timelineLog['icon'] == 'icon-comment')
+                                <svg class="w-5 h-5 {{ $timelineLog['icon-color'] }}"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                    aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M7.5 10.5H7.51M12 10.5H12.01M16.5 10.5H16.51M7 18V20.3355C7 20.8684 7 21.1348 7.10923 21.2716C7.20422 21.3906 7.34827 21.4599 7.50054 21.4597C7.67563 21.4595 7.88367 21.2931 8.29976 20.9602L10.6852 19.0518C11.1725 18.662 11.4162 18.4671 11.6875 18.3285C11.9282 18.2055 12.1844 18.1156 12.4492 18.0613C12.7477 18 13.0597 18 13.6837 18H16.2C17.8802 18 18.7202 18 19.362 17.673C19.9265 17.3854 20.3854 16.9265 20.673 16.362C21 15.7202 21 14.8802 21 13.2V7.8C21 6.11984 21 5.27976 20.673 4.63803C20.3854 4.07354 19.9265 3.6146 19.362 3.32698C18.7202 3 17.8802 3 16.2 3H7.8C6.11984 3 5.27976 3 4.63803 3.32698C4.07354 3.6146 3.6146 4.07354 3.32698 4.63803C3 5.27976 3 6.11984 3 7.8V14C3 14.93 3 15.395 3.10222 15.7765C3.37962 16.8117 4.18827 17.6204 5.22354 17.8978C5.60504 18 6.07003 18 7 18Z">
+                                    </path>
+                                </svg>
+                            @endif
 
 
                         </span>
@@ -140,6 +153,9 @@
                             class="block mb-2 text-xs font-normal leading-none text-gray-400 dark:text-gray-500">{{ $timelineLog['created_date'] }}
                             at {{ $timelineLog['created_time'] }}
                         </time>
+                        @if (($timelineLog['kind'] ?? null) === 'comment' && !empty($timelineLog['last-comment']))
+                            <div class="mb-2 whitespace-pre-line text-xs font-normal text-gray-600 dark:text-gray-300">{{ $timelineLog['last-comment'] }}</div>
+                        @endif
                         <div
                             class="mb-1 text-xs font-normal text-gray-500 dark:text-gray-400 grid grid-cols-2 gap-1">
                             <div> Agent :{{ $timelineLog['created_by'] }} </div>

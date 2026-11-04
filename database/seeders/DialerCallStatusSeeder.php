@@ -72,5 +72,18 @@ class DialerCallStatusSeeder extends Seeder
             'option'=>'Skip',
             'type'=>'3',
         ]);
+
+        $statusByType = [
+            1 => '1',
+            2 => '2',
+            3 => '3',
+            4 => '2',
+            41 => '41',
+            42 => '42',
+        ];
+
+        foreach ($statusByType as $type => $status) {
+            DialerCallStatusOption::where('type', $type)->update(['status' => $status]);
+        }
     }
 }

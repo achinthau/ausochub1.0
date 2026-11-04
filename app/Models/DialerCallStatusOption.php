@@ -10,7 +10,7 @@ class DialerCallStatusOption extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['option', 'type', 'campaign_id'];
+    protected $fillable = ['option', 'type', 'status', 'campaign_id'];
 
     public function campaign(): BelongsTo
     {

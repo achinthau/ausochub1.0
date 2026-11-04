@@ -24,6 +24,9 @@
                     @endif
                 </x-select>
             </div>
+            <div class="w-32">
+                <x-input label="Status" placeholder="e.g. 1, 2, 41" wire:model="newStatus" />
+            </div>
             <div class="pb-0.5">
                 <x-button primary label="Add" wire:click="addOption" icon="plus" />
             </div>
@@ -55,6 +58,9 @@
                                         @endif
                                     </x-select>
                                 </div>
+                                <div class="w-24">
+                                    <x-input placeholder="Status" wire:model="editStatus" />
+                                </div>
                             </div>
                             <x-button positive label="Save" wire:click="saveEdit" icon="check" class="text-xs" />
                             <x-button flat label="Cancel" wire:click="cancelEdit" class="text-xs" />
@@ -76,6 +82,7 @@
                                     @elseif($option->type == 42) Not Answered Cancel
                                     @else {{ $isSatisfaction ? 'Cancel' : 'Skip' }} @endif
                                 </span>
+                                <span class="ml-2 text-xs text-gray-500">Status: {{ $option->status ?? '—' }}</span>
                             </div>
                             <x-button icon="pencil" wire:click="startEdit({{ $option->id }})" class="text-xs p-1" />
                             <x-button icon="trash" wire:click="deleteOption({{ $option->id }})" class="text-xs p-1 text-red-500" />

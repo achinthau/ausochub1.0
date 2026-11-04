@@ -42,6 +42,34 @@ class FeedContactValid extends Model
     }
 
     /**
+     * Append a comment to the existing comments log instead of replacing it.
+     *
+     * Each entry is prefixed with the date and the agent who wrote it so the
+     * activity log can display the full history of follow-up comments.
+     */
+    public function appendComment(?string $comment, ?int $agentId = null): void
+    {
+        $comment = trim((string) $comment);
+
+        if ($comment === '') {
+            return;
+        }
+
+        $agentId = $agentId ?: auth()->id();
+        $agentName = $agentId ? optional(User::find($agentId))->name : null;
+
+        $agentLabel = $agentName
+            ? "Agent {$agentId} - {$agentName}"
+            : ($agentId ? "Agent {$agentId}" : 'Agent System');
+
+        $entry = '[' . now()->format('Y-m-d h:i A') . ' | ' . $agentLabel . '] ' . $comment;
+
+        $existing = trim((string) $this->comments);
+
+        $this->comments = $existing === '' ? $entry : $existing . PHP_EOL . $entry;
+    }
+
+    /**
      * Advance a record to the next "not answered" status.
      *
      * The attempt count is authoritative for skipped/callback (status 3)

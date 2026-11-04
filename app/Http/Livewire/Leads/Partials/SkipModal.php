@@ -72,7 +72,7 @@ class SkipModal extends Component
                     $feed->status = 222;
                     $feed->call_status_option_id = null;
                     $feed->call_status_option_type = 'skip';
-                    $feed->comments = $this->comment;
+                    $feed->appendComment($this->comment);
                     $feed->updated_by = Auth::id();
                     $feed->attempted_at = now();
                     $feed->save();
@@ -85,7 +85,7 @@ class SkipModal extends Component
             if ((string) $feed->status === '222') {
                 $feed->call_status_option_id = null;
                 $feed->call_status_option_type = 'skip';
-                $feed->comments = $this->comment;
+                $feed->appendComment($this->comment);
                 $feed->updated_by = Auth::id();
                 $feed->attempted_at = now();
                 $feed->save();
@@ -112,7 +112,7 @@ class SkipModal extends Component
             $feed->status = 3; // skipped
             $feed->call_status_option_id = null;
             $feed->call_status_option_type = 'skip';
-            $feed->comments = $this->comment;
+            $feed->appendComment($this->comment);
             $feed->updated_by = Auth::id();
             $feed->attempted_at = now();
             $feed->save();

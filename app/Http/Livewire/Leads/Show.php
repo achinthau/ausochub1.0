@@ -185,12 +185,18 @@ class Show extends Component
         }
 
         if ($this->isIncomming) {
-            $ani = $this->lead->contact_number;
+            $aniCandidates = $this->dialerReactionCandidates();
 
-            if ($ani) {
-                $latestRecord = QueueCount::where('ani', $ani)->where('status', 2)
-                    ->orderBy('id', 'desc')
+            if (!empty($aniCandidates)) {
+                $latestRecord = QueueCount::whereIn('ani', $aniCandidates)->where('status', 2)
+                    ->orderByDesc('id')
                     ->first();
+
+                if (!$latestRecord) {
+                    $latestRecord = QueueCount::whereIn('ani', $aniCandidates)
+                        ->orderByDesc('id')
+                        ->first();
+                }
 
                 if ($latestRecord) {
                     $latestRecord->customer_reaction = $reaction;
@@ -205,8 +211,17 @@ class Show extends Component
                 $latestRecord = CallCount::whereIn('dnis', $dnisCandidates)
                     ->where('direction', 'out')
                     ->where('status', 1)
-                    ->orderBy('id', 'desc')
+                    ->orderByDesc('id')
                     ->first();
+
+                if (!$latestRecord) {
+                    // Some outbound calls are stored as "disout" or with a
+                    // different status, so fall back to the latest record.
+                    $latestRecord = CallCount::whereIn('dnis', $dnisCandidates)
+                        ->whereIn('direction', ['out', 'disout'])
+                        ->orderByDesc('id')
+                        ->first();
+                }
 
                 if ($latestRecord) {
                     $latestRecord->customer_reaction = $reaction;
@@ -243,6 +258,24 @@ class Show extends Component
                             ]);
                     }
                 }
+            }
+        }
+
+        // The reaction/comment toggle belongs to the follow-up page, so keep
+        // the comment in the record's append-only comments log as well.
+        if (trim((string) $this->comment) !== '') {
+            $feed = $this->feedContactId ? FeedContactValid::find($this->feedContactId) : null;
+
+            if (!$feed && !empty($this->feedContacts)) {
+                $feed = $this->feedContacts->first();
+            }
+
+            if ($feed) {
+                $feed->appendComment($this->comment, Auth::id());
+                $feed->updated_by = Auth::id();
+                $feed->save();
+
+                $this->refreshFeedContactStatus();
             }
         }
 
@@ -1036,8 +1069,10 @@ class Show extends Component
             $ticket->next_available_at = $contact->next_available_at;
             $ticket->more_data = json_encode(array_diff_key($data, array_flip($cxTicketColumns)));
 
-            if ($this->service_type === 'satisfaction-mini') {
-                $this->miniComments[$contact->id] = $contact->comments ?? '';
+            if ($this->service_type === 'satisfaction-mini' && !array_key_exists($contact->id, $this->miniComments)) {
+                // Comments are append-only, so the input starts empty instead of
+                // repeating the existing history back into the log.
+                $this->miniComments[$contact->id] = '';
             }
 
             return $ticket;
@@ -1305,7 +1340,7 @@ class Show extends Component
                 $feed->call_status_option_id = implode(',', $reasons);
                 $feed->call_status_option_type = '1';
                 $feed->rate = (int) $rating;
-                $feed->comments = '';
+                $feed->appendComment($comment);
                 $feed->campaign_id = $this->miniCampaignId;
                 $feed->updated_by = Auth::id();
                 $feed->attempted_at = now();
@@ -1366,7 +1401,7 @@ class Show extends Component
                 $feed->call_status_option_id = implode(',', $reasons);
                 $feed->call_status_option_type = implode(',', $types);
                 $feed->rate = null;
-                $feed->comments = $comment;
+                $feed->appendComment($comment);
                 $feed->campaign_id = $this->miniCampaignId;
                 $feed->updated_by = Auth::id();
                 $feed->attempted_at = now();
@@ -1389,7 +1424,7 @@ class Show extends Component
                 $feed->call_status_option_id = implode(',', $reasons);
                 $feed->call_status_option_type = implode(',', $optionTypes);
                 $feed->rate = null;
-                $feed->comments = $comment;
+                $feed->appendComment($comment);
                 $feed->campaign_id = $this->miniCampaignId;
                 $feed->updated_by = Auth::id();
                 $feed->attempted_at = now();
@@ -1406,7 +1441,7 @@ class Show extends Component
                 $feed->call_status_option_id = '';
                 $feed->call_status_option_type = '';
                 $feed->rate = null;
-                $feed->comments = $comment;
+                $feed->appendComment($comment);
                 $feed->campaign_id = $this->miniCampaignId;
                 $feed->updated_by = Auth::id();
                 $feed->attempted_at = now();
@@ -1458,7 +1493,27 @@ class Show extends Component
 
     public function refreshTimeline()
     {
-        $this->emitTo('leads.partials.activity-log', 'refreshTimeline');
+        $this->emitTo('leads.partials.activity-log', 'refreshTimeline', $this->activityFeedContactIds());
+    }
+
+    /**
+     * IDs of the follow-up records currently visible on this page.
+     *
+     * The activity log uses these to load the comments of exactly the records
+     * the agent is working with.
+     *
+     * @return array<int, int>
+     */
+    protected function activityFeedContactIds(): array
+    {
+        return collect($this->feedContacts)
+            ->pluck('id')
+            ->merge(collect($this->surveyContacts)->pluck('feed_contact_id'))
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
     }
 
     public function save()
@@ -1743,7 +1798,7 @@ class Show extends Component
                         $feed->status = 222;
                         $feed->next_available_at = $callbackAt;
                         $feed->call_status_option_type = 'skip';
-                        $feed->comments = $this->callbackComment;
+                        $feed->appendComment($this->callbackComment);
                         $feed->updated_by = Auth::id();
                         $feed->attempted_at = now();
                         $feed->save();
@@ -1755,7 +1810,7 @@ class Show extends Component
                 if ((string) $feed->status === '222') {
                     $feed->next_available_at = $callbackAt;
                     $feed->call_status_option_type = 'skip';
-                    $feed->comments = $this->callbackComment;
+                    $feed->appendComment($this->callbackComment);
                     $feed->updated_by = Auth::id();
                     $feed->attempted_at = now();
                     $feed->save();
@@ -1766,7 +1821,7 @@ class Show extends Component
                 $feed->status = 3;
                 $feed->next_available_at = $callbackAt;
                 $feed->call_status_option_type = 'skip';
-                $feed->comments = $this->callbackComment;
+                $feed->appendComment($this->callbackComment);
                 $feed->updated_by = Auth::id();
                 $feed->attempted_at = now();
                 $feed->save();

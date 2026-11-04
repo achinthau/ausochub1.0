@@ -300,10 +300,19 @@ if ($status === 'answered') {
                 return;
             }
 
+            $reasonOptions = DialerCallStatusOption::whereIn('option', $this->selectedReasons)->get();
+
             $optionNameString = implode(',', array_values(array_unique($this->selectedReasons)));
-            $optionTypeString = DialerCallStatusOption::whereIn('option', $this->selectedReasons)
+            $optionTypeString = $reasonOptions
                 ->pluck('type')
                 ->map(fn ($type) => (string) $type)
+                ->unique()
+                ->values()
+                ->implode(',');
+            $optionStatusString = $reasonOptions
+                ->pluck('status')
+                ->filter(fn ($status) => $status !== null && $status !== '')
+                ->map(fn ($status) => (string) $status)
                 ->unique()
                 ->values()
                 ->implode(',');
@@ -338,6 +347,11 @@ if ($status === 'answered') {
 
             $optionNameString = $option['value'];
             $optionTypeString = $option['type'];
+            $optionStatusString = $option['status'] ?? null;
+
+            if ($optionStatusString === null || $optionStatusString === '') {
+                $optionStatusString = DialerCallStatusOption::where('option', $option['value'])->value('status');
+            }
         }
 
         $isChangeRequest = collect(explode(',', $optionNameString))
@@ -350,8 +364,24 @@ if ($status === 'answered') {
             ->unique()
             ->values();
 
+        $optionStatuses = collect(explode(',', (string) ($optionStatusString ?? '')))
+            ->map(fn ($status) => (string) trim($status))
+            ->filter(fn ($status) => $status !== '')
+            ->unique()
+            ->values();
+
         if ($isChangeRequest) {
             $targetStatus = 5;
+        } elseif ($optionStatuses->contains('41')) {
+            $targetStatus = 41; // Answered cancel
+        } elseif ($optionStatuses->contains('42')) {
+            $targetStatus = 42; // Not answered cancel
+        } elseif ($optionStatuses->contains('2')) {
+            // Status 2 keeps the existing retry progression: 2 -> 22 -> 222.
+            $targetStatus = null;
+        } elseif ($optionStatuses->isNotEmpty()) {
+            $firstStatus = $optionStatuses->first();
+            $targetStatus = is_numeric($firstStatus) ? (int) $firstStatus : $firstStatus;
         } elseif ($optionTypes->contains('41')) {
             $targetStatus = 41; // Answered cancel
         } elseif ($optionTypes->contains('42')) {
@@ -366,6 +396,7 @@ if ($status === 'answered') {
             'feed_contact_id' => $this->feed?->id,
             'target_status' => $targetStatus,
             'option_type' => $optionTypeString,
+            'option_status' => $optionStatusString ?? null,
             'option_name' => $optionNameString,
         ]);
 
@@ -439,7 +470,7 @@ if ($status === 'answered') {
 
                 $feed->call_status_option_id = $optionNameString;
                 $feed->call_status_option_type = $isChangeRequest ? 'change_request' : $optionTypeString;
-                $feed->comments = $this->comment;
+                $feed->appendComment($this->comment);
                 $feed->promised_date = $this->promisedDate;
                 $feed->campaign_id = $this->campaign;
                 $feed->updated_by = Auth::id();
@@ -465,7 +496,7 @@ if ($status === 'answered') {
 
             $this->feed->call_status_option_id = $optionNameString;
             $this->feed->call_status_option_type = $isChangeRequest ? 'change_request' : $optionTypeString;
-            $this->feed->comments = $this->comment;
+            $this->feed->appendComment($this->comment);
             $this->feed->promised_date = $this->promisedDate;
             $this->feed->campaign_id = $this->campaign;
             $this->feed->updated_by = Auth::id();

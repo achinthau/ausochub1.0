@@ -453,11 +453,11 @@
                                             class="w-24 bg-green-300 font-bold hover:bg-green-400 p-2 rounded-md shadow-md ">
                                             Make a call</button> --}}
                                             
-                                        <button type="button"
+                                        {{-- <button type="button"
                                             wire:click="$emit('openSkipContactModal', '{{ $lead->contact_number }}','{{ $lead->contact_number_2 }}', '{{ $feed_id }}', '{{ $service_type }}', '{{ $loadedContactIds->implode(',') }}')"
                                             class="w-24 bg-orange-300 font-bold hover:bg-orange-400 p-2 rounded-md shadow-md">
                                             Skip
-                                        </button>
+                                        </button> --}}
 
                                         <button type="button"
                                             wire:click="$emit('openChangeLangModal', '{{ $loadedContactIds->implode(',') }}')"
@@ -1189,7 +1189,7 @@
                                                                     @elseif($isSkipped)
                                                                         <span
                                                                             class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-orange-600 rounded-full">
-                                                                            Skipped
+                                                                            Call Back
                                                                         </span>
                                                                         @if(isset($notAnsweredCount) && $notAnsweredCount > 0)
                                                                         <span

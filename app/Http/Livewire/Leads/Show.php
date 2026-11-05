@@ -1797,7 +1797,7 @@ class Show extends Component
                         $feed->attempt_count = 3;
                         $feed->status = 222;
                         $feed->next_available_at = $callbackAt;
-                        $feed->call_status_option_type = 'skip';
+                        $feed->call_status_option_type = 'call back';
                         $feed->appendComment($this->callbackComment);
                         $feed->updated_by = Auth::id();
                         $feed->attempted_at = now();
@@ -1809,7 +1809,7 @@ class Show extends Component
 
                 if ((string) $feed->status === '222') {
                     $feed->next_available_at = $callbackAt;
-                    $feed->call_status_option_type = 'skip';
+                    $feed->call_status_option_type = 'call back';
                     $feed->appendComment($this->callbackComment);
                     $feed->updated_by = Auth::id();
                     $feed->attempted_at = now();
@@ -1820,7 +1820,7 @@ class Show extends Component
 
                 $feed->status = 3;
                 $feed->next_available_at = $callbackAt;
-                $feed->call_status_option_type = 'skip';
+                $feed->call_status_option_type = 'call back';
                 $feed->appendComment($this->callbackComment);
                 $feed->updated_by = Auth::id();
                 $feed->attempted_at = now();

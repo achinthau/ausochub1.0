@@ -128,6 +128,18 @@ if ($status === 'answered') {
         }
     }
 
+    public function updatedSelectedOption($value)
+    {
+        $option = $value ? json_decode($value, true) : null;
+        $selectedStatus = (string) ($option['status'] ?? '');
+
+        // The next available schedule only applies to retry reasons (status 2).
+        if ($selectedStatus !== '2') {
+            $this->nextAvailableDate = null;
+            $this->nextAvailableTime = null;
+        }
+    }
+
     public function removeReason($reason)
     {
         $this->selectedReasons = array_values(array_filter($this->selectedReasons, fn($r) => $r !== $reason));
@@ -402,7 +414,10 @@ if ($status === 'answered') {
 
         $nextAvailableAt = null;
 
-        if ($this->isFollowUp && $this->status == 'not_answered'
+        $selectedOptionData = $this->selectedOption ? json_decode($this->selectedOption, true) : null;
+        $selectedStatus = (string) ($selectedOptionData['status'] ?? '');
+
+        if ($this->isFollowUp && $this->status == 'not_answered' && $selectedStatus === '2'
             && (!empty($this->nextAvailableDate) || !empty($this->nextAvailableTime))) {
             $this->validate([
                 'nextAvailableDate' => 'required|date|after_or_equal:today',

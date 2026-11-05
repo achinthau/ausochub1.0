@@ -57,8 +57,13 @@
                 @endif
             </div>
 
-            @if($isFollowUp && $status == 'not_answered')
-                {{-- Optional next available schedule for follow-up campaigns --}}
+            @php
+                $selected = $selectedOption ? json_decode($selectedOption, true) : null;
+                $selectedStatus = optional($selected)['status'] ?? null;
+            @endphp
+
+            @if($isFollowUp && $status == 'not_answered' && (string) $selectedStatus === '2')
+                {{-- Optional next available schedule for follow-up campaigns (retry reasons only) --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2">Next Available At</label>
                     <div class="grid grid-cols-2 gap-4">
@@ -83,10 +88,6 @@
 
             {{-- Comment --}}
             <div>
-                @php
-                    $selected = $selectedOption ? json_decode($selectedOption, true) : null;
-                @endphp
-
                 @if(optional($selected)['value'] === 'Promised to pay')
                     <label class="block text-sm font-medium text-gray-700 mb-2">Select Payment/Promised Date</label>
                     <input type="date" wire:model="paymentDate"

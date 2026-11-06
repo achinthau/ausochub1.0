@@ -207,7 +207,7 @@ class TodayDialerReportTable extends DataTableComponent
                 });
         }
 
-        return array_merge($columns, [
+        $columns = array_merge($columns, [
             // Column::make("Campaign Type", "campaign_id")
             //     ->format(fn ($value, $row) => optional($row->campaign?->types)->name ?? 'N/A'),
 
@@ -257,6 +257,16 @@ class TodayDialerReportTable extends DataTableComponent
             Column::make("Called At", "attempted_at")
                 ->sortable(),
         ]);
+
+        if ($this->isAdmin()) {
+            $columns[] = Column::make("More")
+                ->label(fn ($row) => view('livewire.reports.partials.today-dialer-data-action', [
+                    'rowKey' => $row->row_key,
+                ]))
+                ->html();
+        }
+
+        return $columns;
     }
 
     public function filters(): array

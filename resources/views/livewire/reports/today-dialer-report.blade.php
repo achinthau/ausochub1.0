@@ -32,3 +32,9 @@
         </div>
     </div>
 </div>
+
+@push('modals')
+    @if (auth()->user()->can('is-admin'))
+        @livewire('reports.partials.today-dialer-data-modal')
+    @endif
+@endpush

@@ -23,6 +23,10 @@ class TodayDialerReportTable extends DataTableComponent
 
     public $selectedCampaign = null;
 
+    public $showMoreDetailsModal = false;
+
+    public $moreDetails = [];
+
     protected $listeners = [
         'todayDialerCampaignSelected' => 'setCampaign',
         'refreshTable' => '$refresh',
@@ -52,6 +56,62 @@ class TodayDialerReportTable extends DataTableComponent
     protected function isSuperAdmin(): bool
     {
         return auth()->user()->user_type_id === 1;
+    }
+
+    /**
+     * Render the modal markup outside of the table itself.
+     */
+    public function customView(): string
+    {
+        if (! $this->isAdmin()) {
+            return 'livewire-tables::stubs.custom';
+        }
+
+        return 'livewire.reports.partials.today-dialer-more-modal';
+    }
+
+    /**
+     * Load the raw "data" payload for the selected row and open the modal.
+     */
+    public function showMoreDetails($rowKey)
+    {
+        if (! $this->isAdmin()) {
+            return;
+        }
+
+        $rowKey = (string) $rowKey;
+        $record = null;
+
+        if (str_starts_with($rowKey, 'v-')) {
+            $record = FeedContactValid::find((int) substr($rowKey, 2));
+        } elseif (str_starts_with($rowKey, 'r-')) {
+            $record = FeedContactValidReport::find((int) substr($rowKey, 2));
+        }
+
+        if (! $record) {
+            return;
+        }
+
+        $accessibleCampaignIds = array_map('intval', $this->accessibleCampaignIds());
+
+        if (! in_array((int) $record->campaign_id, $accessibleCampaignIds, true)) {
+            return;
+        }
+
+        $rawData = trim((string) $record->data);
+        $decoded = json_decode($rawData, true);
+
+        if ($rawData === '') {
+            $this->moreDetails = [];
+        } elseif (json_last_error() !== JSON_ERROR_NONE) {
+            $this->moreDetails = ['Raw Data' => $rawData];
+        } elseif (is_array($decoded)) {
+            $this->moreDetails = $decoded;
+        } else {
+            $this->moreDetails = ['Value' => $decoded];
+        }
+
+        $this->showMoreDetailsModal = true;
     }
 
     protected function accessibleCampaignIds(): array
@@ -205,7 +265,7 @@ class TodayDialerReportTable extends DataTableComponent
                 });
         }
 
-        return array_merge($columns, [
+        $columns = array_merge($columns, [
             // Column::make("Campaign Type", "campaign_id")
             //     ->format(fn ($value, $row) => optional($row->campaign?->types)->name ?? 'N/A'),
 
@@ -279,6 +339,14 @@ class TodayDialerReportTable extends DataTableComponent
             Column::make("Called At", "attempted_at")
                 ->sortable(),
         ]);
+
+        if ($this->isAdmin()) {
+            $columns[] = Column::make("More")
+                ->label(fn ($row) => view('livewire.reports.partials.today-dialer-more-button', ['rowKey' => $row->row_key]))
+                ->html();
+        }
+
+        return $columns;
     }
 
     public function filters(): array

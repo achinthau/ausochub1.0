@@ -63,6 +63,8 @@ class Show extends Component
     public $phone_numbers = [];
     public $whatsappModal = false;
     public $whatsappMessage = '';
+    public $addContactModal = false;
+    public $newContactNumber = '';
     public $notifyWhatsApp = false;
     public $notifyEmail = false;
     public $notifyPhone = false;
@@ -1042,10 +1044,7 @@ class Show extends Component
             $ticket->feed_contact_status = $contactStatus;
             $ticket->next_available_at = $contact->next_available_at;
             $ticket->more_data = json_encode(array_diff_key($data, array_flip($cxTicketColumns)));
-
-            if ($this->service_type === 'satisfaction-mini') {
-                $this->miniComments[$contact->id] = $contact->comments ?? '';
-            }
+            $ticket->feed_comments = $contact->comments;
 
             return $ticket;
         });
@@ -1212,6 +1211,27 @@ class Show extends Component
         }
     }
 
+    /**
+     * Append a new comment to an existing comment history.
+     *
+     * Each entry is prefixed with the date/time and the name of the agent who
+     * added it so previous comments are never lost.
+     */
+    protected function appendComment(?string $existing, ?string $comment): string
+    {
+        $comment = trim((string) $comment);
+        $existing = trim((string) $existing);
+
+        if ($comment === '') {
+            return $existing;
+        }
+
+        $agent = Auth::user()->name ?? 'Agent';
+        $entry = '[' . now()->format('Y-m-d H:i') . '] ' . $agent . ': ' . $comment;
+
+        return $existing === '' ? $entry : $existing . "\n" . $entry;
+    }
+
     public function submitSatisfactionMini()
     {
         $this->dialerLog()->info('dialer.satisfaction_mini.submit_started', [
@@ -1312,7 +1332,7 @@ class Show extends Component
                 $feed->call_status_option_id = implode(',', $reasons);
                 $feed->call_status_option_type = '1';
                 $feed->rate = (int) $rating;
-                $feed->comments = '';
+                $feed->comments = $this->appendComment($feed->comments, $comment);
                 $feed->campaign_id = $this->miniCampaignId;
                 $feed->updated_by = Auth::id();
                 $feed->attempted_at = now();
@@ -1373,7 +1393,7 @@ class Show extends Component
                 $feed->call_status_option_id = implode(',', $reasons);
                 $feed->call_status_option_type = implode(',', $types);
                 $feed->rate = null;
-                $feed->comments = $comment;
+                $feed->comments = $this->appendComment($feed->comments, $comment);
                 $feed->campaign_id = $this->miniCampaignId;
                 $feed->updated_by = Auth::id();
                 $feed->attempted_at = now();
@@ -1401,7 +1421,7 @@ class Show extends Component
                 $feed->call_status_option_id = implode(',', $reasons);
                 $feed->call_status_option_type = implode(',', $optionTypes);
                 $feed->rate = null;
-                $feed->comments = $comment;
+                $feed->comments = $this->appendComment($feed->comments, $comment);
                 $feed->campaign_id = $this->miniCampaignId;
                 $feed->updated_by = Auth::id();
                 $feed->attempted_at = now();
@@ -1419,7 +1439,7 @@ class Show extends Component
                 $feed->call_status_option_id = '';
                 $feed->call_status_option_type = '';
                 $feed->rate = null;
-                $feed->comments = $comment;
+                $feed->comments = $this->appendComment($feed->comments, $comment);
                 $feed->campaign_id = $this->miniCampaignId;
                 $feed->updated_by = Auth::id();
                 $feed->attempted_at = now();
@@ -1750,6 +1770,69 @@ class Show extends Component
         session()->flash('messagedialog', 'Callback saved successfully.');
 
         $this->reset(['callBack', 'callbackDate', 'callbackTime', 'callbackComment']);
+    }
+
+    public function showAddContactModal()
+    {
+        $this->resetValidation('newContactNumber');
+        $this->newContactNumber = '';
+        $this->addContactModal = true;
+    }
+
+    public function callAddedContact()
+    {
+        $number = preg_replace('/\D+/', '', (string) $this->newContactNumber);
+
+        if (strlen($number) !== 10) {
+            $this->addError('newContactNumber', 'Please enter a valid 10 digit phone number.');
+            return;
+        }
+
+        $this->resetValidation('newContactNumber');
+
+        // Log the given number against the contact(s) before placing the call.
+        $this->appendCommentToCurrentContacts('Dialed to given contact:' . $number);
+
+        if (!in_array($number, $this->phone_numbers, true)) {
+            $this->phone_numbers[] = $number;
+        }
+        $this->selectedContact = $number;
+
+        $this->addContactModal = false;
+        $this->newContactNumber = '';
+
+        $this->refreshFeedContactStatus();
+
+        $this->makeCall($number);
+    }
+
+    protected function appendCommentToCurrentContacts(string $comment): void
+    {
+        $contactIds = collect([$this->feedContactId]);
+
+        if ($this->selectedFeedContact) {
+            $contactIds->push($this->selectedFeedContact->id ?? null);
+        }
+
+        foreach (collect($this->feedContacts) as $contact) {
+            $contactIds->push($contact->id ?? null);
+        }
+
+        foreach (collect($this->surveyContacts) as $ticket) {
+            $ticket = (object) $ticket;
+            $contactIds->push($ticket->feed_contact_id ?? null);
+        }
+
+        $contactIds = $contactIds->filter()->unique()->values();
+
+        if ($contactIds->isEmpty()) {
+            return;
+        }
+
+        foreach (FeedContactValid::whereIn('id', $contactIds)->get() as $contact) {
+            $contact->comments = $this->appendComment($contact->comments, $comment);
+            $contact->save();
+        }
     }
 
     public function makeCall($phone)

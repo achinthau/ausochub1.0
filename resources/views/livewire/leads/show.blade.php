@@ -494,6 +494,11 @@
                                             @endif
                                         @endforeach
 
+                                        <button type="button" wire:click="showAddContactModal"
+                                            class="text-sm font-semibold text-green-600 hover:text-green-700">
+                                            + Add Contact
+                                        </button>
+
                                     </div>
 
                                     <div>
@@ -992,10 +997,14 @@
                             </td>
 
                             <td class="p-2 border">
+                                @if(!empty(trim((string) ($ticket->feed_comments ?? ''))))
+                                    <div class="w-48 max-h-24 overflow-y-auto whitespace-pre-line text-xs text-gray-600 bg-gray-50 border border-gray-200 rounded p-1 mb-1"
+                                        title="{{ $ticket->feed_comments }}">{{ $ticket->feed_comments }}</div>
+                                @endif
                                 <textarea wire:model="miniComments.{{ $id }}" rows="2"
                                     @disabled($isSubmitted)
                                     class="w-40 border p-1 rounded text-xs {{ $isSubmitted ? 'bg-gray-100' : '' }}"
-                                    placeholder="Add comment"></textarea>
+                                    placeholder="Add a new comment"></textarea>
                             </td>
 
                             {{-- <td class="p-2 border">{{ $ticket->sold_date ?? '--' }}</td> --}}
@@ -1267,6 +1276,28 @@
 
 
 
+
+    <x-modal.card blur wire:model="addContactModal" title="Add Contact">
+        <div class="space-y-3">
+            <div>
+                <label for="new_contact_number" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                <input id="new_contact_number" type="text" inputmode="numeric" maxlength="10"
+                    wire:model.defer="newContactNumber"
+                    class="mt-1 block w-full border border-gray-300 rounded-lg p-3 text-gray-800 transition duration-150 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50"
+                    placeholder="07XXXXXXXX">
+                @error('newContactNumber')
+                    <span class="mt-1 block text-sm text-red-500">{{ $message }}</span>
+                @enderror
+                <p class="mt-1 text-xs text-gray-500">Enter a 10 digit phone number.</p>
+            </div>
+        </div>
+        <x-slot name="footer">
+            <div class="flex justify-end gap-x-3">
+                <x-button flat label="Cancel" x-on:click="close" />
+                <x-button positive label="Call" wire:click="callAddedContact" spinner="callAddedContact" />
+            </div>
+        </x-slot>
+    </x-modal.card>
 
     <x-modal.card blur wire:model="whatsappModal" title="Send Message to Customer">
         <div class="space-y-6">

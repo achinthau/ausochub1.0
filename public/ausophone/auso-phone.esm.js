@@ -2649,7 +2649,7 @@ var Message = class {
 };
 
 // node_modules/sip.js/lib/api/notification.js
-var Notification = class {
+var Notification2 = class {
   /** @internal */
   constructor(incomingNotifyRequest) {
     this.incomingNotifyRequest = incomingNotifyRequest;
@@ -3469,12 +3469,12 @@ var Session = class _Session {
       return;
     }
     if (this.onNotify) {
-      const notification = new Notification(request);
+      const notification = new Notification2(request);
       this.onNotify(notification);
       return;
     }
     if (this.delegate && this.delegate.onNotify) {
-      const notification = new Notification(request);
+      const notification = new Notification2(request);
       this.delegate.onNotify(notification);
     } else {
       request.accept();
@@ -12474,7 +12474,7 @@ var UserAgent = class _UserAgent {
       },
       onNotify: (incomingNotifyRequest) => {
         if (this.delegate && this.delegate.onNotify) {
-          const notification = new Notification(incomingNotifyRequest);
+          const notification = new Notification2(incomingNotifyRequest);
           this.delegate.onNotify(notification);
         } else {
           if (this.options.allowLegacyNotifications) {
@@ -13264,7 +13264,12 @@ var CallManager = class {
           const code = response?.message?.statusCode;
           if (call.state === CallState.DIALING && (code === 180 || code === 183)) {
             this._setState(call, CallState.RINGING, PhoneEvents.RINGING);
-            if (code === 180 && !call.consultation) this.media.startRingback();
+            if (code === 180 && !call.consultation) {
+              try {
+                this.media.startRingback();
+              } catch (e) {
+              }
+            }
           }
         },
         onReject: (response) => {
@@ -14131,32 +14136,51 @@ var MediaManager = class {
   }
   /** Outbound ringback heard by the agent while the far end rings. */
   startRingback() {
+    if (!this.enableTones) return;
+    this.stopTone();
+    try {
+      const ctx = this._ctx();
+      if (ctx && ctx.state === "suspended") {
+        ctx.resume().catch(() => {
+        });
+      }
+    } catch (err) {
+      log5.debug("ringback ctx resume failed", err);
+    }
     this._startTone([400, 450], { onMs: 1500, offMs: 3e3, gain: 0.25 });
   }
   _startTone(freqs, { onMs, offMs, gain = 0.35 }) {
     if (!this.enableTones) return;
     this.stopTone();
-    const ctx = this._ctx();
-    const master = ctx.createGain();
-    master.gain.value = 0;
-    master.connect(ctx.destination);
-    const oscillators = freqs.map((f) => {
-      const osc = ctx.createOscillator();
-      osc.type = "sine";
-      osc.frequency.value = f;
-      osc.connect(master);
-      osc.start();
-      return osc;
-    });
-    const level = gain * this.ringtoneVolume;
-    const cycle = () => {
-      const now = ctx.currentTime;
-      master.gain.setValueAtTime(level, now);
-      master.gain.setValueAtTime(0, now + onMs / 1e3);
-    };
-    cycle();
-    const timer = setInterval(cycle, onMs + offMs);
-    this.activeTone = { oscillators, master, timer };
+    try {
+      const ctx = this._ctx();
+      if (ctx && ctx.state === "suspended") {
+        ctx.resume().catch(() => {
+        });
+      }
+      const master = ctx.createGain();
+      master.gain.value = 0;
+      master.connect(ctx.destination);
+      const oscillators = freqs.map((f) => {
+        const osc = ctx.createOscillator();
+        osc.type = "sine";
+        osc.frequency.value = f;
+        osc.connect(master);
+        osc.start();
+        return osc;
+      });
+      const level = gain * this.ringtoneVolume;
+      const cycle = () => {
+        const now = ctx.currentTime;
+        master.gain.setValueAtTime(level, now);
+        master.gain.setValueAtTime(0, now + onMs / 1e3);
+      };
+      cycle();
+      const timer = setInterval(cycle, onMs + offMs);
+      this.activeTone = { oscillators, master, timer };
+    } catch (err) {
+      log5.warn("tone playback failed", err);
+    }
   }
   stopTone() {
     if (!this.activeTone) return;
@@ -15512,14 +15536,17 @@ var styles = `
   --auso-danger: #dc2626;
   --auso-success: #16a34a;
   --auso-warn: #d97706;
-  --auso-radius: 14px;
-  --auso-shadow: 0 8px 30px rgba(15, 23, 42, .12);
+  --auso-radius: 10px;
+  --auso-shadow: 0 6px 24px rgba(15, 23, 42, .1);
 
   display: block;
-  width: 340px;
+  width: 260px;
+  min-width: 230px;
+  max-width: 280px;
   font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, sans-serif;
   color: var(--auso-text);
   -webkit-font-smoothing: antialiased;
+  font-size: 12.5px;
 }
 
 :host([theme="dark"]) {
@@ -15547,15 +15574,15 @@ var styles = `
 
 /* ---- Header ---- */
 .header {
-  display: flex; align-items: center; gap: 10px;
-  padding: 12px 14px;
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 10px;
   background: var(--auso-primary);
   color: var(--auso-primary-ink);
 }
-.header img { height: 26px; width: auto; max-width: 110px; object-fit: contain; border-radius: 4px; }
-.header .brand { font-weight: 650; font-size: 14px; letter-spacing: .01em; flex: 1; min-width: 0;
+.header img { height: 20px; width: auto; max-width: 80px; object-fit: contain; border-radius: 4px; }
+.header .brand { font-weight: 650; font-size: 12px; letter-spacing: .01em; flex: 1; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.header .ext { font-size: 12px; opacity: .85; font-variant-numeric: tabular-nums; }
+.header .ext { font-size: 10.5px; opacity: .85; font-variant-numeric: tabular-nums; }
 .icon-btn {
   appearance: none; border: 0; background: transparent; color: inherit; cursor: pointer;
   padding: 6px; border-radius: 8px; display: grid; place-items: center; line-height: 0;
@@ -15565,8 +15592,8 @@ var styles = `
 
 /* ---- Status strip ---- */
 .status {
-  display: flex; align-items: center; gap: 8px;
-  padding: 7px 14px; font-size: 12px;
+  display: flex; align-items: center; gap: 5px;
+  padding: 5px 10px; font-size: 10.5px;
   background: var(--auso-surface);
   border-bottom: 1px solid var(--auso-border);
   color: var(--auso-muted);
@@ -15586,40 +15613,40 @@ var styles = `
 :host([theme="dark"]) .pill { color: #5eead4; }
 
 /* ---- Body ---- */
-.body { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.body { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
 
 /* ---- Dial pad ---- */
 .dial-input {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: 4px;
   border: 1px solid var(--auso-border); border-radius: 10px;
-  background: var(--auso-surface); padding: 4px 4px 4px 12px;
+  background: var(--auso-surface); padding: 3px 3px 3px 10px;
 }
 .dial-input input {
   flex: 1; min-width: 0; border: 0; background: transparent; outline: none;
-  font-size: 20px; font-variant-numeric: tabular-nums; letter-spacing: .02em;
-  color: var(--auso-text); padding: 8px 0;
+  font-size: 18px; font-variant-numeric: tabular-nums; letter-spacing: .02em;
+  color: var(--auso-text); padding: 6px 0;
 }
 .dial-input .icon-btn { color: var(--auso-muted); }
 .dial-input .icon-btn:hover { background: var(--auso-border); }
 
-.keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
 .key {
   appearance: none; cursor: pointer;
   border: 1px solid var(--auso-border); background: var(--auso-bg); color: var(--auso-text);
-  border-radius: 10px; padding: 10px 0 8px;
-  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  border-radius: 9px; padding: 6px 0 5px;
+  display: flex; flex-direction: column; align-items: center; gap: 0;
   transition: transform .06s ease, background .12s ease;
 }
 .key:hover { background: var(--auso-surface); }
 .key:active { transform: scale(.96); }
-.key .digit { font-size: 19px; font-weight: 550; line-height: 1; font-variant-numeric: tabular-nums; }
-.key .letters { font-size: 8.5px; letter-spacing: .12em; color: var(--auso-muted); height: 10px; }
+.key .digit { font-size: 15.5px; font-weight: 550; line-height: 1; font-variant-numeric: tabular-nums; }
+.key .letters { font-size: 7px; letter-spacing: .1em; color: var(--auso-muted); height: 8px; }
 
 /* ---- Buttons ---- */
 .btn {
   appearance: none; cursor: pointer; border: 1px solid transparent;
-  border-radius: 10px; padding: 11px 14px; font-size: 13.5px; font-weight: 600;
-  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  border-radius: 9px; padding: 9px 12px; font-size: 12.5px; font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   transition: filter .12s ease, background .12s ease;
 }
 .btn:disabled { opacity: .45; cursor: not-allowed; }
@@ -15635,8 +15662,8 @@ var styles = `
 
 /* ---- Call card ---- */
 .call-card {
-  border: 1px solid var(--auso-border); border-radius: 12px;
-  background: var(--auso-surface); padding: 14px; text-align: center;
+  border: 1px solid var(--auso-border); border-radius: 11px;
+  background: var(--auso-surface); padding: 11px; text-align: center;
 }
 .call-card.incoming { border-color: var(--auso-success); animation: ring 1.6s ease-in-out infinite; }
 @keyframes ring {
@@ -15648,13 +15675,13 @@ var styles = `
   color: var(--auso-muted); font-weight: 650;
 }
 .call-card .cli {
-  font-size: 23px; font-weight: 620; margin: 5px 0 2px;
+  font-size: 20px; font-weight: 620; margin: 4px 0 2px;
   font-variant-numeric: tabular-nums; word-break: break-all;
 }
-.call-card .who { font-size: 13px; color: var(--auso-muted); min-height: 18px; }
+.call-card .who { font-size: 12px; color: var(--auso-muted); min-height: 16px; }
 .call-card .timer {
-  font-size: 26px; font-variant-numeric: tabular-nums; font-weight: 300;
-  letter-spacing: .04em; margin: 6px 0 10px;
+  font-size: 22px; font-variant-numeric: tabular-nums; font-weight: 300;
+  letter-spacing: .04em; margin: 4px 0 8px;
 }
 .call-card .badges { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; margin-bottom: 10px; min-height: 0; }
 .badge {
@@ -15666,31 +15693,31 @@ var styles = `
 .badge.rec  { color: var(--auso-danger); animation: pulse 1.6s ease-in-out infinite; }
 .badge.auto { color: var(--auso-primary); }
 
-.controls { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-.controls .btn { padding: 10px 8px; font-size: 12.5px; }
+.controls { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+.controls .btn { padding: 8px 6px; font-size: 11.5px; }
 .controls-4 { grid-template-columns: repeat(4, 1fr); }
-.controls-4 .btn { flex-direction: column; gap: 4px; font-size: 10.5px; padding: 9px 2px; }
+.controls-4 .btn { flex-direction: column; gap: 3px; font-size: 9.5px; padding: 7px 2px; }
 
 /* ---- Customer screen-pop ---- */
 .customer {
   border: 1px solid var(--auso-border); border-left: 3px solid var(--auso-primary);
-  border-radius: 8px; background: var(--auso-bg); padding: 9px 11px; text-align: left;
-  margin-bottom: 10px;
+  border-radius: 8px; background: var(--auso-bg); padding: 7px 9px; text-align: left;
+  margin-bottom: 8px;
 }
-.customer .name { font-weight: 650; font-size: 13.5px; }
-.customer .meta { font-size: 11.5px; color: var(--auso-muted); margin-top: 2px; }
+.customer .name { font-weight: 650; font-size: 12.5px; }
+.customer .meta { font-size: 10.5px; color: var(--auso-muted); margin-top: 2px; }
 
 /* ---- Transfer / settings panels ---- */
 .panel {
-  border: 1px solid var(--auso-border); border-radius: 12px;
-  background: var(--auso-surface); padding: 13px;
+  border: 1px solid var(--auso-border); border-radius: 11px;
+  background: var(--auso-surface); padding: 11px;
 }
-.panel h4 { margin: 0 0 10px; font-size: 12.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--auso-muted); }
-.field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
-.field label { font-size: 11.5px; font-weight: 600; color: var(--auso-muted); }
+.panel h4 { margin: 0 0 8px; font-size: 11.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--auso-muted); }
+.field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 8px; }
+.field label { font-size: 10.5px; font-weight: 600; color: var(--auso-muted); }
 .field input, .field select {
-  width: 100%; padding: 9px 10px; font-size: 14px; color: var(--auso-text);
-  border: 1px solid var(--auso-border); border-radius: 8px; background: var(--auso-bg);
+  width: 100%; padding: 7px 8px; font-size: 12.5px; color: var(--auso-text);
+  border: 1px solid var(--auso-border); border-radius: 7px; background: var(--auso-bg);
   outline: none;
 }
 .field input:focus, .field select:focus { border-color: var(--auso-primary); }
@@ -15865,6 +15892,61 @@ var AusoPhoneElement = class extends HTMLElement {
     return this.phone.logout().finally(() => this.render());
   }
   // ---- Rendering ---------------------------------------------------------
+  _showIncomingNotification(call) {
+    if (!call) return;
+    if (call.direction === "outbound") return;
+    try {
+      if (typeof window === "undefined" || !("Notification" in window)) return;
+      const status = this.phone.status?.();
+      if (status?.session?.mirrored) return;
+      if (Notification.permission === "default") {
+        try {
+          Notification.requestPermission();
+        } catch {
+        }
+      }
+      if (Notification.permission !== "granted") return;
+      const name = call.customer?.name || call.remote_display_name || "";
+      const cli = call.cli || call.customer_number || "";
+      const title = name ? `${name} (${cli})` : `Incoming call \u2014 ${cli}`;
+      const n = new Notification(title, {
+        body: `Incoming call from ${cli} \xB7 click to open the phone`,
+        tag: `auso-incoming-${call.call_id || cli}`,
+        requireInteraction: true
+      });
+      n.onclick = () => {
+        try {
+          window.focus();
+        } catch {
+        }
+        try {
+          window.openAusophone?.();
+        } catch {
+        }
+        try {
+          this.scrollIntoView?.({ block: "nearest" });
+        } catch {
+        }
+        try {
+          window.dispatchEvent(new CustomEvent("ausophone:notification-click", {
+            detail: { call }
+          }));
+        } catch {
+        }
+        try {
+          n.close();
+        } catch {
+        }
+      };
+      setTimeout(() => {
+        try {
+          n.close();
+        } catch {
+        }
+      }, 3e4);
+    } catch {
+    }
+  }
   _subscribe() {
     const rerender = () => this.render();
     const watched = [
@@ -15890,7 +15972,19 @@ var AusoPhoneElement = class extends HTMLElement {
       PhoneEvents.RECORDING_STARTED,
       PhoneEvents.RECORDING_STOPPED
     ];
-    watched.forEach((e) => this._unsubscribers.push(this.phone.on(e, rerender)));
+    watched.forEach((e) => {
+      if (e === PhoneEvents.INCOMING) {
+        this._unsubscribers.push(this.phone.on(e, (payload) => {
+          try {
+            this._showIncomingNotification(payload?.call || payload);
+          } catch {
+          }
+          rerender();
+        }));
+      } else {
+        this._unsubscribers.push(this.phone.on(e, rerender));
+      }
+    });
     this._unsubscribers.push(this.phone.on(PhoneEvents.SESSION_STATE, rerender));
     this._unsubscribers.push(this.phone.on(PhoneEvents.SESSION_ROLE, rerender));
     this._unsubscribers.push(
@@ -15903,6 +15997,14 @@ var AusoPhoneElement = class extends HTMLElement {
       this.phone.on(PhoneEvents.TRANSFER_COMPLETED, () => {
         this.view = "dialpad";
         this.transferTarget = "";
+      })
+    );
+    this._unsubscribers.push(
+      this.phone.on(PhoneEvents.HANGUP, () => {
+        if (this.view === "dtmf") {
+          this.view = "dialpad";
+          this.render();
+        }
       })
     );
   }
@@ -15919,7 +16021,7 @@ var AusoPhoneElement = class extends HTMLElement {
       '<div class="body">',
       this.errorMessage ? `<div class="error">${esc(this.errorMessage)}</div>` : "",
       incoming ? this._renderIncoming(incoming) : "",
-      !incoming && active ? this._renderActive(active, s) : "",
+      !incoming && active ? this.view === "dtmf" ? this._renderDtmf(active) : this._renderActive(active, s) : "",
       !incoming && !active && this.view === "dialpad" ? this._renderDialPad(s) : "",
       this.view === "transfer" ? this._renderTransferDialog(s) : "",
       this.view === "settings" ? this._renderSettings(s) : "",
@@ -16017,6 +16119,26 @@ var AusoPhoneElement = class extends HTMLElement {
         </button>
       </div>` : ""}
       ${consulting ? this._renderConsultControls(s) : ""}
+    </div>`;
+  }
+  /** In-call DTMF keypad, shown in place of the call controls so it fits. */
+  _renderDtmf(call) {
+    return `<div class="call-card">
+      <div class="label">${call.held ? "On hold" : "Active call"} \xB7 ${formatDuration(call.duration)}</div>
+      <div class="cli" style="font-size:16px;margin:2px 0 0">${esc(call.cli)}</div>
+      <div class="who">${esc(call.remote_display_name || "")}</div>
+      <div class="controls" style="margin-top:6px">
+        <button class="btn btn-ghost" data-action="close-dtmf">${icons.keypad}Hide keypad</button>
+        <button class="btn btn-danger" data-action="hangup" data-call="${esc(call.call_id)}">${icons.hangup}Hangup</button>
+      </div>
+    </div>
+    <div class="panel">
+      <h4>Keypad</h4>
+      <div class="keys">
+        ${KEYS.map(([d, l]) => `<button class="key" data-action="key" data-key="${d}">
+          <span class="digit">${d}</span><span class="letters">${l}</span>
+        </button>`).join("")}
+      </div>
     </div>`;
   }
   _renderConsultControls(s) {
@@ -16171,12 +16293,14 @@ var AusoPhoneElement = class extends HTMLElement {
         case "key": {
           const key = el.dataset.key;
           const active = this.phone.getActiveCall();
-          if (active && active.state === CallState.ANSWERED && this.view === "dtmf") {
-            await this.phone.sendDTMF(key);
-          } else {
-            this.dialValue += key;
-            this.render();
+          if (this.view === "dtmf") {
+            if (active && active.state === CallState.ANSWERED) {
+              await this.phone.sendDTMF(key);
+            }
+            return;
           }
+          this.dialValue += key;
+          this.render();
           return;
         }
         case "backspace":
@@ -16202,7 +16326,10 @@ var AusoPhoneElement = class extends HTMLElement {
           this.view = "transfer";
           return this.render();
         case "open-dtmf":
-          this.view = this.view === "dtmf" ? "dialpad" : "dtmf";
+          this.view = "dtmf";
+          return this.render();
+        case "close-dtmf":
+          this.view = "dialpad";
           return this.render();
         case "transfer-type":
           this.transferType = el.dataset.type;

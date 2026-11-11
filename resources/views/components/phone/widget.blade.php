@@ -36,14 +36,24 @@
 <style>
     #phone-widget { display: none; }
     #phone-widget.phone-open { display: flex; }
+    #phone-widget auso-phone { margin: 0 auto; }
+    /* While a call is ringing, shrink the frame to the call card so there is no
+       empty box under the Answer / Reject buttons. */
+    #phone-widget.phone-incoming { height: fit-content !important; min-height: 0 !important; }
+    #phone-widget.phone-incoming .phone-body {
+        height: auto !important;
+        flex: 0 0 auto;
+        overflow: visible;
+        background: #fff;
+    }
 </style>
 
 <div id="phone-widget"
     class="fixed z-[60] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
-    style="left: 16px; top: 120px; width: 360px; height: 600px; max-height: calc(100vh - 100px);">
+    style="left: 16px; top: 120px; width: 280px; height: 470px; max-height: calc(100vh - 100px);">
 
     {{-- Title bar (drag handle) --}}
-    <div class="flex h-11 shrink-0 cursor-move select-none items-center justify-between border-b border-slate-200 bg-slate-50 px-4"
+    <div class="flex h-9 shrink-0 cursor-move select-none items-center justify-between border-b border-slate-200 bg-slate-50 px-3"
         id="phone-widget-title">
         <div class="flex items-center gap-2">
             <span class="flex h-2 w-2 rounded-full bg-teal-500"></span>
@@ -63,7 +73,7 @@
         </div>
     </div>
 
-    <div class="h-full min-h-0 overflow-auto bg-slate-50">
+    <div class="phone-body h-full min-h-0 overflow-auto bg-slate-50">
         <auso-phone
             id="auso-phone"
             credentials-url="{{ route('api.phone.credentials') }}"
@@ -85,12 +95,34 @@
 
     var widget = document.getElementById('phone-widget');
 
+    var DEFAULT_HEIGHT = '470px';
+
     function show() {
         widget.classList.add('phone-open');
     }
 
     function hide() {
         widget.classList.remove('phone-open');
+    }
+
+    // Shrink the frame to exactly the ringing card (+ title bar) so no empty
+    // phone background is left below the Answer / Reject buttons.
+    function fitIncoming() {
+        if (!widget || !widget.classList.contains('phone-incoming')) return;
+        var body = widget.querySelector('.phone-body');
+        var el = widget.querySelector('auso-phone');
+        var title = document.getElementById('phone-widget-title');
+        if (body) body.style.height = 'auto';
+        if (!el) return;
+        var needed = (title ? title.offsetHeight : 0) + el.offsetHeight;
+        widget.style.height = Math.min(needed, window.innerHeight - 100) + 'px';
+    }
+
+    function restoreHeight() {
+        widget.classList.remove('phone-incoming');
+        var body = widget.querySelector('.phone-body');
+        if (body) body.style.height = '';
+        widget.style.height = DEFAULT_HEIGHT;
     }
 
     // Shared global toggle so the nav button can open/close this.
@@ -100,9 +132,59 @@
     };
     window.openAusophone = show;
 
+    // Resume audio context on user interaction (needed for callback/ringback sounds)
+    function resumePhoneAudio() {
+        try {
+            if (window.AusoPhone && window.AusoPhone.media) {
+                if (window.AusoPhone.media._ctx) {
+                    var ctx = window.AusoPhone.media._ctx();
+                    if (ctx && ctx.state === 'suspended') {
+                        ctx.resume();
+                    }
+                }
+                if (window.AusoPhone.media.toneContext && window.AusoPhone.media.toneContext.state === 'suspended') {
+                    window.AusoPhone.media.toneContext.resume();
+                }
+            }
+        } catch(e) {}
+    }
+    document.addEventListener('click', resumePhoneAudio, { passive: true });
+    document.addEventListener('touchstart', resumePhoneAudio, { passive: true });
+    document.addEventListener('keydown', resumePhoneAudio, { passive: true });
+
     // Listeners for external triggers
     window.addEventListener('toggle-phone-widget', window.toggleAusophone);
-    window.addEventListener('ausophone:incoming', show);
+    
+    // Reveal the widget on an incoming call. The OS notification itself is
+    // raised by <auso-phone> (AusoPhoneElement) so there is exactly one popup
+    // per call; clicking it focuses this tab and calls openAusophone().
+    window.addEventListener('ausophone:incoming', function() {
+        // Fit the frame to the ringing card so no empty area is shown below
+        // the Answer / Reject buttons.
+        widget.classList.add('phone-incoming');
+        show();
+        resumePhoneAudio();
+        // The element has already re-rendered by now; fit after paint too in
+        // case fonts/layout settle a frame later.
+        fitIncoming();
+        requestAnimationFrame(fitIncoming);
+        setTimeout(fitIncoming, 60);
+    });
+
+    // The customer lookup adds a card a moment after the INVITE; refit so the
+    // frame grows with it instead of clipping or leaving slack.
+    window.addEventListener('ausophone:call_updated', function() {
+        if (widget.classList.contains('phone-incoming')) fitIncoming();
+    });
+
+    // Once the call is answered or ends, go back to the full dial-pad height.
+    ['answered', 'hangup'].forEach(function(name) {
+        window.addEventListener('ausophone:' + name, restoreHeight);
+    });
+
+    // A notification click in this tab should also reveal the widget even if
+    // the user had minimised it.
+    window.addEventListener('ausophone:notification-click', show);
 
     // Close buttons
     var minimize = document.getElementById('phone-widget-minimize');
@@ -133,7 +215,7 @@
         var cy = e.clientY != null ? e.clientY : (e.touches ? e.touches[0].clientY : 0);
         var dx = cx - startX;
         var dy = cy - startY;
-        var left = Math.max(0, Math.min(window.innerWidth - 380, origX + dx));
+        var left = Math.max(0, Math.min(window.innerWidth - 300, origX + dx));
         var top = Math.max(0, Math.min(window.innerHeight - 80, origY + dy));
         widget.style.left = left + 'px';
         widget.style.top = top + 'px';
@@ -149,7 +231,7 @@
         title.addEventListener('mousedown', onDown);
         title.addEventListener('touchstart', onDown);
     }
-    widget.style.left = Math.max(16, window.innerWidth - 400) + 'px';
+    widget.style.left = Math.max(16, window.innerWidth - 320) + 'px';
     widget.style.top = '120px';
 })();
 </script>
@@ -192,7 +274,16 @@
             .catch(function () { setTimeout(doLogin, 4000); });
     }
 
+    function requestNotifPermission() {
+        try {
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission().catch(function(){});
+            }
+        } catch(e) {}
+    }
+
     function boot() {
+        requestNotifPermission();
         if (!canLogin()) { setTimeout(boot, 300); return; }
         setTimeout(doLogin, 500);
     }
@@ -222,6 +313,7 @@
     });
 
     window.addEventListener('pageshow', function (ev) {
+        requestNotifPermission();
         if (!ev.persisted) return;
         resetAttempts();
         setTimeout(doLogin, 1500);

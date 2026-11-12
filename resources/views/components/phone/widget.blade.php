@@ -50,14 +50,15 @@
 
 <div id="phone-widget"
     class="fixed z-[60] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
-    style="left: 16px; top: 120px; width: 280px; height: 470px; max-height: calc(100vh - 100px);">
+    style="left: 16px; top: 120px; width: 280px; height: 420px; max-height: calc(100vh - 100px);">
 
     {{-- Title bar (drag handle) --}}
     <div class="flex h-9 shrink-0 cursor-move select-none items-center justify-between border-b border-slate-200 bg-slate-50 px-3"
         id="phone-widget-title">
         <div class="flex items-center gap-2">
-            <span class="flex h-2 w-2 rounded-full bg-teal-500"></span>
-            <span class="text-xs font-semibold uppercase tracking-wide text-slate-600">Phone</span>
+            
+            <img src="{{ asset('favicon.ico') }}" alt="Phone" class="h-4 w-4 rounded-sm" style="object-fit: contain;">
+            <span class=" text-[#192d95] font-bold text-sm ">Phone</span>
         </div>
         <div class="flex items-center gap-1">
             <button type="button" class="rounded-lg p-1.5 text-slate-500 transition hover:bg-slate-200 hover:text-slate-700" id="phone-widget-minimize" title="Minimize">
@@ -73,7 +74,7 @@
         </div>
     </div>
 
-    <div class="phone-body h-full min-h-0 overflow-auto bg-slate-50">
+    <div class="phone-body min-h-0 overflow-auto bg-slate-50" style="flex: 1 1 0%; padding-top: 10px; padding-bottom: 10px;">
         <auso-phone
             id="auso-phone"
             credentials-url="{{ route('api.phone.credentials') }}"
@@ -95,7 +96,7 @@
 
     var widget = document.getElementById('phone-widget');
 
-    var DEFAULT_HEIGHT = '470px';
+    var DEFAULT_HEIGHT = '420px';
 
     function show() {
         widget.classList.add('phone-open');

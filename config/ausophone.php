@@ -30,7 +30,7 @@ return [
     'branding' => [
         'logo'            => env('AUSOPHONE_LOGO', '/images/logo.png'),
         'company_name'    => env('AUSOPHONE_COMPANY', 'Auso World'),
-        'primary_color'   => env('AUSOPHONE_PRIMARY_COLOR', '#0f766e'),
+        'primary_color'   => env('AUSOPHONE_PRIMARY_COLOR', '#192d95'),
         'show_powered_by' => (bool) env('AUSOPHONE_POWERED_BY', true),
         'theme'           => env('AUSOPHONE_THEME', 'default'),
     ],

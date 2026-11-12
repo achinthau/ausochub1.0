@@ -14940,7 +14940,7 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
     branding: {
       logo: null,
       company_name: "Auso Call Hub",
-      primary_color: "#0f766e",
+      primary_color: "#192d95",
       show_powered_by: true,
       theme: "default"
     },
@@ -15642,7 +15642,7 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
   // ui/styles.js
   var styles = `
 :host {
-  --auso-primary: #0f766e;
+  --auso-primary: #192d95;
   --auso-primary-ink: #ffffff;
   --auso-bg: #ffffff;
   --auso-surface: #f8fafc;
@@ -15695,10 +15695,8 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
   background: var(--auso-primary);
   color: var(--auso-primary-ink);
 }
-.header img { height: 20px; width: auto; max-width: 80px; object-fit: contain; border-radius: 4px; }
-.header .brand { font-weight: 650; font-size: 12px; letter-spacing: .01em; flex: 1; min-width: 0;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .header .ext { font-size: 10.5px; opacity: .85; font-variant-numeric: tabular-nums; }
+.header .spacer { flex: 1; }
 .icon-btn {
   appearance: none; border: 0; background: transparent; color: inherit; cursor: pointer;
   padding: 6px; border-radius: 8px; display: grid; place-items: center; line-height: 0;
@@ -15706,27 +15704,13 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
 .icon-btn:hover { background: rgba(255,255,255,.18); }
 .icon-btn svg { width: 18px; height: 18px; }
 
-/* ---- Status strip ---- */
-.status {
-  display: flex; align-items: center; gap: 5px;
-  padding: 5px 10px; font-size: 10.5px;
-  background: var(--auso-surface);
-  border-bottom: 1px solid var(--auso-border);
-  color: var(--auso-muted);
-}
-.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--auso-muted); flex: none; }
-.dot.registered { background: var(--auso-success); box-shadow: 0 0 0 3px color-mix(in srgb, var(--auso-success) 22%, transparent); }
-.dot.connecting { background: var(--auso-warn); animation: pulse 1.2s ease-in-out infinite; }
-.dot.failed { background: var(--auso-danger); }
+/* ---- Registration indicator ---- */
+.status-icon { display: grid; place-items: center; flex: none; line-height: 0; color: var(--auso-muted); }
+.status-icon svg { width: 14px; height: 14px; }
+.status-icon.registered { color: var(--auso-success); }
+.status-icon.connecting { color: var(--auso-warn); animation: pulse 1.2s ease-in-out infinite; }
+.status-icon.failed { color: var(--auso-danger); }
 @keyframes pulse { 50% { opacity: .3; } }
-.status .spacer { flex: 1; }
-.pill {
-  font-size: 10.5px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase;
-  padding: 2px 7px; border-radius: 999px;
-  background: color-mix(in srgb, var(--auso-primary) 12%, transparent);
-  color: var(--auso-primary);
-}
-:host([theme="dark"]) .pill { color: #5eead4; }
 
 /* ---- Body ---- */
 .body { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
@@ -15874,6 +15858,8 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
     user: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'),
     keypad: svg('<circle cx="6" cy="6" r="1.4"/><circle cx="12" cy="6" r="1.4"/><circle cx="18" cy="6" r="1.4"/><circle cx="6" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="18" cy="12" r="1.4"/><circle cx="6" cy="18" r="1.4"/><circle cx="12" cy="18" r="1.4"/><circle cx="18" cy="18" r="1.4"/>'),
     swap: svg('<path d="M7 4 3 8l4 4M3 8h13M17 20l4-4-4-4M21 16H8"/>'),
+    reconnect: svg('<path d="M20 20v-5h-5M4 4v5h5m10.938 2A8.001 8.001 0 005.07 8m-1.008 5a8.001 8.001 0 0014.868 3"/>', { w: 2 }),
+    status: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m0 12c0-6.627 5.373-12 12-12s12 5.373 12 12-5.373 12-12 12c-6.624-.008-11.992-5.376-12-11.999zm2.4 0c0 5.302 4.298 9.6 9.6 9.6s9.6-4.298 9.6-9.6-4.298-9.6-9.6-9.6c-5.299.006-9.594 4.301-9.6 9.599v.001zm4 0c0-3.093 2.507-5.6 5.6-5.6s5.6 2.507 5.6 5.6-2.507 5.6-5.6 5.6c-3.093 0-5.6-2.507-5.6-5.6z"/></svg>',
     check: svg('<path d="M20 6 9 17l-5-5"/>', { w: 2.4 }),
     x: svg('<path d="M18 6 6 18M6 6l12 12"/>', { w: 2.2 })
   };
@@ -16145,7 +16131,6 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
       const caret = this.shadowRoot.activeElement?.selectionStart;
       this._root.innerHTML = [
         this._renderHeader(s),
-        this._renderStatus(s),
         '<div class="body">',
         this.errorMessage ? `<div class="error">${esc(this.errorMessage)}</div>` : "",
         incoming ? this._renderIncoming(incoming) : "",
@@ -16154,7 +16139,7 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
         this.view === "transfer" ? this._renderTransferDialog(s) : "",
         this.view === "settings" ? this._renderSettings(s) : "",
         "</div>",
-        s.branding.show_powered_by ? '<div class="footer">Powered by AusoPhone</div>' : ""
+        s.branding.show_powered_by ? '<div class="footer">Powered by AusoWorld</div>' : ""
       ].join("");
       this._bindEvents();
       if (focusedId) {
@@ -16209,29 +16194,19 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
       if (timer && timer.textContent !== duration) timer.textContent = duration;
     }
     _renderHeader(s) {
-      const b = s.branding;
+      const dotClass = {
+        [RegistrationState.REGISTERED]: "registered",
+        [RegistrationState.REGISTERING]: "connecting",
+        [RegistrationState.FAILED]: "failed"
+      }[s.registration] ?? "";
+      const mirroring = s.session?.mirrored;
+      const dotLabel = mirroring ? "Mirroring another tab" : s.registered ? "Registered" : "Not registered";
       return `<div class="header">
-      ${b.logo ? `<img src="${esc(b.logo)}" alt="${esc(b.company_name)}">` : ""}
-      <div class="brand">${esc(b.company_name)}</div>
+      <span class="status-icon ${dotClass}" title="${esc(dotLabel)}" role="img" aria-label="${esc(dotLabel)}">${icons.status}</span>
+      ${!s.registered ? `<button class="icon-btn" data-action="login" title="Connect" aria-label="Connect">${icons.reconnect}</button>` : ""}
+      <span class="spacer"></span>
       ${s.extension ? `<span class="ext">Ext ${esc(s.extension)}</span>` : ""}
       <button class="icon-btn" data-action="toggle-settings" title="Settings" aria-label="Settings">${icons.settings}</button>
-    </div>`;
-    }
-    _renderStatus(s) {
-      const map = {
-        [RegistrationState.REGISTERED]: ["registered", "Registered"],
-        [RegistrationState.REGISTERING]: ["connecting", "Registering\u2026"],
-        [RegistrationState.FAILED]: ["failed", "Registration failed"],
-        [RegistrationState.UNREGISTERED]: ["", s.connection === "connected" ? "Connected" : "Offline"]
-      };
-      const [cls, text] = map[s.registration] ?? ["", "Offline"];
-      const mirroring = s.session?.mirrored;
-      return `<div class="status">
-      <span class="dot ${cls}"></span><span>${esc(mirroring ? "Mirroring another tab" : text)}</span>
-      <span class="spacer"></span>
-      ${mirroring ? '<span class="pill" title="This tab follows the tab holding the call. Its microphone is not in use.">Following</span>' : ""}
-      ${s.auto_answer ? '<span class="pill">Auto answer</span>' : ""}
-      ${!s.registered ? '<button class="icon-btn" data-action="login" title="Connect" style="color:var(--auso-muted)">' + icons.phone + "</button>" : ""}
     </div>`;
     }
     /** IncomingCall view — spec §5 screen-pop lives here. */

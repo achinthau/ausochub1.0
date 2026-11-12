@@ -15911,6 +15911,7 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
       this.sipPassword = "";
       this._unsubscribers = [];
       this._rendered = false;
+      this._lastStatusSignature = null;
     }
     connectedCallback() {
       if (!this._rendered) {
@@ -16081,7 +16082,6 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
         PhoneEvents.UNHOLD,
         PhoneEvents.MUTE,
         PhoneEvents.UNMUTE,
-        PhoneEvents.CALL_UPDATED,
         PhoneEvents.TRANSFER_STARTED,
         PhoneEvents.TRANSFER_COMPLETED,
         PhoneEvents.TRANSFER_FAILED,
@@ -16101,7 +16101,18 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
           this._unsubscribers.push(this.phone.on(e, rerender));
         }
       });
-      this._unsubscribers.push(this.phone.on(PhoneEvents.SESSION_STATE, rerender));
+      this._unsubscribers.push(this.phone.on(PhoneEvents.CALL_UPDATED, (payload) => {
+        if (payload?.calls) this._updateTimers(payload.calls);
+        else this.render();
+      }));
+      this._unsubscribers.push(this.phone.on(PhoneEvents.SESSION_STATE, () => {
+        const status = this.phone.status();
+        if (this._statusSignature(status) === this._lastStatusSignature) {
+          this._updateTimers(status?.calls);
+          return;
+        }
+        this.render();
+      }));
       this._unsubscribers.push(this.phone.on(PhoneEvents.SESSION_ROLE, rerender));
       this._unsubscribers.push(
         this.phone.on(PhoneEvents.ERROR, ({ message, fatal }) => {
@@ -16127,6 +16138,7 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
     render() {
       if (!this._root) return;
       const s = this.phone.status();
+      this._lastStatusSignature = this._statusSignature(s);
       const incoming = s.calls.find((c) => c.direction === Direction.INBOUND && c.state === CallState.RINGING);
       const active = s.calls.find((c) => c.state === CallState.ANSWERED || c.state === CallState.HELD) ?? s.calls.find((c) => c.state === CallState.DIALING || c.state === CallState.RINGING);
       const focusedId = this.shadowRoot.activeElement?.id;
@@ -16152,6 +16164,49 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
           if (caret != null && el.setSelectionRange) el.setSelectionRange(caret, caret);
         }
       }
+    }
+    /**
+     * A structural fingerprint of the status, ignoring the ticking duration.
+     * Lets the once-a-second heartbeat update the clock in place instead of
+     * replacing the whole view (and the buttons the agent is clicking).
+     */
+    _statusSignature(status) {
+      if (!status) return "";
+      const strip = (call) => {
+        if (!call) return null;
+        const { duration, ...rest } = call;
+        return rest;
+      };
+      return JSON.stringify({
+        connection: status.connection,
+        registration: status.registration,
+        registered: status.registered,
+        extension: status.extension,
+        auto_answer: status.auto_answer,
+        branding: status.branding,
+        mirrored: status.session?.mirrored,
+        transfer: status.transfer,
+        calls: (status.calls ?? []).map(strip),
+        active_call: strip(status.active_call)
+      });
+    }
+    /** Update just the call clock, without touching the controls. */
+    _updateTimers(calls) {
+      if (!this._root || !Array.isArray(calls)) return;
+      const incoming = calls.find((c) => c.direction === Direction.INBOUND && c.state === CallState.RINGING);
+      const active = calls.find((c) => c.state === CallState.ANSWERED || c.state === CallState.HELD) ?? calls.find((c) => c.state === CallState.DIALING || c.state === CallState.RINGING);
+      if (incoming || !active) return;
+      const duration = formatDuration(active.duration);
+      if (this.view === "dtmf") {
+        const label = this._root.querySelector(".call-card .label");
+        if (!label) return;
+        const current = label.textContent ?? "";
+        const next = current.replace(/( · )\d{2}:\d{2}(?::\d{2})?$/, `$1${duration}`);
+        if (next !== current) label.textContent = next;
+        return;
+      }
+      const timer = this._root.querySelector(".call-card .timer");
+      if (timer && timer.textContent !== duration) timer.textContent = duration;
     }
     _renderHeader(s) {
       const b = s.branding;

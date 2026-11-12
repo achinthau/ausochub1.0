@@ -13258,17 +13258,29 @@ var CallManager = class {
     if (!call.consultation) this.activeCallId = call.id;
     this._wireSession(call);
     this._setState(call, CallState.DIALING, PhoneEvents.DIALING);
+    let localRingback = false;
     await inviter.invite({
       requestDelegate: {
         onProgress: (response) => {
           const code = response?.message?.statusCode;
-          if (call.state === CallState.DIALING && (code === 180 || code === 183)) {
+          if (code !== 180 && code !== 183) return;
+          if (call.state === CallState.DIALING) {
             this._setState(call, CallState.RINGING, PhoneEvents.RINGING);
-            if (code === 180 && !call.consultation) {
-              try {
-                this.media.startRingback();
-              } catch (e) {
+          }
+          const attached = this.media.bindRemoteStream(call.peerConnection, {
+            onAttach: () => {
+              localRingback = false;
+              if (call.state === CallState.DIALING || call.state === CallState.RINGING) {
+                this.media.stopTone();
               }
+            }
+          });
+          if (attached) return;
+          if (!call.consultation && !localRingback) {
+            localRingback = true;
+            try {
+              this.media.startRingback();
+            } catch (e) {
             }
           }
         },
@@ -13844,6 +13856,7 @@ var MediaManager = class {
     this.enableTones = options.enableTones !== false;
     this.remoteAudio = null;
     this.ringtoneAudio = null;
+    this._pendingTrackListener = null;
     this.toneContext = null;
     this.activeTone = null;
     this.devices = { inputs: [], outputs: [] };
@@ -14069,25 +14082,68 @@ var MediaManager = class {
       }
     }
   }
-  /** Pull the remote track(s) off the peer connection into the audio element. */
-  bindRemoteStream(peerConnection) {
-    if (!this.remoteAudio || !peerConnection) return;
-    const stream = new MediaStream();
-    peerConnection.getReceivers().forEach((receiver) => {
-      if (receiver.track && receiver.track.kind === "audio") stream.addTrack(receiver.track);
-    });
-    if (!stream.getAudioTracks().length) {
-      log5.warn("no remote audio track yet");
-      return;
+  /**
+   * Pull the remote track(s) off the peer connection into the audio element.
+   *
+   * Returns true once an audio track is attached. The track is not always
+   * present the instant a provisional response is handled, so when there is
+   * nothing to attach yet we wait for the peer connection's `track` event and
+   * attach as soon as the early-media track arrives. That is what lets the
+   * agent hear the carrier's ringback *while* the far end is ringing instead of
+   * only after the call is answered.
+   *
+   * @param {RTCPeerConnection|null} peerConnection
+   * @param {{ onAttach?: () => void }} [options]
+   * @returns {boolean} true if audio is bound now
+   */
+  bindRemoteStream(peerConnection, { onAttach } = {}) {
+    if (!this.remoteAudio || !peerConnection) return false;
+    if ("currentRemoteDescription" in peerConnection && peerConnection.currentRemoteDescription === null) {
+      log5.debug("remote description not set yet \u2014 waiting for early media");
+      return false;
     }
-    this.remoteAudio.srcObject = stream;
-    const play = this.remoteAudio.play();
-    if (play?.catch) {
-      play.catch((err) => log5.warn("remote audio autoplay blocked", err));
+    this._clearPendingTrackListener();
+    const attach = () => {
+      if (!this.remoteAudio || !peerConnection) return false;
+      const stream = new MediaStream();
+      peerConnection.getReceivers().forEach((receiver) => {
+        if (receiver.track && receiver.track.kind === "audio") stream.addTrack(receiver.track);
+      });
+      if (!stream.getAudioTracks().length) return false;
+      const current = this.remoteAudio.srcObject;
+      const currentTracks = current instanceof MediaStream ? current.getAudioTracks() : [];
+      const nextTracks = stream.getAudioTracks();
+      const same = currentTracks.length === nextTracks.length && currentTracks.every((track) => nextTracks.includes(track));
+      if (!same) this.remoteAudio.srcObject = stream;
+      const play = this.remoteAudio.play();
+      if (play?.catch) {
+        play.catch((err) => log5.warn("remote audio autoplay blocked", err));
+      }
+      if (this.outputDeviceId) this.setOutputDevice(this.outputDeviceId);
+      onAttach?.();
+      return true;
+    };
+    if (attach()) return true;
+    if (typeof peerConnection.addEventListener === "function") {
+      const onTrack = (event) => {
+        if (event?.track?.kind !== "audio") return;
+        this._clearPendingTrackListener();
+        attach();
+      };
+      peerConnection.addEventListener("track", onTrack);
+      this._pendingTrackListener = { peerConnection, handler: onTrack };
     }
-    if (this.outputDeviceId) this.setOutputDevice(this.outputDeviceId);
+    log5.debug("no remote audio track yet \u2014 waiting for early media");
+    return false;
+  }
+  _clearPendingTrackListener() {
+    const pending = this._pendingTrackListener;
+    if (!pending) return;
+    this._pendingTrackListener = null;
+    pending.peerConnection?.removeEventListener?.("track", pending.handler);
   }
   unbindRemoteStream() {
+    this._clearPendingTrackListener();
     if (this.remoteAudio) this.remoteAudio.srcObject = null;
   }
   /**
@@ -14183,22 +14239,44 @@ var MediaManager = class {
     }
   }
   stopTone() {
-    if (!this.activeTone) return;
-    if (this.activeTone.ringtone) {
-      this.activeTone.ringtone.pause();
-      this.activeTone.ringtone.currentTime = 0;
-    } else {
-      const { oscillators, master, timer } = this.activeTone;
-      clearInterval(timer);
+    const tone = this.activeTone;
+    if (!tone) return;
+    this.activeTone = null;
+    if (tone.ringtone) {
       try {
-        master.gain.value = 0;
-        oscillators.forEach((o) => o.stop());
-        master.disconnect();
+        tone.ringtone.pause();
+        tone.ringtone.currentTime = 0;
       } catch (err) {
-        log5.debug("tone teardown", err);
+        log5.debug("ringtone teardown", err);
+      }
+      return;
+    }
+    const { oscillators = [], master, timer } = tone;
+    if (timer) clearInterval(timer);
+    try {
+      if (master?.gain) {
+        const now = this.toneContext?.currentTime ?? 0;
+        master.gain.cancelScheduledValues(now);
+        master.gain.setValueAtTime(0, now);
+      }
+    } catch (err) {
+      log5.debug("tone gain teardown", err);
+    }
+    for (const osc of oscillators) {
+      try {
+        osc.stop();
+      } catch (err) {
+      }
+      try {
+        osc.disconnect();
+      } catch (err) {
       }
     }
-    this.activeTone = null;
+    try {
+      master?.disconnect();
+    } catch (err) {
+      log5.debug("tone teardown", err);
+    }
   }
 };
 function pickDevice(d) {

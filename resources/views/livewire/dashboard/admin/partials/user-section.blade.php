@@ -21,9 +21,13 @@
                 // $inCall = true;
 
                 $statusUserId = optional($user->user)->id;
-                $extensionStatus = $statusUserId && in_array($statusUserId, $dialerUsers)
+                $isDialerUser = $statusUserId && in_array($statusUserId, $dialerUsers);
+                $extensionStatus = $isDialerUser
                     ? ($extensionStatuses[$statusUserId] ?? null)
                     : null;
+                $showStatusCall = $isDialerUser
+                    && $extensionStatus
+                    && $extensionStatus['status'] === 'ONCALL';
             @endphp
             <li
                 {{-- class="flex flex-row @if (!$user->current_active_queues_title) order-last grayscale @else @if ($user->user->on_break) order-2 @else order-first @endif @endif "> --}}
@@ -157,13 +161,6 @@
                         </div>
 
                         <button class="w-10 text-right flex justify-end">
-                            @if ($statusUserId && in_array($statusUserId, $dialerUsers) && $extensionStatus && $extensionStatus['status'] === 'ONCALL')
-                                @if ($extensionStatus['direction'] === 'INBOUND')
-                                    <svg width="20" height="20" class="text-green-700" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="none" viewBox="0 0 24 24"><path d="M15.793 6.793 13 4v7h7l-2.793-2.793 4.5-4.5-1.414-1.414z"></path><path d="M16.422 13.443a1.001 1.001 0 0 0-1.391.043l-2.392 2.461c-.576-.11-1.734-.471-2.926-1.66-1.192-1.193-1.553-2.354-1.66-2.926l2.459-2.394a1 1 0 0 0 .043-1.391L6.86 3.513a1 1 0 0 0-1.391-.087l-2.17 1.861a1.001 1.001 0 0 0-.291.649c-.015.25-.301 6.172 4.291 10.766C11.305 20.707 16.324 21 17.705 21c.203 0 .326-.006.359-.008a.99.99 0 0 0 .648-.291l1.861-2.171a1.001 1.001 0 0 0-.086-1.391l-4.065-3.696z"></path></svg>
-                                @elseif ($extensionStatus['direction'] === 'OUTBOUND')
-                                    <svg width="20" height="20" class="text-green-700" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="none" viewBox="0 0 24 24"><path d="m16.793 5.793-4.5 4.5 1.414 1.414 4.5-4.5L21 10V3h-7z"></path><path d="M16.422 13.446a1.001 1.001 0 0 0-1.391.043l-2.393 2.461c-.576-.11-1.734-.471-2.926-1.66-1.192-1.193-1.553-2.354-1.66-2.926l2.459-2.394a1 1 0 0 0 .043-1.391L6.859 3.516a1 1 0 0 0-1.391-.087L3.299 5.29a.996.996 0 0 0-.291.648c-.015.25-.301 6.172 4.291 10.766 4.006 4.006 9.024 4.299 10.406 4.299.202 0 .326-.006.359-.008a.992.992 0 0 0 .648-.291l1.86-2.171a1 1 0 0 0-.086-1.391l-4.064-3.696z"></path></svg>
-                                @endif
-                            @endif
                             {{-- <svg width="20" fill="currentColor" height="20"
                                 class="hover:text-gray-800 dark:hover:text-white dark:text-gray-200 text-gray-500"
                                 viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg">
@@ -222,7 +219,7 @@
                                     @endphp
 
 
-                                    @if ($inCall)
+                                    @if ($showStatusCall || (!$isDialerUser && $inCall))
 
                                      {{-- <script>
     const socket = io({
@@ -267,6 +264,13 @@
 
                                         <div x-data="{ open: false }">
 
+                                            @if ($showStatusCall)
+                                                @if ($extensionStatus['direction'] === 'INBOUND')
+                                                    <svg width="20" height="20" @click="open = !open" class="text-green-700 cursor-pointer" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="none" viewBox="0 0 24 24"><path d="M15.793 6.793 13 4v7h7l-2.793-2.793 4.5-4.5-1.414-1.414z"></path><path d="M16.422 13.443a1.001 1.001 0 0 0-1.391.043l-2.392 2.461c-.576-.11-1.734-.471-2.926-1.66-1.192-1.193-1.553-2.354-1.66-2.926l2.459-2.394a1 1 0 0 0 .043-1.391L6.86 3.513a1 1 0 0 0-1.391-.087l-2.17 1.861a1.001 1.001 0 0 0-.291.649c-.015.25-.301 6.172 4.291 10.766C11.305 20.707 16.324 21 17.705 21c.203 0 .326-.006.359-.008a.99.99 0 0 0 .648-.291l1.861-2.171a1.001 1.001 0 0 0-.086-1.391l-4.065-3.696z"></path></svg>
+                                                @elseif ($extensionStatus['direction'] === 'OUTBOUND')
+                                                    <svg width="20" height="20" @click="open = !open" class="text-green-700 cursor-pointer" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="none" viewBox="0 0 24 24"><path d="m16.793 5.793-4.5 4.5 1.414 1.414 4.5-4.5L21 10V3h-7z"></path><path d="M16.422 13.446a1.001 1.001 0 0 0-1.391.043l-2.393 2.461c-.576-.11-1.734-.471-2.926-1.66-1.192-1.193-1.553-2.354-1.66-2.926l2.459-2.394a1 1 0 0 0 .043-1.391L6.859 3.516a1 1 0 0 0-1.391-.087L3.299 5.29a.996.996 0 0 0-.291.648c-.015.25-.301 6.172 4.291 10.766 4.006 4.006 9.024 4.299 10.406 4.299.202 0 .326-.006.359-.008a.992.992 0 0 0 .648-.291l1.86-2.171a1 1 0 0 0-.086-1.391l-4.064-3.696z"></path></svg>
+                                                @endif
+                                            @else
                                             <svg width="20" height="20" @click="open = !open" id="call-svg"
                                                 class="
                                                  @can('is-admin')
@@ -282,6 +286,7 @@
                                                     d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.11-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z">
                                                 </path>
                                             </svg>
+                                            @endif
 
                                             <div x-show="open" x-cloak
                                                 class="flex flex-col items-center space-y-3 mt-4">

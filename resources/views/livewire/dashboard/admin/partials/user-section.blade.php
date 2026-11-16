@@ -19,6 +19,11 @@
                     }
                 }
                 // $inCall = true;
+
+                $statusUserId = optional($user->user)->id;
+                $extensionStatus = $statusUserId && in_array($statusUserId, $dialerUsers)
+                    ? ($extensionStatuses[$statusUserId] ?? null)
+                    : null;
             @endphp
             <li
                 {{-- class="flex flex-row @if (!$user->current_active_queues_title) order-last grayscale @else @if ($user->user->on_break) order-2 @else order-first @endif @endif "> --}}
@@ -127,9 +132,20 @@
 
                         </div>
 
+                        @if ($statusUserId && in_array($statusUserId, $dialerUsers) && $extensionStatus && $extensionStatus['status'] === 'RINGING')
+                            {{-- <span class="text-xs font-semibold text-green-600 animate-pulse">ringing...</span> --}}
+                            <span class="inline-flex items-center gap-1.5 text-xs font-semibold text-green-600">
+    <!-- Pulsing status dot -->
+    <span class="relative flex h-2 w-2">
+        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+        <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+    </span>
+    ringing...
+</span>
+                        @endif
 
                     </div>
-                    <div class="flex flex-row justify-center">
+                    <div class="flex flex-row justify-center items-center">
                         <div class="text-gray-600 dark:text-gray-200 text-xs">
                             {{-- @if (in_array(optional($user->user)->id, $dialerUsers)) --}}
                             {{ ($dialerCallCounts[$user->user->id ?? null] ?? 0) + ($user->todayQueues->count() ?? 0) }}
@@ -139,7 +155,15 @@
                             {{ $user->todayQueues->count() }}
                             @endif --}}
                         </div>
+
                         <button class="w-10 text-right flex justify-end">
+                            @if ($statusUserId && in_array($statusUserId, $dialerUsers) && $extensionStatus && $extensionStatus['status'] === 'ONCALL')
+                                @if ($extensionStatus['direction'] === 'INBOUND')
+                                    <svg width="20" height="20" class="text-green-700" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="none" viewBox="0 0 24 24"><path d="M15.793 6.793 13 4v7h7l-2.793-2.793 4.5-4.5-1.414-1.414z"></path><path d="M16.422 13.443a1.001 1.001 0 0 0-1.391.043l-2.392 2.461c-.576-.11-1.734-.471-2.926-1.66-1.192-1.193-1.553-2.354-1.66-2.926l2.459-2.394a1 1 0 0 0 .043-1.391L6.86 3.513a1 1 0 0 0-1.391-.087l-2.17 1.861a1.001 1.001 0 0 0-.291.649c-.015.25-.301 6.172 4.291 10.766C11.305 20.707 16.324 21 17.705 21c.203 0 .326-.006.359-.008a.99.99 0 0 0 .648-.291l1.861-2.171a1.001 1.001 0 0 0-.086-1.391l-4.065-3.696z"></path></svg>
+                                @elseif ($extensionStatus['direction'] === 'OUTBOUND')
+                                    <svg width="20" height="20" class="text-green-700" xmlns="http://www.w3.org/2000/svg" fill="currentColor" stroke="none" viewBox="0 0 24 24"><path d="m16.793 5.793-4.5 4.5 1.414 1.414 4.5-4.5L21 10V3h-7z"></path><path d="M16.422 13.446a1.001 1.001 0 0 0-1.391.043l-2.393 2.461c-.576-.11-1.734-.471-2.926-1.66-1.192-1.193-1.553-2.354-1.66-2.926l2.459-2.394a1 1 0 0 0 .043-1.391L6.859 3.516a1 1 0 0 0-1.391-.087L3.299 5.29a.996.996 0 0 0-.291.648c-.015.25-.301 6.172 4.291 10.766 4.006 4.006 9.024 4.299 10.406 4.299.202 0 .326-.006.359-.008a.992.992 0 0 0 .648-.291l1.86-2.171a1 1 0 0 0-.086-1.391l-4.064-3.696z"></path></svg>
+                                @endif
+                            @endif
                             {{-- <svg width="20" fill="currentColor" height="20"
                                 class="hover:text-gray-800 dark:hover:text-white dark:text-gray-200 text-gray-500"
                                 viewBox="0 0 1792 1792" xmlns="http://www.w3.org/2000/svg">

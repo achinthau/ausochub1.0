@@ -3,7 +3,6 @@
 namespace App\Http\Livewire\Leads;
 
 use App\Models\CallbackCustomer;
-use App\Models\CallCount;
 use App\Models\Campaign;
 use App\Models\CampaignAgentDialLimit;
 use App\Models\CxTicket;
@@ -14,6 +13,7 @@ use App\Models\Lead;
 use App\Models\QueueCount;
 use App\Models\Ticket;
 use App\Repositories\DialerNumberService;
+use App\Services\CallCountCommentService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -208,56 +208,15 @@ class Show extends Component
             $dnisCandidates = $this->dialerReactionCandidates();
 
             if (!empty($dnisCandidates)) {
-                $latestRecord = CallCount::whereIn('dnis', $dnisCandidates)
-                    ->where('direction', 'out')
-                    ->where('status', 1)
-                    ->orderByDesc('id')
-                    ->first();
-
-                if (!$latestRecord) {
-                    // Some outbound calls are stored as "disout" or with a
-                    // different status, so fall back to the latest record.
-                    $latestRecord = CallCount::whereIn('dnis', $dnisCandidates)
-                        ->whereIn('direction', ['out', 'disout'])
-                        ->orderByDesc('id')
-                        ->first();
-                }
-
-                if ($latestRecord) {
-                    $latestRecord->customer_reaction = $reaction;
-                    $latestRecord->comment = $this->comment;
-                    $latestRecord->save();
-
-                    // Keep report table in sync for dialer reports.
-                    DB::connection('mysql-old')
-                        ->table('au_callcount_report')
-                        ->where('uniqueid', $latestRecord->uniqueid)
-                        ->whereIn('direction', ['out', 'disout'])
-                        ->update([
-                            'customer_reaction' => $reaction,
-                            'comment' => $this->comment,
-                        ]);
-                } else {
-                    // Fallback when uniqueid linkage is missing: update the latest outbound report row by dialed number.
-                    $reportRow = DB::connection('mysql-old')
-                        ->table('au_callcount_report')
-                        ->select('id')
-                        ->whereIn('dnis', $dnisCandidates)
-                        ->where('direction', 'out')
-                        ->where('status', 1)
-                        ->orderByDesc('id')
-                        ->first();
-
-                    if ($reportRow) {
-                        DB::connection('mysql-old')
-                            ->table('au_callcount_report')
-                            ->where('id', $reportRow->id)
-                            ->update([
-                                'customer_reaction' => $reaction,
-                                'comment' => $this->comment,
-                            ]);
-                    }
-                }
+                // Find the call through the dialer's Redis link (`linkid`) and
+                // append the comment instead of overwriting the existing one.
+                app(CallCountCommentService::class)->appendOutboundComment(
+                    $this->comment,
+                    $this->currentDialerExtension(),
+                    $dnisCandidates,
+                    $reaction,
+                    Auth::id()
+                );
             }
         }
 
@@ -329,9 +288,17 @@ class Show extends Component
     {
         $phones = array_filter([
             $this->selectedContact,
+            $this->phone1,
+            $this->phone2,
             $this->lead->contact_number ?? null,
             $this->lead->contact_number_2 ?? null,
         ]);
+
+        // Include every phone number from the loaded feed contacts so a
+        // secondary contact number can also locate the linked call.
+        if (is_array($this->phone_numbers)) {
+            $phones = array_merge($phones, $this->phone_numbers);
+        }
 
         $candidates = [];
 
@@ -340,6 +307,20 @@ class Show extends Component
         }
 
         return array_values(array_unique($candidates));
+    }
+
+    /**
+     * Extension used by the dialer when it writes the `auso:call:*` link keys.
+     */
+    protected function currentDialerExtension(): ?string
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return null;
+        }
+
+        return $user->extension ?: optional($user->agent)->extension;
     }
 
     protected function resolveLeadForContact(FeedContactValid $contact): Lead

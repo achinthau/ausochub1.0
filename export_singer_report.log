@@ -1,0 +1,5 @@
+PHP Fatal error:  Uncaught PDOException: SQLSTATE[HY000] [2019] Unknown character set in /home/viraj/auso/ausochub1.0/export_singer_report.php:39
+Stack trace:
+#0 /home/viraj/auso/ausochub1.0/export_singer_report.php(39): PDO->__construct()
+#1 {main}
+  thrown in /home/viraj/auso/ausochub1.0/export_singer_report.php on line 39

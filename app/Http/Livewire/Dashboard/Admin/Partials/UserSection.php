@@ -10,6 +10,7 @@ use App\Repositories\ApiManager;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Livewire\Component;
+use Throwable;
 
 class UserSection extends Component
 {
@@ -37,6 +38,7 @@ class UserSection extends Component
         $inboundUsers = [];
         $dialerUsers = [];
         $dialerCallCounts = [];
+        $extensionStatuses = [];
 
         foreach ($users as $agent) {
             $userId = optional($agent->user)->id;
@@ -59,6 +61,13 @@ class UserSection extends Component
                     $inboundUsers[] = $userId;
                 } elseif ($callDirection == 'dialer') {
                     $dialerUsers[] = $userId;
+
+                    // Outbound agents publish their live status per extension.
+                    $status = $this->extensionStatus(optional($agent->user)->extension);
+
+                    if ($status !== null) {
+                        $extensionStatuses[$userId] = $status;
+                    }
                 }
             }
 
@@ -97,8 +106,52 @@ class UserSection extends Component
                 'inboundUsers' => $inboundUsers,
                 'dialerUsers' => $dialerUsers,
                 'raisedHands' => $raisedHands,
+                'extensionStatuses' => $extensionStatuses,
             ]
         );
+    }
+
+    /**
+     * Read the live call status the dialer publishes for an extension.
+     *
+     * The key is an unprefixed hash in Redis DB 9.
+     *
+     * @return array{status: string, direction: string}|null
+     */
+    protected function extensionStatus(?string $extension): ?array
+    {
+        $extension = trim((string) $extension);
+
+        if ($extension === '') {
+            return null;
+        }
+
+        try {
+            $values = Redis::connection('call_links')->hgetall("auso:extension:{$extension}");
+        } catch (Throwable $e) {
+            Log::warning('dashboard.extension_status.redis_lookup_failed', [
+                'extension' => $extension,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        if (!is_array($values) || $values === []) {
+            return null;
+        }
+
+        $status = strtoupper(trim((string) ($values['status'] ?? '')));
+
+        // "IDEL" means idle: no status indicator.
+        if ($status === '' || $status === 'IDEL') {
+            return null;
+        }
+
+        return [
+            'status' => $status,
+            'direction' => strtoupper(trim((string) ($values['direction'] ?? ''))),
+        ];
     }
 
 

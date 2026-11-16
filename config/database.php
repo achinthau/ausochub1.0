@@ -205,6 +205,18 @@ return [
             'port' => env('REDIS_PORT', '6379'),
             'database' => '2',
         ],
+        'call_links' => [
+            'url' => env('REDIS_URL'),
+            'host' => env('REDIS_HOST', '127.0.0.1'),
+            'username' => env('REDIS_USERNAME'),
+            'password' => env('REDIS_PASSWORD'),
+            'port' => env('REDIS_PORT', '6379'),
+            'database' => env('REDIS_CALL_LINK_DB', '9'),
+            // The dialer writes these keys directly, without a Laravel prefix.
+            'options' => [
+                'prefix' => '',
+            ],
+        ],
 
     ],
 

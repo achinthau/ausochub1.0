@@ -28,6 +28,13 @@
                 $showStatusCall = $isDialerUser
                     && $extensionStatus
                     && $extensionStatus['status'] === 'ONCALL';
+
+                // Admins/supervisors can open any agent's info; agents may only open their own.
+                $isOwnAgentProfile = $statusUserId && $statusUserId === optional(auth()->user())->id;
+                $canOpenAgentInfo = $statusUserId
+                    && auth()->check()
+                    && (auth()->user()->can('can-see-user-details')
+                        || (auth()->user()->can('is-agent') && $isOwnAgentProfile));
             @endphp
             <li
                 {{-- class="flex flex-row @if (!$user->current_active_queues_title) order-last grayscale @else @if ($user->user->on_break) order-2 @else order-first @endif @endif "> --}}
@@ -41,7 +48,7 @@
 
                             <svg class="mx-auto object-cover rounded-full h-10 w-10" xmlns="http://www.w3.org/2000/svg"
                                 xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" viewBox="0 0 256 256"
-                                xml:space="preserve" @can('can-see-user-details') onclick="Livewire.emitTo('dashboard.partials.agent-info', 'showAgentInfoModal', {{ $user->user->id ?? 'null' }})" @endcan> 
+                                xml:space="preserve" @if ($canOpenAgentInfo) onclick="Livewire.emitTo('dashboard.partials.agent-info', 'showAgentInfoModal', {{ $statusUserId }})" @endif> 
                                 {{-- xml:space="preserve" @if ($user->current_active_queues_title)  @can('can-see-user-details') onclick="Livewire.emitTo('dashboard.partials.agent-info', 'showAgentInfoModal', {{ $user->user->id ?? 'null' }})" @endcan @endif>  --}}
 
                                 {{-- cursor-pointer --}}

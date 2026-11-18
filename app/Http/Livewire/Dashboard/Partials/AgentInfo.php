@@ -29,19 +29,23 @@ class AgentInfo extends Component
 
     public function showAgentInfoModal($user)
     {
-        $this->userInfoModal = true;
-
         // If $user is an integer, retrieve the User model
-        $this->user = is_numeric($user) ? User::find($user) : $user;
+        $targetUser = is_numeric($user) ? User::find($user) : $user;
 
-        // dd($this->user->name);
+        // Normalize related models (e.g. Agent) to the User model.
+        if ($targetUser && ! ($targetUser instanceof User)) {
+            $targetUser = optional($targetUser->user)->id
+                ? User::find($targetUser->user->id)
+                : null;
+        }
 
-        if (!$this->user) {
-            // Handle case where user is not found
-            $this->skills = [];
-            $this->totalBreakTime = null;
+        // Agents may only view their own details; ignore requests for anyone else.
+        if (! $this->canViewAgentInfo($targetUser)) {
             return;
         }
+
+        $this->user = $targetUser;
+        $this->userInfoModal = true;
 
 
         // $this->skills = $this->user->skills ? $this->user->skills->skills : [];
@@ -130,6 +134,26 @@ class AgentInfo extends Component
             ->map(function ($item) {
                 return (object) $item;
             });
+    }
+
+    /**
+     * Determine whether the authenticated user may view the given user's details.
+     */
+    private function canViewAgentInfo(?User $targetUser): bool
+    {
+        $authUser = Auth::user();
+
+        if (! $authUser || ! $targetUser) {
+            return false;
+        }
+
+        // Admins, supervisors and client admins can view any agent's details.
+        if ($authUser->can('can-see-user-details')) {
+            return true;
+        }
+
+        // Everyone else (agents) can only view their own details.
+        return $authUser->id === $targetUser->id;
     }
 
     private function getCombinedSkills($agentSkills)

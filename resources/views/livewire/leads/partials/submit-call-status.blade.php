@@ -95,6 +95,29 @@
                     @error('paymentDate')
                         <span class="mt-1 text-red-500 text-sm font-medium">{{ $message }}</span>
                     @enderror
+
+                    @if($status == 'answered')
+                        <div class="mt-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Next Available At</label>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <input type="date" wire:model="promisedNextAvailableDate"
+                                        class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 transition duration-150 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                                    @error('promisedNextAvailableDate')
+                                        <span class="mt-1 text-red-500 text-sm font-medium">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                                <div>
+                                    <input type="time" wire:model="promisedNextAvailableTime"
+                                        class="w-full border border-gray-300 rounded-lg p-3 text-gray-800 transition duration-150 ease-in-out focus:border-blue-500 focus:ring focus:ring-blue-500 focus:ring-opacity-50">
+                                    @error('promisedNextAvailableTime')
+                                        <span class="mt-1 text-red-500 text-sm font-medium">{{ $message }}</span>
+                                    @enderror
+                                </div>
+                            </div>
+                            <p class="mt-1 text-xs text-gray-500">Set the callback date and time for this promise to pay.</p>
+                        </div>
+                    @endif
                 @endif
 
                 <label class="block text-sm font-medium text-gray-700 mb-2">Comment</label>

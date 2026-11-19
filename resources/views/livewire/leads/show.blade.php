@@ -365,7 +365,7 @@
 
                         </div>
 
-                        <h1 class="font-bold mb-2">Call later</h1>
+                        {{-- <h1 class="font-bold mb-2">Call later</h1>
 
                         <div class="mb-4">
                             <span>Set time:</span>
@@ -374,7 +374,7 @@
                                 <span
                                     class="inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-200 {{ $callBack ? 'translate-x-6' : 'translate-x-1' }}"></span>
                             </button>
-                        </div>
+                        </div> --}}
 
                         @if($callBack)
                             <div class="space-y-4">
@@ -1189,7 +1189,7 @@
                                                                     @elseif($isSkipped)
                                                                         <span
                                                                             class="ml-2 px-2 py-0.5 text-xs font-semibold text-white bg-orange-600 rounded-full">
-                                                                            Call Back
+                                                                            Answered Callback
                                                                         </span>
                                                                         @if(isset($notAnsweredCount) && $notAnsweredCount > 0)
                                                                         <span

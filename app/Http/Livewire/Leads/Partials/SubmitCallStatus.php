@@ -33,6 +33,8 @@ class SubmitCallStatus extends Component
     public $isFollowUp = false;
     public $nextAvailableDate;
     public $nextAvailableTime;
+    public $promisedNextAvailableDate;
+    public $promisedNextAvailableTime;
     public $selectedReason = null;
     public $selectedReasons = [];
 
@@ -119,6 +121,8 @@ if ($status === 'answered') {
         $this->promisedDate = null;
         $this->nextAvailableDate = null;
         $this->nextAvailableTime = null;
+        $this->promisedNextAvailableDate = null;
+        $this->promisedNextAvailableTime = null;
     }
 
     public function updatedSelectedReason($value)
@@ -138,6 +142,12 @@ if ($status === 'answered') {
             $this->nextAvailableDate = null;
             $this->nextAvailableTime = null;
         }
+
+        // The promised-to-pay callback schedule only applies to answered "Promised to pay".
+        if (($option['value'] ?? null) !== 'Promised to pay' || $this->status !== 'answered') {
+            $this->promisedNextAvailableDate = null;
+            $this->promisedNextAvailableTime = null;
+        }
     }
 
     public function removeReason($reason)
@@ -156,6 +166,9 @@ if ($status === 'answered') {
         'paymentDate.after_or_equal' => 'The payment date cannot be in the past.',
         'promisedDate.required' => 'The promised date must be a valid date.',
         'promisedDate.after_or_equal' => 'The promised date cannot be in the past.',
+        'promisedNextAvailableDate.required' => 'The promised next available date must be a valid date.',
+        'promisedNextAvailableDate.after_or_equal' => 'The promised next available date cannot be in the past.',
+        'promisedNextAvailableTime.required' => 'The promised next available time is required.',
         'selectedOption.required' => 'You must select a call status.',
     ];
 
@@ -301,6 +314,8 @@ if ($status === 'answered') {
         ]);
 
         $isNotAnsweredSatisfaction = $this->isSatisfaction && $this->status == 'not_answered';
+        $isAnsweredPromisedToPay = false;
+        $promisedNextAvailableAt = null;
 
         if ($isNotAnsweredSatisfaction) {
             if (empty($this->selectedReasons)) {
@@ -351,6 +366,11 @@ if ($status === 'answered') {
                 $this->promisedDate = $this->paymentDate;
                 // Append payment date to comment
                 $this->comment = $this->comment . ' Payment Date: ' . $this->paymentDate;
+
+                // Answered "Promised to pay" becomes a scheduled callback (status 3).
+                if ($this->status == 'answered') {
+                    $isAnsweredPromisedToPay = true;
+                }
             } else {
                 $this->validate([
                     'selectedOption' => 'required',
@@ -404,6 +424,10 @@ if ($status === 'answered') {
             $targetStatus = null; // Not answered - uses per-feed retry logic
         }
 
+        if ($isAnsweredPromisedToPay) {
+            $targetStatus = 3; // Scheduled callback - never archived to the report table.
+        }
+
         $this->dialerLog()->info('dialer.status.target_resolved', [
             'feed_contact_id' => $this->feed?->id,
             'target_status' => $targetStatus,
@@ -428,6 +452,20 @@ if ($status === 'answered') {
 
             if ($nextAvailableAt->isPast()) {
                 $this->addError('nextAvailableDate', 'The next available date and time must be in the future.');
+                return;
+            }
+        }
+
+        if ($isAnsweredPromisedToPay) {
+            $this->validate([
+                'promisedNextAvailableDate' => 'required|date|after_or_equal:today',
+                'promisedNextAvailableTime' => 'required',
+            ]);
+
+            $promisedNextAvailableAt = Carbon::parse(trim($this->promisedNextAvailableDate . ' ' . $this->promisedNextAvailableTime));
+
+            if ($promisedNextAvailableAt->isPast()) {
+                $this->addError('promisedNextAvailableDate', 'The promised next available date and time must be in the future.');
                 return;
             }
         }
@@ -483,6 +521,10 @@ if ($status === 'answered') {
                     $feed->markNotAnswered($nextAvailableAt);
                 }
 
+                if ($isAnsweredPromisedToPay) {
+                    $feed->next_available_at = $promisedNextAvailableAt;
+                }
+
                 $feed->call_status_option_id = $optionNameString;
                 $feed->call_status_option_type = $isChangeRequest ? 'change_request' : $optionTypeString;
                 $feed->appendComment($this->comment);
@@ -498,7 +540,9 @@ if ($status === 'answered') {
                     'attrs' => $feed->getAttributes(),
                 ]);
 
-                $this->copyCompletedToReport($feed);
+                if (!$isAnsweredPromisedToPay) {
+                    $this->copyCompletedToReport($feed);
+                }
             }
 
         } else {
@@ -507,6 +551,10 @@ if ($status === 'answered') {
                 $this->feed->status = $targetStatus;
             } else {
                 $this->feed->markNotAnswered($nextAvailableAt);
+            }
+
+            if ($isAnsweredPromisedToPay) {
+                $this->feed->next_available_at = $promisedNextAvailableAt;
             }
 
             $this->feed->call_status_option_id = $optionNameString;
@@ -518,7 +566,9 @@ if ($status === 'answered') {
             $this->feed->attempted_at = now();
             $this->saveFeedWithLogging($this->feed, 'submit_call_status.single');
 
-            $this->copyCompletedToReport($this->feed);
+            if (!$isAnsweredPromisedToPay) {
+                $this->copyCompletedToReport($this->feed);
+            }
         }
 
         if ($this->status == 'answered') {
@@ -527,7 +577,7 @@ if ($status === 'answered') {
 
         $this->emit('FeedCompleted');
         $this->CallStatusModal = false;
-        $this->reset(['nextAvailableDate', 'nextAvailableTime']);
+        $this->reset(['nextAvailableDate', 'nextAvailableTime', 'promisedNextAvailableDate', 'promisedNextAvailableTime']);
 
         $this->dialerLog()->info('dialer.status.submit_completed', [
             'feed_contact_id' => $this->feed?->id,

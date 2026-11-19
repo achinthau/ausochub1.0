@@ -314,6 +314,7 @@ if ($status === 'answered') {
         ]);
 
         $isNotAnsweredSatisfaction = $this->isSatisfaction && $this->status == 'not_answered';
+        $isPromisedToPayOption = false;
         $isAnsweredPromisedToPay = false;
         $promisedNextAvailableAt = null;
 
@@ -367,10 +368,7 @@ if ($status === 'answered') {
                 // Append payment date to comment
                 $this->comment = $this->comment . ' Payment Date: ' . $this->paymentDate;
 
-                // Answered "Promised to pay" becomes a scheduled callback (status 3).
-                if ($this->status == 'answered') {
-                    $isAnsweredPromisedToPay = true;
-                }
+                $isPromisedToPayOption = true;
             } else {
                 $this->validate([
                     'selectedOption' => 'required',
@@ -384,6 +382,25 @@ if ($status === 'answered') {
             if ($optionStatusString === null || $optionStatusString === '') {
                 $optionStatusString = DialerCallStatusOption::where('option', $option['value'])->value('status');
             }
+        }
+
+        // The promised callback schedule is optional. Only switch to status 3
+        // when a date/time was provided; otherwise keep the normal answered flow.
+        if ($this->status == 'answered' && $isPromisedToPayOption
+            && (!empty($this->promisedNextAvailableDate) || !empty($this->promisedNextAvailableTime))) {
+            $this->validate([
+                'promisedNextAvailableDate' => 'required|date|after_or_equal:today',
+                'promisedNextAvailableTime' => 'required',
+            ]);
+
+            $promisedNextAvailableAt = Carbon::parse(trim($this->promisedNextAvailableDate . ' ' . $this->promisedNextAvailableTime));
+
+            if ($promisedNextAvailableAt->isPast()) {
+                $this->addError('promisedNextAvailableDate', 'The promised next available date and time must be in the future.');
+                return;
+            }
+
+            $isAnsweredPromisedToPay = true;
         }
 
         $isChangeRequest = collect(explode(',', $optionNameString))
@@ -452,20 +469,6 @@ if ($status === 'answered') {
 
             if ($nextAvailableAt->isPast()) {
                 $this->addError('nextAvailableDate', 'The next available date and time must be in the future.');
-                return;
-            }
-        }
-
-        if ($isAnsweredPromisedToPay) {
-            $this->validate([
-                'promisedNextAvailableDate' => 'required|date|after_or_equal:today',
-                'promisedNextAvailableTime' => 'required',
-            ]);
-
-            $promisedNextAvailableAt = Carbon::parse(trim($this->promisedNextAvailableDate . ' ' . $this->promisedNextAvailableTime));
-
-            if ($promisedNextAvailableAt->isPast()) {
-                $this->addError('promisedNextAvailableDate', 'The promised next available date and time must be in the future.');
                 return;
             }
         }

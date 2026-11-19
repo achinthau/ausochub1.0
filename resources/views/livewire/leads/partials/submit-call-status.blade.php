@@ -115,7 +115,7 @@
                                     @enderror
                                 </div>
                             </div>
-                            <p class="mt-1 text-xs text-gray-500">Set the callback date and time for this promise to pay.</p>
+                            <p class="mt-1 text-xs text-gray-500">Optional. Set the callback date and time for this promise to pay.</p>
                         </div>
                     @endif
                 @endif

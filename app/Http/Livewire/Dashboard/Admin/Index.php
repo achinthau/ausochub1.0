@@ -2,8 +2,12 @@
 
 namespace App\Http\Livewire\Dashboard\Admin;
 
+use App\Models\Agent;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Redis;
 use Livewire\Component;
+use Throwable;
 
 class Index extends Component
 {
@@ -150,14 +154,82 @@ class Index extends Component
             ->groupBy('app')
             ->get();
 
-
+        // Ongoing calls are taken from the live dialer extension status (the
+        // same source that drives the RINGING indicator in the user section).
+        [$ongoingCount, $ongoingByQueue] = $this->getOngoingCallCounts();
 
         return view(
             'livewire.dashboard.admin.index',
             [
                 'queueWiseData' => $queueWiseData,
                 'dialerQueueWiseData' => $dialerQueueWiseData,
+                'ongoingCount' => $ongoingCount,
+                'ongoingByQueue' => $ongoingByQueue,
             ]
         );
+    }
+
+    /**
+     * Sum users currently reported as ONGOING by the dialer, both overall and
+     * grouped by their active queue.
+     *
+     * @return array{0: int, 1: array<string, int>}
+     */
+    protected function getOngoingCallCounts(): array
+    {
+        $total = 0;
+        $byQueue = [];
+
+        foreach (Agent::with(['currentActiveQueues', 'user'])->get() as $agent) {
+            $status = $this->extensionStatus(optional($agent->user)->extension);
+
+            if ($status === null || $status['status'] !== 'ONCALL') {
+                continue;
+            }
+
+            $total++;
+
+            foreach ($agent->currentActiveQueues as $queue) {
+                $byQueue[$queue->skill] = ($byQueue[$queue->skill] ?? 0) + 1;
+            }
+        }
+
+        return [$total, $byQueue];
+    }
+
+    /**
+     * Read the live call status the dialer publishes for an extension.
+     *
+     * The key is an unprefixed hash in Redis DB 9.
+     *
+     * @return array{status: string, direction: string}|null
+     */
+    protected function extensionStatus(?string $extension): ?array
+    {
+        $extension = trim((string) $extension);
+
+        if ($extension === '') {
+            return null;
+        }
+
+        try {
+            $values = Redis::connection('call_links')->hgetall("auso:extension:{$extension}");
+        } catch (Throwable $e) {
+            Log::warning('dashboard.ongoing_count.redis_lookup_failed', [
+                'extension' => $extension,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+
+        if (!is_array($values) || $values === []) {
+            return null;
+        }
+
+        return [
+            'status' => strtoupper(trim((string) ($values['status'] ?? ''))),
+            'direction' => strtoupper(trim((string) ($values['direction'] ?? ''))),
+        ];
     }
 }

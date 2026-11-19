@@ -23,15 +23,6 @@
                     <div class=" grid grid-cols-3 gap-4 ">
                         @php
                             $subText = '(In ' . $total_inbound_call_count . ' | Out ' . $total_outbound_call_count . ')';
-                            // $_on_going = Cache('current-call-count') ?? 0;
-
-                            use Illuminate\Support\Facades\Redis;
-                            $keys = Redis::connection()->client()->select(1);
-                            $keys = Redis::keys('agent_on_call-*');
-
-                            // Count them
-                            $_on_going = count($keys);
-
                         @endphp
 
                         <x-dashboard.box title="Calls" :value="$total_inbound_call_count + $total_outbound_call_count"
@@ -43,7 +34,7 @@
                             name='answered' iconColor="text-sky-400" />
                         <x-dashboard.box title="Abandoned" :value="$abandoned_queue_count" iconBackground="bg-red-100"
                             name='abandoned' iconColor="text-red-400" />
-                        <x-dashboard.box title="Ongoing" :value="$_on_going" iconBackground="bg-green-100"
+                        <x-dashboard.box title="Ongoing" :value="$ongoingCount" iconBackground="bg-green-100"
                             name='phone-answer' iconColor="text-green-400" />
                         <x-dashboard.box title="Wating" :value="$queue_wating_count" iconBackground="bg-orange-100"
                             name='waiting' iconColor="text-orange-400" />
@@ -80,22 +71,7 @@
                                 </div>
                                 <div class="flex">
                                     <div class="flex-1">Onging</div>
-                                    <div>
-                                        {{-- {{ $data->agent_conntected_count - $data->queue_wating_count < 0 ? 0 : $data->
-                                            agent_conntected_count - $data->queue_wating_count }} --}}
-                                            @php
-                                                // $queueOngoing = Cache::get($data->queuename . '-current-call-count') ?? 0;
-                                                
-                                                // use Illuminate\Support\Facades\Redis;
-
-                                                $keys = Redis::connection()->client()->select(1);
-                                                $keys = Redis::connection()->client()->keys("agent_on_call-*-{$data->queuename}-*");
-                                                $queueOngoing = count($keys);
-
-                                                
-                                            @endphp
-                                            {{$queueOngoing}}
-                                    </div>
+                                    <div>{{ $ongoingByQueue[$data->queuename] ?? 0 }}</div>
                                 </div>
                                 <div class="flex">
                                     <div class="flex-1">Waiting</div>

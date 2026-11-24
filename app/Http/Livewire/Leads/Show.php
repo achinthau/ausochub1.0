@@ -1840,18 +1840,13 @@ class Show extends Component
         /*
          * Two phones, two ways of placing the call, chosen by PHONE=webrtc.
          *
-         * 'webrtc' hands the number to the browser softphone, which sends the
-         * SIP INVITE itself and reports 'dialing' back to /api/call-dialed —
-         * so the call server must NOT be told to dial as well, or the customer
-         * gets two calls. 'other' keeps the existing click-to-dial through
-         * dial.php for the desk softphones.
+         * Both paths build the same dial context (including cmphotline).
+         * 'webrtc' hands it to the browser softphone, which sends the SIP
+         * INVITE itself with X-Auso-* headers and reports 'dialing' back to
+         * /api/call-dialed — so the call server must NOT be told to dial as
+         * well, or the customer gets two calls. 'other' keeps the existing
+         * click-to-dial through dial.php for the desk softphones.
          */
-        if (config('auso.phone') === 'webrtc') {
-            $this->dispatchBrowserEvent('auso-dial', ['number' => (string) $phone]);
-
-            return;
-        }
-
         $user = Auth::user()->load([
             'agent',
             'agent.extensionDetails',
@@ -1872,21 +1867,27 @@ class Show extends Component
 // ]);
 
 
-        $extension = Auth::user()->extension;
-        $tenant_context = Auth::user()->tenant_context;
-        $url = env('CALL_SERVER_API_URL') . '/dialscripts/dial.php';
-
-
-
-        $response = $response = Http::get($url, [
+        $params = [
             'type' => '2',
-            'exten' => $extension,
+            'exten' => Auth::user()->extension,
             'num' => $phone,
-            'tenant' => $tenant_context,
+            'tenant' => Auth::user()->tenant_context,
             'uid' => 22,
             'dialer' => $this->campaign,
             'cmphotline' => $campHotline,
-        ]);
+        ];
+
+        if (config('auso.phone') === 'webrtc') {
+            $this->dispatchBrowserEvent('auso-dial', [
+                'number' => (string) $phone,
+                'params' => $params,
+            ]);
+
+            return;
+        }
+
+        $url = env('CALL_SERVER_API_URL') . '/dialscripts/dial.php';
+        $response = Http::get($url, $params);
 
         if ($response->successful()) {
             $this->dispatchBrowserEvent('notify', ['message' => 'API call successful!']);

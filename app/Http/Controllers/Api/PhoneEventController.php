@@ -126,17 +126,29 @@ class PhoneEventController extends Controller
 
         switch ($event) {
             case 'dialing':
-                // Outbound call placed — same hook the call server fires.
+                // Outbound call placed — same hook the call server fires, plus
+                // the desk-phone dial.php context (tenant, campaign, hotline, ...).
                 if (! $cli || ! $extension) {
                     return;
                 }
+                // The phone embeds the context in the call payload; a caller may
+                // also send it flat, so accept both shapes.
+                $dialParams = is_array($payload['params'] ?? null)
+                    ? $payload['params']
+                    : (is_array($call['dial_params'] ?? null) ? $call['dial_params'] : []);
                 $this->post('/api/call-dialed', [
-                    'ani'       => $cli,
-                    'dnis'      => $cli,
-                    'agent'     => $extension,
-                    'unique_id' => $callId ?: 'wr-'.uniqid(),
-                    'queuename' => $queue,
-                    'type'      => 1,
+                    'ani'        => $cli,
+                    'dnis'       => $cli,
+                    'agent'      => $extension,
+                    'unique_id'  => $callId ?: 'wr-'.uniqid(),
+                    'queuename'  => $queue,
+                    'type'       => $dialParams['type'] ?? 1,
+                    'exten'      => $dialParams['exten'] ?? $extension,
+                    'num'        => $dialParams['num'] ?? $cli,
+                    'tenant'     => $dialParams['tenant'] ?? null,
+                    'uid'        => $dialParams['uid'] ?? null,
+                    'dialer'     => $dialParams['dialer'] ?? null,
+                    'cmphotline' => $dialParams['cmphotline'] ?? null,
                 ]);
                 break;
 

@@ -6255,12 +6255,12 @@ var AusoPhoneBundle = (() => {
     function parseHeader(message, data, headerStart, headerEnd) {
       const hcolonIndex = data.indexOf(":", headerStart);
       const headerName = data.substring(headerStart, hcolonIndex).trim();
-      const headerValue = data.substring(hcolonIndex + 1, headerEnd).trim();
+      const headerValue2 = data.substring(hcolonIndex + 1, headerEnd).trim();
       let parsed;
       switch (headerName.toLowerCase()) {
         case "via":
         case "v":
-          message.addHeader("via", headerValue);
+          message.addHeader("via", headerValue2);
           if (message.getHeaders("via").length === 1) {
             parsed = message.parseHeader("Via");
             if (parsed) {
@@ -6273,7 +6273,7 @@ var AusoPhoneBundle = (() => {
           break;
         case "from":
         case "f":
-          message.setHeader("from", headerValue);
+          message.setHeader("from", headerValue2);
           parsed = message.parseHeader("from");
           if (parsed) {
             message.from = parsed;
@@ -6282,7 +6282,7 @@ var AusoPhoneBundle = (() => {
           break;
         case "to":
         case "t":
-          message.setHeader("to", headerValue);
+          message.setHeader("to", headerValue2);
           parsed = message.parseHeader("to");
           if (parsed) {
             message.to = parsed;
@@ -6290,7 +6290,7 @@ var AusoPhoneBundle = (() => {
           }
           break;
         case "record-route":
-          parsed = Grammar.parse(headerValue, "Record_Route");
+          parsed = Grammar.parse(headerValue2, "Record_Route");
           if (parsed === -1) {
             parsed = void 0;
             break;
@@ -6300,21 +6300,21 @@ var AusoPhoneBundle = (() => {
             break;
           }
           parsed.forEach((header) => {
-            message.addHeader("record-route", headerValue.substring(header.position, header.offset));
+            message.addHeader("record-route", headerValue2.substring(header.position, header.offset));
             message.headers["Record-Route"][message.getHeaders("record-route").length - 1].parsed = header.parsed;
           });
           break;
         case "call-id":
         case "i":
-          message.setHeader("call-id", headerValue);
+          message.setHeader("call-id", headerValue2);
           parsed = message.parseHeader("call-id");
           if (parsed) {
-            message.callId = headerValue;
+            message.callId = headerValue2;
           }
           break;
         case "contact":
         case "m":
-          parsed = Grammar.parse(headerValue, "Contact");
+          parsed = Grammar.parse(headerValue2, "Contact");
           if (parsed === -1) {
             parsed = void 0;
             break;
@@ -6324,22 +6324,22 @@ var AusoPhoneBundle = (() => {
             break;
           }
           parsed.forEach((header) => {
-            message.addHeader("contact", headerValue.substring(header.position, header.offset));
+            message.addHeader("contact", headerValue2.substring(header.position, header.offset));
             message.headers.Contact[message.getHeaders("contact").length - 1].parsed = header.parsed;
           });
           break;
         case "content-length":
         case "l":
-          message.setHeader("content-length", headerValue);
+          message.setHeader("content-length", headerValue2);
           parsed = message.parseHeader("content-length");
           break;
         case "content-type":
         case "c":
-          message.setHeader("content-type", headerValue);
+          message.setHeader("content-type", headerValue2);
           parsed = message.parseHeader("content-type");
           break;
         case "cseq":
-          message.setHeader("cseq", headerValue);
+          message.setHeader("cseq", headerValue2);
           parsed = message.parseHeader("cseq");
           if (parsed) {
             message.cseq = parsed.value;
@@ -6349,27 +6349,27 @@ var AusoPhoneBundle = (() => {
           }
           break;
         case "max-forwards":
-          message.setHeader("max-forwards", headerValue);
+          message.setHeader("max-forwards", headerValue2);
           parsed = message.parseHeader("max-forwards");
           break;
         case "www-authenticate":
-          message.setHeader("www-authenticate", headerValue);
+          message.setHeader("www-authenticate", headerValue2);
           parsed = message.parseHeader("www-authenticate");
           break;
         case "proxy-authenticate":
-          message.setHeader("proxy-authenticate", headerValue);
+          message.setHeader("proxy-authenticate", headerValue2);
           parsed = message.parseHeader("proxy-authenticate");
           break;
         case "refer-to":
         case "r":
-          message.setHeader("refer-to", headerValue);
+          message.setHeader("refer-to", headerValue2);
           parsed = message.parseHeader("refer-to");
           if (parsed) {
             message.referTo = parsed;
           }
           break;
         default:
-          message.addHeader(headerName.toLowerCase(), headerValue);
+          message.addHeader(headerName.toLowerCase(), headerValue2);
           parsed = 0;
       }
       if (parsed === void 0) {
@@ -13137,13 +13137,15 @@ var AusoPhoneBundle = (() => {
      * @param {string} params.remoteIdentity  number/extension of the far end
      * @param {string} [params.remoteDisplayName]
      * @param {boolean} [params.consultation] true for the second leg of an attended transfer
+     * @param {Record<string,string|number|null|undefined>} [params.dialParams] CRM dial context
      */
-    constructor({ session, direction, remoteIdentity, remoteDisplayName, consultation = false }) {
+    constructor({ session, direction, remoteIdentity, remoteDisplayName, consultation = false, dialParams = {} }) {
       this.session = session;
       this.direction = direction;
       this.remoteIdentity = remoteIdentity;
       this.remoteDisplayName = remoteDisplayName || "";
       this.consultation = consultation;
+      this.dialParams = { ...dialParams };
       this.id = session?.request?.callId || session?.id || cryptoId();
       this.state = CallState.NEW;
       this.muted = false;
@@ -13187,7 +13189,8 @@ var AusoPhoneBundle = (() => {
         answered_at: this.answeredAt ? new Date(this.answeredAt).toISOString() : null,
         ended_at: this.endedAt ? new Date(this.endedAt).toISOString() : null,
         end_reason: this.endReason,
-        customer: this.customer
+        customer: this.customer,
+        ...Object.keys(this.dialParams).length ? { dial_params: this.dialParams } : {}
       };
     }
   };
@@ -13272,6 +13275,8 @@ var AusoPhoneBundle = (() => {
      * @param {object} [opts]
      * @param {boolean} [opts.consultation] second leg of an attended transfer
      * @param {Record<string,string>} [opts.extraHeaders] e.g. X-Campaign-Id
+     * @param {Record<string,string|number|null|undefined>} [opts.params] CRM dial context,
+     *   also sent as X-Auso-* SIP headers and included in every event payload
      */
     async call(userAgent, number, opts = {}) {
       if (this._isExtensionBusy({ addingConsultation: Boolean(opts.consultation) })) {
@@ -13279,34 +13284,52 @@ var AusoPhoneBundle = (() => {
       }
       const target = this._makeTarget(userAgent, number);
       if (!target) throw new Error(`Invalid dial target: ${number}`);
+      const dialParams = opts.params ?? {};
+      const extraHeaders = [
+        ...toExtraHeaders(opts.extraHeaders) ?? [],
+        ...toDialParamHeaders(dialParams)
+      ];
       const inviter = new Inviter(userAgent, target, {
         sessionDescriptionHandlerOptions: {
           constraints: this.media.getConstraints()
         },
-        extraHeaders: toExtraHeaders(opts.extraHeaders),
+        extraHeaders: extraHeaders.length ? extraHeaders : void 0,
         earlyMedia: true
       });
       const call = new Call({
         session: inviter,
         direction: Direction.OUTBOUND,
         remoteIdentity: number,
-        consultation: Boolean(opts.consultation)
+        consultation: Boolean(opts.consultation),
+        dialParams
       });
       this._track(call);
       if (!call.consultation) this.activeCallId = call.id;
       this._wireSession(call);
       this._setState(call, CallState.DIALING, PhoneEvents.DIALING);
+      let localRingback = false;
       await inviter.invite({
         requestDelegate: {
           onProgress: (response) => {
             const code = response?.message?.statusCode;
-            if (call.state === CallState.DIALING && (code === 180 || code === 183)) {
+            if (code !== 180 && code !== 183) return;
+            if (call.state === CallState.DIALING) {
               this._setState(call, CallState.RINGING, PhoneEvents.RINGING);
-              if (code === 180 && !call.consultation) {
-                try {
-                  this.media.startRingback();
-                } catch (e) {
+            }
+            const attached = this.media.bindRemoteStream(call.peerConnection, {
+              onAttach: () => {
+                localRingback = false;
+                if (call.state === CallState.DIALING || call.state === CallState.RINGING) {
+                  this.media.stopTone();
                 }
+              }
+            });
+            if (attached) return;
+            if (!call.consultation && !localRingback) {
+              localRingback = true;
+              try {
+                this.media.startRingback();
+              } catch (e) {
               }
             }
           },
@@ -13589,9 +13612,30 @@ Duration=${duration}`
       this.calls.clear();
     }
   };
+  var DIAL_PARAM_HEADERS = {
+    type: "X-Auso-Type",
+    exten: "X-Auso-Exten",
+    num: "X-Auso-Num",
+    tenant: "X-Auso-Tenant",
+    uid: "X-Auso-Uid",
+    dialer: "X-Auso-Dialer",
+    cmphotline: "X-Auso-Cmphotline"
+  };
   function toExtraHeaders(headers) {
     if (!headers) return void 0;
-    return Object.entries(headers).map(([k, v]) => `${k}: ${v}`);
+    return Object.entries(headers).map(([k, v]) => `${k}: ${headerValue(v)}`);
+  }
+  function toDialParamHeaders(params) {
+    const out = [];
+    for (const [key, header] of Object.entries(DIAL_PARAM_HEADERS)) {
+      const value = params?.[key];
+      if (value === null || value === void 0 || value === "") continue;
+      out.push(`${header}: ${headerValue(value)}`);
+    }
+    return out;
+  }
+  function headerValue(value) {
+    return String(value).replace(/[\r\n]+/g, " ");
   }
   function collectXHeaders(request) {
     const out = {};
@@ -13882,6 +13926,7 @@ Duration=${duration}`
       this.enableTones = options.enableTones !== false;
       this.remoteAudio = null;
       this.ringtoneAudio = null;
+      this._pendingTrackListener = null;
       this.toneContext = null;
       this.activeTone = null;
       this.devices = { inputs: [], outputs: [] };
@@ -14107,25 +14152,68 @@ Duration=${duration}`
         }
       }
     }
-    /** Pull the remote track(s) off the peer connection into the audio element. */
-    bindRemoteStream(peerConnection) {
-      if (!this.remoteAudio || !peerConnection) return;
-      const stream = new MediaStream();
-      peerConnection.getReceivers().forEach((receiver) => {
-        if (receiver.track && receiver.track.kind === "audio") stream.addTrack(receiver.track);
-      });
-      if (!stream.getAudioTracks().length) {
-        log5.warn("no remote audio track yet");
-        return;
+    /**
+     * Pull the remote track(s) off the peer connection into the audio element.
+     *
+     * Returns true once an audio track is attached. The track is not always
+     * present the instant a provisional response is handled, so when there is
+     * nothing to attach yet we wait for the peer connection's `track` event and
+     * attach as soon as the early-media track arrives. That is what lets the
+     * agent hear the carrier's ringback *while* the far end is ringing instead of
+     * only after the call is answered.
+     *
+     * @param {RTCPeerConnection|null} peerConnection
+     * @param {{ onAttach?: () => void }} [options]
+     * @returns {boolean} true if audio is bound now
+     */
+    bindRemoteStream(peerConnection, { onAttach } = {}) {
+      if (!this.remoteAudio || !peerConnection) return false;
+      if ("currentRemoteDescription" in peerConnection && peerConnection.currentRemoteDescription === null) {
+        log5.debug("remote description not set yet \u2014 waiting for early media");
+        return false;
       }
-      this.remoteAudio.srcObject = stream;
-      const play = this.remoteAudio.play();
-      if (play?.catch) {
-        play.catch((err) => log5.warn("remote audio autoplay blocked", err));
+      this._clearPendingTrackListener();
+      const attach = () => {
+        if (!this.remoteAudio || !peerConnection) return false;
+        const stream = new MediaStream();
+        peerConnection.getReceivers().forEach((receiver) => {
+          if (receiver.track && receiver.track.kind === "audio") stream.addTrack(receiver.track);
+        });
+        if (!stream.getAudioTracks().length) return false;
+        const current = this.remoteAudio.srcObject;
+        const currentTracks = current instanceof MediaStream ? current.getAudioTracks() : [];
+        const nextTracks = stream.getAudioTracks();
+        const same = currentTracks.length === nextTracks.length && currentTracks.every((track) => nextTracks.includes(track));
+        if (!same) this.remoteAudio.srcObject = stream;
+        const play = this.remoteAudio.play();
+        if (play?.catch) {
+          play.catch((err) => log5.warn("remote audio autoplay blocked", err));
+        }
+        if (this.outputDeviceId) this.setOutputDevice(this.outputDeviceId);
+        onAttach?.();
+        return true;
+      };
+      if (attach()) return true;
+      if (typeof peerConnection.addEventListener === "function") {
+        const onTrack = (event) => {
+          if (event?.track?.kind !== "audio") return;
+          this._clearPendingTrackListener();
+          attach();
+        };
+        peerConnection.addEventListener("track", onTrack);
+        this._pendingTrackListener = { peerConnection, handler: onTrack };
       }
-      if (this.outputDeviceId) this.setOutputDevice(this.outputDeviceId);
+      log5.debug("no remote audio track yet \u2014 waiting for early media");
+      return false;
+    }
+    _clearPendingTrackListener() {
+      const pending = this._pendingTrackListener;
+      if (!pending) return;
+      this._pendingTrackListener = null;
+      pending.peerConnection?.removeEventListener?.("track", pending.handler);
     }
     unbindRemoteStream() {
+      this._clearPendingTrackListener();
       if (this.remoteAudio) this.remoteAudio.srcObject = null;
     }
     /**
@@ -14221,22 +14309,44 @@ Duration=${duration}`
       }
     }
     stopTone() {
-      if (!this.activeTone) return;
-      if (this.activeTone.ringtone) {
-        this.activeTone.ringtone.pause();
-        this.activeTone.ringtone.currentTime = 0;
-      } else {
-        const { oscillators, master, timer } = this.activeTone;
-        clearInterval(timer);
+      const tone = this.activeTone;
+      if (!tone) return;
+      this.activeTone = null;
+      if (tone.ringtone) {
         try {
-          master.gain.value = 0;
-          oscillators.forEach((o) => o.stop());
-          master.disconnect();
+          tone.ringtone.pause();
+          tone.ringtone.currentTime = 0;
         } catch (err) {
-          log5.debug("tone teardown", err);
+          log5.debug("ringtone teardown", err);
+        }
+        return;
+      }
+      const { oscillators = [], master, timer } = tone;
+      if (timer) clearInterval(timer);
+      try {
+        if (master?.gain) {
+          const now = this.toneContext?.currentTime ?? 0;
+          master.gain.cancelScheduledValues(now);
+          master.gain.setValueAtTime(0, now);
+        }
+      } catch (err) {
+        log5.debug("tone gain teardown", err);
+      }
+      for (const osc of oscillators) {
+        try {
+          osc.stop();
+        } catch (err) {
+        }
+        try {
+          osc.disconnect();
+        } catch (err) {
         }
       }
-      this.activeTone = null;
+      try {
+        master?.disconnect();
+      } catch (err) {
+        log5.debug("tone teardown", err);
+      }
     }
   };
   function pickDevice(d) {
@@ -14862,7 +14972,7 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
     branding: {
       logo: null,
       company_name: "Auso Call Hub",
-      primary_color: "#0f766e",
+      primary_color: "#192d95",
       show_powered_by: true,
       theme: "default"
     },
@@ -15236,7 +15346,10 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
       return data;
     }
     // ---- Commands (spec §4 / §12) -----------------------------------------
-    /** `AusoPhone.call("0772615908")` */
+    /**
+     * `AusoPhone.call("0772615908")`
+     * @param {object} [opts] e.g. `{ params: { dialer, cmphotline, ... } }`
+     */
     call(number, opts) {
       return this._relay("call", [number, opts]) ?? this._callLocal(number, opts);
     }
@@ -15564,7 +15677,7 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
   // ui/styles.js
   var styles = `
 :host {
-  --auso-primary: #0f766e;
+  --auso-primary: #192d95;
   --auso-primary-ink: #ffffff;
   --auso-bg: #ffffff;
   --auso-surface: #f8fafc;
@@ -15617,10 +15730,8 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
   background: var(--auso-primary);
   color: var(--auso-primary-ink);
 }
-.header img { height: 20px; width: auto; max-width: 80px; object-fit: contain; border-radius: 4px; }
-.header .brand { font-weight: 650; font-size: 12px; letter-spacing: .01em; flex: 1; min-width: 0;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .header .ext { font-size: 10.5px; opacity: .85; font-variant-numeric: tabular-nums; }
+.header .spacer { flex: 1; }
 .icon-btn {
   appearance: none; border: 0; background: transparent; color: inherit; cursor: pointer;
   padding: 6px; border-radius: 8px; display: grid; place-items: center; line-height: 0;
@@ -15628,27 +15739,13 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
 .icon-btn:hover { background: rgba(255,255,255,.18); }
 .icon-btn svg { width: 18px; height: 18px; }
 
-/* ---- Status strip ---- */
-.status {
-  display: flex; align-items: center; gap: 5px;
-  padding: 5px 10px; font-size: 10.5px;
-  background: var(--auso-surface);
-  border-bottom: 1px solid var(--auso-border);
-  color: var(--auso-muted);
-}
-.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--auso-muted); flex: none; }
-.dot.registered { background: var(--auso-success); box-shadow: 0 0 0 3px color-mix(in srgb, var(--auso-success) 22%, transparent); }
-.dot.connecting { background: var(--auso-warn); animation: pulse 1.2s ease-in-out infinite; }
-.dot.failed { background: var(--auso-danger); }
+/* ---- Registration indicator ---- */
+.status-icon { display: grid; place-items: center; flex: none; line-height: 0; color: var(--auso-muted); }
+.status-icon svg { width: 14px; height: 14px; }
+.status-icon.registered { color: var(--auso-success); }
+.status-icon.connecting { color: var(--auso-warn); animation: pulse 1.2s ease-in-out infinite; }
+.status-icon.failed { color: var(--auso-danger); }
 @keyframes pulse { 50% { opacity: .3; } }
-.status .spacer { flex: 1; }
-.pill {
-  font-size: 10.5px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase;
-  padding: 2px 7px; border-radius: 999px;
-  background: color-mix(in srgb, var(--auso-primary) 12%, transparent);
-  color: var(--auso-primary);
-}
-:host([theme="dark"]) .pill { color: #5eead4; }
 
 /* ---- Body ---- */
 .body { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
@@ -15796,6 +15893,8 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
     user: svg('<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>'),
     keypad: svg('<circle cx="6" cy="6" r="1.4"/><circle cx="12" cy="6" r="1.4"/><circle cx="18" cy="6" r="1.4"/><circle cx="6" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="18" cy="12" r="1.4"/><circle cx="6" cy="18" r="1.4"/><circle cx="12" cy="18" r="1.4"/><circle cx="18" cy="18" r="1.4"/>'),
     swap: svg('<path d="M7 4 3 8l4 4M3 8h13M17 20l4-4-4-4M21 16H8"/>'),
+    reconnect: svg('<path d="M20 20v-5h-5M4 4v5h5m10.938 2A8.001 8.001 0 005.07 8m-1.008 5a8.001 8.001 0 0014.868 3"/>', { w: 2 }),
+    status: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="m0 12c0-6.627 5.373-12 12-12s12 5.373 12 12-5.373 12-12 12c-6.624-.008-11.992-5.376-12-11.999zm2.4 0c0 5.302 4.298 9.6 9.6 9.6s9.6-4.298 9.6-9.6-4.298-9.6-9.6-9.6c-5.299.006-9.594 4.301-9.6 9.599v.001zm4 0c0-3.093 2.507-5.6 5.6-5.6s5.6 2.507 5.6 5.6-2.507 5.6-5.6 5.6c-3.093 0-5.6-2.507-5.6-5.6z"/></svg>',
     check: svg('<path d="M20 6 9 17l-5-5"/>', { w: 2.4 }),
     x: svg('<path d="M18 6 6 18M6 6l12 12"/>', { w: 2.2 })
   };
@@ -15833,6 +15932,7 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
       this.sipPassword = "";
       this._unsubscribers = [];
       this._rendered = false;
+      this._lastStatusSignature = null;
     }
     connectedCallback() {
       if (!this._rendered) {
@@ -16003,7 +16103,6 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
         PhoneEvents.UNHOLD,
         PhoneEvents.MUTE,
         PhoneEvents.UNMUTE,
-        PhoneEvents.CALL_UPDATED,
         PhoneEvents.TRANSFER_STARTED,
         PhoneEvents.TRANSFER_COMPLETED,
         PhoneEvents.TRANSFER_FAILED,
@@ -16023,7 +16122,18 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
           this._unsubscribers.push(this.phone.on(e, rerender));
         }
       });
-      this._unsubscribers.push(this.phone.on(PhoneEvents.SESSION_STATE, rerender));
+      this._unsubscribers.push(this.phone.on(PhoneEvents.CALL_UPDATED, (payload) => {
+        if (payload?.calls) this._updateTimers(payload.calls);
+        else this.render();
+      }));
+      this._unsubscribers.push(this.phone.on(PhoneEvents.SESSION_STATE, () => {
+        const status = this.phone.status();
+        if (this._statusSignature(status) === this._lastStatusSignature) {
+          this._updateTimers(status?.calls);
+          return;
+        }
+        this.render();
+      }));
       this._unsubscribers.push(this.phone.on(PhoneEvents.SESSION_ROLE, rerender));
       this._unsubscribers.push(
         this.phone.on(PhoneEvents.ERROR, ({ message, fatal }) => {
@@ -16049,13 +16159,13 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
     render() {
       if (!this._root) return;
       const s = this.phone.status();
+      this._lastStatusSignature = this._statusSignature(s);
       const incoming = s.calls.find((c) => c.direction === Direction.INBOUND && c.state === CallState.RINGING);
       const active = s.calls.find((c) => c.state === CallState.ANSWERED || c.state === CallState.HELD) ?? s.calls.find((c) => c.state === CallState.DIALING || c.state === CallState.RINGING);
       const focusedId = this.shadowRoot.activeElement?.id;
       const caret = this.shadowRoot.activeElement?.selectionStart;
       this._root.innerHTML = [
         this._renderHeader(s),
-        this._renderStatus(s),
         '<div class="body">',
         this.errorMessage ? `<div class="error">${esc(this.errorMessage)}</div>` : "",
         incoming ? this._renderIncoming(incoming) : "",
@@ -16064,7 +16174,7 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
         this.view === "transfer" ? this._renderTransferDialog(s) : "",
         this.view === "settings" ? this._renderSettings(s) : "",
         "</div>",
-        s.branding.show_powered_by ? '<div class="footer">Powered by AusoPhone</div>' : ""
+        s.branding.show_powered_by ? '<div class="footer">Powered by AusoWorld</div>' : ""
       ].join("");
       this._bindEvents();
       if (focusedId) {
@@ -16075,30 +16185,63 @@ registerProcessor('auso-noise-gate', AusoNoiseGate);
         }
       }
     }
+    /**
+     * A structural fingerprint of the status, ignoring the ticking duration.
+     * Lets the once-a-second heartbeat update the clock in place instead of
+     * replacing the whole view (and the buttons the agent is clicking).
+     */
+    _statusSignature(status) {
+      if (!status) return "";
+      const strip = (call) => {
+        if (!call) return null;
+        const { duration, ...rest } = call;
+        return rest;
+      };
+      return JSON.stringify({
+        connection: status.connection,
+        registration: status.registration,
+        registered: status.registered,
+        extension: status.extension,
+        auto_answer: status.auto_answer,
+        branding: status.branding,
+        mirrored: status.session?.mirrored,
+        transfer: status.transfer,
+        calls: (status.calls ?? []).map(strip),
+        active_call: strip(status.active_call)
+      });
+    }
+    /** Update just the call clock, without touching the controls. */
+    _updateTimers(calls) {
+      if (!this._root || !Array.isArray(calls)) return;
+      const incoming = calls.find((c) => c.direction === Direction.INBOUND && c.state === CallState.RINGING);
+      const active = calls.find((c) => c.state === CallState.ANSWERED || c.state === CallState.HELD) ?? calls.find((c) => c.state === CallState.DIALING || c.state === CallState.RINGING);
+      if (incoming || !active) return;
+      const duration = formatDuration(active.duration);
+      if (this.view === "dtmf") {
+        const label = this._root.querySelector(".call-card .label");
+        if (!label) return;
+        const current = label.textContent ?? "";
+        const next = current.replace(/( · )\d{2}:\d{2}(?::\d{2})?$/, `$1${duration}`);
+        if (next !== current) label.textContent = next;
+        return;
+      }
+      const timer = this._root.querySelector(".call-card .timer");
+      if (timer && timer.textContent !== duration) timer.textContent = duration;
+    }
     _renderHeader(s) {
-      const b = s.branding;
+      const dotClass = {
+        [RegistrationState.REGISTERED]: "registered",
+        [RegistrationState.REGISTERING]: "connecting",
+        [RegistrationState.FAILED]: "failed"
+      }[s.registration] ?? "";
+      const mirroring = s.session?.mirrored;
+      const dotLabel = mirroring ? "Mirroring another tab" : s.registered ? "Registered" : "Not registered";
       return `<div class="header">
-      ${b.logo ? `<img src="${esc(b.logo)}" alt="${esc(b.company_name)}">` : ""}
-      <div class="brand">${esc(b.company_name)}</div>
+      <span class="status-icon ${dotClass}" title="${esc(dotLabel)}" role="img" aria-label="${esc(dotLabel)}">${icons.status}</span>
+      ${!s.registered ? `<button class="icon-btn" data-action="login" title="Connect" aria-label="Connect">${icons.reconnect}</button>` : ""}
+      <span class="spacer"></span>
       ${s.extension ? `<span class="ext">Ext ${esc(s.extension)}</span>` : ""}
       <button class="icon-btn" data-action="toggle-settings" title="Settings" aria-label="Settings">${icons.settings}</button>
-    </div>`;
-    }
-    _renderStatus(s) {
-      const map = {
-        [RegistrationState.REGISTERED]: ["registered", "Registered"],
-        [RegistrationState.REGISTERING]: ["connecting", "Registering\u2026"],
-        [RegistrationState.FAILED]: ["failed", "Registration failed"],
-        [RegistrationState.UNREGISTERED]: ["", s.connection === "connected" ? "Connected" : "Offline"]
-      };
-      const [cls, text] = map[s.registration] ?? ["", "Offline"];
-      const mirroring = s.session?.mirrored;
-      return `<div class="status">
-      <span class="dot ${cls}"></span><span>${esc(mirroring ? "Mirroring another tab" : text)}</span>
-      <span class="spacer"></span>
-      ${mirroring ? '<span class="pill" title="This tab follows the tab holding the call. Its microphone is not in use.">Following</span>' : ""}
-      ${s.auto_answer ? '<span class="pill">Auto answer</span>' : ""}
-      ${!s.registered ? '<button class="icon-btn" data-action="login" title="Connect" style="color:var(--auso-muted)">' + icons.phone + "</button>" : ""}
     </div>`;
     }
     /** IncomingCall view — spec §5 screen-pop lives here. */

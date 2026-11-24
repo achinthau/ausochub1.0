@@ -434,11 +434,16 @@
             return;
         }
 
+        // Same context the desk-phone dial.php path sends. The softphone puts
+        // these on the SIP INVITE as X-Auso-* headers and includes them in the
+        // dialing event; it does NOT ask the call server to dial a second leg.
+        var params = (ev.detail && ev.detail.params) || {};
+
         // The call has to be hangup-able, so the softphone cannot stay hidden.
         if (typeof window.openAusophone === 'function') window.openAusophone();
 
         try {
-            Promise.resolve(phone.call(number)).catch(function (e) {
+            Promise.resolve(phone.call(number, { params: params })).catch(function (e) {
                 notify((e && e.message) || 'Could not place the call.', 'error');
             });
         } catch (e) {

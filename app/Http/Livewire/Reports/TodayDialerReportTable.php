@@ -435,6 +435,34 @@ class TodayDialerReportTable extends DataTableComponent
         'exportSelected' => 'Export',
     ];
 
+    /**
+     * Read a value from the record's data JSON, tolerating key casing variants
+     * such as SHOP_NAME / shop_name.
+     */
+    protected function dataValue($record, array $keys): string
+    {
+        $data = json_decode((string) $record->data, true) ?: [];
+
+        $normalize = fn ($key) => strtolower(str_replace(['_', ' ', '-'], '', (string) $key));
+
+        $values = [];
+        foreach ($data as $key => $value) {
+            $values[$normalize($key)] = $value;
+        }
+
+        foreach ($keys as $key) {
+            $normalizedKey = $normalize($key);
+            if (array_key_exists($normalizedKey, $values) && is_scalar($values[$normalizedKey])) {
+                $value = trim((string) $values[$normalizedKey], '"');
+                if ($value !== '') {
+                    return $value;
+                }
+            }
+        }
+
+        return 'N/A';
+    }
+
     public function exportSelected()
     {
         $selectedKeys = $this->getSelected();
@@ -484,6 +512,7 @@ class TodayDialerReportTable extends DataTableComponent
             'Rate',
             'Customer Name',
             'Service Center',
+            'Shop Name',
             'Comments',
             'Promised Date',
             'Campaign',
@@ -502,8 +531,9 @@ class TodayDialerReportTable extends DataTableComponent
                 $record->call_status_option_id ?: 'N/A',
                 $this->statusLabel($record->status) ?: 'N/A',
                 $record->rate ?? 'N/A',
-                data_get(json_decode((string) $record->data, true) ?: [], 'customer_name') ?? 'N/A',
-                data_get(json_decode((string) $record->data, true) ?: [], 'service_center') ?? 'N/A',
+                $this->dataValue($record, ['customer_name']),
+                $this->dataValue($record, ['service_center']),
+                $this->dataValue($record, ['shop_name']),
                 $record->comments ?? 'N/A',
                 $record->promised_date ? Carbon::parse($record->promised_date)->toDateString() : 'N/A',
                 optional($record->campaign)->name ?? 'N/A',
